@@ -26,12 +26,6 @@ function w0(s: string) {
   fs.writeFileSync("../Api.ts", s, { flag: "a+" });
 }
 
-const commentizeMultiline = (s: string, prefix: string = " ") =>
-  s
-    .split("\n")
-    .map((line) => prefix + "* " + line)
-    .join("\n");
-
 /// {project_name} -> ${projectName}. if no brackets, leave it alone
 const segmentToInterpolation = (s: string) =>
   s.startsWith("{") ? `\$\{${snakeToCamel(s.slice(1, -1))}\}` : s;
@@ -41,10 +35,14 @@ const pathToTemplateStr = (s: string) =>
 
 const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
 
-function docComment(description: string) {
-  w("/**");
-  w(commentizeMultiline(description));
-  w(" */");
+function docCommentIfDescription(schema: Schema) {
+  if ("description" in schema && schema.description) {
+    w("/**");
+    for (const line of schema.description.split("\n")) {
+      w("* " + line);
+    }
+    w(" */");
+  }
 }
 
 type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
@@ -80,19 +78,18 @@ function schemaToType(schema: Schema, propsInline = false) {
     w0("{ " + suffix);
     for (const propName in schema.properties) {
       const prop = schema.properties[propName];
-      if ("description" in prop && prop.description) {
-        docComment(prop.description);
-      }
-      w0(propName);
-
       const nullable =
         ("nullable" in prop && prop.nullable) ||
         !schema.required ||
         !schema.required.includes(propName);
+
+      docCommentIfDescription(prop);
+
+      w0(propName);
       if (nullable) w0("?");
       w0(": ");
       schemaToType(prop);
-      if (nullable) w0("| null");
+      if (nullable) w0(" | null");
       w0(", " + suffix);
     }
     w(" }");
@@ -119,7 +116,6 @@ async function generateClient() {
   const spec = (await SwaggerParser.parse(
     "../spec.json",
   )) as OpenAPIV3.Document;
-  // console.log(spec);
 
   if (!spec.components) return;
 
@@ -133,9 +129,7 @@ async function generateClient() {
       continue;
     }
 
-    if (schema.description) {
-      docComment(schema.description);
-    }
+    docCommentIfDescription(schema);
 
     if (schema.type === "object") {
       w0(`export interface ${schemaName} `);
@@ -167,20 +161,16 @@ async function generateClient() {
 
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
-      // console.log(path, opName, method);
       w(`export interface ${opName}Params {`);
       for (const param of params || []) {
-        // console.log(param);
-        // TODO: call objectSchema probably
         if ("name" in param) {
           if (param.schema) {
-            if ("description" in param.schema && param.schema.description) {
-              docComment(param.schema.description);
-            }
-            w0(`  ${snakeToCamel(param.name)}`);
             const isQuery = param.in === "query";
             const nullable =
               "nullable" in param.schema && param.schema.nullable;
+
+            docCommentIfDescription(param.schema);
+            w0(`  ${snakeToCamel(param.name)}`);
             if (nullable || isQuery) w0("?");
             w0(": ");
             schemaToType(param.schema);
@@ -220,16 +210,17 @@ async function generateClient() {
       const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
 
       const successResponse =
-        conf.responses["200"] || conf.responses["201"] || conf.responses["202"];
+        conf.responses["200"] ||
+        conf.responses["201"] ||
+        conf.responses["202"] ||
+        conf.responses["204"];
 
       const successTypeRef = contentRef(successResponse);
       const successType = successTypeRef
         ? refToSchemaName(successTypeRef)
         : "void";
 
-      if (conf.description) {
-        docComment(conf.description);
-      }
+      docCommentIfDescription(conf);
 
       w(`${methodName}: (`);
       if (pathParams.length > 0) {
