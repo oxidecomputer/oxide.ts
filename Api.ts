@@ -1710,17 +1710,12 @@ export interface UsersGetUserParams {
 }
 
 export type QueryParamsType = Record<string | number, any>;
-export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
 export interface FullRequestParams extends Omit<RequestInit, "body"> {
   /** request path */
   path: string;
-  /** content type of request body */
-  type?: ContentType;
   /** query params */
   query?: QueryParamsType;
-  /** format of response (i.e. response.json() -> format: "json") */
-  format?: ResponseFormat;
   /** request body */
   body?: unknown;
   /** base url */
@@ -1747,12 +1742,6 @@ export interface HttpResponse<D extends unknown, E extends unknown = unknown>
 }
 
 type CancelToken = Symbol | string | number;
-
-export enum ContentType {
-  Json = "application/json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
-}
 
 export class HttpClient {
   public baseUrl: string = "";
@@ -1845,16 +1834,13 @@ export class HttpClient {
   public request = async <T = any, E = any>({
     body,
     path,
-    type,
     query,
-    format,
     baseUrl,
     cancelToken,
     ...params
   }: FullRequestParams): Promise<HttpResponse<T, E>> => {
     const requestParams = this.mergeRequestParams(params);
     const queryString = query && this.toQueryString(query);
-    const responseFormat = format || requestParams.format;
 
     return this.customFetch(
       `${baseUrl || this.baseUrl || ""}${path}${
@@ -1863,9 +1849,7 @@ export class HttpClient {
       {
         ...requestParams,
         headers: {
-          ...(type && type !== ContentType.FormData
-            ? { "Content-Type": type }
-            : {}),
+          "Content-Type": "application/json",
           ...(requestParams.headers || {}),
         },
         signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
@@ -1876,21 +1860,20 @@ export class HttpClient {
       r.data = null as unknown as T;
       r.error = null as unknown as E;
 
-      const data = !responseFormat
-        ? r
-        : await response[responseFormat]()
-            .then((data) => {
-              if (r.ok) {
-                r.data = data;
-              } else {
-                r.error = data;
-              }
-              return r;
-            })
-            .catch((e) => {
-              r.error = e;
-              return r;
-            });
+      const data = await response
+        .json()
+        .then((data) => {
+          if (r.ok) {
+            r.data = data;
+          } else {
+            r.error = data;
+          }
+          return r;
+        })
+        .catch((e) => {
+          r.error = e;
+          return r;
+        });
 
       if (cancelToken) {
         this.abortControllers.delete(cancelToken);
@@ -1915,7 +1898,6 @@ export class Api extends HttpClient {
         path: `/hardware/racks`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -1929,7 +1911,6 @@ export class Api extends HttpClient {
       this.request<Rack, any>({
         path: `/hardware/racks/${rackId}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -1944,7 +1925,6 @@ export class Api extends HttpClient {
         path: `/hardware/sleds`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -1958,7 +1938,6 @@ export class Api extends HttpClient {
       this.request<Sled, any>({
         path: `/hardware/sleds/${sledId}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -1971,7 +1950,6 @@ export class Api extends HttpClient {
         path: `/login`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
         ...params,
       }),
 
@@ -1993,7 +1971,6 @@ export class Api extends HttpClient {
         path: `/organizations`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2009,8 +1986,6 @@ export class Api extends HttpClient {
         path: `/organizations`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2024,7 +1999,6 @@ export class Api extends HttpClient {
       this.request<Organization, any>({
         path: `/organizations/${orgName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2041,8 +2015,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}`,
         method: "PUT",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2070,7 +2042,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2086,8 +2057,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2101,7 +2070,6 @@ export class Api extends HttpClient {
       this.request<Project, any>({
         path: `/organizations/${orgName}/projects/${projectName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2118,8 +2086,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}`,
         method: "PUT",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2147,7 +2113,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/disks`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2164,8 +2129,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/disks`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2179,7 +2142,6 @@ export class Api extends HttpClient {
       this.request<Disk, any>({
         path: `/organizations/${orgName}/projects/${projectName}/disks/${diskName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2207,7 +2169,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/instances`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2224,8 +2185,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/instances`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2239,7 +2198,6 @@ export class Api extends HttpClient {
       this.request<Instance, any>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2271,7 +2229,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/disks`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2284,8 +2241,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/disks/attach`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2298,8 +2253,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/disks/detach`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2317,7 +2270,6 @@ export class Api extends HttpClient {
       this.request<Instance, any>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/reboot`,
         method: "POST",
-        format: "json",
         ...params,
       }),
 
@@ -2335,7 +2287,6 @@ export class Api extends HttpClient {
       this.request<Instance, any>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/start`,
         method: "POST",
-        format: "json",
         ...params,
       }),
 
@@ -2353,7 +2304,6 @@ export class Api extends HttpClient {
       this.request<Instance, any>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/stop`,
         method: "POST",
-        format: "json",
         ...params,
       }),
 
@@ -2368,7 +2318,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2384,8 +2333,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2399,7 +2346,6 @@ export class Api extends HttpClient {
       this.request<Vpc, any>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2415,7 +2361,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}`,
         method: "PUT",
         body: data,
-        type: ContentType.Json,
         ...params,
       }),
 
@@ -2443,7 +2388,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/firewall/rules`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2459,8 +2403,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/firewall/rules`,
         method: "PUT",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2475,7 +2417,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2491,8 +2432,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2506,7 +2445,6 @@ export class Api extends HttpClient {
       this.request<VpcRouter, any>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2522,7 +2460,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}`,
         method: "PUT",
         body: data,
-        type: ContentType.Json,
         ...params,
       }),
 
@@ -2561,7 +2498,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2577,8 +2513,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2598,7 +2532,6 @@ export class Api extends HttpClient {
       this.request<RouterRoute, any>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes/${routeName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2620,7 +2553,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes/${routeName}`,
         method: "PUT",
         body: data,
-        type: ContentType.Json,
         ...params,
       }),
 
@@ -2654,7 +2586,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2670,8 +2601,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets`,
         method: "POST",
         body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
 
@@ -2685,7 +2614,6 @@ export class Api extends HttpClient {
       this.request<VpcSubnet, any>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets/${subnetName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2701,7 +2629,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets/${subnetName}`,
         method: "PUT",
         body: data,
-        type: ContentType.Json,
         ...params,
       }),
 
@@ -2740,7 +2667,6 @@ export class Api extends HttpClient {
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets/${subnetName}/ips`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2752,7 +2678,6 @@ export class Api extends HttpClient {
         path: `/roles`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2766,7 +2691,6 @@ export class Api extends HttpClient {
       this.request<Role, any>({
         path: `/roles/${roleName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2778,7 +2702,6 @@ export class Api extends HttpClient {
         path: `/sagas`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2792,7 +2715,6 @@ export class Api extends HttpClient {
       this.request<Saga, any>({
         path: `/sagas/${sagaId}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2803,7 +2725,6 @@ export class Api extends HttpClient {
       this.request<SessionUser, any>({
         path: `/session/me`,
         method: "GET",
-        format: "json",
         ...params,
       }),
 
@@ -2818,7 +2739,6 @@ export class Api extends HttpClient {
         path: `/timeseries/schema`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2830,7 +2750,6 @@ export class Api extends HttpClient {
         path: `/users`,
         method: "GET",
         query: query,
-        format: "json",
         ...params,
       }),
 
@@ -2844,7 +2763,6 @@ export class Api extends HttpClient {
       this.request<User, any>({
         path: `/users/${userName}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
   };

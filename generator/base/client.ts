@@ -1,15 +1,10 @@
 export type QueryParamsType = Record<string | number, any>;
-export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
 export interface FullRequestParams extends Omit<RequestInit, "body"> {
   /** request path */
   path: string;
-  /** content type of request body */
-  type?: ContentType;
   /** query params */
   query?: QueryParamsType;
-  /** format of response (i.e. response.json() -> format: "json") */
-  format?: ResponseFormat;
   /** request body */
   body?: unknown;
   /** base url */
@@ -36,12 +31,6 @@ export interface HttpResponse<D extends unknown, E extends unknown = unknown>
 }
 
 type CancelToken = Symbol | string | number;
-
-export enum ContentType {
-  Json = "application/json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
-}
 
 export class HttpClient {
   public baseUrl: string = "";
@@ -134,16 +123,13 @@ export class HttpClient {
   public request = async <T = any, E = any>({
     body,
     path,
-    type,
     query,
-    format,
     baseUrl,
     cancelToken,
     ...params
   }: FullRequestParams): Promise<HttpResponse<T, E>> => {
     const requestParams = this.mergeRequestParams(params);
     const queryString = query && this.toQueryString(query);
-    const responseFormat = format || requestParams.format;
 
     return this.customFetch(
       `${baseUrl || this.baseUrl || ""}${path}${
@@ -152,9 +138,7 @@ export class HttpClient {
       {
         ...requestParams,
         headers: {
-          ...(type && type !== ContentType.FormData
-            ? { "Content-Type": type }
-            : {}),
+          "Content-Type": "application/json",
           ...(requestParams.headers || {}),
         },
         signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
@@ -165,21 +149,20 @@ export class HttpClient {
       r.data = null as unknown as T;
       r.error = null as unknown as E;
 
-      const data = !responseFormat
-        ? r
-        : await response[responseFormat]()
-            .then((data) => {
-              if (r.ok) {
-                r.data = data;
-              } else {
-                r.error = data;
-              }
-              return r;
-            })
-            .catch((e) => {
-              r.error = e;
-              return r;
-            });
+      const data = await response
+        .json()
+        .then((data) => {
+          if (r.ok) {
+            r.data = data;
+          } else {
+            r.error = data;
+          }
+          return r;
+        })
+        .catch((e) => {
+          r.error = e;
+          return r;
+        });
 
       if (cancelToken) {
         this.abortControllers.delete(cancelToken);

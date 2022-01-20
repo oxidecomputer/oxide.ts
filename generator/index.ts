@@ -251,14 +251,10 @@ async function generateClient() {
              path: ${pathToTemplateStr(path)},
              method: "${method.toUpperCase()}",`);
       if (bodyType) {
-        w(`  body: data,
-             type: ContentType.Json,`);
+        w(`  body: data,`);
       }
       if (queryParams.length > 0) {
         w("  query: query,");
-      }
-      if (successTypeRef) {
-        w('  format: "json",');
       }
       w(`    ...params,
            }),
