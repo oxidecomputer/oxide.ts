@@ -65,6 +65,11 @@ function schemaToType(schema: Schema, propsInline = false) {
     } else {
       w0("string");
     }
+  } else if (schema.oneOf) {
+    for (const prop of schema.oneOf) {
+      w0("  | ");
+      schemaToType(prop, true);
+    }
   } else if (schema.type === "array") {
     schemaToType(schema.items);
     w0("[]");
@@ -123,31 +128,8 @@ async function generateClient() {
 
   for (const schemaName in spec.components.schemas) {
     const schema = spec.components.schemas[schemaName];
-    if ("$ref" in schema) {
-      w0(`export interface ${schemaName} `);
-      schemaToType(schema);
-      continue;
-    }
-
     docCommentIfDescription(schema);
-
-    if (schema.type === "object") {
-      w0(`export interface ${schemaName} `);
-      schemaToType(schema);
-      w("");
-      continue;
-    }
-
     w0(`export type ${schemaName} =`);
-    if (schema.oneOf) {
-      for (const prop of schema.oneOf) {
-        w0("  | ");
-        schemaToType(prop, true);
-      }
-      w("");
-      continue;
-    }
-
     schemaToType(schema);
     w("\n");
   }

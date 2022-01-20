@@ -24,7 +24,7 @@ export type DatumType =
 /**
  * Client view of an [`Disk`]
  */
-export interface Disk {
+export type Disk = {
   /**
    * human-readable free-form text about a resource
    */
@@ -50,12 +50,12 @@ export interface Disk {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * Create-time parameters for a [`Disk`]
  */
-export interface DiskCreate {
+export type DiskCreate = {
   description: string;
   name: Name;
   /**
@@ -66,19 +66,19 @@ export interface DiskCreate {
    * id for snapshot from which the Disk should be created, if any
    */
   snapshotId?: string | null;
-}
+};
 
 /**
  * Parameters for the [`Disk`] to be attached or detached to an instance
  */
-export interface DiskIdentifier {
+export type DiskIdentifier = {
   disk: Name;
-}
+};
 
 /**
  * A single page of results
  */
-export interface DiskResultsPage {
+export type DiskResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -87,7 +87,7 @@ export interface DiskResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * State of a Disk (primarily: attached or not)
@@ -104,11 +104,11 @@ export type DiskState =
 /**
  * The name and type information for a field of a timeseries schema.
  */
-export interface FieldSchema {
+export type FieldSchema = {
   name: string;
   source: FieldSource;
   ty: FieldType;
-}
+};
 
 /**
  * The source from which a field is derived, the target or metric.
@@ -123,7 +123,7 @@ export type FieldType = "String" | "I64" | "IpAddr" | "Uuid" | "Bool";
 /**
  * Client view of an [`Instance`]
  */
-export interface Instance {
+export type Instance = {
   /**
    * human-readable free-form text about a resource
    */
@@ -162,7 +162,7 @@ export interface Instance {
    */
   timeModified: string;
   timeRunStateUpdated: string;
-}
+};
 
 /**
  * The number of CPUs in an Instance
@@ -172,18 +172,18 @@ export type InstanceCpuCount = number;
 /**
  * Create-time parameters for an [`Instance`]
  */
-export interface InstanceCreate {
+export type InstanceCreate = {
   description: string;
   hostname: string;
   memory: ByteCount;
   name: Name;
   ncpus: InstanceCpuCount;
-}
+};
 
 /**
  * A single page of results
  */
-export interface InstanceResultsPage {
+export type InstanceResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -192,7 +192,7 @@ export interface InstanceResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Running state of an Instance (primarily: booted or stopped)
@@ -225,9 +225,9 @@ export type Ipv6Net = string;
  */
 export type L4PortRange = string;
 
-export interface LoginParams {
+export type LoginParams = {
   username: string;
-}
+};
 
 /**
  * A Media Access Control address, in EUI-48 format
@@ -242,7 +242,7 @@ export type Name = string;
 /**
  * A `NetworkInterface` represents a virtual network interface device.
  */
-export interface NetworkInterface {
+export type NetworkInterface = {
   /**
    * human-readable free-form text about a resource
    */
@@ -283,12 +283,12 @@ export interface NetworkInterface {
    * The VPC to which the interface belongs.
    */
   vpcId: string;
-}
+};
 
 /**
  * A single page of results
  */
-export interface NetworkInterfaceResultsPage {
+export type NetworkInterfaceResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -297,12 +297,12 @@ export interface NetworkInterfaceResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Client view of an [`Organization`]
  */
-export interface Organization {
+export type Organization = {
   /**
    * human-readable free-form text about a resource
    */
@@ -323,20 +323,20 @@ export interface Organization {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * Create-time parameters for an [`Organization`]
  */
-export interface OrganizationCreate {
+export type OrganizationCreate = {
   description: string;
   name: Name;
-}
+};
 
 /**
  * A single page of results
  */
-export interface OrganizationResultsPage {
+export type OrganizationResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -345,20 +345,20 @@ export interface OrganizationResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Updateable properties of an [`Organization`]
  */
-export interface OrganizationUpdate {
+export type OrganizationUpdate = {
   description?: string | null;
   name?: Name | null;
-}
+};
 
 /**
  * Client view of a [`Project`]
  */
-export interface Project {
+export type Project = {
   /**
    * human-readable free-form text about a resource
    */
@@ -380,20 +380,20 @@ export interface Project {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * Create-time parameters for a [`Project`]
  */
-export interface ProjectCreate {
+export type ProjectCreate = {
   description: string;
   name: Name;
-}
+};
 
 /**
  * A single page of results
  */
-export interface ProjectResultsPage {
+export type ProjectResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -402,20 +402,20 @@ export interface ProjectResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Updateable properties of a [`Project`]
  */
-export interface ProjectUpdate {
+export type ProjectUpdate = {
   description?: string | null;
   name?: Name | null;
-}
+};
 
 /**
  * Client view of an [`Rack`]
  */
-export interface Rack {
+export type Rack = {
   /**
    * human-readable free-form text about a resource
    */
@@ -436,12 +436,12 @@ export interface Rack {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * A single page of results
  */
-export interface RackResultsPage {
+export type RackResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -450,15 +450,15 @@ export interface RackResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Client view of a [`Role`]
  */
-export interface Role {
+export type Role = {
   description: string;
   name: RoleName;
-}
+};
 
 /**
  * Role names consist of two string components separated by dot (".").
@@ -468,7 +468,7 @@ export type RoleName = string;
 /**
  * A single page of results
  */
-export interface RoleResultsPage {
+export type RoleResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -477,7 +477,7 @@ export interface RoleResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * A subset of [`NetworkTarget`], `RouteDestination` specifies the kind of network traffic that will be matched to be forwarded to the [`RouteTarget`].
@@ -500,7 +500,7 @@ export type RouteTarget =
 /**
  * A route defines a rule that governs where traffic should be sent based on its destination.
  */
-export interface RouterRoute {
+export type RouterRoute = {
   /**
    * human-readable free-form text about a resource
    */
@@ -531,17 +531,17 @@ export interface RouterRoute {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * Create-time parameters for a [`RouterRoute`]
  */
-export interface RouterRouteCreateParams {
+export type RouterRouteCreateParams = {
   description: string;
   destination: RouteDestination;
   name: Name;
   target: RouteTarget;
-}
+};
 
 /**
  * The classification of a [`RouterRoute`] as defined by the system. The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
@@ -553,7 +553,7 @@ export type RouterRouteKind = "Default" | "VpcSubnet" | "VpcPeering" | "Custom";
 /**
  * A single page of results
  */
-export interface RouterRouteResultsPage {
+export type RouterRouteResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -562,22 +562,22 @@ export interface RouterRouteResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Updateable properties of a [`RouterRoute`]
  */
-export interface RouterRouteUpdateParams {
+export type RouterRouteUpdateParams = {
   description?: string | null;
   destination: RouteDestination;
   name?: Name | null;
   target: RouteTarget;
-}
+};
 
-export interface Saga {
+export type Saga = {
   id: string;
   state: SagaState;
-}
+};
 
 export type SagaErrorInfo =
   | { error: "actionFailed"; source_error: any }
@@ -589,7 +589,7 @@ export type SagaErrorInfo =
 /**
  * A single page of results
  */
-export interface SagaResultsPage {
+export type SagaResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -598,7 +598,7 @@ export interface SagaResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 export type SagaState =
   | { state: "running" }
@@ -608,14 +608,14 @@ export type SagaState =
 /**
  * Client view of currently authed user.
  */
-export interface SessionUser {
+export type SessionUser = {
   id: string;
-}
+};
 
 /**
  * Client view of an [`Sled`]
  */
-export interface Sled {
+export type Sled = {
   /**
    * human-readable free-form text about a resource
    */
@@ -637,12 +637,12 @@ export interface Sled {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * A single page of results
  */
-export interface SledResultsPage {
+export type SledResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -651,7 +651,7 @@ export interface SledResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
@@ -663,17 +663,17 @@ export type TimeseriesName = string;
  *
  * This includes the name of the timeseries, as well as the datum type of its metric and the schema for each field.
  */
-export interface TimeseriesSchema {
+export type TimeseriesSchema = {
   created: string;
   datum_type: DatumType;
   field_schema: FieldSchema[];
   timeseries_name: TimeseriesName;
-}
+};
 
 /**
  * A single page of results
  */
-export interface TimeseriesSchemaResultsPage {
+export type TimeseriesSchemaResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -682,12 +682,12 @@ export interface TimeseriesSchemaResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Client view of a [`User`]
  */
-export interface User {
+export type User = {
   /**
    * human-readable free-form text about a resource
    */
@@ -708,12 +708,12 @@ export interface User {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * A single page of results
  */
-export interface UserResultsPage {
+export type UserResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -722,12 +722,12 @@ export interface UserResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Client view of a [`Vpc`]
  */
-export interface Vpc {
+export type Vpc = {
   /**
    * human-readable free-form text about a resource
    */
@@ -760,21 +760,21 @@ export interface Vpc {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 /**
  * Create-time parameters for a [`Vpc`]
  */
-export interface VpcCreate {
+export type VpcCreate = {
   description: string;
   dnsName: Name;
   name: Name;
-}
+};
 
 /**
  * A single rule in a VPC firewall
  */
-export interface VpcFirewallRule {
+export type VpcFirewallRule = {
   /**
    * whether traffic matching the rule should be allowed or dropped
    */
@@ -819,7 +819,7 @@ export interface VpcFirewallRule {
    * timestamp when this resource was last modified
    */
   timeModified: string;
-}
+};
 
 export type VpcFirewallRuleAction = "allow" | "deny";
 
@@ -828,7 +828,7 @@ export type VpcFirewallRuleDirection = "inbound" | "outbound";
 /**
  * Filter for a firewall rule. A given packet must match every field that is present for the rule to apply to it. A packet matches a field if any entry in that field matches the packet.
  */
-export interface VpcFirewallRuleFilter {
+export type VpcFirewallRuleFilter = {
   /**
    * If present, the sources (if incoming) or destinations (if outgoing) this rule applies to.
    */
@@ -841,7 +841,7 @@ export interface VpcFirewallRuleFilter {
    * If present, the networking protocols this rule applies to.
    */
   protocols?: VpcFirewallRuleProtocol[] | null;
-}
+};
 
 /**
  * A subset of [`NetworkTarget`], `VpcFirewallRuleHostFilter` specifies all possible targets that a route can forward to.
@@ -861,7 +861,7 @@ export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
 /**
  * A single page of results
  */
-export interface VpcFirewallRuleResultsPage {
+export type VpcFirewallRuleResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -870,7 +870,7 @@ export interface VpcFirewallRuleResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
 
@@ -885,7 +885,7 @@ export type VpcFirewallRuleTarget =
 /**
  * A single rule in a VPC firewall
  */
-export interface VpcFirewallRuleUpdate {
+export type VpcFirewallRuleUpdate = {
   /**
    * whether traffic matching the rule should be allowed or dropped
    */
@@ -914,22 +914,22 @@ export interface VpcFirewallRuleUpdate {
    * list of sets of instances that the rule applies to
    */
   targets: VpcFirewallRuleTarget[];
-}
+};
 
 /**
  * Updateable properties of a [`Vpc`]'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
  */
-export interface VpcFirewallRuleUpdateParams {}
+export type VpcFirewallRuleUpdateParams = {};
 
 /**
  * Response to an update replacing [`Vpc`]'s firewall
  */
-export interface VpcFirewallRuleUpdateResult {}
+export type VpcFirewallRuleUpdateResult = {};
 
 /**
  * A single page of results
  */
-export interface VpcResultsPage {
+export type VpcResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -938,12 +938,12 @@ export interface VpcResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * A VPC router defines a series of rules that indicate where traffic should be sent depending on its destination.
  */
-export interface VpcRouter {
+export type VpcRouter = {
   /**
    * human-readable free-form text about a resource
    */
@@ -969,22 +969,22 @@ export interface VpcRouter {
    * The VPC to which the router belongs.
    */
   vpcId: string;
-}
+};
 
 /**
  * Create-time parameters for a [`VpcRouter`]
  */
-export interface VpcRouterCreate {
+export type VpcRouterCreate = {
   description: string;
   name: Name;
-}
+};
 
 export type VpcRouterKind = "system" | "custom";
 
 /**
  * A single page of results
  */
-export interface VpcRouterResultsPage {
+export type VpcRouterResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -993,20 +993,20 @@ export interface VpcRouterResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Updateable properties of a [`VpcRouter`]
  */
-export interface VpcRouterUpdate {
+export type VpcRouterUpdate = {
   description?: string | null;
   name?: Name | null;
-}
+};
 
 /**
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionall an IPv6 subnetwork.
  */
-export interface VpcSubnet {
+export type VpcSubnet = {
   /**
    * human-readable free-form text about a resource
    */
@@ -1039,22 +1039,22 @@ export interface VpcSubnet {
    * The VPC to which the subnet belongs.
    */
   vpcId: string;
-}
+};
 
 /**
  * Create-time parameters for a [`VpcSubnet`]
  */
-export interface VpcSubnetCreate {
+export type VpcSubnetCreate = {
   description: string;
   ipv4Block?: Ipv4Net | null;
   ipv6Block?: Ipv6Net | null;
   name: Name;
-}
+};
 
 /**
  * A single page of results
  */
-export interface VpcSubnetResultsPage {
+export type VpcSubnetResultsPage = {
   /**
    * list of items on this page of results
    */
@@ -1063,26 +1063,26 @@ export interface VpcSubnetResultsPage {
    * token used to fetch the next page of results (if any)
    */
   next_page?: string | null;
-}
+};
 
 /**
  * Updateable properties of a [`VpcSubnet`]
  */
-export interface VpcSubnetUpdate {
+export type VpcSubnetUpdate = {
   description?: string | null;
   ipv4Block?: Ipv4Net | null;
   ipv6Block?: Ipv6Net | null;
   name?: Name | null;
-}
+};
 
 /**
  * Updateable properties of a [`Vpc`]
  */
-export interface VpcUpdate {
+export type VpcUpdate = {
   description?: string | null;
   dnsName?: Name | null;
   name?: Name | null;
-}
+};
 
 /**
  * Supported set of sort modes for scanning by id only.
