@@ -1709,6 +1709,9 @@ export interface UsersGetUserParams {
   userName: Name;
 }
 
+// credit where due: this is a stripped-down version of the fetch client from
+// https://github.com/acacode/swagger-typescript-api
+
 export type QueryParamsType = Record<string | number, any>;
 
 export interface FullRequestParams extends Omit<RequestInit, "body"> {
@@ -1743,6 +1746,19 @@ export interface HttpResponse<D extends unknown, E extends unknown = unknown>
 
 type CancelToken = Symbol | string | number;
 
+const encodeQueryParam = (key: string, value: any) =>
+  `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+
+const toQueryString = (rawQuery?: QueryParamsType): string =>
+  Object.entries(rawQuery || {})
+    .filter(([key, value]) => typeof value !== "undefined")
+    .map(([key, value]) =>
+      Array.isArray(value)
+        ? value.map((item) => encodeQueryParam(key, item)).join("&")
+        : encodeQueryParam(key, value)
+    )
+    .join("&");
+
 export class HttpClient {
   public baseUrl: string = "";
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -1758,41 +1774,6 @@ export class HttpClient {
 
   constructor(apiConfig: ApiConfig = {}) {
     Object.assign(this, apiConfig);
-  }
-
-  private encodeQueryParam(key: string, value: any) {
-    const encodedKey = encodeURIComponent(key);
-    return `${encodedKey}=${encodeURIComponent(
-      typeof value === "number" ? value : `${value}`
-    )}`;
-  }
-
-  private addQueryParam(query: QueryParamsType, key: string) {
-    return this.encodeQueryParam(key, query[key]);
-  }
-
-  private addArrayQueryParam(query: QueryParamsType, key: string) {
-    const value = query[key];
-    return value.map((v: any) => this.encodeQueryParam(key, v)).join("&");
-  }
-
-  protected toQueryString(rawQuery?: QueryParamsType): string {
-    const query = rawQuery || {};
-    const keys = Object.keys(query).filter(
-      (key) => "undefined" !== typeof query[key]
-    );
-    return keys
-      .map((key) =>
-        Array.isArray(query[key])
-          ? this.addArrayQueryParam(query, key)
-          : this.addQueryParam(query, key)
-      )
-      .join("&");
-  }
-
-  protected addQueryParams(rawQuery?: QueryParamsType): string {
-    const queryString = this.toQueryString(rawQuery);
-    return queryString ? `?${queryString}` : "";
   }
 
   private mergeRequestParams(params: RequestParams): RequestParams {
@@ -1840,27 +1821,28 @@ export class HttpClient {
     ...params
   }: FullRequestParams): Promise<HttpResponse<T, E>> => {
     const requestParams = this.mergeRequestParams(params);
-    const queryString = query && this.toQueryString(query);
+    const queryString = query && toQueryString(query);
 
-    return this.customFetch(
-      `${baseUrl || this.baseUrl || ""}${path}${
-        queryString ? `?${queryString}` : ""
-      }`,
-      {
-        ...requestParams,
-        headers: {
-          "Content-Type": "application/json",
-          ...(requestParams.headers || {}),
-        },
-        signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
-        body: JSON.stringify(body),
-      }
-    ).then(async (response) => {
+    let url = baseUrl || this.baseUrl || "";
+    url += path;
+    if (queryString) {
+      url += "?" + queryString;
+    }
+
+    return this.customFetch(url, {
+      ...requestParams,
+      headers: {
+        "Content-Type": "application/json",
+        ...requestParams.headers,
+      },
+      signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
+      body: JSON.stringify(body),
+    }).then(async (response) => {
       const r = response as HttpResponse<T, E>;
       r.data = null as unknown as T;
       r.error = null as unknown as E;
 
-      const data = await response
+      await response
         .json()
         .then((data) => {
           if (r.ok) {
@@ -1868,19 +1850,17 @@ export class HttpClient {
           } else {
             r.error = data;
           }
-          return r;
         })
         .catch((e) => {
           r.error = e;
-          return r;
         });
 
       if (cancelToken) {
         this.abortControllers.delete(cancelToken);
       }
 
-      if (!response.ok) throw data;
-      return data;
+      if (!r.ok) throw r;
+      return r;
     });
   };
 }

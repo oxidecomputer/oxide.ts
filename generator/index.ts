@@ -12,10 +12,6 @@ const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : "");
 const snakeToPascal = snakeTo(cap);
 const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
 
-function startFile() {
-  fs.writeFileSync("../Api.ts", "");
-}
-
 /// write to file with newline
 function w(s: string) {
   fs.writeFileSync("../Api.ts", s + "\n", { flag: "a+" });
@@ -116,7 +112,7 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
 }
 
 async function generateClient() {
-  startFile();
+  fs.unlinkSync("../Api.ts");
 
   const spec = (await SwaggerParser.parse(
     "../spec.json",
