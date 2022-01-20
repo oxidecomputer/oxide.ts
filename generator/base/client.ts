@@ -48,6 +48,42 @@ const toQueryString = (rawQuery?: QueryParamsType): string =>
     )
     .join("&");
 
+const camelToSnake = (s: string) =>
+  s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
+
+const snakeToCamel = (s: string) => s.replace(/_./g, (l) => l[1].toUpperCase());
+
+const isObject = (o: unknown) =>
+  typeof o === "object" &&
+  !(o instanceof Date) &&
+  !(o instanceof RegExp) &&
+  !(o instanceof Error) &&
+  o !== null;
+
+// recursively map keys using Object.keys
+const mapKeys =
+  (fn: (k: string) => string) =>
+  (o: unknown): unknown => {
+    if (!isObject(o)) return o;
+
+    if (Array.isArray(o)) {
+      return o.map(mapKeys(fn));
+    }
+
+    const obj = o as Record<string, unknown>;
+
+    const newObj: Record<string, unknown> = {};
+    for (const key of Object.keys(obj)) {
+      if (typeof key === "string") {
+        newObj[fn(key)] = mapKeys(fn)(obj[key] as Record<string, unknown>);
+      }
+    }
+    return newObj;
+  };
+
+const snakeify = mapKeys(camelToSnake);
+const camelify = mapKeys(snakeToCamel);
+
 export class HttpClient {
   public baseUrl: string = "";
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -125,7 +161,7 @@ export class HttpClient {
         ...requestParams.headers,
       },
       signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
-      body: JSON.stringify(body),
+      body: JSON.stringify(snakeify(body)),
     }).then(async (response) => {
       const r = response as HttpResponse<T, E>;
       r.data = null as unknown as T;
@@ -133,11 +169,12 @@ export class HttpClient {
 
       await response
         .json()
+        .then(camelify)
         .then((data) => {
           if (r.ok) {
-            r.data = data;
+            r.data = data as T;
           } else {
-            r.error = data;
+            r.error = data as E;
           }
         })
         .catch((e) => {

@@ -86,7 +86,7 @@ function schemaToType(schema: Schema, propsInline = false) {
 
       docCommentIfDescription(prop);
 
-      w0(propName);
+      w0(snakeToCamel(propName));
       if (nullable) w0("?");
       w0(": ");
       schemaToType(prop);

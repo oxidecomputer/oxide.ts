@@ -86,7 +86,7 @@ export type DiskResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -191,7 +191,7 @@ export type InstanceResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -296,7 +296,7 @@ export type NetworkInterfaceResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -344,7 +344,7 @@ export type OrganizationResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -401,7 +401,7 @@ export type ProjectResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -449,7 +449,7 @@ export type RackResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -476,7 +476,7 @@ export type RoleResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -561,7 +561,7 @@ export type RouterRouteResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -580,7 +580,7 @@ export type Saga = {
 };
 
 export type SagaErrorInfo =
-  | { error: "actionFailed"; source_error: any }
+  | { error: "actionFailed"; sourceError: any }
   | { error: "deserializeFailed"; message: string }
   | { error: "injectedError" }
   | { error: "serializeFailed"; message: string }
@@ -597,13 +597,13 @@ export type SagaResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 export type SagaState =
   | { state: "running" }
   | { state: "succeeded" }
-  | { error_info: SagaErrorInfo; error_node_name: string; state: "failed" };
+  | { errorInfo: SagaErrorInfo; errorNodeName: string; state: "failed" };
 
 /**
  * Client view of currently authed user.
@@ -650,7 +650,7 @@ export type SledResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -665,9 +665,9 @@ export type TimeseriesName = string;
  */
 export type TimeseriesSchema = {
   created: string;
-  datum_type: DatumType;
-  field_schema: FieldSchema[];
-  timeseries_name: TimeseriesName;
+  datumType: DatumType;
+  fieldSchema: FieldSchema[];
+  timeseriesName: TimeseriesName;
 };
 
 /**
@@ -681,7 +681,7 @@ export type TimeseriesSchemaResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -721,7 +721,7 @@ export type UserResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -869,7 +869,7 @@ export type VpcFirewallRuleResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
@@ -937,7 +937,7 @@ export type VpcResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -992,7 +992,7 @@ export type VpcRouterResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -1062,7 +1062,7 @@ export type VpcSubnetResultsPage = {
   /**
    * token used to fetch the next page of results (if any)
    */
-  next_page?: string | null;
+  nextPage?: string | null;
 };
 
 /**
@@ -1759,6 +1759,42 @@ const toQueryString = (rawQuery?: QueryParamsType): string =>
     )
     .join("&");
 
+const camelToSnake = (s: string) =>
+  s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
+
+const snakeToCamel = (s: string) => s.replace(/_./g, (l) => l[1].toUpperCase());
+
+const isObject = (o: unknown) =>
+  typeof o === "object" &&
+  !(o instanceof Date) &&
+  !(o instanceof RegExp) &&
+  !(o instanceof Error) &&
+  o !== null;
+
+// recursively map keys using Object.keys
+const mapKeys =
+  (fn: (k: string) => string) =>
+  (o: unknown): unknown => {
+    if (!isObject(o)) return o;
+
+    if (Array.isArray(o)) {
+      return o.map(mapKeys(fn));
+    }
+
+    const obj = o as Record<string, unknown>;
+
+    const newObj: Record<string, unknown> = {};
+    for (const key of Object.keys(obj)) {
+      if (typeof key === "string") {
+        newObj[fn(key)] = mapKeys(fn)(obj[key] as Record<string, unknown>);
+      }
+    }
+    return newObj;
+  };
+
+const snakeify = mapKeys(camelToSnake);
+const camelify = mapKeys(snakeToCamel);
+
 export class HttpClient {
   public baseUrl: string = "";
   private abortControllers = new Map<CancelToken, AbortController>();
@@ -1836,7 +1872,7 @@ export class HttpClient {
         ...requestParams.headers,
       },
       signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
-      body: JSON.stringify(body),
+      body: JSON.stringify(snakeify(body)),
     }).then(async (response) => {
       const r = response as HttpResponse<T, E>;
       r.data = null as unknown as T;
@@ -1846,13 +1882,13 @@ export class HttpClient {
         .json()
         .then((data) => {
           if (r.ok) {
-            r.data = data;
+            r.data = camelify(data) as T;
           } else {
-            r.error = data;
+            r.error = camelify(data) as E;
           }
         })
         .catch((e) => {
-          r.error = e;
+          r.error = camelify(e) as E;
         });
 
       if (cancelToken) {
