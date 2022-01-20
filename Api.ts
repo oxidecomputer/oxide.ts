@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /**
  * A count of bytes, typically used either for memory or storage capacity
  *
@@ -1711,8 +1713,6 @@ export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
 export interface FullRequestParams extends Omit<RequestInit, "body"> {
-  /** set parameter to `true` for call `securityWorker` for this request */
-  secure?: boolean;
   /** request path */
   path: string;
   /** content type of request body */
@@ -1734,12 +1734,9 @@ export type RequestParams = Omit<
   "body" | "method" | "query" | "path"
 >;
 
-export interface ApiConfig<SecurityDataType = unknown> {
+export interface ApiConfig {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  securityWorker?: (
-    securityData: SecurityDataType | null
-  ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
 
@@ -1757,10 +1754,8 @@ export enum ContentType {
   UrlEncoded = "application/x-www-form-urlencoded",
 }
 
-export class HttpClient<SecurityDataType = unknown> {
+export class HttpClient {
   public baseUrl: string = "";
-  private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
   private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
     fetch(...fetchParams);
@@ -1772,13 +1767,9 @@ export class HttpClient<SecurityDataType = unknown> {
     referrerPolicy: "no-referrer",
   };
 
-  constructor(apiConfig: ApiConfig<SecurityDataType> = {}) {
+  constructor(apiConfig: ApiConfig = {}) {
     Object.assign(this, apiConfig);
   }
-
-  public setSecurityData = (data: SecurityDataType | null) => {
-    this.securityData = data;
-  };
 
   private encodeQueryParam(key: string, value: any) {
     const encodedKey = encodeURIComponent(key);
@@ -1815,39 +1806,13 @@ export class HttpClient<SecurityDataType = unknown> {
     return queryString ? `?${queryString}` : "";
   }
 
-  private contentFormatters: Record<ContentType, (input: any) => any> = {
-    [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === "object" || typeof input === "string")
-        ? JSON.stringify(input)
-        : input,
-    [ContentType.FormData]: (input: any) =>
-      Object.keys(input || {}).reduce((formData, key) => {
-        const property = input[key];
-        formData.append(
-          key,
-          property instanceof Blob
-            ? property
-            : typeof property === "object" && property !== null
-            ? JSON.stringify(property)
-            : `${property}`
-        );
-        return formData;
-      }, new FormData()),
-    [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
-  };
-
-  private mergeRequestParams(
-    params1: RequestParams,
-    params2?: RequestParams
-  ): RequestParams {
+  private mergeRequestParams(params: RequestParams): RequestParams {
     return {
       ...this.baseApiParams,
-      ...params1,
-      ...(params2 || {}),
+      ...params,
       headers: {
-        ...(this.baseApiParams.headers || {}),
-        ...(params1.headers || {}),
-        ...((params2 && params2.headers) || {}),
+        ...this.baseApiParams.headers,
+        ...params.headers,
       },
     };
   }
@@ -1879,7 +1844,6 @@ export class HttpClient<SecurityDataType = unknown> {
 
   public request = async <T = any, E = any>({
     body,
-    secure,
     path,
     type,
     query,
@@ -1888,14 +1852,8 @@ export class HttpClient<SecurityDataType = unknown> {
     cancelToken,
     ...params
   }: FullRequestParams): Promise<HttpResponse<T, E>> => {
-    const secureParams =
-      ((typeof secure === "boolean" ? secure : this.baseApiParams.secure) &&
-        this.securityWorker &&
-        (await this.securityWorker(this.securityData))) ||
-      {};
-    const requestParams = this.mergeRequestParams(params, secureParams);
+    const requestParams = this.mergeRequestParams(params);
     const queryString = query && this.toQueryString(query);
-    const payloadFormatter = this.contentFormatters[type || ContentType.Json];
     const responseFormat = format || requestParams.format;
 
     return this.customFetch(
@@ -1911,10 +1869,7 @@ export class HttpClient<SecurityDataType = unknown> {
           ...(requestParams.headers || {}),
         },
         signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
-        body:
-          typeof body === "undefined" || body === null
-            ? null
-            : payloadFormatter(body),
+        body: JSON.stringify(body),
       }
     ).then(async (response) => {
       const r = response as HttpResponse<T, E>;
@@ -1947,9 +1902,7 @@ export class HttpClient<SecurityDataType = unknown> {
   };
 }
 
-export class Api<
-  SecurityDataType extends unknown
-> extends HttpClient<SecurityDataType> {
+export class Api extends HttpClient {
   methods = {
     /**
      * List racks in the system.

@@ -123,6 +123,8 @@ async function generateClient() {
 
   if (!spec.components) return;
 
+  w("/* eslint-disable */\n");
+
   for (const schemaName in spec.components.schemas) {
     const schema = spec.components.schemas[schemaName];
     if ("$ref" in schema) {
@@ -194,9 +196,7 @@ async function generateClient() {
 
   w(fs.readFileSync("./base/client.ts").toString());
 
-  w(`export class Api<
-       SecurityDataType extends unknown
-     > extends HttpClient<SecurityDataType> {
+  w(`export class Api extends HttpClient {
        methods = {`);
 
   for (const path in spec.paths) {
