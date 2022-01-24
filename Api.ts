@@ -1880,15 +1880,16 @@ export class HttpClient {
 
       await response
         .json()
+        .then(camelify)
         .then((data) => {
           if (r.ok) {
-            r.data = camelify(data) as T;
+            r.data = data as T;
           } else {
-            r.error = camelify(data) as E;
+            r.error = data as E;
           }
         })
         .catch((e) => {
-          r.error = camelify(e) as E;
+          r.error = e;
         });
 
       if (cancelToken) {

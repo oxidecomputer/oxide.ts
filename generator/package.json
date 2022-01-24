@@ -4,8 +4,9 @@
   "description": "Minimal TS OpenAPI client generator",
   "main": "index.ts",
   "scripts": {
-    "gen": "tsc && node index.js && rm index.js && npm run gen:orgName && prettier -w ../Api.ts",
-    "gen:orgName": "sed -i '' 's/organizationName/orgName/g' ../Api.ts"
+    "gen": "./gen.sh",
+    "gen:fmt": "prettier -w ../Api.ts",
+    "tsc": "tsc"
   },
   "author": "",
   "license": "MIT",
