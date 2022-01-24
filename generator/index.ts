@@ -14,12 +14,12 @@ const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
 
 /// write to file with newline
 function w(s: string) {
-  fs.writeFileSync("../Api.ts", s + "\n", { flag: "a+" });
+  console.log(s);
 }
 
 /// same as w() but no newline
 function w0(s: string) {
-  fs.writeFileSync("../Api.ts", s, { flag: "a+" });
+  process.stdout.write(s);
 }
 
 /// {project_name} -> ${projectName}. if no brackets, leave it alone
@@ -97,8 +97,7 @@ function schemaToType(schema: Schema, propsInline = false) {
   } else if (typeof schema === "object" && Object.keys(schema).length === 0) {
     w0("any");
   } else {
-    w0(`/* UNHANDLED SCHEMA */`);
-    console.log(schema);
+    throw Error(`UNHANDLED SCHEMA: ${schema}`);
   }
 }
 
@@ -111,12 +110,8 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
     : null;
 }
 
-async function generateClient() {
-  fs.unlinkSync("../Api.ts");
-
-  const spec = (await SwaggerParser.parse(
-    "../spec.json",
-  )) as OpenAPIV3.Document;
+async function generateClient(specFile: string) {
+  const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document;
 
   if (!spec.components) return;
 
@@ -234,4 +229,9 @@ async function generateClient() {
      }`);
 }
 
-generateClient();
+const specFile = process.argv[2];
+if (!specFile) {
+  throw Error("Missing specFile argument");
+}
+
+generateClient(specFile);

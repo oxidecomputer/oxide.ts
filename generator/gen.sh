@@ -2,15 +2,18 @@
 
 set -o errexit
 set -o pipefail
-set -o xtrace
 
-# Nexus will eventually have proper version numbers, but for now we are keyed to
-# a SHA in the omicron repo
-OMICRON_VERSION=$(cat ../OMICRON_VERSION)
-SPEC_URL="https://raw.githubusercontent.com/oxidecomputer/omicron/$OMICRON_VERSION/openapi/nexus.json"
+HELP="$(cat <<EOF
+usage: ./gen.sh [spec-file]
+EOF
+)"
 
-curl "$SPEC_URL" -o ../spec.json
+if [[ $# != 1 ]]; then
+	echo "$HELP"
+	exit 2
+fi
 
-npm run tsc && node index.js && rm index.js
-sed -i '' 's/organizationName/orgName/g' ../Api.ts
-npm run gen:fmt
+npm run --silent tsc
+OUTPUT=$(node index.js $1)
+rm index.js
+echo "$OUTPUT" | sed 's/organizationName/orgName/g'
