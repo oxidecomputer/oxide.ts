@@ -1709,57 +1709,7 @@ export interface UsersGetUserParams {
   userName: Name;
 }
 
-// credit where due: this is a stripped-down version of the fetch client from
-// https://github.com/acacode/swagger-typescript-api
-
-export type QueryParamsType = Record<string | number, any>;
-
-export interface FullRequestParams extends Omit<RequestInit, "body"> {
-  /** request path */
-  path: string;
-  /** query params */
-  query?: QueryParamsType;
-  /** request body */
-  body?: unknown;
-  /** base url */
-  baseUrl?: string;
-  /** request cancellation token */
-  cancelToken?: CancelToken;
-}
-
-export type RequestParams = Omit<
-  FullRequestParams,
-  "body" | "method" | "query" | "path"
->;
-
-export interface ApiConfig {
-  baseUrl?: string;
-  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  customFetch?: typeof fetch;
-}
-
-export interface HttpResponse<D extends unknown, E extends unknown = unknown>
-  extends Response {
-  data: D;
-  error: E;
-}
-
-type CancelToken = Symbol | string | number;
-
-const encodeQueryParam = (key: string, value: any) =>
-  `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-
-const toQueryString = (rawQuery?: QueryParamsType): string =>
-  Object.entries(rawQuery || {})
-    .filter(([key, value]) => typeof value !== "undefined")
-    .map(([key, value]) =>
-      Array.isArray(value)
-        ? value.map((item) => encodeQueryParam(key, item)).join("&")
-        : encodeQueryParam(key, value)
-    )
-    .join("&");
-
-export const camelToSnake = (s: string) =>
+const camelToSnake = (s: string) =>
   s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 
 export const snakeToCamel = (s: string) =>
@@ -1814,6 +1764,56 @@ export const parseIfDate = (k: string, v: any) => {
 export const snakeify = mapObj(camelToSnake);
 
 export const processResponseBody = mapObj(snakeToCamel, parseIfDate);
+
+// credit where due: this is a stripped-down version of the fetch client from
+// https://github.com/acacode/swagger-typescript-api
+
+export type QueryParamsType = Record<string | number, any>;
+
+export interface FullRequestParams extends Omit<RequestInit, "body"> {
+  /** request path */
+  path: string;
+  /** query params */
+  query?: QueryParamsType;
+  /** request body */
+  body?: unknown;
+  /** base url */
+  baseUrl?: string;
+  /** request cancellation token */
+  cancelToken?: CancelToken;
+}
+
+export type RequestParams = Omit<
+  FullRequestParams,
+  "body" | "method" | "query" | "path"
+>;
+
+export interface ApiConfig {
+  baseUrl?: string;
+  baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
+  customFetch?: typeof fetch;
+}
+
+export interface HttpResponse<D extends unknown, E extends unknown = unknown>
+  extends Response {
+  data: D;
+  error: E;
+}
+
+type CancelToken = Symbol | string | number;
+
+const encodeQueryParam = (key: string, value: any) =>
+  `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+
+const toQueryString = (rawQuery?: QueryParamsType): string =>
+  Object.entries(rawQuery || {})
+    .filter(([key, value]) => typeof value !== "undefined")
+    .map(([key, value]) =>
+      Array.isArray(value)
+        ? value.map((item) => encodeQueryParam(key, item)).join("&")
+        : encodeQueryParam(key, value)
+    )
+    .join("&");
 
 export class HttpClient {
   public baseUrl: string = "";

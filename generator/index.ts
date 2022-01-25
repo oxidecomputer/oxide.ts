@@ -171,6 +171,7 @@ async function generateClient(specFile: string) {
     }
   }
 
+  w(fs.readFileSync("./base/util.ts").toString().replace("export ", ""));
   w(fs.readFileSync("./base/client.ts").toString());
 
   w(`export class Api extends HttpClient {

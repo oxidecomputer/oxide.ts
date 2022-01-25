@@ -6,7 +6,7 @@ import {
   processResponseBody,
   snakeify,
   snakeToCamel,
-} from "./client";
+} from "./util";
 import { describe, expect, it, test } from "vitest";
 
 test("camelToSnake", () => {
