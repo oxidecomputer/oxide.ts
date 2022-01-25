@@ -61,29 +61,30 @@ export const isObjectOrArray = (o: unknown) =>
   !(o instanceof Error) &&
   o !== null;
 
-const identity = (x: any) => x;
-
 // recursively map (k, v) pairs using Object.entries
 export const mapObj =
-  (fn: (k: string, v: unknown) => [string, any] = identity) =>
+  (
+    kf: (k: string, v: unknown) => string = (k, v) => k,
+    vf: (k: string, v: unknown) => any = (k, v) => v,
+  ) =>
   (o: unknown): unknown => {
-    if (!isObjectOrArray(o)) return o;
+    if (!isObjectOrArray(o)) return vf("", o);
 
     if (Array.isArray(o)) {
-      return o.map(mapObj(fn));
+      return o.map(mapObj(kf, vf));
     }
 
     const obj = o as Record<string, unknown>;
 
     const newObj: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
-      console.log(key, value);
       if (typeof key === "string") {
-        const [newKey, newValue] = fn(
-          key,
-          mapObj(fn)(value as Record<string, unknown>),
-        );
-        console.log(newKey, newValue);
+        const newKey = kf(key, value);
+        const newValue = isObjectOrArray(value)
+          ? mapObj(kf, vf)(value)
+          : // don't call mapObj for the non-object case. if we did `mapObj(kf,
+            // vf)(value)`, vf would not be called with `key` arg
+            vf(key, value);
         newObj[newKey] = newValue;
       }
     }
@@ -99,12 +100,9 @@ export const parseIfDate = (k: string, v: any) => {
   return v;
 };
 
-export const snakeify = mapObj((k, v) => [camelToSnake(k), v]);
+export const snakeify = mapObj(camelToSnake);
 
-export const processResponseBody = mapObj((k, v) => [
-  snakeToCamel(k),
-  parseIfDate(k, v),
-]);
+export const processResponseBody = mapObj(snakeToCamel, parseIfDate);
 
 export class HttpClient {
   public baseUrl: string = "";

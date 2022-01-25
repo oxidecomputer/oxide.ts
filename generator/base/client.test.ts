@@ -4,6 +4,7 @@ import {
   mapObj,
   parseIfDate,
   processResponseBody,
+  snakeify,
   snakeToCamel,
 } from "./client";
 import { describe, expect, it, test } from "vitest";
@@ -33,11 +34,14 @@ test("isObjectOrArray", () => {
 });
 
 describe("mapObj", () => {
-  const fn = mapObj((k, v) => [k + "_", (v as number) * 2]);
+  const fn = mapObj(
+    (k) => k + "_",
+    (k, v) => (typeof v === "number" ? v * 2 : v),
+  );
 
-  it("passes through non-objects or arrays", () => {
+  it("calls value transform on non-objects", () => {
+    expect(fn(5)).toEqual(10);
     expect(fn("x")).toEqual("x");
-    expect(fn(5)).toEqual(5);
   });
 
   it("maps over objects and arrays", () => {
@@ -50,17 +54,16 @@ test("processResponseBody", () => {
   expect(processResponseBody({})).toEqual({});
 
   const date = new Date();
-  const dateStr = date.toString();
-  const parsedDate = new Date(dateStr);
+  const dateStr = date.toISOString();
   const resp = {
     id: "big-uuid",
     another_prop: "abc",
     time_created: dateStr,
   };
-  expect(processResponseBody(resp)).toEqual({
+  expect(processResponseBody(resp)).toMatchObject({
     id: "big-uuid",
     anotherProp: "abc",
-    timeCreated: parsedDate,
+    timeCreated: expect.any(Date),
   });
 });
 
@@ -70,7 +73,8 @@ describe("parseIfDate", () => {
     expect(parseIfDate("abc", "def")).toEqual("def");
   });
 
-  const dateStr = new Date().toISOString();
+  const timestamp = 1643092429315;
+  const dateStr = new Date(timestamp).toISOString();
 
   it("doesn't parse dates if key doesn't start with time_", () => {
     expect(parseIfDate("abc", dateStr)).toEqual(dateStr);
@@ -79,11 +83,34 @@ describe("parseIfDate", () => {
   it("parses dates if key starts with time_", () => {
     const value = parseIfDate("time_whatever", dateStr);
     expect(value).toBeInstanceOf(Date);
-    expect(value.getTime()).not.toBeNaN();
+    expect(value.getTime()).toEqual(timestamp);
   });
 
   it("passes through values that fail to parse as dates", () => {
     const value = parseIfDate("time_whatever", "blah");
     expect(value).toEqual("blah");
+  });
+});
+
+test("snakeify", () => {
+  const obj = {
+    id: "vpc-id",
+    timeCreated: new Date(2021, 0, 1).toISOString(),
+    timeModified: new Date(2021, 0, 2).toISOString(),
+    systemRouterId: "router-id",
+    nestedObj: {
+      thereIsMore: 123,
+      weAreSerious: "xyz",
+    },
+  };
+  expect(snakeify(obj)).toEqual({
+    id: "vpc-id",
+    system_router_id: "router-id",
+    time_created: "2021-01-01T05:00:00.000Z",
+    time_modified: "2021-01-02T05:00:00.000Z",
+    nested_obj: {
+      there_is_more: 123,
+      we_are_serious: "xyz",
+    },
   });
 });
