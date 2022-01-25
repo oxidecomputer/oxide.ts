@@ -14,6 +14,5 @@ if [[ $# != 1 ]]; then
 fi
 
 npm run --silent tsc
-OUTPUT=$(node index.js $1)
+node index.js $1
 rm index.js
-echo "$OUTPUT" | sed 's/organizationName/orgName/g'

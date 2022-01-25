@@ -12,6 +12,14 @@ const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : "");
 const snakeToPascal = snakeTo(cap);
 const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
 
+// HACK: we will probably do this rename in Nexus at some point because
+// "organization" is really long. Luckily it is only ever used as an
+// interpolated variable in request paths, so renaming it is fine as long
+// as we do it everywhere.
+const toOrgName = (s: string) => s.replace("organization_name", "org_name");
+
+const processParamName = (s: string) => snakeToCamel(toOrgName(s));
+
 /// write to file with newline
 function w(s: string) {
   console.log(s);
@@ -24,7 +32,7 @@ function w0(s: string) {
 
 /// {project_name} -> ${projectName}. if no brackets, leave it alone
 const segmentToInterpolation = (s: string) =>
-  s.startsWith("{") ? `\$\{${snakeToCamel(s.slice(1, -1))}\}` : s;
+  s.startsWith("{") ? `\$\{${processParamName(s.slice(1, -1))}\}` : s;
 
 const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";
@@ -143,7 +151,7 @@ async function generateClient(specFile: string) {
               "nullable" in param.schema && param.schema.nullable;
 
             docCommentIfDescription(param.schema);
-            w0(`  ${snakeToCamel(param.name)}`);
+            w0(`  ${processParamName(param.name)}`);
             if (nullable || isQuery) w0("?");
             w0(": ");
             schemaToType(param.schema);
@@ -198,7 +206,7 @@ async function generateClient(specFile: string) {
       w(`${methodName}: (`);
       if (pathParams.length > 0) {
         w0("{ ");
-        w0(pathParams.map((p) => snakeToCamel(p.name)).join(", "));
+        w0(pathParams.map((p) => processParamName(p.name)).join(", "));
         if (queryParams.length > 0) {
           w0(", ...query");
         }
