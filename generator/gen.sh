@@ -15,4 +15,4 @@ fi
 
 npm run --silent tsc
 node index.js $1
-rm index.js
+rm index.js gen-client.js
