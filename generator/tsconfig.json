@@ -3,5 +3,5 @@
     "esModuleInterop": true,
     "strict": true
   },
-  "exclude": ["base"]
+  "exclude": ["base", "*.test.*"]
 }

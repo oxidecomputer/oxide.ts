@@ -1722,38 +1722,31 @@ export const isObjectOrArray = (o: unknown) =>
   !(o instanceof Error) &&
   o !== null;
 
-// recursively map (k, v) pairs using Object.entries
+/**
+ * Recursively map (k, v) pairs using Object.entries
+ *
+ * Note that value transform function takes both k and v so we can use the key
+ * to decide whether to transform the value.
+ */
 export const mapObj =
   (
-    kf: (k: string, v: unknown) => string = (k, v) => k,
-    vf: (k: string, v: unknown) => any = (k, v) => v
+    kf: (k: string) => string,
+    vf: (k: string | undefined, v: unknown) => any = (k, v) => v
   ) =>
   (o: unknown): unknown => {
-    if (!isObjectOrArray(o)) return vf("", o);
+    if (!isObjectOrArray(o)) return o;
 
-    if (Array.isArray(o)) {
-      return o.map(mapObj(kf, vf));
-    }
-
-    const obj = o as Record<string, unknown>;
+    if (Array.isArray(o)) return o.map(mapObj(kf, vf));
 
     const newObj: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      if (typeof key === "string") {
-        const newKey = kf(key, value);
-        const newValue = isObjectOrArray(value)
-          ? mapObj(kf, vf)(value)
-          : // don't call mapObj for the non-object case. if we did `mapObj(kf,
-            // vf)(value)`, vf would not be called with `key` arg
-            vf(key, value);
-        newObj[newKey] = newValue;
-      }
+    for (const [k, v] of Object.entries(o as Record<string, unknown>)) {
+      newObj[kf(k)] = isObjectOrArray(v) ? mapObj(kf, vf)(v) : vf(k, v);
     }
     return newObj;
   };
 
-export const parseIfDate = (k: string, v: any) => {
-  if (typeof v === "string" && k.startsWith("time_")) {
+export const parseIfDate = (k: string | undefined, v: any) => {
+  if (typeof v === "string" && k?.startsWith("time_")) {
     const d = new Date(v);
     if (isNaN(d.getTime())) return v;
     return d;
