@@ -123,6 +123,19 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
 export async function generateClient(specFile: string) {
   const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document;
 
+  let mutSpec: any = spec;
+
+  // We want to generate back out the documentation for the client and save it
+  // to the specFile.
+  // First, let's add the installation/client information.
+  mutSpec.info["x-ts"] = {
+      client: `// Create a new HttpClient and configure it with the baseUrl and token.
+let client = new HttpClient("$OXIDE_HOST", "$OXIDE_TOKEN");`,
+      install: `yarn add @oxidecomputer/api
+# - OR -
+$ npm install @oxidecomputer/api`
+  };
+
   if (!spec.components) return;
 
   w("/* eslint-disable */\n");
@@ -213,20 +226,31 @@ export async function generateClient(specFile: string) {
 
       docCommentIfDescription(conf);
 
+      // Here we start to define what we will output back out to our spec as
+      // documentation for this client.
+      let methodSpecDocs = `let resp = client.${methodName}(`;
+
       w(`${methodName}: (`);
       if (pathParams.length > 0) {
         w0("{ ");
-        w0(pathParams.map((p) => processParamName(p.name)).join(", "));
+        methodSpecDocs += `${paramsType}{`;
+        const params = pathParams.map((p) => processParamName(p.name)).join(", ");
+        w0(params);
+        methodSpecDocs += `${params}`;
         if (queryParams.length > 0) {
           w0(", ...query");
         }
         w(`}: ${paramsType},`);
+        methodSpecDocs += `}, `;
       } else {
         w(`query: ${paramsType},`);
+        methodSpecDocs += `query, `;
       }
       if (bodyType) {
         w(`data: ${bodyType},`);
+        methodSpecDocs += `data, `;
       }
+      methodSpecDocs += `params);`;
       w(`  params: RequestParams = {},
          ) =>
            this.request<${successType}, any>({
@@ -241,8 +265,16 @@ export async function generateClient(specFile: string) {
       w(`    ...params,
            }),
       `);
+
+      // Save the documentation for the client.
+      mutSpec.paths[path][HttpMethods[method]]!['x-ts'] = {
+        example: methodSpecDocs
+      };
     }
   }
   w(`  }
      }`);
+
+  // Now, let's write out the actual specFile.
+  fs.writeFileSync(specFile, JSON.stringify(mutSpec, null, 2));
 }

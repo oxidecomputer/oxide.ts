@@ -7,7 +7,11 @@
       "url": "https://oxide.computer",
       "email": "api@oxide.computer"
     },
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "x-ts": {
+      "client": "// Create a new HttpClient and configure it with the baseUrl and token.\nlet client = new HttpClient(\"$OXIDE_HOST\", \"$OXIDE_TOKEN\");",
+      "install": "yarn add @oxidecomputer/api\n# - OR -\n$ npm install @oxidecomputer/api"
+    }
   },
   "paths": {
     "/hardware/racks": {
@@ -61,7 +65,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.hardwareRacksGet(query, params);"
+        }
       }
     },
     "/hardware/racks/{rack_id}": {
@@ -95,6 +102,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.hardwareRacksGetRack(HardwareRacksGetRackParams{rackId}, params);"
         }
       }
     },
@@ -149,7 +159,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.hardwareSledsGet(query, params);"
+        }
       }
     },
     "/hardware/sleds/{sled_id}": {
@@ -183,6 +196,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.hardwareSledsGetSled(HardwareSledsGetSledParams{sledId}, params);"
         }
       }
     },
@@ -206,6 +222,9 @@
           "default": {
             "description": ""
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.spoofLogin(query, data, params);"
         }
       }
     },
@@ -219,6 +238,9 @@
           "default": {
             "description": ""
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.logout(query, params);"
         }
       }
     },
@@ -273,7 +295,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.organizationsGet(query, params);"
+        }
       },
       "post": {
         "tags": [
@@ -302,6 +327,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationsPost(query, data, params);"
         }
       }
     },
@@ -334,6 +362,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationsGetOrganization(OrganizationsGetOrganizationParams{orgName}, params);"
         }
       },
       "put": {
@@ -374,6 +405,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationsPutOrganization(OrganizationsPutOrganizationParams{orgName}, data, params);"
         }
       },
       "delete": {
@@ -397,6 +431,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationsDeleteOrganization(OrganizationsDeleteOrganizationParams{orgName}, params);"
         }
       }
     },
@@ -460,7 +497,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.organizationProjectsGet(OrganizationProjectsGetParams{orgName}, params);"
+        }
       },
       "post": {
         "tags": [
@@ -500,6 +540,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationProjectsPost(OrganizationProjectsPostParams{orgName}, data, params);"
         }
       }
     },
@@ -541,6 +584,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationProjectsGetProject(OrganizationProjectsGetProjectParams{orgName, projectName}, params);"
         }
       },
       "put": {
@@ -590,6 +636,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationProjectsPutProject(OrganizationProjectsPutProjectParams{orgName, projectName}, data, params);"
         }
       },
       "delete": {
@@ -622,6 +671,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.organizationProjectsDeleteProject(OrganizationProjectsDeleteProjectParams{orgName, projectName}, params);"
         }
       }
     },
@@ -694,7 +746,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.projectDisksGet(ProjectDisksGetParams{orgName, projectName}, params);"
+        }
       },
       "post": {
         "tags": [
@@ -743,6 +798,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectDisksPost(ProjectDisksPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -793,6 +851,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectDisksGetDisk(ProjectDisksGetDiskParams{diskName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -834,6 +895,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectDisksDeleteDisk(ProjectDisksDeleteDiskParams{diskName, orgName, projectName}, params);"
         }
       }
     },
@@ -906,7 +970,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.projectInstancesGet(ProjectInstancesGetParams{orgName, projectName}, params);"
+        }
       },
       "post": {
         "tags": [
@@ -955,6 +1022,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectInstancesPost(ProjectInstancesPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -1005,6 +1075,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectInstancesGetInstance(ProjectInstancesGetInstanceParams{instanceName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -1046,6 +1119,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectInstancesDeleteInstance(ProjectInstancesDeleteInstanceParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1127,7 +1203,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.instanceDisksGet(InstanceDisksGetParams{instanceName, orgName, projectName}, params);"
+        }
       }
     },
     "/organizations/{organization_name}/projects/{project_name}/instances/{instance_name}/disks/attach": {
@@ -1186,6 +1265,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.instanceDisksAttach(InstanceDisksAttachParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -1245,6 +1327,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.instanceDisksDetach(InstanceDisksDetachParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -1295,6 +1380,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectInstancesInstanceReboot(ProjectInstancesInstanceRebootParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1345,6 +1433,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectInstancesInstanceStart(ProjectInstancesInstanceStartParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1395,6 +1486,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectInstancesInstanceStop(ProjectInstancesInstanceStopParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1467,7 +1561,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.projectVpcsGet(ProjectVpcsGetParams{orgName, projectName}, params);"
+        }
       },
       "post": {
         "tags": [
@@ -1516,6 +1613,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectVpcsPost(ProjectVpcsPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -1566,6 +1666,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectVpcsGetVpc(ProjectVpcsGetVpcParams{orgName, projectName, vpcName}, params);"
         }
       },
       "put": {
@@ -1617,6 +1720,9 @@
           "204": {
             "description": "resource updated"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectVpcsPutVpc(ProjectVpcsPutVpcParams{orgName, projectName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -1658,6 +1764,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.projectVpcsDeleteVpc(ProjectVpcsDeleteVpcParams{orgName, projectName, vpcName}, params);"
         }
       }
     },
@@ -1739,7 +1848,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.vpcFirewallRulesGet(VpcFirewallRulesGetParams{orgName, projectName, vpcName}, params);"
+        }
       },
       "put": {
         "tags": [
@@ -1797,6 +1909,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcFirewallRulesPut(VpcFirewallRulesPutParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -1878,7 +1993,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.vpcRoutersGet(VpcRoutersGetParams{orgName, projectName, vpcName}, params);"
+        }
       },
       "post": {
         "tags": [
@@ -1936,6 +2054,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcRoutersPost(VpcRoutersPostParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -1995,6 +2116,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcRoutersGetRouter(VpcRoutersGetRouterParams{orgName, projectName, routerName, vpcName}, params);"
         }
       },
       "put": {
@@ -2055,6 +2179,9 @@
           "204": {
             "description": "resource updated"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcRoutersPutRouter(VpcRoutersPutRouterParams{orgName, projectName, routerName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -2105,6 +2232,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcRoutersDeleteRouter(VpcRoutersDeleteRouterParams{orgName, projectName, routerName, vpcName}, params);"
         }
       }
     },
@@ -2195,7 +2325,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.routersRoutesGet(RoutersRoutesGetParams{orgName, projectName, routerName, vpcName}, params);"
+        }
       },
       "post": {
         "tags": [
@@ -2262,6 +2395,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.routersRoutesPost(RoutersRoutesPostParams{orgName, projectName, routerName, vpcName}, data, params);"
         }
       }
     },
@@ -2330,6 +2466,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.routersRoutesGetRoute(RoutersRoutesGetRouteParams{orgName, projectName, routeName, routerName, vpcName}, params);"
         }
       },
       "put": {
@@ -2399,6 +2538,9 @@
           "204": {
             "description": "resource updated"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.routersRoutesPutRoute(RoutersRoutesPutRouteParams{orgName, projectName, routeName, routerName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -2458,6 +2600,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.routersRoutesDeleteRoute(RoutersRoutesDeleteRouteParams{orgName, projectName, routeName, routerName, vpcName}, params);"
         }
       }
     },
@@ -2539,7 +2684,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.vpcSubnetsGet(VpcSubnetsGetParams{orgName, projectName, vpcName}, params);"
+        }
       },
       "post": {
         "tags": [
@@ -2597,6 +2745,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcSubnetsPost(VpcSubnetsPostParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -2656,6 +2807,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcSubnetsGetSubnet(VpcSubnetsGetSubnetParams{orgName, projectName, subnetName, vpcName}, params);"
         }
       },
       "put": {
@@ -2716,6 +2870,9 @@
           "204": {
             "description": "resource updated"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcSubnetsPutSubnet(VpcSubnetsPutSubnetParams{orgName, projectName, subnetName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -2766,6 +2923,9 @@
           "204": {
             "description": "successful deletion"
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.vpcSubnetsDeleteSubnet(VpcSubnetsDeleteSubnetParams{orgName, projectName, subnetName, vpcName}, params);"
         }
       }
     },
@@ -2856,7 +3016,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.subnetsIpsGet(SubnetsIpsGetParams{orgName, projectName, subnetName, vpcName}, params);"
+        }
       }
     },
     "/roles": {
@@ -2902,7 +3065,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.rolesGet(query, params);"
+        }
       }
     },
     "/roles/{role_name}": {
@@ -2935,6 +3101,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.rolesGetRole(RolesGetRoleParams{roleName}, params);"
         }
       }
     },
@@ -2989,7 +3158,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.sagasGet(query, params);"
+        }
       }
     },
     "/sagas/{saga_id}": {
@@ -3022,6 +3194,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.sagasGetSaga(SagasGetSagaParams{sagaId}, params);"
         }
       }
     },
@@ -3043,6 +3218,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.sessionMe(query, params);"
         }
       }
     },
@@ -3089,7 +3267,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.timeseriesSchemaGet(query, params);"
+        }
       }
     },
     "/users": {
@@ -3143,7 +3324,10 @@
             }
           }
         },
-        "x-dropshot-pagination": true
+        "x-dropshot-pagination": true,
+        "x-ts": {
+          "example": "let resp = client.usersGet(query, params);"
+        }
       }
     },
     "/users/{user_name}": {
@@ -3175,6 +3359,9 @@
               }
             }
           }
+        },
+        "x-ts": {
+          "example": "let resp = client.usersGetUser(UsersGetUserParams{userName}, params);"
         }
       }
     }
