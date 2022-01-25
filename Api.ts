@@ -1764,36 +1764,55 @@ const camelToSnake = (s: string) =>
 
 const snakeToCamel = (s: string) => s.replace(/_./g, (l) => l[1].toUpperCase());
 
-const isObject = (o: unknown) =>
+const isObjectOrArray = (o: unknown) =>
   typeof o === "object" &&
   !(o instanceof Date) &&
   !(o instanceof RegExp) &&
   !(o instanceof Error) &&
   o !== null;
 
-// recursively map keys using Object.keys
-const mapKeys =
-  (fn: (k: string) => string) =>
+const identity = (x: any) => x;
+
+// recursively map (k, v) pairs using Object.entries
+const mapObj =
+  (fn: (k: string, v: unknown) => [string, any] = identity) =>
   (o: unknown): unknown => {
-    if (!isObject(o)) return o;
+    if (!isObjectOrArray(o)) return o;
 
     if (Array.isArray(o)) {
-      return o.map(mapKeys(fn));
+      return o.map(mapObj(fn));
     }
 
     const obj = o as Record<string, unknown>;
 
     const newObj: Record<string, unknown> = {};
-    for (const key of Object.keys(obj)) {
+    for (const [key, value] of Object.entries(obj)) {
       if (typeof key === "string") {
-        newObj[fn(key)] = mapKeys(fn)(obj[key] as Record<string, unknown>);
+        const [newKey, newValue] = fn(
+          key,
+          mapObj(fn)(value as Record<string, unknown>)
+        );
+        newObj[newKey] = newValue;
       }
     }
     return newObj;
   };
 
-const snakeify = mapKeys(camelToSnake);
-const camelify = mapKeys(snakeToCamel);
+const parseDates = (k: string, v: any) => {
+  if (typeof v === "string" && k.startsWith("time_")) {
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return v;
+    return d;
+  }
+  return v;
+};
+
+const snakeify = mapObj((k, v) => [camelToSnake(k), v]);
+
+const processResponseBody = mapObj((k, v) => [
+  snakeToCamel(k),
+  parseDates(k, v),
+]);
 
 export class HttpClient {
   public baseUrl: string = "";
@@ -1880,7 +1899,7 @@ export class HttpClient {
 
       await response
         .json()
-        .then(camelify)
+        .then(processResponseBody)
         .then((data) => {
           if (r.ok) {
             r.data = data as T;

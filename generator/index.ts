@@ -51,7 +51,7 @@ function docCommentIfDescription(schema: Schema) {
 
 type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
 
-function schemaToType(schema: Schema, propsInline = false) {
+function schemaToType(schema: Schema, propsInline = false, name?: string) {
   if ("$ref" in schema) {
     w0(refToSchemaName(schema.$ref));
     return;
@@ -66,6 +66,12 @@ function schemaToType(schema: Schema, propsInline = false) {
           w(`  | "${item}"`);
         }
       }
+    } else if (
+      schema.format === "date-time" &&
+      name &&
+      name.startsWith("time_")
+    ) {
+      w0("Date");
     } else {
       w0("string");
     }
@@ -97,7 +103,7 @@ function schemaToType(schema: Schema, propsInline = false) {
       w0(snakeToCamel(propName));
       if (nullable) w0("?");
       w0(": ");
-      schemaToType(prop);
+      schemaToType(prop, false, propName);
       if (nullable) w0(" | null");
       w0(", " + suffix);
     }
