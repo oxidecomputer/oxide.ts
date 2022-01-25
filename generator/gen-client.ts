@@ -169,7 +169,12 @@ export async function generateClient(specFile: string) {
 
   // HACK: in order to make utils testable without polluting the generated
   // client's exports, we have exports in the file but strip them out here
-  w(fs.readFileSync("./base/util.ts").toString().replace("export ", ""));
+  w(
+    fs
+      .readFileSync("./base/util.ts")
+      .toString()
+      .replace(/export /g, ""),
+  );
   w(fs.readFileSync("./base/client.ts").toString());
 
   w(`export class Api extends HttpClient {
