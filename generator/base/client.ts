@@ -48,12 +48,13 @@ const toQueryString = (rawQuery?: QueryParamsType): string =>
     )
     .join("&");
 
-const camelToSnake = (s: string) =>
+export const camelToSnake = (s: string) =>
   s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 
-const snakeToCamel = (s: string) => s.replace(/_./g, (l) => l[1].toUpperCase());
+export const snakeToCamel = (s: string) =>
+  s.replace(/_./g, (l) => l[1].toUpperCase());
 
-const isObjectOrArray = (o: unknown) =>
+export const isObjectOrArray = (o: unknown) =>
   typeof o === "object" &&
   !(o instanceof Date) &&
   !(o instanceof RegExp) &&
@@ -63,7 +64,7 @@ const isObjectOrArray = (o: unknown) =>
 const identity = (x: any) => x;
 
 // recursively map (k, v) pairs using Object.entries
-const mapObj =
+export const mapObj =
   (fn: (k: string, v: unknown) => [string, any] = identity) =>
   (o: unknown): unknown => {
     if (!isObjectOrArray(o)) return o;
@@ -76,18 +77,20 @@ const mapObj =
 
     const newObj: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
+      console.log(key, value);
       if (typeof key === "string") {
         const [newKey, newValue] = fn(
           key,
           mapObj(fn)(value as Record<string, unknown>),
         );
+        console.log(newKey, newValue);
         newObj[newKey] = newValue;
       }
     }
     return newObj;
   };
 
-const parseDates = (k: string, v: any) => {
+export const parseIfDate = (k: string, v: any) => {
   if (typeof v === "string" && k.startsWith("time_")) {
     const d = new Date(v);
     if (isNaN(d.getTime())) return v;
@@ -96,11 +99,11 @@ const parseDates = (k: string, v: any) => {
   return v;
 };
 
-const snakeify = mapObj((k, v) => [camelToSnake(k), v]);
+export const snakeify = mapObj((k, v) => [camelToSnake(k), v]);
 
-const processResponseBody = mapObj((k, v) => [
+export const processResponseBody = mapObj((k, v) => [
   snakeToCamel(k),
-  parseDates(k, v),
+  parseIfDate(k, v),
 ]);
 
 export class HttpClient {
