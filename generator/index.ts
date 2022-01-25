@@ -66,11 +66,7 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
           w(`  | "${item}"`);
         }
       }
-    } else if (
-      schema.format === "date-time" &&
-      name &&
-      name.startsWith("time_")
-    ) {
+    } else if (schema.format === "date-time" && name?.startsWith("time_")) {
       w0("Date");
     } else {
       w0("string");
@@ -171,6 +167,8 @@ async function generateClient(specFile: string) {
     }
   }
 
+  // HACK: in order to make utils testable without polluting the generated
+  // client's exports, we have exports in the file but strip them out here
   w(fs.readFileSync("./base/util.ts").toString().replace("export ", ""));
   w(fs.readFileSync("./base/client.ts").toString());
 

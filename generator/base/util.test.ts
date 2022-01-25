@@ -39,14 +39,14 @@ describe("mapObj", () => {
     (k, v) => (typeof v === "number" ? v * 2 : v),
   );
 
-  it("calls value transform on non-objects", () => {
-    expect(fn(5)).toEqual(10);
+  it("leaves non-objects alone", () => {
+    expect(fn(5)).toEqual(5);
     expect(fn("x")).toEqual("x");
   });
 
   it("maps over objects and arrays", () => {
     expect(fn({ x: 5, y: { z: 3 } })).toEqual({ x_: 10, y_: { z_: 6 } });
-    expect(fn([{ x: 5 }, { y: 3 }])).toEqual([{ x_: 10 }, { y_: 6 }]);
+    expect(fn([{ x: 5 }, "abc"])).toEqual([{ x_: 10 }, "abc"]);
   });
 });
 
