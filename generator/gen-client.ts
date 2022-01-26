@@ -39,10 +39,10 @@ export const pathToTemplateStr = (s: string) =>
 
 const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
 
-function docCommentIfDescription(schema: Schema) {
-  if ("description" in schema && schema.description) {
+function docComment(s: string | undefined) {
+  if (s) {
     w("/**");
-    for (const line of schema.description.split("\n")) {
+    for (const line of s.split("\n")) {
       w("* " + line);
     }
     w(" */");
@@ -94,7 +94,9 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
         !schema.required ||
         !schema.required.includes(propName);
 
-      docCommentIfDescription(prop);
+      if ("description" in prop) {
+        docComment(prop.description);
+      }
 
       w0(snakeToCamel(propName));
       if (nullable) w0("?");
@@ -129,7 +131,9 @@ export async function generateClient(specFile: string) {
 
   for (const schemaName in spec.components.schemas) {
     const schema = spec.components.schemas[schemaName];
-    docCommentIfDescription(schema);
+    if ("description" in schema) {
+      docComment(schema.description);
+    }
     w0(`export type ${schemaName} =`);
     schemaToType(schema);
     w("\n");
@@ -152,7 +156,10 @@ export async function generateClient(specFile: string) {
             const nullable =
               "nullable" in param.schema && param.schema.nullable;
 
-            docCommentIfDescription(param.schema);
+            if ("description" in param.schema) {
+              docComment(param.schema.description);
+            }
+
             w0(`  ${processParamName(param.name)}`);
             if (nullable || isQuery) w0("?");
             w0(": ");
@@ -211,7 +218,7 @@ export async function generateClient(specFile: string) {
         ? refToSchemaName(successTypeRef)
         : "void";
 
-      docCommentIfDescription(conf);
+      docComment(conf.summary || conf.description);
 
       w(`${methodName}: (`);
       if (pathParams.length > 0) {
