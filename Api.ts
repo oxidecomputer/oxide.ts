@@ -1712,10 +1712,9 @@ export interface UsersGetUserParams {
 const camelToSnake = (s: string) =>
   s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 
-export const snakeToCamel = (s: string) =>
-  s.replace(/_./g, (l) => l[1].toUpperCase());
+const snakeToCamel = (s: string) => s.replace(/_./g, (l) => l[1].toUpperCase());
 
-export const isObjectOrArray = (o: unknown) =>
+const isObjectOrArray = (o: unknown) =>
   typeof o === "object" &&
   !(o instanceof Date) &&
   !(o instanceof RegExp) &&
@@ -1728,7 +1727,7 @@ export const isObjectOrArray = (o: unknown) =>
  * Note that value transform function takes both k and v so we can use the key
  * to decide whether to transform the value.
  */
-export const mapObj =
+const mapObj =
   (
     kf: (k: string) => string,
     vf: (k: string | undefined, v: unknown) => any = (k, v) => v
@@ -1745,7 +1744,7 @@ export const mapObj =
     return newObj;
   };
 
-export const parseIfDate = (k: string | undefined, v: any) => {
+const parseIfDate = (k: string | undefined, v: any) => {
   if (typeof v === "string" && k?.startsWith("time_")) {
     const d = new Date(v);
     if (isNaN(d.getTime())) return v;
@@ -1754,9 +1753,9 @@ export const parseIfDate = (k: string | undefined, v: any) => {
   return v;
 };
 
-export const snakeify = mapObj(camelToSnake);
+const snakeify = mapObj(camelToSnake);
 
-export const processResponseBody = mapObj(snakeToCamel, parseIfDate);
+const processResponseBody = mapObj(snakeToCamel, parseIfDate);
 
 // credit where due: this is a stripped-down version of the fetch client from
 // https://github.com/acacode/swagger-typescript-api
