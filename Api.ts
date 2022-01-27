@@ -45,11 +45,11 @@ export type Disk = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -121,6 +121,13 @@ export type FieldSource = "Target" | "Metric";
 export type FieldType = "String" | "I64" | "IpAddr" | "Uuid" | "Bool";
 
 /**
+ * Supported set of sort modes for scanning by id only.
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export type IdSortMode = "id-ascending";
+
+/**
  * Client view of an [`Instance`]
  */
 export type Instance = {
@@ -156,12 +163,12 @@ export type Instance = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
-  timeRunStateUpdated: string;
+  timeModified: Date;
+  timeRunStateUpdated: Date;
 };
 
 /**
@@ -240,6 +247,21 @@ export type MacAddr = string;
 export type Name = string;
 
 /**
+ * Supported set of sort modes for scanning by name or id
+ */
+export type NameOrIdSortMode =
+  | "name-ascending"
+  | "name-descending"
+  | "id-ascending";
+
+/**
+ * Supported set of sort modes for scanning by name only
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export type NameSortMode = "name-ascending";
+
+/**
  * A `NetworkInterface` represents a virtual network interface device.
  */
 export type NetworkInterface = {
@@ -274,11 +296,11 @@ export type NetworkInterface = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
   /**
    * The VPC to which the interface belongs.
    */
@@ -318,11 +340,11 @@ export type Organization = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -375,11 +397,11 @@ export type Project = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -431,11 +453,11 @@ export type Rack = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -495,7 +517,7 @@ export type RouteTarget =
   | { type: "vpc"; value: Name }
   | { type: "subnet"; value: Name }
   | { type: "instance"; value: Name }
-  | { type: "internetGateway"; value: Name };
+  | { type: "internet_gateway"; value: Name };
 
 /**
  * A route defines a rule that governs where traffic should be sent based on its destination.
@@ -526,11 +548,11 @@ export type RouterRoute = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -548,7 +570,11 @@ export type RouterRouteCreateParams = {
  *
  * See [RFD-21](https://rfd.shared.oxide.computer/rfd/0021#concept-router) for more context
  */
-export type RouterRouteKind = "Default" | "VpcSubnet" | "VpcPeering" | "Custom";
+export type RouterRouteKind =
+  | "default"
+  | "vpc_subnet"
+  | "vpc_peering"
+  | "custom";
 
 /**
  * A single page of results
@@ -580,11 +606,11 @@ export type Saga = {
 };
 
 export type SagaErrorInfo =
-  | { error: "actionFailed"; sourceError: any }
-  | { error: "deserializeFailed"; message: string }
-  | { error: "injectedError" }
-  | { error: "serializeFailed"; message: string }
-  | { error: "subsagaCreateFailed"; message: string };
+  | { error: "action_failed"; sourceError: any }
+  | { error: "deserialize_failed"; message: string }
+  | { error: "injected_error" }
+  | { error: "serialize_failed"; message: string }
+  | { error: "subsaga_create_failed"; message: string };
 
 /**
  * A single page of results
@@ -632,11 +658,11 @@ export type Sled = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -703,11 +729,11 @@ export type User = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -755,11 +781,11 @@ export type Vpc = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 /**
@@ -814,11 +840,11 @@ export type VpcFirewallRule = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
 };
 
 export type VpcFirewallRuleAction = "allow" | "deny";
@@ -851,7 +877,7 @@ export type VpcFirewallRuleHostFilter =
   | { type: "subnet"; value: Name }
   | { type: "instance"; value: Name }
   | { type: "ip"; value: string }
-  | { type: "internetGateway"; value: Name };
+  | { type: "internet_gateway"; value: Name };
 
 /**
  * The protocols that may be specified in a firewall rule's filter
@@ -960,11 +986,11 @@ export type VpcRouter = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
   /**
    * The VPC to which the router belongs.
    */
@@ -1030,11 +1056,11 @@ export type VpcSubnet = {
   /**
    * timestamp when this resource was created
    */
-  timeCreated: string;
+  timeCreated: Date;
   /**
    * timestamp when this resource was last modified
    */
-  timeModified: string;
+  timeModified: Date;
   /**
    * The VPC to which the subnet belongs.
    */
@@ -1083,28 +1109,6 @@ export type VpcUpdate = {
   dnsName?: Name | null;
   name?: Name | null;
 };
-
-/**
- * Supported set of sort modes for scanning by id only.
- *
- * Currently, we only support scanning in ascending order.
- */
-export type IdSortMode = "id-ascending";
-
-/**
- * Supported set of sort modes for scanning by name or id
- */
-export type NameOrIdSortMode =
-  | "name-ascending"
-  | "name-descending"
-  | "id-ascending";
-
-/**
- * Supported set of sort modes for scanning by name only
- *
- * Currently, we only support scanning in ascending order.
- */
-export type NameSortMode = "name-ascending";
 
 export interface HardwareRacksGetParams {
   /**

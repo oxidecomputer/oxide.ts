@@ -1,0 +1,72 @@
+on:
+  push:
+    tags:
+      - v*
+  pull_request:
+    paths:
+      - .github/workflows/update-spec-for-docs.yml
+  workflow_dispatch:
+name: update spec for docs
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  update-spec:
+    name: update-spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: make generate
+        shell: bash
+        run: |
+          cd generator
+          npm install
+          npm run gen
+      # Ensure no files changed, we do this to ensure that someone has already
+      # generated the latest client.
+      - name: Ensure no files changed
+        shell: bash
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            echo "Files changed, exiting";
+            exit 1;
+          else
+            # No changes
+            echo "No files changed, proceeding";
+          fi
+      # Checkout the docs repo since we will want to update the files there.
+      - uses: actions/checkout@v2
+        with:
+          repository: 'oxidecomputer/oxide.go'
+          path: 'oxide.go'
+          token: ${{secrets.PAT_GITHUB}}
+      - name: move spec to oxide go lib
+        shell: bash
+        run: |
+          rm oxide.go/spec.json
+          cp spec.json oxide.go/spec.json
+      - name: commit the changes in the lang repo
+        shell: bash
+        run: |
+          export VERSION=$(cat OMICRON_VERSION);
+          cd oxide.go
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -am "YOYO NEW TS SPEC DOCS ${VERSION}!" || exit 0
+          git fetch origin
+          git rebase origin/main || exit 0
+          export NEW_BRANCH="update-spec-${VERSION}"
+          git checkout -b "$NEW_BRANCH"
+          git push -f origin "$NEW_BRANCH"
+          gh pr create --title "Update ts lang spec docs for ${VERSION}" \
+              --body "Updating the generated docs for ts" \
+              --head "$NEW_BRANCH" \
+              --base main || true
+        env:
+          GITHUB_TOKEN: ${{secrets.PAT_GITHUB}}
+
+
