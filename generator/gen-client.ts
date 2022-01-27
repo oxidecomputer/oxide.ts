@@ -130,19 +130,35 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
     : null;
 }
 
-type Ext = {
+type OpExt = {
   "x-ts": {
     example: string;
   };
 };
 
+// This should go in a declaration file, but it seems to work fine here. We need
+// to extend info this way because the generic param on Document only lets you
+// extend the OperationObject type
+declare module "openapi-types" {
+  namespace OpenAPIV3 {
+    interface InfoObject {
+      "x-ts": {
+        client: string;
+        install: string;
+      };
+    }
+  }
+}
+
 export async function generateClient(specFile: string) {
-  const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document<Ext>;
+  const spec = (await SwaggerParser.parse(
+    specFile,
+  )) as OpenAPIV3.Document<OpExt>;
 
   // We want to generate back out the documentation for the client and save it
   // to the specFile.
   // First, let's add the installation/client information.
-  (spec as any).info["x-ts"] = {
+  spec.info["x-ts"] = {
     client: `// Create a new HttpClient and configure it with the baseUrl and token.
 let client = new HttpClient("$OXIDE_HOST", "$OXIDE_TOKEN");`,
     install: `yarn add @oxidecomputer/api
