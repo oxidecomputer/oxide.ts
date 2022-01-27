@@ -51,7 +51,12 @@ function docComment(s: string | undefined) {
 
 type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
 
-function schemaToType(schema: Schema, propsInline = false, name?: string) {
+type SchemaToTypeOpts = {
+  propsInline?: boolean;
+  name?: string;
+};
+
+function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
   if ("$ref" in schema) {
     w0(refToSchemaName(schema.$ref));
     return;
@@ -66,7 +71,10 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
           w(`  | "${item}"`);
         }
       }
-    } else if (schema.format === "date-time" && name?.startsWith("time_")) {
+    } else if (
+      schema.format === "date-time" &&
+      opts.name?.startsWith("time_")
+    ) {
       w0("Date");
     } else {
       w0("string");
@@ -74,18 +82,18 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
   } else if (schema.oneOf) {
     for (const prop of schema.oneOf) {
       w0("  | ");
-      schemaToType(prop, true);
+      schemaToType(prop, { ...opts, propsInline: true });
     }
   } else if (schema.type === "array") {
-    schemaToType(schema.items);
+    schemaToType(schema.items, opts);
     w0("[]");
   } else if (schema.allOf && schema.allOf.length === 1) {
-    schemaToType(schema.allOf[0]);
+    schemaToType(schema.allOf[0], opts);
   } else if (schema.type === "integer") {
     w0(`number`);
   } else if (schema.type === "object") {
     // hack for getting cute inline object types for unions
-    const suffix = propsInline ? "" : "\n";
+    const suffix = opts.propsInline ? "" : "\n";
     w0("{ " + suffix);
     for (const propName in schema.properties) {
       const prop = schema.properties[propName];
@@ -101,7 +109,7 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
       w0(snakeToCamel(propName));
       if (nullable) w0("?");
       w0(": ");
-      schemaToType(prop, false, propName);
+      schemaToType(prop, { ...opts, name: propName });
       if (nullable) w0(" | null");
       w0(", " + suffix);
     }
