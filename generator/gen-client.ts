@@ -39,10 +39,10 @@ export const pathToTemplateStr = (s: string) =>
 
 const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
 
-function docCommentIfDescription(schema: Schema) {
-  if ("description" in schema && schema.description) {
+function docComment(s: string | undefined) {
+  if (s) {
     w("/**");
-    for (const line of schema.description.split("\n")) {
+    for (const line of s.split("\n")) {
       w("* " + line);
     }
     w(" */");
@@ -51,7 +51,12 @@ function docCommentIfDescription(schema: Schema) {
 
 type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
 
-function schemaToType(schema: Schema, propsInline = false, name?: string) {
+type SchemaToTypeOpts = {
+  propsInline?: boolean;
+  name?: string;
+};
+
+function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
   if ("$ref" in schema) {
     w0(refToSchemaName(schema.$ref));
     return;
@@ -66,7 +71,10 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
           w(`  | "${item}"`);
         }
       }
-    } else if (schema.format === "date-time" && name?.startsWith("time_")) {
+    } else if (
+      schema.format === "date-time" &&
+      opts.name?.startsWith("time_")
+    ) {
       w0("Date");
     } else {
       w0("string");
@@ -74,18 +82,18 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
   } else if (schema.oneOf) {
     for (const prop of schema.oneOf) {
       w0("  | ");
-      schemaToType(prop, true);
+      schemaToType(prop, { ...opts, propsInline: true });
     }
   } else if (schema.type === "array") {
-    schemaToType(schema.items);
+    schemaToType(schema.items, opts);
     w0("[]");
   } else if (schema.allOf && schema.allOf.length === 1) {
-    schemaToType(schema.allOf[0]);
+    schemaToType(schema.allOf[0], opts);
   } else if (schema.type === "integer") {
     w0(`number`);
   } else if (schema.type === "object") {
     // hack for getting cute inline object types for unions
-    const suffix = propsInline ? "" : "\n";
+    const suffix = opts.propsInline ? "" : "\n";
     w0("{ " + suffix);
     for (const propName in schema.properties) {
       const prop = schema.properties[propName];
@@ -94,12 +102,14 @@ function schemaToType(schema: Schema, propsInline = false, name?: string) {
         !schema.required ||
         !schema.required.includes(propName);
 
-      docCommentIfDescription(prop);
+      if ("description" in prop) {
+        docComment(prop.description);
+      }
 
       w0(snakeToCamel(propName));
       if (nullable) w0("?");
       w0(": ");
-      schemaToType(prop, false, propName);
+      schemaToType(prop, { ...opts, name: propName });
       if (nullable) w0(" | null");
       w0(", " + suffix);
     }
@@ -146,7 +156,9 @@ $ npm install @oxidecomputer/api`,
 
   for (const schemaName in spec.components.schemas) {
     const schema = spec.components.schemas[schemaName];
-    docCommentIfDescription(schema);
+    if ("description" in schema) {
+      docComment(schema.description);
+    }
     w0(`export type ${schemaName} =`);
     schemaToType(schema);
     w("\n");
@@ -169,7 +181,10 @@ $ npm install @oxidecomputer/api`,
             const nullable =
               "nullable" in param.schema && param.schema.nullable;
 
-            docCommentIfDescription(param.schema);
+            if ("description" in param.schema) {
+              docComment(param.schema.description);
+            }
+
             w0(`  ${processParamName(param.name)}`);
             if (nullable || isQuery) w0("?");
             w0(": ");
@@ -228,7 +243,7 @@ $ npm install @oxidecomputer/api`,
         ? refToSchemaName(successTypeRef)
         : "void";
 
-      docCommentIfDescription(conf);
+      docComment(conf.summary || conf.description);
 
       // Here we start to define what we will output back out to our spec as
       // documentation for this client.
