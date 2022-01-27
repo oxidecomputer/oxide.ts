@@ -120,20 +120,24 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
     : null;
 }
 
-export async function generateClient(specFile: string) {
-  const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document;
+type Ext = {
+  "x-ts": {
+    example: string;
+  };
+};
 
-  let mutSpec: any = spec;
+export async function generateClient(specFile: string) {
+  const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document<Ext>;
 
   // We want to generate back out the documentation for the client and save it
   // to the specFile.
   // First, let's add the installation/client information.
-  mutSpec.info["x-ts"] = {
-      client: `// Create a new HttpClient and configure it with the baseUrl and token.
+  (spec as any).info["x-ts"] = {
+    client: `// Create a new HttpClient and configure it with the baseUrl and token.
 let client = new HttpClient("$OXIDE_HOST", "$OXIDE_TOKEN");`,
-      install: `yarn add @oxidecomputer/api
+    install: `yarn add @oxidecomputer/api
 # - OR -
-$ npm install @oxidecomputer/api`
+$ npm install @oxidecomputer/api`,
   };
 
   if (!spec.components) return;
@@ -234,7 +238,9 @@ $ npm install @oxidecomputer/api`
       if (pathParams.length > 0) {
         w0("{ ");
         methodSpecDocs += `${paramsType}{`;
-        const params = pathParams.map((p) => processParamName(p.name)).join(", ");
+        const params = pathParams
+          .map((p) => processParamName(p.name))
+          .join(", ");
         w0(params);
         methodSpecDocs += `${params}`;
         if (queryParams.length > 0) {
@@ -267,14 +273,12 @@ $ npm install @oxidecomputer/api`
       `);
 
       // Save the documentation for the client.
-      mutSpec.paths[path][HttpMethods[method]]!['x-ts'] = {
-        example: methodSpecDocs
-      };
+      conf["x-ts"] = { example: methodSpecDocs };
     }
   }
   w(`  }
      }`);
 
   // Now, let's write out the actual specFile.
-  fs.writeFileSync(specFile, JSON.stringify(mutSpec, null, 2));
+  fs.writeFileSync(specFile, JSON.stringify(spec, null, 2));
 }
