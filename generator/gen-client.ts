@@ -160,7 +160,10 @@ export async function generateClient(specFile: string) {
   // First, let's add the installation/client information.
   spec.info["x-ts"] = {
     client: `// Create a new HttpClient and configure it with the baseUrl and token.
-let client = new HttpClient("$OXIDE_HOST", "$OXIDE_TOKEN");`,
+let client = new Api({
+    baseUrl: "$OXIDE_HOST",
+    token: "$OXIDE_TOKEN",
+});`,
     install: `yarn add @oxidecomputer/api
 # - OR -
 $ npm install @oxidecomputer/api`,

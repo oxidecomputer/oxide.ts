@@ -9,7 +9,7 @@
     },
     "version": "0.0.1",
     "x-ts": {
-      "client": "// Create a new HttpClient and configure it with the baseUrl and token.\nlet client = new HttpClient(\"$OXIDE_HOST\", \"$OXIDE_TOKEN\");",
+      "client": "// Create a new HttpClient and configure it with the baseUrl and token.\nlet client = new Api({\n    baseUrl: \"$OXIDE_HOST\",\n    token, \"$OXIDE_TOKEN\",\n});",
       "install": "yarn add @oxidecomputer/api\n# - OR -\n$ npm install @oxidecomputer/api"
     }
   },
