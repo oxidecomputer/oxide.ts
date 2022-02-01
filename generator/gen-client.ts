@@ -92,28 +92,37 @@ function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
   } else if (schema.type === "integer") {
     w0(`number`);
   } else if (schema.type === "object") {
-    // hack for getting cute inline object types for unions
-    const suffix = opts.propsInline ? "" : "\n";
-    w0("{ " + suffix);
-    for (const propName in schema.properties) {
-      const prop = schema.properties[propName];
-      const nullable =
-        ("nullable" in prop && prop.nullable) ||
-        !schema.required ||
-        !schema.required.includes(propName);
+    if (
+      schema.additionalProperties &&
+      typeof schema.additionalProperties === "object"
+    ) {
+      w0("Record<string, ");
+      schemaToType(schema.additionalProperties, opts);
+      w0(">");
+    } else {
+      // hack for getting cute inline object types for unions
+      const suffix = opts.propsInline ? "" : "\n";
+      w0("{ " + suffix);
+      for (const propName in schema.properties) {
+        const prop = schema.properties[propName];
+        const nullable =
+          ("nullable" in prop && prop.nullable) ||
+          !schema.required ||
+          !schema.required.includes(propName);
 
-      if ("description" in prop) {
-        docComment(prop.description);
+        if ("description" in prop) {
+          docComment(prop.description);
+        }
+
+        w0(snakeToCamel(propName));
+        if (nullable) w0("?");
+        w0(": ");
+        schemaToType(prop, { ...opts, name: propName });
+        if (nullable) w0(" | null");
+        w0(", " + suffix);
       }
-
-      w0(snakeToCamel(propName));
-      if (nullable) w0("?");
-      w0(": ");
-      schemaToType(prop, { ...opts, name: propName });
-      if (nullable) w0(" | null");
-      w0(", " + suffix);
+      w(" }");
     }
-    w(" }");
   } else if (typeof schema === "object" && Object.keys(schema).length === 0) {
     w0("any");
   } else {
