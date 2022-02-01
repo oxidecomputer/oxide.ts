@@ -130,8 +130,44 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
     : null;
 }
 
+type OpExt = {
+  "x-ts": {
+    example: string;
+  };
+};
+
+// This should go in a declaration file, but it seems to work fine here. We need
+// to extend info this way because the generic param on Document only lets you
+// extend the OperationObject type
+declare module "openapi-types" {
+  namespace OpenAPIV3 {
+    interface InfoObject {
+      "x-ts": {
+        client: string;
+        install: string;
+      };
+    }
+  }
+}
+
 export async function generateClient(specFile: string) {
-  const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document;
+  const spec = (await SwaggerParser.parse(
+    specFile,
+  )) as OpenAPIV3.Document<OpExt>;
+
+  // We want to generate back out the documentation for the client and save it
+  // to the specFile.
+  // First, let's add the installation/client information.
+  spec.info["x-ts"] = {
+    client: `// Create a new HttpClient and configure it with the baseUrl and token.
+let client = new Api({
+    baseUrl: "$OXIDE_HOST",
+    token: "$OXIDE_TOKEN",
+});`,
+    install: `yarn add @oxidecomputer/api
+# - OR -
+$ npm install @oxidecomputer/api`,
+  };
 
   if (!spec.components) return;
 
@@ -228,20 +264,33 @@ export async function generateClient(specFile: string) {
 
       docComment(conf.summary || conf.description);
 
+      // Here we start to define what we will output back out to our spec as
+      // documentation for this client.
+      let methodSpecDocs = `let resp = client.${methodName}(`;
+
       w(`${methodName}: (`);
       if (pathParams.length > 0) {
         w0("{ ");
-        w0(pathParams.map((p) => processParamName(p.name)).join(", "));
+        methodSpecDocs += `${paramsType}{`;
+        const params = pathParams
+          .map((p) => processParamName(p.name))
+          .join(", ");
+        w0(params);
+        methodSpecDocs += `${params}`;
         if (queryParams.length > 0) {
           w0(", ...query");
         }
         w(`}: ${paramsType},`);
+        methodSpecDocs += `}, `;
       } else {
         w(`query: ${paramsType},`);
+        methodSpecDocs += `query, `;
       }
       if (bodyType) {
         w(`data: ${bodyType},`);
+        methodSpecDocs += `data, `;
       }
+      methodSpecDocs += `params);`;
       w(`  params: RequestParams = {},
          ) =>
            this.request<${successType}, any>({
@@ -256,8 +305,14 @@ export async function generateClient(specFile: string) {
       w(`    ...params,
            }),
       `);
+
+      // Save the documentation for the client.
+      conf["x-ts"] = { example: methodSpecDocs };
     }
   }
   w(`  }
      }`);
+
+  // Now, let's write out the actual specFile.
+  fs.writeFileSync(specFile, JSON.stringify(spec, null, 2));
 }
