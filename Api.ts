@@ -223,15 +223,26 @@ export type InstanceState =
  */
 export type Ipv4Net = string;
 
+/** Regex pattern for validating Ipv4Net */
+export const ipv4NetPattern =
+  "^(10.(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9].){2}(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9])/(1[0-9]|2[0-8]|[8-9]))$^(172.16.(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9]).(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9])/(1[2-9]|2[0-8]))$^(192.168.(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9]).(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9])/(1[6-9]|2[0-8]))$";
+
 /**
  * An IPv6 subnet, including prefix and subnet mask
  */
 export type Ipv6Net = string;
 
+/** Regex pattern for validating Ipv6Net */
+export const ipv6NetPattern =
+  "^(fd|FD)00:((([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,6}:))/(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-6])$";
+
 /**
  * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
  */
 export type L4PortRange = string;
+
+/** Regex pattern for validating L4PortRange */
+export const l4PortRangePattern = "^[0-9]{1,5}(-[0-9]{1,5})?$";
 
 export type LoginParams = {
   username: string;
@@ -242,10 +253,16 @@ export type LoginParams = {
  */
 export type MacAddr = string;
 
+/** Regex pattern for validating MacAddr */
+export const macAddrPattern = "^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$";
+
 /**
  * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'.
  */
 export type Name = string;
+
+/** Regex pattern for validating Name */
+export const namePattern = "[a-z](|[a-zA-Z0-9-]*[a-zA-Z0-9])";
 
 /**
  * A `NetworkInterface` represents a virtual network interface device.
@@ -473,6 +490,9 @@ export type Role = {
  */
 export type RoleName = string;
 
+/** Regex pattern for validating RoleName */
+export const roleNamePattern = "[a-z-]+.[a-z-]+";
+
 /**
  * A single page of results
  */
@@ -669,6 +689,10 @@ export type SledResultsPage = {
  * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
  */
 export type TimeseriesName = string;
+
+/** Regex pattern for validating TimeseriesName */
+export const timeseriesNamePattern =
+  "(([a-z]+[a-z0-9]*)(_([a-z0-9]+))*):(([a-z]+[a-z0-9]*)(_([a-z0-9]+))*)";
 
 /**
  * The schema for a timeseries.

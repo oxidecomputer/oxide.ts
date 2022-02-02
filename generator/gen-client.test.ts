@@ -1,4 +1,9 @@
-import { pathToTemplateStr, snakeToCamel, snakeToPascal } from "./gen-client";
+import {
+  pathToTemplateStr,
+  snakeToCamel,
+  snakeToPascal,
+  pascalToCamel,
+} from "./gen-client";
 import { expect, test } from "vitest";
 
 test("pathToTemplateStr", () => {
@@ -21,4 +26,10 @@ test("snakeToPascal", () => {
   expect(snakeToPascal("")).toEqual("");
   expect(snakeToPascal("ipv4_block")).toEqual("Ipv4Block");
   expect(snakeToPascal("a_lot_of_words")).toEqual("ALotOfWords");
+});
+
+test("pascalToCamel", () => {
+  expect(pascalToCamel("")).toEqual("");
+  expect(pascalToCamel("Ipv4Block")).toEqual("ipv4Block");
+  expect(pascalToCamel("ALotOfWords")).toEqual("aLotOfWords");
 });

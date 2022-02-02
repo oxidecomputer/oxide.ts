@@ -12,6 +12,9 @@ const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : "");
 export const snakeToPascal = snakeTo(cap);
 export const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
 
+export const pascalToCamel = (s: string) =>
+  s ? s[0].toLowerCase() + s.slice(1) : s;
+
 // HACK: we will probably do this rename in Nexus at some point because
 // "organization" is really long. Luckily it is only ever used as an
 // interpolated variable in request paths, so renaming it is fine as long
@@ -190,6 +193,14 @@ $ npm install @oxidecomputer/api`,
     w0(`export type ${schemaName} =`);
     schemaToType(schema);
     w("\n");
+
+    if ("type" in schema && schema.type === "string" && schema.pattern) {
+      w(`/** Regex pattern for validating ${schemaName} */`);
+      w(`export const ${pascalToCamel(schemaName)}Pattern = `);
+      // make pattern a string for now because one of them doesn't actually
+      // parse as a regex. consider changing to `/${pattern}/` once fixed
+      w(`"${schema.pattern}"\n`);
+    }
   }
 
   for (const path in spec.paths) {
