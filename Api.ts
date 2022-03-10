@@ -53,7 +53,7 @@ export type Disk = {
 };
 
 /**
- * Create-time parameters for a [`Disk`]
+ * Create-time parameters for a [`Disk`](omicron_common::api::external::Disk)
  */
 export type DiskCreate = {
   description: string;
@@ -69,7 +69,7 @@ export type DiskCreate = {
 };
 
 /**
- * Parameters for the [`Disk`] to be attached or detached to an instance
+ * Parameters for the [`Disk`](omicron_common::api::external::Disk) to be attached or detached to an instance
  */
 export type DiskIdentifier = {
   disk: Name;
@@ -100,6 +100,15 @@ export type DiskState =
   | { instance: string; state: "detaching" }
   | { state: "destroyed" }
   | { state: "faulted" };
+
+/**
+ * Error information from a response.
+ */
+export type Error = {
+  errorCode?: string | null;
+  message: string;
+  requestId: string;
+};
 
 /**
  * The name and type information for a field of a timeseries schema.
@@ -170,7 +179,7 @@ export type Instance = {
 export type InstanceCpuCount = number;
 
 /**
- * Create-time parameters for an [`Instance`]
+ * Create-time parameters for an [`Instance`](omicron_common::api::external::Instance)
  */
 export type InstanceCreate = {
   description: string;
@@ -181,7 +190,7 @@ export type InstanceCreate = {
 };
 
 /**
- * Migration parameters for an [`Instance`]
+ * Migration parameters for an [`Instance`](omicron_common::api::external::Instance)
  */
 export type InstanceMigrate = {
   dstSledUuid: string;
@@ -234,7 +243,7 @@ export type Ipv6Net = string;
 
 /** Regex pattern for validating Ipv6Net */
 export const ipv6NetPattern =
-  "^(fd|FD)00:((([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,6}:))/(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-6])$";
+  "^(fd|FD)[0-9a-fA-F]{2}:((([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,6}:))/(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-6])$";
 
 /**
  * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
@@ -351,7 +360,7 @@ export type Organization = {
 };
 
 /**
- * Create-time parameters for an [`Organization`]
+ * Create-time parameters for an [`Organization`](crate::external_api::views::Organization)
  */
 export type OrganizationCreate = {
   description: string;
@@ -373,7 +382,7 @@ export type OrganizationResultsPage = {
 };
 
 /**
- * Updateable properties of an [`Organization`]
+ * Updateable properties of an [`Organization`](crate::external_api::views::Organization)
  */
 export type OrganizationUpdate = {
   description?: string | null;
@@ -408,7 +417,7 @@ export type Project = {
 };
 
 /**
- * Create-time parameters for a [`Project`]
+ * Create-time parameters for a [`Project`](crate::external_api::views::Project)
  */
 export type ProjectCreate = {
   description: string;
@@ -430,7 +439,7 @@ export type ProjectResultsPage = {
 };
 
 /**
- * Updateable properties of a [`Project`]
+ * Updateable properties of a [`Project`](crate::external_api::views::Project)
  */
 export type ProjectUpdate = {
   description?: string | null;
@@ -777,6 +786,10 @@ export type Vpc = {
    */
   id: string;
   /**
+   * The unique local IPv6 address range for subnets in this VPC
+   */
+  ipv6Prefix: Ipv6Net;
+  /**
    * unique, mutable, user-controlled identifier for each resource
    */
   name: Name;
@@ -799,11 +812,17 @@ export type Vpc = {
 };
 
 /**
- * Create-time parameters for a [`Vpc`]
+ * Create-time parameters for a [`Vpc`](crate::external_api::views::Vpc)
  */
 export type VpcCreate = {
   description: string;
   dnsName: Name;
+  /**
+   * The IPv6 prefix for this VPC.
+   *
+   * All IPv6 subnets created from this VPC must be taken from this range, which sould be a Unique Local Address in the range `fd00::/48`. The default VPC Subnet will have the first `/64` range from this prefix.
+   */
+  ipv6Prefix?: Ipv6Net | null;
   name: Name;
 };
 
@@ -855,6 +874,10 @@ export type VpcFirewallRule = {
    * timestamp when this resource was last modified
    */
   timeModified: Date;
+  /**
+   * the VPC to which this rule belongs
+   */
+  vpcId: string;
 };
 
 export type VpcFirewallRuleAction = "allow" | "deny";
@@ -894,20 +917,6 @@ export type VpcFirewallRuleHostFilter =
  */
 export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
 
-/**
- * A single page of results
- */
-export type VpcFirewallRuleResultsPage = {
-  /**
-   * list of items on this page of results
-   */
-  items: VpcFirewallRule[];
-  /**
-   * token used to fetch the next page of results (if any)
-   */
-  nextPage?: string | null;
-};
-
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
 
 /**
@@ -939,6 +948,10 @@ export type VpcFirewallRuleUpdate = {
    */
   filters: VpcFirewallRuleFilter;
   /**
+   * name of the rule, unique to this VPC
+   */
+  name: Name;
+  /**
    * the relative priority of this rule
    */
   priority: number;
@@ -953,14 +966,18 @@ export type VpcFirewallRuleUpdate = {
 };
 
 /**
- * Updateable properties of a [`Vpc`]'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
+ * Updateable properties of a `Vpc`'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
  */
-export type VpcFirewallRuleUpdateParams = Record<string, VpcFirewallRuleUpdate>;
+export type VpcFirewallRuleUpdateParams = {
+  rules: VpcFirewallRuleUpdate[];
+};
 
 /**
- * Response to an update replacing [`Vpc`]'s firewall
+ * Collection of a [`Vpc`]'s firewall rules
  */
-export type VpcFirewallRuleUpdateResult = Record<string, VpcFirewallRule>;
+export type VpcFirewallRules = {
+  rules: VpcFirewallRule[];
+};
 
 /**
  * A single page of results
@@ -1008,7 +1025,7 @@ export type VpcRouter = {
 };
 
 /**
- * Create-time parameters for a [`VpcRouter`]
+ * Create-time parameters for a [`VpcRouter`](omicron_common::api::external::VpcRouter)
  */
 export type VpcRouterCreate = {
   description: string;
@@ -1032,7 +1049,7 @@ export type VpcRouterResultsPage = {
 };
 
 /**
- * Updateable properties of a [`VpcRouter`]
+ * Updateable properties of a [`VpcRouter`](omicron_common::api::external::VpcRouter)
  */
 export type VpcRouterUpdate = {
   description?: string | null;
@@ -1054,11 +1071,11 @@ export type VpcSubnet = {
   /**
    * The IPv4 subnet CIDR block.
    */
-  ipv4Block?: Ipv4Net | null;
+  ipv4Block: Ipv4Net;
   /**
    * The IPv6 subnet CIDR block.
    */
-  ipv6Block?: Ipv6Net | null;
+  ipv6Block: Ipv6Net;
   /**
    * unique, mutable, user-controlled identifier for each resource
    */
@@ -1078,11 +1095,21 @@ export type VpcSubnet = {
 };
 
 /**
- * Create-time parameters for a [`VpcSubnet`]
+ * Create-time parameters for a [`VpcSubnet`](crate::external_api::views::VpcSubnet)
  */
 export type VpcSubnetCreate = {
   description: string;
-  ipv4Block?: Ipv4Net | null;
+  /**
+   * The IPv4 address range for this subnet.
+   *
+   * It must be allocated from an RFC 1918 private address range, and must not overlap with any other existing subnet in the VPC.
+   */
+  ipv4Block: Ipv4Net;
+  /**
+   * The IPv6 address range for this subnet.
+   *
+   * It must be allocated from the RFC 4193 Unique Local Address range, with the prefix equal to the parent VPC's prefix. A random `/64` block will be assigned if one is not provided. It must not overlap with any existing subnet in the VPC.
+   */
   ipv6Block?: Ipv6Net | null;
   name: Name;
 };
@@ -1102,7 +1129,7 @@ export type VpcSubnetResultsPage = {
 };
 
 /**
- * Updateable properties of a [`VpcSubnet`]
+ * Updateable properties of a [`VpcSubnet`](crate::external_api::views::VpcSubnet)
  */
 export type VpcSubnetUpdate = {
   description?: string | null;
@@ -1112,7 +1139,7 @@ export type VpcSubnetUpdate = {
 };
 
 /**
- * Updateable properties of a [`Vpc`]
+ * Updateable properties of a [`Vpc`](crate::external_api::views::Vpc)
  */
 export type VpcUpdate = {
   description?: string | null;
@@ -1143,44 +1170,26 @@ export type NameOrIdSortMode =
 export type NameSortMode = "name-ascending";
 
 export interface HardwareRacksGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: IdSortMode;
 }
 
 export interface HardwareRacksGetRackParams {
-  /**
-   * The rack's unique ID.
-   */
   rackId: string;
 }
 
 export interface HardwareSledsGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: IdSortMode;
 }
 
 export interface HardwareSledsGetSledParams {
-  /**
-   * The sled's unique ID.
-   */
   sledId: string;
 }
 
@@ -1189,14 +1198,8 @@ export interface SpoofLoginParams {}
 export interface LogoutParams {}
 
 export interface OrganizationsGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameOrIdSortMode;
@@ -1217,14 +1220,8 @@ export interface OrganizationsDeleteOrganizationParams {
 }
 
 export interface OrganizationProjectsGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameOrIdSortMode;
@@ -1255,14 +1252,8 @@ export interface OrganizationProjectsDeleteProjectParams {
 }
 
 export interface ProjectDisksGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1295,14 +1286,8 @@ export interface ProjectDisksDeleteDiskParams {
 }
 
 export interface ProjectInstancesGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1335,14 +1320,8 @@ export interface ProjectInstancesDeleteInstanceParams {
 }
 
 export interface InstanceDisksGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1403,14 +1382,8 @@ export interface ProjectInstancesInstanceStopParams {
 }
 
 export interface ProjectVpcsGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1451,18 +1424,6 @@ export interface ProjectVpcsDeleteVpcParams {
 }
 
 export interface VpcFirewallRulesGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
-  limit?: number | null;
-
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
-  pageToken?: string | null;
-
-  sortBy?: NameSortMode;
-
   orgName: Name;
 
   projectName: Name;
@@ -1479,14 +1440,8 @@ export interface VpcFirewallRulesPutParams {
 }
 
 export interface VpcRoutersGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1537,14 +1492,8 @@ export interface VpcRoutersDeleteRouterParams {
 }
 
 export interface RoutersRoutesGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1605,14 +1554,8 @@ export interface RoutersRoutesDeleteRouteParams {
 }
 
 export interface VpcSubnetsGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1663,14 +1606,8 @@ export interface VpcSubnetsDeleteSubnetParams {
 }
 
 export interface SubnetsIpsGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -1685,33 +1622,18 @@ export interface SubnetsIpsGetParams {
 }
 
 export interface RolesGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 }
 
 export interface RolesGetRoleParams {
-  /**
-   * The built-in role's unique name.
-   */
   roleName: string;
 }
 
 export interface SagasGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: IdSortMode;
@@ -1724,26 +1646,16 @@ export interface SagasGetSagaParams {
 export interface SessionMeParams {}
 
 export interface TimeseriesSchemaGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 }
 
+export interface UpdatesRefreshParams {}
+
 export interface UsersGetParams {
-  /**
-   * Maximum number of items returned by a single call
-   */
   limit?: number | null;
 
-  /**
-   * Token returned by previous call to retreive the subsequent page
-   */
   pageToken?: string | null;
 
   sortBy?: NameSortMode;
@@ -2469,13 +2381,12 @@ export class Api extends HttpClient {
      * List firewall rules for a VPC.
      */
     vpcFirewallRulesGet: (
-      { orgName, projectName, vpcName, ...query }: VpcFirewallRulesGetParams,
+      { orgName, projectName, vpcName }: VpcFirewallRulesGetParams,
       params: RequestParams = {}
     ) =>
-      this.request<VpcFirewallRuleResultsPage, any>({
+      this.request<VpcFirewallRules, any>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/firewall/rules`,
         method: "GET",
-        query: query,
         ...params,
       }),
 
@@ -2487,7 +2398,7 @@ export class Api extends HttpClient {
       data: VpcFirewallRuleUpdateParams,
       params: RequestParams = {}
     ) =>
-      this.request<VpcFirewallRuleUpdateResult, any>({
+      this.request<VpcFirewallRules, any>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/firewall/rules`,
         method: "PUT",
         body: data,
@@ -2827,6 +2738,16 @@ export class Api extends HttpClient {
         path: `/timeseries/schema`,
         method: "GET",
         query: query,
+        ...params,
+      }),
+
+    /**
+     * Refresh update metadata
+     */
+    updatesRefresh: (query: UpdatesRefreshParams, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/updates/refresh`,
+        method: "POST",
         ...params,
       }),
 
