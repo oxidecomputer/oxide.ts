@@ -4,6 +4,31 @@ const HttpMethods = O.HttpMethods;
 import SwaggerParser from "@apidevtools/swagger-parser";
 import fs from "fs";
 
+type Truthy<T> = T extends false | "" | 0 | null | undefined ? never : T;
+
+/**
+ * TS-friendly version of `Boolean` for when you want to filter for truthy
+ * values. Use `.filter(isTruthy)` instead of `.filter(Boolean)`. See
+ * [StackOverflow](https://stackoverflow.com/a/58110124/604986).
+ */
+function isTruthy<T>(value: T): value is Truthy<T> {
+  return !!value;
+}
+
+/**
+ * Remove duplicate values from an array. Does not use deep equal, so `{ a: 1 }
+ * != { a: 1 }`. Meant to be passed to `reduce` like `arr.reduce(uniq, [])`, not
+ * called directly. Modifies the input array instead of making a new one.
+ * Whatever. Roughly the same as `Array.from(new Set(arr))`, except this can be
+ * chained.
+ */
+export function uniq<T>(acc: T[], next: T): T[] {
+  if (!acc.includes(next)) {
+    acc.push(next);
+  }
+  return acc;
+}
+
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");
 
@@ -41,6 +66,8 @@ export const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";
 
 const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
+const refToResponseName = (s: string) =>
+  s.replace("#/components/responses/", "");
 
 function docComment(s: string | undefined) {
   if (s) {
@@ -282,6 +309,20 @@ $ npm install @oxidecomputer/api`,
         ? refToSchemaName(successTypeRef)
         : "void";
 
+      // only direct { $ref: 'blah/blah' } is supported because that's all we
+      // need for now. will need to update if it gets more complicated
+      const errorTypes = [conf.responses["4XX"], conf.responses["5XX"]]
+        .map((r) => r && "$ref" in r && r.$ref)
+        .filter(isTruthy)
+        .map(refToResponseName)
+        // need to dedupe because 4xx and 5xx are the same for now
+        .reduce(uniq, [] as string[]);
+
+      // there's only one slot for an error type right now, so we just union all
+      // the possibilities. if we wanted to distinguish between 4xx and 5xx, we
+      // could have two error type params in the method and pass them separately
+      const errorType = errorTypes.join(" | ") || "any";
+
       docComment(conf.summary || conf.description);
 
       // Here we start to define what we will output back out to our spec as
@@ -313,7 +354,7 @@ $ npm install @oxidecomputer/api`,
       methodSpecDocs += `params);`;
       w(`  params: RequestParams = {},
          ) =>
-           this.request<${successType}, any>({
+           this.request<${successType}, ${errorType}>({
              path: ${pathToTemplateStr(path)},
              method: "${method.toUpperCase()}",`);
       if (bodyType) {

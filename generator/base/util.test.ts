@@ -95,22 +95,24 @@ describe("parseIfDate", () => {
 test("snakeify", () => {
   const obj = {
     id: "vpc-id",
-    timeCreated: new Date(2021, 0, 1).toISOString(),
-    timeModified: new Date(2021, 0, 2).toISOString(),
+    timeCreated: new Date(Date.UTC(2021, 0, 1)).toISOString(),
+    timeModified: new Date(Date.UTC(2021, 0, 2)).toISOString(),
     systemRouterId: "router-id",
     nestedObj: {
       thereIsMore: 123,
       weAreSerious: "xyz",
     },
   };
-  expect(snakeify(obj)).toEqual({
-    id: "vpc-id",
-    system_router_id: "router-id",
-    time_created: "2021-01-01T05:00:00.000Z",
-    time_modified: "2021-01-02T05:00:00.000Z",
-    nested_obj: {
-      there_is_more: 123,
-      we_are_serious: "xyz",
-    },
-  });
+  expect(snakeify(obj)).toMatchInlineSnapshot(`
+    {
+      "id": "vpc-id",
+      "nested_obj": {
+        "there_is_more": 123,
+        "we_are_serious": "xyz",
+      },
+      "system_router_id": "router-id",
+      "time_created": "2021-01-01T00:00:00.000Z",
+      "time_modified": "2021-01-02T00:00:00.000Z",
+    }
+  `);
 });

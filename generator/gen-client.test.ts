@@ -3,6 +3,7 @@ import {
   snakeToCamel,
   snakeToPascal,
   pascalToCamel,
+  uniq,
 } from "./gen-client";
 import { expect, test } from "vitest";
 
@@ -32,4 +33,18 @@ test("pascalToCamel", () => {
   expect(pascalToCamel("")).toEqual("");
   expect(pascalToCamel("Ipv4Block")).toEqual("ipv4Block");
   expect(pascalToCamel("ALotOfWords")).toEqual("aLotOfWords");
+});
+
+test("uniq", () => {
+  expect([1, 2, 3].reduce(uniq, [])).toEqual([1, 2, 3]);
+  expect([1, 2, 3, 2, 3].reduce(uniq, [])).toEqual([1, 2, 3]);
+  expect(["abc", "abc", 2, 3].reduce(uniq, [])).toEqual(["abc", 2, 3]);
+
+  // does not deep equal
+  expect([1, 2, { a: 1 }, { a: 1 }].reduce(uniq, [])).toEqual([
+    1,
+    2,
+    { a: 1 },
+    { a: 1 },
+  ]);
 });
