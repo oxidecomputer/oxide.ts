@@ -41,8 +41,6 @@ export const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";
 
 const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
-const refToResponseName = (s: string) =>
-  s.replace("#/components/responses/", "");
 
 function docComment(s: string | undefined) {
   if (s) {
