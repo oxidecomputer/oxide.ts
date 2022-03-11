@@ -27,11 +27,19 @@ export interface ApiConfig {
   customFetch?: typeof fetch;
 }
 
-export interface HttpResponse<D extends unknown, E extends unknown = unknown>
-  extends Response {
-  data: D;
-  error: E;
-}
+export type ErrorResponse = Response & {
+  data: null;
+  error: Error;
+};
+
+export type SuccessResponse<Data extends unknown> = Response & {
+  data: Data;
+  error: null;
+};
+
+export type ApiResponse<Data extends unknown> =
+  | SuccessResponse<Data>
+  | ErrorResponse;
 
 type CancelToken = Symbol | string | number;
 
@@ -101,14 +109,14 @@ export class HttpClient {
     }
   };
 
-  public request = async <T = any, E = any>({
+  public request = async <Data extends unknown>({
     body,
     path,
     query,
     baseUrl,
     cancelToken,
     ...params
-  }: FullRequestParams): Promise<HttpResponse<T, E>> => {
+  }: FullRequestParams): Promise<ApiResponse<Data>> => {
     const requestParams = this.mergeRequestParams(params);
     const queryString = query && toQueryString(query);
 
@@ -127,23 +135,20 @@ export class HttpClient {
       signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
       body: JSON.stringify(snakeify(body)),
     }).then(async (response) => {
-      const r = response as HttpResponse<T, E>;
-      r.data = null as unknown as T;
-      r.error = null as unknown as E;
+      const r = response as ApiResponse<Data>;
+      r.data = null as unknown as Data;
+      r.error = null as unknown as Error;
 
-      await response
-        .json()
-        .then(processResponseBody)
-        .then((data) => {
-          if (r.ok) {
-            r.data = data as T;
-          } else {
-            r.error = data as E;
-          }
-        })
-        .catch((e) => {
-          r.error = e;
-        });
+      try {
+        const data = processResponseBody(await response.json());
+        if (r.ok) {
+          r.data = data as Data;
+        } else {
+          r.error = data as Error;
+        }
+      } catch (e) {
+        r.error = e as Error;
+      }
 
       if (cancelToken) {
         this.abortControllers.delete(cancelToken);
