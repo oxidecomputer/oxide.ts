@@ -71,7 +71,7 @@ type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
 type SchemaToTypeOpts = {
   propsInline?: boolean;
   name?: string;
-  schemaNames?: string[];
+  schemaNames?: string[]; // only here to pass to docComment
 };
 
 function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
@@ -208,7 +208,7 @@ $ npm install @oxidecomputer/api`,
       docComment(schema.description, schemaNames);
     }
     w0(`export type ${schemaName} =`);
-    schemaToType(schema);
+    schemaToType(schema, { schemaNames });
     w("\n");
 
     if ("type" in schema && schema.type === "string" && schema.pattern) {
@@ -244,7 +244,7 @@ $ npm install @oxidecomputer/api`,
             w0(`  ${processParamName(param.name)}`);
             if (nullable || isQuery) w0("?");
             w0(": ");
-            schemaToType(param.schema);
+            schemaToType(param.schema, { schemaNames });
             if (nullable) w0(" | null");
             w(",\n");
           }
