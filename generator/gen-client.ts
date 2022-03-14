@@ -23,17 +23,17 @@ const toOrgName = (s: string) => s.replace("organization_name", "org_name");
 
 const processParamName = (s: string) => snakeToCamel(toOrgName(s));
 
-/// write to file with newline
+/** write to file with newline */
 function w(s: string) {
   console.log(s);
 }
 
-/// same as w() but no newline
+/** same as w() but no newline */
 function w0(s: string) {
   process.stdout.write(s);
 }
 
-/// {project_name} -> ${projectName}. if no brackets, leave it alone
+/** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
 const segmentToInterpolation = (s: string) =>
   s.startsWith("{") ? `\$\{${processParamName(s.slice(1, -1))}\}` : s;
 
@@ -42,10 +42,24 @@ export const pathToTemplateStr = (s: string) =>
 
 const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
 
-function docComment(s: string | undefined) {
+/**
+ * Convert ``[`Vpc`](crate::external_api::views::Vpc)`` or plain ``[`Vpc`]`` to
+ * `{` `@link Vpc}`, but only if that name exists in the list of schemas.
+ */
+const jsdocLinkify = (s: string, schemaNames: string[]) =>
+  s.replace(/\[`([^`]+)`](\([^)]+\))?/g, (_, label) =>
+    schemaNames.includes(label) ? `{@link ${label}}` : "`" + label + "`",
+  );
+
+/**
+ * Turn a description into a block comment. We use the list of `schemaNames` to
+ * decide whether to turn a given crate references into an `@link`.
+ */
+function docComment(s: string | undefined, schemaNames: string[]) {
   if (s) {
+    const processed = jsdocLinkify(s, schemaNames);
     w("/**");
-    for (const line of s.split("\n")) {
+    for (const line of processed.split("\n")) {
       w("* " + line);
     }
     w(" */");
@@ -57,6 +71,7 @@ type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
 type SchemaToTypeOpts = {
   propsInline?: boolean;
   name?: string;
+  schemaNames?: string[]; // only here to pass to docComment
 };
 
 function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
@@ -114,7 +129,7 @@ function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
           !schema.required.includes(propName);
 
         if ("description" in prop) {
-          docComment(prop.description);
+          docComment(prop.description, opts.schemaNames || []);
         }
 
         w0(snakeToCamel(propName));
@@ -185,13 +200,15 @@ $ npm install @oxidecomputer/api`,
 
   w("/* eslint-disable */\n");
 
+  const schemaNames = Object.keys(spec.components.schemas || {});
+
   for (const schemaName in spec.components.schemas) {
     const schema = spec.components.schemas[schemaName];
     if ("description" in schema) {
-      docComment(schema.description);
+      docComment(schema.description, schemaNames);
     }
     w0(`export type ${schemaName} =`);
-    schemaToType(schema);
+    schemaToType(schema, { schemaNames });
     w("\n");
 
     if ("type" in schema && schema.type === "string" && schema.pattern) {
@@ -221,13 +238,13 @@ $ npm install @oxidecomputer/api`,
               "nullable" in param.schema && param.schema.nullable;
 
             if ("description" in param.schema) {
-              docComment(param.schema.description);
+              docComment(param.schema.description, schemaNames);
             }
 
             w0(`  ${processParamName(param.name)}`);
             if (nullable || isQuery) w0("?");
             w0(": ");
-            schemaToType(param.schema);
+            schemaToType(param.schema, { schemaNames });
             if (nullable) w0(" | null");
             w(",\n");
           }
@@ -282,7 +299,7 @@ $ npm install @oxidecomputer/api`,
         ? refToSchemaName(successTypeRef)
         : "void";
 
-      docComment(conf.summary || conf.description);
+      docComment(conf.summary || conf.description, schemaNames);
 
       // Here we start to define what we will output back out to our spec as
       // documentation for this client.
