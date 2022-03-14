@@ -313,7 +313,7 @@ $ npm install @oxidecomputer/api`,
       methodSpecDocs += `params);`;
       w(`  params: RequestParams = {},
          ) =>
-           this.request<${successType}, any>({
+           this.request<${successType}>({
              path: ${pathToTemplateStr(path)},
              method: "${method.toUpperCase()}",`);
       if (bodyType) {

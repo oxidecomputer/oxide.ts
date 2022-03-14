@@ -27,11 +27,24 @@ export interface ApiConfig {
   customFetch?: typeof fetch;
 }
 
-export interface HttpResponse<D extends unknown, E extends unknown = unknown>
-  extends Response {
-  data: D;
-  error: E;
-}
+export type ErrorResponse = Response & {
+  data: null;
+  // Note that this Error is not JS `Error` but rather an Error type generated
+  // from the spec. The fact that it has the same name as the global Error type
+  // is unfortunate. If the generated error type disappears, this will not fail
+  // typechecking here, but any code that depends on this having a certain shape
+  // will fail, so it's not that bad, though the error message may be confusing.
+  error: Error;
+};
+
+export type SuccessResponse<Data extends unknown> = Response & {
+  data: Data;
+  error: null;
+};
+
+export type ApiResponse<Data extends unknown> =
+  | SuccessResponse<Data>
+  | ErrorResponse;
 
 type CancelToken = Symbol | string | number;
 
@@ -101,14 +114,14 @@ export class HttpClient {
     }
   };
 
-  public request = async <T = any, E = any>({
+  public request = async <Data extends unknown>({
     body,
     path,
     query,
     baseUrl,
     cancelToken,
     ...params
-  }: FullRequestParams): Promise<HttpResponse<T, E>> => {
+  }: FullRequestParams): Promise<ApiResponse<Data>> => {
     const requestParams = this.mergeRequestParams(params);
     const queryString = query && toQueryString(query);
 
@@ -118,7 +131,7 @@ export class HttpClient {
       url += "?" + queryString;
     }
 
-    return this.customFetch(url, {
+    const response = await this.customFetch(url, {
       ...requestParams,
       headers: {
         "Content-Type": "application/json",
@@ -126,31 +139,28 @@ export class HttpClient {
       },
       signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
       body: JSON.stringify(snakeify(body)),
-    }).then(async (response) => {
-      const r = response as HttpResponse<T, E>;
-      r.data = null as unknown as T;
-      r.error = null as unknown as E;
-
-      await response
-        .json()
-        .then(processResponseBody)
-        .then((data) => {
-          if (r.ok) {
-            r.data = data as T;
-          } else {
-            r.error = data as E;
-          }
-        })
-        .catch((e) => {
-          r.error = e;
-        });
-
-      if (cancelToken) {
-        this.abortControllers.delete(cancelToken);
-      }
-
-      if (!r.ok) throw r;
-      return r;
     });
+
+    const r = response as ApiResponse<Data>;
+    r.data = null as unknown as Data;
+    r.error = null as unknown as Error;
+
+    try {
+      const data = processResponseBody(await response.json());
+      if (r.ok) {
+        r.data = data as Data;
+      } else {
+        r.error = data as Error;
+      }
+    } catch (e) {
+      r.error = e as Error;
+    }
+
+    if (cancelToken) {
+      this.abortControllers.delete(cancelToken);
+    }
+
+    if (!r.ok) throw r;
+    return r;
   };
 }
