@@ -1,0 +1,25 @@
+name: Validate
+
+on:
+  workflow_call:
+  push:
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: TypeCheck and Test
+        shell: bash
+        run: |
+          cd generator
+          npm install
+          npm run tsc
+          npm test run

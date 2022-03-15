@@ -9,7 +9,6 @@
     "gen-from": "./gen.sh",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
     "tsc": "tsc"
   },
   "author": "",

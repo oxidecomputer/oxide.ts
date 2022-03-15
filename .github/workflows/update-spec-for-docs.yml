@@ -18,8 +18,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '16'
-      - name: make generate
+          node-version: "16"
+      - name: Generate spec
         shell: bash
         run: |
           cd generator
@@ -40,8 +40,8 @@ jobs:
       # Checkout the docs repo since we will want to update the files there.
       - uses: actions/checkout@v2
         with:
-          repository: 'oxidecomputer/oxide.go'
-          path: 'oxide.go'
+          repository: "oxidecomputer/oxide.go"
+          path: "oxide.go"
           token: ${{secrets.PAT_GITHUB}}
       - name: move spec to oxide go lib
         shell: bash
@@ -68,5 +68,3 @@ jobs:
               --base main || true
         env:
           GITHUB_TOKEN: ${{secrets.PAT_GITHUB}}
-
-
