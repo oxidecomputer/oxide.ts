@@ -17,4 +17,4 @@ jobs:
         run: |
           cd generator
           npm run tsc
-          npm run test
+          npm run test:run
