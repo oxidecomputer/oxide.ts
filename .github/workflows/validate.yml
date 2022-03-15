@@ -1,0 +1,20 @@
+name: Validate
+
+on:
+  workflow_call:
+  push:
+
+jobs:
+  run-gen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: TypeCheck and Test
+        shell: bash
+        run: |
+          cd generator
+          npm run tsc
+          npm run test

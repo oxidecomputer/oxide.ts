@@ -15,16 +15,7 @@ jobs:
     name: update-spec
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '16'
-      - name: make generate
-        shell: bash
-        run: |
-          cd generator
-          npm install
-          npm run gen
+      - uses: ./.github/workflows/run-gen
       # Ensure no files changed, we do this to ensure that someone has already
       # generated the latest client.
       - name: Ensure no files changed
@@ -40,8 +31,8 @@ jobs:
       # Checkout the docs repo since we will want to update the files there.
       - uses: actions/checkout@v2
         with:
-          repository: 'oxidecomputer/oxide.go'
-          path: 'oxide.go'
+          repository: "oxidecomputer/oxide.go"
+          path: "oxide.go"
           token: ${{secrets.PAT_GITHUB}}
       - name: move spec to oxide go lib
         shell: bash
@@ -68,5 +59,3 @@ jobs:
               --base main || true
         env:
           GITHUB_TOKEN: ${{secrets.PAT_GITHUB}}
-
-
