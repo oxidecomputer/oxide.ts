@@ -22,4 +22,4 @@ jobs:
           cd generator
           npm install
           npm run tsc
-          npm run test:run
+          npm test run
