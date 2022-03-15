@@ -3,7 +3,7 @@ name: Validate
 on:
   workflow_call:
   push:
-    branch:
+    branches:
       - main
   pull_request:
 
