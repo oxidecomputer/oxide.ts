@@ -3,6 +3,9 @@ name: Validate
 on:
   workflow_call:
   push:
+    branches:
+      - main
+  pull_request:
 
 concurrency:
   group: validate-${{ github.ref }}
