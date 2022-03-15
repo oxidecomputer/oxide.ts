@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/workflows/run-gen
+      - uses: ./.github/workflows/run-gen.yml
       # Ensure no files changed, we do this to ensure that someone has already
       # generated the latest client.
       - name: Ensure no files changed
