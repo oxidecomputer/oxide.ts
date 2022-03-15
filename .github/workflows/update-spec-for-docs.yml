@@ -15,6 +15,7 @@ jobs:
     name: update-spec
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: ./.github/workflows/run-gen
       # Ensure no files changed, we do this to ensure that someone has already
       # generated the latest client.
