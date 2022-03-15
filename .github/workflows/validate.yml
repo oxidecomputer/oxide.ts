@@ -16,5 +16,6 @@ jobs:
         shell: bash
         run: |
           cd generator
+          npm install
           npm run tsc
           npm run test:run
