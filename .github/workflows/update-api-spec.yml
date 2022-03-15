@@ -2,6 +2,8 @@ name: Update API Spec
 
 on:
   push:
+    branches-ignore:
+      - main
   workflow_dispatch:
 
 concurrency:
