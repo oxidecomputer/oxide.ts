@@ -4,6 +4,10 @@ on:
   workflow_call:
   push:
 
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
