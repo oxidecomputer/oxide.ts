@@ -7,11 +7,7 @@
       "url": "https://oxide.computer",
       "email": "api@oxide.computer"
     },
-    "version": "0.0.1",
-    "x-ts": {
-      "client": "// Create a new HttpClient and configure it with the baseUrl and token.\nlet client = new Api({\n    baseUrl: \"$OXIDE_HOST\",\n    token: \"$OXIDE_TOKEN\",\n});",
-      "install": "yarn add @oxidecomputer/api\n# - OR -\n$ npm install @oxidecomputer/api"
-    }
+    "version": "0.0.1"
   },
   "paths": {
     "/hardware/racks": {
@@ -71,10 +67,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.hardwareRacksGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/hardware/racks/{rack_id}": {
@@ -114,9 +107,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.hardwareRacksGetRack(HardwareRacksGetRackParams{rackId}, params);"
         }
       }
     },
@@ -177,10 +167,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.hardwareSledsGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/hardware/sleds/{sled_id}": {
@@ -220,9 +207,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.hardwareSledsGetSled(HardwareSledsGetSledParams{sledId}, params);"
         }
       }
     },
@@ -246,9 +230,6 @@
           "default": {
             "description": ""
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.spoofLogin(query, data, params);"
         }
       }
     },
@@ -262,9 +243,6 @@
           "default": {
             "description": ""
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.logout(query, params);"
         }
       }
     },
@@ -325,10 +303,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.organizationsGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -363,9 +338,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationsPost(query, data, params);"
         }
       }
     },
@@ -405,9 +377,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationsGetOrganization(OrganizationsGetOrganizationParams{orgName}, params);"
         }
       },
       "put": {
@@ -455,9 +424,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationsPutOrganization(OrganizationsPutOrganizationParams{orgName}, data, params);"
         }
       },
       "delete": {
@@ -488,9 +454,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationsDeleteOrganization(OrganizationsDeleteOrganizationParams{orgName}, params);"
         }
       }
     },
@@ -561,10 +524,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsGet(OrganizationProjectsGetParams{orgName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -611,9 +571,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsPost(OrganizationProjectsPostParams{orgName}, data, params);"
         }
       }
     },
@@ -663,9 +620,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsGetProject(OrganizationProjectsGetProjectParams{orgName, projectName}, params);"
         }
       },
       "put": {
@@ -723,9 +677,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsPutProject(OrganizationProjectsPutProjectParams{orgName, projectName}, data, params);"
         }
       },
       "delete": {
@@ -766,9 +717,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsDeleteProject(OrganizationProjectsDeleteProjectParams{orgName, projectName}, params);"
         }
       }
     },
@@ -849,10 +797,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectDisksGet(ProjectDisksGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -909,9 +854,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectDisksPost(ProjectDisksPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -968,9 +910,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectDisksGetDisk(ProjectDisksGetDiskParams{diskName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -1018,9 +957,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectDisksDeleteDisk(ProjectDisksDeleteDiskParams{diskName, orgName, projectName}, params);"
         }
       }
     },
@@ -1101,10 +1037,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectInstancesGet(ProjectInstancesGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -1161,9 +1094,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesPost(ProjectInstancesPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -1220,9 +1150,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesGetInstance(ProjectInstancesGetInstanceParams{instanceName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -1270,9 +1197,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesDeleteInstance(ProjectInstancesDeleteInstanceParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1360,10 +1284,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.instanceDisksGet(InstanceDisksGetParams{instanceName, orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/organizations/{organization_name}/projects/{project_name}/instances/{instance_name}/disks/attach": {
@@ -1428,9 +1349,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceDisksAttach(InstanceDisksAttachParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -1496,9 +1414,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceDisksDetach(InstanceDisksDetachParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -1565,9 +1480,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesMigrateInstance(ProjectInstancesMigrateInstanceParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -1655,10 +1567,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesGet(InstanceNetworkInterfacesGetParams{instanceName, orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -1722,9 +1631,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesPost(InstanceNetworkInterfacesPostParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -1790,9 +1696,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesGetInterface(InstanceNetworkInterfacesGetInterfaceParams{instanceName, interfaceName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -1849,9 +1752,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesDeleteInterface(InstanceNetworkInterfacesDeleteInterfaceParams{instanceName, interfaceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1908,9 +1808,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesInstanceReboot(ProjectInstancesInstanceRebootParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1967,9 +1864,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesInstanceStart(ProjectInstancesInstanceStartParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -2026,9 +1920,246 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
+        }
+      }
+    },
+    "/organizations/{organization_name}/projects/{project_name}/snapshots": {
+      "get": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "List snapshots in a project.",
+        "operationId": "project_snapshots_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "description": "Maximum number of items returned by a single call",
+            "schema": {
+              "nullable": true,
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 1
+            },
+            "style": "form"
+          },
+          {
+            "in": "query",
+            "name": "page_token",
+            "description": "Token returned by previous call to retreive the subsequent page",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "schema": {
+              "$ref": "#/components/schemas/NameSortMode"
+            },
+            "style": "form"
+          },
+          {
+            "in": "path",
+            "name": "organization_name",
+            "description": "The organization's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "project_name",
+            "description": "The project's unique name within the organization.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotResultsPage"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
         },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesInstanceStop(ProjectInstancesInstanceStopParams{instanceName, orgName, projectName}, params);"
+        "x-dropshot-pagination": true
+      },
+      "post": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "Create a snapshot of a disk.",
+        "operationId": "project_snapshots_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_name",
+            "description": "The organization's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "project_name",
+            "description": "The project's unique name within the organization.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnapshotCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "successful creation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/organizations/{organization_name}/projects/{project_name}/snapshots/{snapshot_name}": {
+      "get": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "Get a snapshot in a project.",
+        "operationId": "project_snapshots_get_snapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "snapshot_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "Delete a snapshot from a project.",
+        "operationId": "project_snapshots_delete_snapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "project_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "snapshot_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful deletion"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
@@ -2109,10 +2240,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectVpcsGet(ProjectVpcsGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -2169,9 +2297,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsPost(ProjectVpcsPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -2228,9 +2353,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsGetVpc(ProjectVpcsGetVpcParams{orgName, projectName, vpcName}, params);"
         }
       },
       "put": {
@@ -2295,9 +2417,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsPutVpc(ProjectVpcsPutVpcParams{orgName, projectName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -2345,9 +2464,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsDeleteVpc(ProjectVpcsDeleteVpcParams{orgName, projectName, vpcName}, params);"
         }
       }
     },
@@ -2404,9 +2520,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcFirewallRulesGet(VpcFirewallRulesGetParams{orgName, projectName, vpcName}, params);"
         }
       },
       "put": {
@@ -2471,9 +2584,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcFirewallRulesPut(VpcFirewallRulesPutParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -2561,10 +2671,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersGet(VpcRoutersGetParams{orgName, projectName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -2628,9 +2735,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersPost(VpcRoutersPostParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -2696,9 +2800,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersGetRouter(VpcRoutersGetRouterParams{orgName, projectName, routerName, vpcName}, params);"
         }
       },
       "put": {
@@ -2756,8 +2857,15 @@
           "required": true
         },
         "responses": {
-          "204": {
-            "description": "resource updated"
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VpcRouter"
+                }
+              }
+            }
           },
           "4XX": {
             "$ref": "#/components/responses/Error"
@@ -2765,9 +2873,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersPutRouter(VpcRoutersPutRouterParams{orgName, projectName, routerName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -2824,9 +2929,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersDeleteRouter(VpcRoutersDeleteRouterParams{orgName, projectName, routerName, vpcName}, params);"
         }
       }
     },
@@ -2923,10 +3025,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.routersRoutesGet(RoutersRoutesGetParams{orgName, projectName, routerName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -2999,9 +3098,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesPost(RoutersRoutesPostParams{orgName, projectName, routerName, vpcName}, data, params);"
         }
       }
     },
@@ -3076,9 +3172,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesGetRoute(RoutersRoutesGetRouteParams{orgName, projectName, routeName, routerName, vpcName}, params);"
         }
       },
       "put": {
@@ -3145,8 +3238,15 @@
           "required": true
         },
         "responses": {
-          "204": {
-            "description": "resource updated"
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouterRoute"
+                }
+              }
+            }
           },
           "4XX": {
             "$ref": "#/components/responses/Error"
@@ -3154,9 +3254,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesPutRoute(RoutersRoutesPutRouteParams{orgName, projectName, routeName, routerName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -3222,9 +3319,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesDeleteRoute(RoutersRoutesDeleteRouteParams{orgName, projectName, routeName, routerName, vpcName}, params);"
         }
       }
     },
@@ -3312,10 +3406,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsGet(VpcSubnetsGetParams{orgName, projectName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -3379,9 +3470,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsPost(VpcSubnetsPostParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -3447,9 +3535,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsGetSubnet(VpcSubnetsGetSubnetParams{orgName, projectName, subnetName, vpcName}, params);"
         }
       },
       "put": {
@@ -3523,9 +3608,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsPutSubnet(VpcSubnetsPutSubnetParams{orgName, projectName, subnetName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -3582,9 +3664,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsDeleteSubnet(VpcSubnetsDeleteSubnetParams{orgName, projectName, subnetName, vpcName}, params);"
         }
       }
     },
@@ -3681,10 +3760,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.subnetNetworkInterfacesGet(SubnetNetworkInterfacesGetParams{orgName, projectName, subnetName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/roles": {
@@ -3736,10 +3812,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.rolesGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/roles/{role_name}": {
@@ -3778,9 +3851,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.rolesGetRole(RolesGetRoleParams{roleName}, params);"
         }
       }
     },
@@ -3841,10 +3911,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.sagasGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/sagas/{saga_id}": {
@@ -3883,9 +3950,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.sagasGetSaga(SagasGetSagaParams{sagaId}, params);"
         }
       }
     },
@@ -3913,9 +3977,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.sessionMe(query, params);"
         }
       }
     },
@@ -3968,10 +4029,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.timeseriesSchemaGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/updates/refresh": {
@@ -3991,9 +4049,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.updatesRefresh(query, params);"
         }
       }
     },
@@ -4054,10 +4109,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.usersGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/users/{user_name}": {
@@ -4096,9 +4148,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.usersGetUser(UsersGetUserParams{userName}, params);"
         }
       }
     }
@@ -5782,6 +5831,106 @@
           "items"
         ]
       },
+      "Snapshot": {
+        "description": "Client view of a Snapshot",
+        "type": "object",
+        "properties": {
+          "description": {
+            "description": "human-readable free-form text about a resource",
+            "type": "string"
+          },
+          "disk_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "id": {
+            "description": "unique, immutable, system-controlled identifier for each resource",
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "description": "unique, mutable, user-controlled identifier for each resource",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Name"
+              }
+            ]
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "size": {
+            "$ref": "#/components/schemas/ByteCount"
+          },
+          "time_created": {
+            "description": "timestamp when this resource was created",
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_modified": {
+            "description": "timestamp when this resource was last modified",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "description",
+          "disk_id",
+          "id",
+          "name",
+          "project_id",
+          "size",
+          "time_created",
+          "time_modified"
+        ]
+      },
+      "SnapshotCreate": {
+        "description": "Create-time parameters for a [`Snapshot`](omicron_common::api::external::Snapshot)",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "disk": {
+            "description": "The name of the disk to be snapshotted",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Name"
+              }
+            ]
+          },
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          }
+        },
+        "required": [
+          "description",
+          "disk",
+          "name"
+        ]
+      },
+      "SnapshotResultsPage": {
+        "description": "A single page of results",
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "list of items on this page of results",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Snapshot"
+            }
+          },
+          "next_page": {
+            "nullable": true,
+            "description": "token used to fetch the next page of results (if any)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "TimeseriesName": {
         "title": "The name of a timeseries",
         "description": "Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.",
@@ -6531,7 +6680,7 @@
         ]
       },
       "VpcRouterCreate": {
-        "description": "Create-time parameters for a [`VpcRouter`](omicron_common::api::external::VpcRouter)",
+        "description": "Create-time parameters for a [`VpcRouter`](crate::external_api::views::VpcRouter)",
         "type": "object",
         "properties": {
           "description": {
@@ -6575,7 +6724,7 @@
         ]
       },
       "VpcRouterUpdate": {
-        "description": "Updateable properties of a [`VpcRouter`](omicron_common::api::external::VpcRouter)",
+        "description": "Updateable properties of a [`VpcRouter`](crate::external_api::views::VpcRouter)",
         "type": "object",
         "properties": {
           "description": {
@@ -6884,6 +7033,13 @@
     {
       "name": "sleds",
       "description": "This tag should be moved into hardware",
+      "externalDocs": {
+        "url": "http://oxide.computer/docs/#xxx"
+      }
+    },
+    {
+      "name": "snapshots",
+      "description": "Snapshots of Virtual Disks at a particular point in time.",
       "externalDocs": {
         "url": "http://oxide.computer/docs/#xxx"
       }
