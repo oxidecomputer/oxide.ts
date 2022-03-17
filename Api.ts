@@ -739,6 +739,61 @@ export type SledResultsPage = {
 };
 
 /**
+ * Client view of a Snapshot
+ */
+export type Snapshot = {
+  /**
+   * human-readable free-form text about a resource
+   */
+  description: string;
+  diskId: string;
+  /**
+   * unique, immutable, system-controlled identifier for each resource
+   */
+  id: string;
+  /**
+   * unique, mutable, user-controlled identifier for each resource
+   */
+  name: Name;
+  projectId: string;
+  size: ByteCount;
+  /**
+   * timestamp when this resource was created
+   */
+  timeCreated: Date;
+  /**
+   * timestamp when this resource was last modified
+   */
+  timeModified: Date;
+};
+
+/**
+ * Create-time parameters for a {@link Snapshot}
+ */
+export type SnapshotCreate = {
+  description: string;
+  /**
+   * The name of the disk to be snapshotted
+   */
+  disk: Name;
+  name: Name;
+};
+
+/**
+ * A single page of results
+ */
+export type SnapshotResultsPage = {
+  /**
+   * list of items on this page of results
+   */
+  items: Snapshot[];
+  /**
+   * token used to fetch the next page of results (if any)
+   */
+  nextPage?: string | null;
+};
+
+/**
  * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
  */
 export type TimeseriesName = string;
@@ -1467,6 +1522,40 @@ export interface ProjectInstancesInstanceStopParams {
   orgName: Name;
 
   projectName: Name;
+}
+
+export interface ProjectSnapshotsGetParams {
+  limit?: number | null;
+
+  pageToken?: string | null;
+
+  sortBy?: NameSortMode;
+
+  orgName: Name;
+
+  projectName: Name;
+}
+
+export interface ProjectSnapshotsPostParams {
+  orgName: Name;
+
+  projectName: Name;
+}
+
+export interface ProjectSnapshotsGetSnapshotParams {
+  orgName: Name;
+
+  projectName: Name;
+
+  snapshotName: Name;
+}
+
+export interface ProjectSnapshotsDeleteSnapshotParams {
+  orgName: Name;
+
+  projectName: Name;
+
+  snapshotName: Name;
 }
 
 export interface ProjectVpcsGetParams {
@@ -2480,6 +2569,65 @@ export class Api extends HttpClient {
       }),
 
     /**
+     * List snapshots in a project.
+     */
+    projectSnapshotsGet: (
+      { orgName, projectName, ...query }: ProjectSnapshotsGetParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<SnapshotResultsPage>({
+        path: `/organizations/${orgName}/projects/${projectName}/snapshots`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * Create a snapshot of a disk.
+     */
+    projectSnapshotsPost: (
+      { orgName, projectName }: ProjectSnapshotsPostParams,
+      data: SnapshotCreate,
+      params: RequestParams = {}
+    ) =>
+      this.request<Snapshot>({
+        path: `/organizations/${orgName}/projects/${projectName}/snapshots`,
+        method: "POST",
+        body: data,
+        ...params,
+      }),
+
+    /**
+     * Get a snapshot in a project.
+     */
+    projectSnapshotsGetSnapshot: (
+      { orgName, projectName, snapshotName }: ProjectSnapshotsGetSnapshotParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<Snapshot>({
+        path: `/organizations/${orgName}/projects/${projectName}/snapshots/${snapshotName}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Delete a snapshot from a project.
+     */
+    projectSnapshotsDeleteSnapshot: (
+      {
+        orgName,
+        projectName,
+        snapshotName,
+      }: ProjectSnapshotsDeleteSnapshotParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<void>({
+        path: `/organizations/${orgName}/projects/${projectName}/snapshots/${snapshotName}`,
+        method: "DELETE",
+        ...params,
+      }),
+
+    /**
      * List VPCs in a project.
      */
     projectVpcsGet: (
@@ -2627,7 +2775,7 @@ export class Api extends HttpClient {
       data: VpcRouterUpdate,
       params: RequestParams = {}
     ) =>
-      this.request<void>({
+      this.request<VpcRouter>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}`,
         method: "PUT",
         body: data,
@@ -2720,7 +2868,7 @@ export class Api extends HttpClient {
       data: RouterRouteUpdateParams,
       params: RequestParams = {}
     ) =>
-      this.request<void>({
+      this.request<RouterRoute>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes/${routeName}`,
         method: "PUT",
         body: data,
