@@ -49,7 +49,7 @@ export type ApiResponse<Data extends unknown> =
 type CancelToken = Symbol | string | number;
 
 const encodeQueryParam = (key: string, value: any) =>
-  `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+  `${encodeURIComponent(camelToSnake(key))}=${encodeURIComponent(value)}`;
 
 const toQueryString = (rawQuery?: QueryParamsType): string =>
   Object.entries(rawQuery || {})
