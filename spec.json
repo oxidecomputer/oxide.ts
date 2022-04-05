@@ -5676,7 +5676,10 @@
             "type": "object",
             "properties": {
               "params": {
-                "$ref": "#/components/schemas/InstanceNetworkInterfaceCreate"
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/NetworkInterfaceCreate"
+                }
               },
               "type": {
                 "type": "string",
@@ -5720,20 +5723,6 @@
               "type"
             ]
           }
-        ]
-      },
-      "InstanceNetworkInterfaceCreate": {
-        "type": "object",
-        "properties": {
-          "params": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NetworkInterfaceCreate"
-            }
-          }
-        },
-        "required": [
-          "params"
         ]
       },
       "InstanceResultsPage": {
