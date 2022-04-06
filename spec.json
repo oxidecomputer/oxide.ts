@@ -229,7 +229,7 @@
     "/images": {
       "get": {
         "tags": [
-          "images"
+          "images:global"
         ],
         "summary": "List global images.",
         "description": "Returns a list of all the global images. Global images are returned sorted by creation date, with the most recent images appearing first.",
@@ -291,7 +291,7 @@
       },
       "post": {
         "tags": [
-          "images"
+          "images:global"
         ],
         "summary": "Create a global image.",
         "description": "Create a new global image. This image can then be used by any user as a base for instances.",
@@ -332,7 +332,7 @@
     "/images/{image_name}": {
       "get": {
         "tags": [
-          "images"
+          "images:global"
         ],
         "summary": "Get a global image.",
         "description": "Returns the details of a specific global image.",
@@ -372,7 +372,7 @@
       },
       "delete": {
         "tags": [
-          "images"
+          "images:global"
         ],
         "summary": "Delete a global image.",
         "description": "Permanently delete a global image. This operation cannot be undone. Any instances using the global image will continue to run, however new instances can not be created with this image.",
@@ -8084,6 +8084,13 @@
     {
       "name": "images",
       "description": "Images are read-only Virtual Disks that may be used to boot Virtual Machines",
+      "externalDocs": {
+        "url": "http://oxide.computer/docs/#xxx"
+      }
+    },
+    {
+      "name": "images:global",
+      "description": "Images are read-only Virtual Disks that may be used to boot Virtual Machines. These images are scoped globally.",
       "externalDocs": {
         "url": "http://oxide.computer/docs/#xxx"
       }
