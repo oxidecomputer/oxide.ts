@@ -15,7 +15,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^17.0.21",
-    "openapi-types": "^10.0.0",
+    "openapi-types": "^11.0.0",
     "prettier": "2.5.1",
     "swagger-parser": "^10.0.3",
     "typescript": "^4.6.2",
