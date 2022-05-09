@@ -23,6 +23,8 @@ export type DatumType =
   | "HistogramI64"
   | "HistogramF64";
 
+export type Digest = { Sha256: string };
+
 /**
  * Client view of an {@link Disk}
  */
@@ -60,24 +62,16 @@ export type Disk = {
  * Create-time parameters for a {@link Disk}
  */
 export type DiskCreate = {
-  /**
-   * size of blocks for this Disk. valid values are: 512, 2048, or 4096
-   */
-  blockSize: BlockSize;
   description: string;
   /**
-   * id for image from which the Disk should be created, if any
+   * initial source for this disk
    */
-  imageId?: string | null;
+  diskSource: DiskSource;
   name: Name;
   /**
    * total size of the Disk in bytes
    */
   size: ByteCount;
-  /**
-   * id for snapshot from which the Disk should be created, if any
-   */
-  snapshotId?: string | null;
 };
 
 /**
@@ -100,6 +94,21 @@ export type DiskResultsPage = {
    */
   nextPage?: string | null;
 };
+
+/**
+ * Different sources for a disk
+ */
+export type DiskSource =
+  | {
+      /**
+       * size of blocks for this Disk. valid values are: 512, 2048, or 4096
+       */
+      blockSize: BlockSize;
+      type: "Blank";
+    }
+  | { snapshotId: string; type: "Snapshot" }
+  | { imageId: string; type: "Image" }
+  | { imageId: string; type: "GlobalImage" };
 
 /**
  * State of a Disk (primarily: attached or not)
@@ -142,13 +151,21 @@ export type FieldSource = "Target" | "Metric";
 export type FieldType = "String" | "I64" | "IpAddr" | "Uuid" | "Bool";
 
 /**
- * Client view of Images
+ * Client view of global Images
  */
-export type Image = {
+export type GlobalImage = {
+  /**
+   * size of blocks in bytes
+   */
+  blockSize: ByteCount;
   /**
    * human-readable free-form text about a resource
    */
   description: string;
+  /**
+   * Hash of the image contents, if applicable
+   */
+  digest?: Digest | null;
   /**
    * unique, immutable, system-controlled identifier for each resource
    */
@@ -157,7 +174,9 @@ export type Image = {
    * unique, mutable, user-controlled identifier for each resource
    */
   name: Name;
-  projectId?: string | null;
+  /**
+   * total size in bytes
+   */
   size: ByteCount;
   /**
    * timestamp when this resource was created
@@ -167,13 +186,93 @@ export type Image = {
    * timestamp when this resource was last modified
    */
   timeModified: Date;
+  /**
+   * URL source of this image, if any
+   */
   url?: string | null;
+  /**
+   * Version of this, if any
+   */
+  version?: string | null;
+};
+
+/**
+ * A single page of results
+ */
+export type GlobalImageResultsPage = {
+  /**
+   * list of items on this page of results
+   */
+  items: GlobalImage[];
+  /**
+   * token used to fetch the next page of results (if any)
+   */
+  nextPage?: string | null;
+};
+
+/**
+ * Describes what kind of identity is described by an id
+ */
+export type IdentityType = "user_builtin" | "silo_user";
+
+/**
+ * Client view of project Images
+ */
+export type Image = {
+  /**
+   * size of blocks in bytes
+   */
+  blockSize: ByteCount;
+  /**
+   * human-readable free-form text about a resource
+   */
+  description: string;
+  /**
+   * Hash of the image contents, if applicable
+   */
+  digest?: Digest | null;
+  /**
+   * unique, immutable, system-controlled identifier for each resource
+   */
+  id: string;
+  /**
+   * unique, mutable, user-controlled identifier for each resource
+   */
+  name: Name;
+  /**
+   * The project the disk belongs to
+   */
+  projectId: string;
+  /**
+   * total size in bytes
+   */
+  size: ByteCount;
+  /**
+   * timestamp when this resource was created
+   */
+  timeCreated: Date;
+  /**
+   * timestamp when this resource was last modified
+   */
+  timeModified: Date;
+  /**
+   * URL source of this image, if any
+   */
+  url?: string | null;
+  /**
+   * Version of this, if any
+   */
+  version?: string | null;
 };
 
 /**
  * Create-time parameters for an {@link Image}
  */
 export type ImageCreate = {
+  /**
+   * block size in bytes
+   */
+  blockSize: BlockSize;
   description: string;
   name: Name;
   /**
@@ -267,6 +366,10 @@ export type InstanceCreate = {
    * The network interfaces to be created for this instance.
    */
   networkInterfaces?: InstanceNetworkInterfaceAttachment | null;
+  /**
+   * User data for instance initialization systems (such as cloud-init). Must be a Base64-encoded string, as specified in RFC 4648 § 4 (+ and / characters with padding). Maximum 32 KiB unencoded data.
+   */
+  userData?: string | null;
 };
 
 /**
@@ -274,24 +377,16 @@ export type InstanceCreate = {
  */
 export type InstanceDiskAttachment =
   | {
-      /**
-       * size of blocks for this Disk. valid values are: 512, 2048, or 4096
-       */
-      blockSize: BlockSize;
       description: string
       /**
-       * id for image from which the Disk should be created, if any
+       * initial source for this disk
        */;
-      imageId?: string | null;
+      diskSource: DiskSource;
       name: Name
       /**
        * total size of the Disk in bytes
        */;
-      size: ByteCount
-      /**
-       * id for snapshot from which the Disk should be created, if any
-       */;
-      snapshotId?: string | null;
+      size: ByteCount;
       type: "create";
     }
   | {
@@ -527,6 +622,31 @@ export type OrganizationResultsPage = {
   nextPage?: string | null;
 };
 
+export type OrganizationRoles = "Admin" | "Collaborator";
+
+/**
+ * Client view of a `Policy`, which describes how this resource may be accessed
+ *
+ * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
+ */
+export type OrganizationRolesPolicy = {
+  /**
+   * Roles directly assigned on this resource
+   */
+  roleAssignments: OrganizationRolesRoleAssignment[];
+};
+
+/**
+ * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
+ *
+ * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
+ */
+export type OrganizationRolesRoleAssignment = {
+  identityId: string;
+  identityType: IdentityType;
+  roleName: OrganizationRoles;
+};
+
 /**
  * Updateable properties of an {@link Organization}
  */
@@ -582,6 +702,31 @@ export type ProjectResultsPage = {
    * token used to fetch the next page of results (if any)
    */
   nextPage?: string | null;
+};
+
+export type ProjectRoles = "Admin" | "Collaborator" | "Viewer";
+
+/**
+ * Client view of a `Policy`, which describes how this resource may be accessed
+ *
+ * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
+ */
+export type ProjectRolesPolicy = {
+  /**
+   * Roles directly assigned on this resource
+   */
+  roleAssignments: ProjectRolesRoleAssignment[];
+};
+
+/**
+ * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
+ *
+ * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
+ */
+export type ProjectRolesRoleAssignment = {
+  identityId: string;
+  identityType: IdentityType;
+  roleName: ProjectRoles;
 };
 
 /**
@@ -855,6 +1000,31 @@ export type SiloResultsPage = {
   nextPage?: string | null;
 };
 
+export type SiloRoles = "Admin" | "Collaborator" | "Viewer";
+
+/**
+ * Client view of a `Policy`, which describes how this resource may be accessed
+ *
+ * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
+ */
+export type SiloRolesPolicy = {
+  /**
+   * Roles directly assigned on this resource
+   */
+  roleAssignments: SiloRolesRoleAssignment[];
+};
+
+/**
+ * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
+ *
+ * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
+ */
+export type SiloRolesRoleAssignment = {
+  identityId: string;
+  identityType: IdentityType;
+  roleName: SiloRoles;
+};
+
 /**
  * Client view of an {@link Sled}
  */
@@ -945,6 +1115,66 @@ export type SnapshotResultsPage = {
    * list of items on this page of results
    */
   items: Snapshot[];
+  /**
+   * token used to fetch the next page of results (if any)
+   */
+  nextPage?: string | null;
+};
+
+/**
+ * Client view of a {@link SshKey}
+ */
+export type SshKey = {
+  /**
+   * human-readable free-form text about a resource
+   */
+  description: string;
+  /**
+   * unique, immutable, system-controlled identifier for each resource
+   */
+  id: string;
+  /**
+   * unique, mutable, user-controlled identifier for each resource
+   */
+  name: Name;
+  /**
+   * SSH public key, e.g., `"ssh-ed25519 AAAAC3NzaC..."`
+   */
+  publicKey: string;
+  /**
+   * The user to whom this key belongs
+   */
+  siloUserId: string;
+  /**
+   * timestamp when this resource was created
+   */
+  timeCreated: Date;
+  /**
+   * timestamp when this resource was last modified
+   */
+  timeModified: Date;
+};
+
+/**
+ * Create-time parameters for an {@link SshKey}
+ */
+export type SshKeyCreate = {
+  description: string;
+  name: Name;
+  /**
+   * SSH public key, e.g., `"ssh-ed25519 AAAAC3NzaC..."`
+   */
+  publicKey: string;
+};
+
+/**
+ * A single page of results
+ */
+export type SshKeyResultsPage = {
+  /**
+   * list of items on this page of results
+   */
+  items: SshKey[];
   /**
    * token used to fetch the next page of results (if any)
    */
@@ -1392,8 +1622,6 @@ export type VpcSubnetResultsPage = {
  */
 export type VpcSubnetUpdate = {
   description?: string | null;
-  ipv4Block?: Ipv4Net | null;
-  ipv6Block?: Ipv6Net | null;
   name?: Name | null;
 };
 
@@ -1493,6 +1721,14 @@ export interface OrganizationsPutOrganizationParams {
 }
 
 export interface OrganizationsDeleteOrganizationParams {
+  orgName: Name;
+}
+
+export interface OrganizationGetPolicyParams {
+  orgName: Name;
+}
+
+export interface OrganizationPutPolicyParams {
   orgName: Name;
 }
 
@@ -1729,6 +1965,18 @@ export interface ProjectInstancesInstanceStartParams {
 export interface ProjectInstancesInstanceStopParams {
   instanceName: Name;
 
+  orgName: Name;
+
+  projectName: Name;
+}
+
+export interface OrganizationProjectsGetProjectPolicyParams {
+  orgName: Name;
+
+  projectName: Name;
+}
+
+export interface OrganizationProjectsPutProjectPolicyParams {
   orgName: Name;
 
   projectName: Name;
@@ -2032,6 +2280,24 @@ export interface SagasGetSagaParams {
 
 export interface SessionMeParams {}
 
+export interface SshkeysGetParams {
+  limit?: number | null;
+
+  pageToken?: string | null;
+
+  sortBy?: NameSortMode;
+}
+
+export interface SshkeysPostParams {}
+
+export interface SshkeysGetKeyParams {
+  sshKeyName: Name;
+}
+
+export interface SshkeysDeleteKeyParams {
+  sshKeyName: Name;
+}
+
 export interface SilosGetParams {
   limit?: number | null;
 
@@ -2047,6 +2313,14 @@ export interface SilosGetSiloParams {
 }
 
 export interface SilosDeleteSiloParams {
+  siloName: Name;
+}
+
+export interface SilosGetSiloPolicyParams {
+  siloName: Name;
+}
+
+export interface SilosPutSiloPolicyParams {
   siloName: Name;
 }
 
@@ -2345,7 +2619,7 @@ export class Api extends HttpClient {
      * List global images.
      */
     imagesGet: (query: ImagesGetParams, params: RequestParams = {}) =>
-      this.request<ImageResultsPage>({
+      this.request<GlobalImageResultsPage>({
         path: `/images`,
         method: "GET",
         query: query,
@@ -2360,7 +2634,7 @@ export class Api extends HttpClient {
       data: ImageCreate,
       params: RequestParams = {}
     ) =>
-      this.request<Image>({
+      this.request<GlobalImage>({
         path: `/images`,
         method: "POST",
         body: data,
@@ -2374,7 +2648,7 @@ export class Api extends HttpClient {
       { imageName }: ImagesGetImageParams,
       params: RequestParams = {}
     ) =>
-      this.request<Image>({
+      this.request<GlobalImage>({
         path: `/images/${imageName}`,
         method: "GET",
         ...params,
@@ -2479,6 +2753,34 @@ export class Api extends HttpClient {
       this.request<void>({
         path: `/organizations/${orgName}`,
         method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * Fetch the IAM policy for this Organization
+     */
+    organizationGetPolicy: (
+      { orgName }: OrganizationGetPolicyParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<OrganizationRolesPolicy>({
+        path: `/organizations/${orgName}/policy`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Update the IAM policy for this Organization
+     */
+    organizationPutPolicy: (
+      { orgName }: OrganizationPutPolicyParams,
+      data: OrganizationRolesPolicy,
+      params: RequestParams = {}
+    ) =>
+      this.request<OrganizationRolesPolicy>({
+        path: `/organizations/${orgName}/policy`,
+        method: "PUT",
+        body: data,
         ...params,
       }),
 
@@ -2900,6 +3202,34 @@ export class Api extends HttpClient {
       this.request<Instance>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/stop`,
         method: "POST",
+        ...params,
+      }),
+
+    /**
+     * Fetch the IAM policy for this Project
+     */
+    organizationProjectsGetProjectPolicy: (
+      { orgName, projectName }: OrganizationProjectsGetProjectPolicyParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<ProjectRolesPolicy>({
+        path: `/organizations/${orgName}/projects/${projectName}/policy`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Update the IAM policy for this Project
+     */
+    organizationProjectsPutProjectPolicy: (
+      { orgName, projectName }: OrganizationProjectsPutProjectPolicyParams,
+      data: ProjectRolesPolicy,
+      params: RequestParams = {}
+    ) =>
+      this.request<ProjectRolesPolicy>({
+        path: `/organizations/${orgName}/projects/${projectName}/policy`,
+        method: "PUT",
+        body: data,
         ...params,
       }),
 
@@ -3382,6 +3712,58 @@ export class Api extends HttpClient {
         ...params,
       }),
 
+    /**
+     * List the current user's SSH public keys
+     */
+    sshkeysGet: (query: SshkeysGetParams, params: RequestParams = {}) =>
+      this.request<SshKeyResultsPage>({
+        path: `/session/me/sshkeys`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * Create a new SSH public key for the current user
+     */
+    sshkeysPost: (
+      query: SshkeysPostParams,
+      data: SshKeyCreate,
+      params: RequestParams = {}
+    ) =>
+      this.request<SshKey>({
+        path: `/session/me/sshkeys`,
+        method: "POST",
+        body: data,
+        ...params,
+      }),
+
+    /**
+     * Get (by name) an SSH public key belonging to the current user
+     */
+    sshkeysGetKey: (
+      { sshKeyName }: SshkeysGetKeyParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<SshKey>({
+        path: `/session/me/sshkeys/${sshKeyName}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Delete (by name) an SSH public key belonging to the current user
+     */
+    sshkeysDeleteKey: (
+      { sshKeyName }: SshkeysDeleteKeyParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<void>({
+        path: `/session/me/sshkeys/${sshKeyName}`,
+        method: "DELETE",
+        ...params,
+      }),
+
     silosGet: (query: SilosGetParams, params: RequestParams = {}) =>
       this.request<SiloResultsPage>({
         path: `/silos`,
@@ -3428,6 +3810,34 @@ export class Api extends HttpClient {
       this.request<void>({
         path: `/silos/${siloName}`,
         method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * Fetch the IAM policy for this Silo
+     */
+    silosGetSiloPolicy: (
+      { siloName }: SilosGetSiloPolicyParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<SiloRolesPolicy>({
+        path: `/silos/${siloName}/policy`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Update the IAM policy for this Silo
+     */
+    silosPutSiloPolicy: (
+      { siloName }: SilosPutSiloPolicyParams,
+      data: SiloRolesPolicy,
+      params: RequestParams = {}
+    ) =>
+      this.request<SiloRolesPolicy>({
+        path: `/silos/${siloName}/policy`,
+        method: "PUT",
+        body: data,
         ...params,
       }),
 
