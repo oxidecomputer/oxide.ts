@@ -7,11 +7,7 @@
       "url": "https://oxide.computer",
       "email": "api@oxide.computer"
     },
-    "version": "0.0.1",
-    "x-ts": {
-      "client": "// Create a new HttpClient and configure it with the baseUrl and token.\nlet client = new Api({\n    baseUrl: \"$OXIDE_HOST\",\n    token: \"$OXIDE_TOKEN\",\n});",
-      "install": "yarn add @oxidecomputer/api\n# - OR -\n$ npm install @oxidecomputer/api"
-    }
+    "version": "0.0.1"
   },
   "paths": {
     "/hardware/racks": {
@@ -71,10 +67,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.hardwareRacksGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/hardware/racks/{rack_id}": {
@@ -114,9 +107,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.hardwareRacksGetRack(HardwareRacksGetRackParams{rackId}, params);"
         }
       }
     },
@@ -177,10 +167,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.hardwareSledsGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/hardware/sleds/{sled_id}": {
@@ -220,9 +207,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.hardwareSledsGetSled(HardwareSledsGetSledParams{sledId}, params);"
         }
       }
     },
@@ -272,7 +256,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageResultsPage"
+                  "$ref": "#/components/schemas/GlobalImageResultsPage"
                 }
               }
             }
@@ -284,10 +268,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.imagesGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -312,7 +293,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/GlobalImage"
                 }
               }
             }
@@ -323,9 +304,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.imagesPost(query, data, params);"
         }
       }
     },
@@ -354,7 +332,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/GlobalImage"
                 }
               }
             }
@@ -365,9 +343,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.imagesGetImage(ImagesGetImageParams{imageName}, params);"
         }
       },
       "delete": {
@@ -398,9 +373,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.imagesDeleteImage(ImagesDeleteImageParams{imageName}, params);"
         }
       }
     },
@@ -429,9 +401,6 @@
               }
             }
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.spoofLogin(query, data, params);"
         }
       }
     },
@@ -450,9 +419,6 @@
               }
             }
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.logout(query, params);"
         }
       }
     },
@@ -513,10 +479,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.organizationsGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -551,9 +514,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationsPost(query, data, params);"
         }
       }
     },
@@ -593,9 +553,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationsGetOrganization(OrganizationsGetOrganizationParams{orgName}, params);"
         }
       },
       "put": {
@@ -643,9 +600,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationsPutOrganization(OrganizationsPutOrganizationParams{orgName}, data, params);"
         }
       },
       "delete": {
@@ -676,9 +630,92 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
+        }
+      }
+    },
+    "/organizations/{organization_name}/policy": {
+      "get": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Fetch the IAM policy for this Organization",
+        "operationId": "organization_get_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_name",
+            "description": "The organization's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationRolesPolicy"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Update the IAM policy for this Organization",
+        "operationId": "organization_put_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_name",
+            "description": "The organization's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationRolesPolicy"
+              }
+            }
+          },
+          "required": true
         },
-        "x-ts": {
-          "example": "let resp = client.organizationsDeleteOrganization(OrganizationsDeleteOrganizationParams{orgName}, params);"
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationRolesPolicy"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
@@ -749,10 +786,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsGet(OrganizationProjectsGetParams{orgName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -799,9 +833,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsPost(OrganizationProjectsPostParams{orgName}, data, params);"
         }
       }
     },
@@ -851,9 +882,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsGetProject(OrganizationProjectsGetProjectParams{orgName, projectName}, params);"
         }
       },
       "put": {
@@ -911,9 +939,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsPutProject(OrganizationProjectsPutProjectParams{orgName, projectName}, data, params);"
         }
       },
       "delete": {
@@ -954,9 +979,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.organizationProjectsDeleteProject(OrganizationProjectsDeleteProjectParams{orgName, projectName}, params);"
         }
       }
     },
@@ -1037,10 +1059,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectDisksGet(ProjectDisksGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -1097,9 +1116,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectDisksPost(ProjectDisksPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -1156,9 +1172,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectDisksGetDisk(ProjectDisksGetDiskParams{diskName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -1206,9 +1219,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectDisksDeleteDisk(ProjectDisksDeleteDiskParams{diskName, orgName, projectName}, params);"
         }
       }
     },
@@ -1290,10 +1300,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectImagesGet(ProjectImagesGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -1351,9 +1358,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectImagesPost(ProjectImagesPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -1411,9 +1415,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectImagesGetImage(ProjectImagesGetImageParams{imageName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -1462,9 +1463,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectImagesDeleteImage(ProjectImagesDeleteImageParams{imageName, orgName, projectName}, params);"
         }
       }
     },
@@ -1545,10 +1543,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectInstancesGet(ProjectInstancesGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -1605,9 +1600,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesPost(ProjectInstancesPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -1664,9 +1656,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesGetInstance(ProjectInstancesGetInstanceParams{instanceName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -1714,9 +1703,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesDeleteInstance(ProjectInstancesDeleteInstanceParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -1804,10 +1790,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.instanceDisksGet(InstanceDisksGetParams{instanceName, orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/organizations/{organization_name}/projects/{project_name}/instances/{instance_name}/disks/attach": {
@@ -1872,9 +1855,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceDisksAttach(InstanceDisksAttachParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -1940,9 +1920,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceDisksDetach(InstanceDisksDetachParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -2009,9 +1986,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesMigrateInstance(ProjectInstancesMigrateInstanceParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -2099,10 +2073,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesGet(InstanceNetworkInterfacesGetParams{instanceName, orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -2166,9 +2137,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesPost(InstanceNetworkInterfacesPostParams{instanceName, orgName, projectName}, data, params);"
         }
       }
     },
@@ -2234,9 +2202,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesGetInterface(InstanceNetworkInterfacesGetInterfaceParams{instanceName, interfaceName, orgName, projectName}, params);"
         }
       },
       "delete": {
@@ -2293,9 +2258,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.instanceNetworkInterfacesDeleteInterface(InstanceNetworkInterfacesDeleteInterfaceParams{instanceName, interfaceName, orgName, projectName}, params);"
         }
       }
     },
@@ -2352,9 +2314,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesInstanceReboot(ProjectInstancesInstanceRebootParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -2411,9 +2370,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesInstanceStart(ProjectInstancesInstanceStartParams{instanceName, orgName, projectName}, params);"
         }
       }
     },
@@ -2470,9 +2426,112 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
+        }
+      }
+    },
+    "/organizations/{organization_name}/projects/{project_name}/policy": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Fetch the IAM policy for this Project",
+        "operationId": "organization_projects_get_project_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_name",
+            "description": "The organization's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "project_name",
+            "description": "The project's unique name within the organization.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRolesPolicy"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Update the IAM policy for this Project",
+        "operationId": "organization_projects_put_project_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_name",
+            "description": "The organization's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          },
+          {
+            "in": "path",
+            "name": "project_name",
+            "description": "The project's unique name within the organization.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectRolesPolicy"
+              }
+            }
+          },
+          "required": true
         },
-        "x-ts": {
-          "example": "let resp = client.projectInstancesInstanceStop(ProjectInstancesInstanceStopParams{instanceName, orgName, projectName}, params);"
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRolesPolicy"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
@@ -2553,10 +2612,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectSnapshotsGet(ProjectSnapshotsGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -2613,9 +2669,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectSnapshotsPost(ProjectSnapshotsPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -2672,9 +2725,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectSnapshotsGetSnapshot(ProjectSnapshotsGetSnapshotParams{orgName, projectName, snapshotName}, params);"
         }
       },
       "delete": {
@@ -2722,9 +2772,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectSnapshotsDeleteSnapshot(ProjectSnapshotsDeleteSnapshotParams{orgName, projectName, snapshotName}, params);"
         }
       }
     },
@@ -2805,10 +2852,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.projectVpcsGet(ProjectVpcsGetParams{orgName, projectName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -2865,9 +2909,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsPost(ProjectVpcsPostParams{orgName, projectName}, data, params);"
         }
       }
     },
@@ -2924,9 +2965,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsGetVpc(ProjectVpcsGetVpcParams{orgName, projectName, vpcName}, params);"
         }
       },
       "put": {
@@ -2991,9 +3029,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsPutVpc(ProjectVpcsPutVpcParams{orgName, projectName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -3041,9 +3076,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.projectVpcsDeleteVpc(ProjectVpcsDeleteVpcParams{orgName, projectName, vpcName}, params);"
         }
       }
     },
@@ -3100,9 +3132,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcFirewallRulesGet(VpcFirewallRulesGetParams{orgName, projectName, vpcName}, params);"
         }
       },
       "put": {
@@ -3167,9 +3196,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcFirewallRulesPut(VpcFirewallRulesPutParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -3257,10 +3283,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersGet(VpcRoutersGetParams{orgName, projectName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -3324,9 +3347,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersPost(VpcRoutersPostParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -3392,9 +3412,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersGetRouter(VpcRoutersGetRouterParams{orgName, projectName, routerName, vpcName}, params);"
         }
       },
       "put": {
@@ -3468,9 +3485,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersPutRouter(VpcRoutersPutRouterParams{orgName, projectName, routerName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -3527,9 +3541,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcRoutersDeleteRouter(VpcRoutersDeleteRouterParams{orgName, projectName, routerName, vpcName}, params);"
         }
       }
     },
@@ -3626,10 +3637,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.routersRoutesGet(RoutersRoutesGetParams{orgName, projectName, routerName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -3702,9 +3710,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesPost(RoutersRoutesPostParams{orgName, projectName, routerName, vpcName}, data, params);"
         }
       }
     },
@@ -3779,9 +3784,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesGetRoute(RoutersRoutesGetRouteParams{orgName, projectName, routeName, routerName, vpcName}, params);"
         }
       },
       "put": {
@@ -3864,9 +3866,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesPutRoute(RoutersRoutesPutRouteParams{orgName, projectName, routeName, routerName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -3932,9 +3931,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.routersRoutesDeleteRoute(RoutersRoutesDeleteRouteParams{orgName, projectName, routeName, routerName, vpcName}, params);"
         }
       }
     },
@@ -4022,10 +4018,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsGet(VpcSubnetsGetParams{orgName, projectName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -4089,9 +4082,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsPost(VpcSubnetsPostParams{orgName, projectName, vpcName}, data, params);"
         }
       }
     },
@@ -4157,9 +4147,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsGetSubnet(VpcSubnetsGetSubnetParams{orgName, projectName, subnetName, vpcName}, params);"
         }
       },
       "put": {
@@ -4233,9 +4220,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsPutSubnet(VpcSubnetsPutSubnetParams{orgName, projectName, subnetName, vpcName}, data, params);"
         }
       },
       "delete": {
@@ -4292,9 +4276,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.vpcSubnetsDeleteSubnet(VpcSubnetsDeleteSubnetParams{orgName, projectName, subnetName, vpcName}, params);"
         }
       }
     },
@@ -4391,10 +4372,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.subnetNetworkInterfacesGet(SubnetNetworkInterfacesGetParams{orgName, projectName, subnetName, vpcName}, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/roles": {
@@ -4446,10 +4424,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.rolesGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/roles/{role_name}": {
@@ -4488,9 +4463,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.rolesGetRole(RolesGetRoleParams{roleName}, params);"
         }
       }
     },
@@ -4551,10 +4523,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.sagasGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/sagas/{saga_id}": {
@@ -4593,9 +4562,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.sagasGetSaga(SagasGetSagaParams{sagaId}, params);"
         }
       }
     },
@@ -4623,9 +4589,168 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
+        }
+      }
+    },
+    "/session/me/sshkeys": {
+      "get": {
+        "tags": [
+          "sshkeys"
+        ],
+        "summary": "List the current user's SSH public keys",
+        "operationId": "sshkeys_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "description": "Maximum number of items returned by a single call",
+            "schema": {
+              "nullable": true,
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 1
+            },
+            "style": "form"
+          },
+          {
+            "in": "query",
+            "name": "page_token",
+            "description": "Token returned by previous call to retreive the subsequent page",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            },
+            "style": "form"
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "schema": {
+              "$ref": "#/components/schemas/NameSortMode"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SshKeyResultsPage"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
         },
-        "x-ts": {
-          "example": "let resp = client.sessionMe(query, params);"
+        "x-dropshot-pagination": true
+      },
+      "post": {
+        "tags": [
+          "sshkeys"
+        ],
+        "summary": "Create a new SSH public key for the current user",
+        "operationId": "sshkeys_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SshKeyCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "successful creation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SshKey"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/session/me/sshkeys/{ssh_key_name}": {
+      "get": {
+        "tags": [
+          "sshkeys"
+        ],
+        "summary": "Get (by name) an SSH public key belonging to the current user",
+        "operationId": "sshkeys_get_key",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ssh_key_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SshKey"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "sshkeys"
+        ],
+        "summary": "Delete (by name) an SSH public key belonging to the current user",
+        "operationId": "sshkeys_delete_key",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ssh_key_name",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful deletion"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
@@ -4685,10 +4810,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.silosGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       },
       "post": {
         "tags": [
@@ -4723,9 +4845,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.silosPost(query, data, params);"
         }
       }
     },
@@ -4765,9 +4884,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.silosGetSilo(SilosGetSiloParams{siloName}, params);"
         }
       },
       "delete": {
@@ -4798,9 +4914,92 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
+        }
+      }
+    },
+    "/silos/{silo_name}/policy": {
+      "get": {
+        "tags": [
+          "silos"
+        ],
+        "summary": "Fetch the IAM policy for this Silo",
+        "operationId": "silos_get_silo_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "silo_name",
+            "description": "The silo's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiloRolesPolicy"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "silos"
+        ],
+        "summary": "Update the IAM policy for this Silo",
+        "operationId": "silos_put_silo_policy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "silo_name",
+            "description": "The silo's unique name.",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Name"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiloRolesPolicy"
+              }
+            }
+          },
+          "required": true
         },
-        "x-ts": {
-          "example": "let resp = client.silosDeleteSilo(SilosDeleteSiloParams{siloName}, params);"
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiloRolesPolicy"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
@@ -4853,10 +5052,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.timeseriesSchemaGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/updates/refresh": {
@@ -4876,9 +5072,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.updatesRefresh(query, params);"
         }
       }
     },
@@ -4939,10 +5132,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "x-dropshot-pagination": true,
-        "x-ts": {
-          "example": "let resp = client.usersGet(query, params);"
-        }
+        "x-dropshot-pagination": true
       }
     },
     "/users/{user_name}": {
@@ -4981,9 +5171,6 @@
           "5XX": {
             "$ref": "#/components/responses/Error"
           }
-        },
-        "x-ts": {
-          "example": "let resp = client.usersGetUser(UsersGetUserParams{userName}, params);"
         }
       }
     }
@@ -5030,6 +5217,22 @@
           "CumulativeF64",
           "HistogramI64",
           "HistogramF64"
+        ]
+      },
+      "Digest": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "Sha256": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "Sha256"
+            ],
+            "additionalProperties": false
+          }
         ]
       },
       "Disk": {
@@ -5107,22 +5310,16 @@
         "description": "Create-time parameters for a [`Disk`](omicron_common::api::external::Disk)",
         "type": "object",
         "properties": {
-          "block_size": {
-            "description": "size of blocks for this Disk. valid values are: 512, 2048, or 4096",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/BlockSize"
-              }
-            ]
-          },
           "description": {
             "type": "string"
           },
-          "image_id": {
-            "nullable": true,
-            "description": "id for image from which the Disk should be created, if any",
-            "type": "string",
-            "format": "uuid"
+          "disk_source": {
+            "description": "initial source for this disk",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DiskSource"
+              }
+            ]
           },
           "name": {
             "$ref": "#/components/schemas/Name"
@@ -5134,17 +5331,11 @@
                 "$ref": "#/components/schemas/ByteCount"
               }
             ]
-          },
-          "snapshot_id": {
-            "nullable": true,
-            "description": "id for snapshot from which the Disk should be created, if any",
-            "type": "string",
-            "format": "uuid"
           }
         },
         "required": [
-          "block_size",
           "description",
+          "disk_source",
           "name",
           "size"
         ]
@@ -5180,6 +5371,95 @@
         },
         "required": [
           "items"
+        ]
+      },
+      "DiskSource": {
+        "description": "Different sources for a disk",
+        "oneOf": [
+          {
+            "description": "Create a blank disk",
+            "type": "object",
+            "properties": {
+              "block_size": {
+                "description": "size of blocks for this Disk. valid values are: 512, 2048, or 4096",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BlockSize"
+                  }
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "Blank"
+                ]
+              }
+            },
+            "required": [
+              "block_size",
+              "type"
+            ]
+          },
+          {
+            "description": "Create a disk from a disk snapshot",
+            "type": "object",
+            "properties": {
+              "snapshot_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "Snapshot"
+                ]
+              }
+            },
+            "required": [
+              "snapshot_id",
+              "type"
+            ]
+          },
+          {
+            "description": "Create a disk from a project image",
+            "type": "object",
+            "properties": {
+              "image_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "Image"
+                ]
+              }
+            },
+            "required": [
+              "image_id",
+              "type"
+            ]
+          },
+          {
+            "description": "Create a disk from a global image",
+            "type": "object",
+            "properties": {
+              "image_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "GlobalImage"
+                ]
+              }
+            },
+            "required": [
+              "image_id",
+              "type"
+            ]
+          }
         ]
       },
       "DiskState": {
@@ -5365,13 +5645,136 @@
           "Bool"
         ]
       },
-      "Image": {
-        "description": "Client view of Images",
+      "GlobalImage": {
+        "description": "Client view of global Images",
         "type": "object",
         "properties": {
+          "block_size": {
+            "description": "size of blocks in bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ByteCount"
+              }
+            ]
+          },
           "description": {
             "description": "human-readable free-form text about a resource",
             "type": "string"
+          },
+          "digest": {
+            "nullable": true,
+            "description": "Hash of the image contents, if applicable",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Digest"
+              }
+            ]
+          },
+          "id": {
+            "description": "unique, immutable, system-controlled identifier for each resource",
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "description": "unique, mutable, user-controlled identifier for each resource",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Name"
+              }
+            ]
+          },
+          "size": {
+            "description": "total size in bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ByteCount"
+              }
+            ]
+          },
+          "time_created": {
+            "description": "timestamp when this resource was created",
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_modified": {
+            "description": "timestamp when this resource was last modified",
+            "type": "string",
+            "format": "date-time"
+          },
+          "url": {
+            "nullable": true,
+            "description": "URL source of this image, if any",
+            "type": "string"
+          },
+          "version": {
+            "nullable": true,
+            "description": "Version of this, if any",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block_size",
+          "description",
+          "id",
+          "name",
+          "size",
+          "time_created",
+          "time_modified"
+        ]
+      },
+      "GlobalImageResultsPage": {
+        "description": "A single page of results",
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "list of items on this page of results",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GlobalImage"
+            }
+          },
+          "next_page": {
+            "nullable": true,
+            "description": "token used to fetch the next page of results (if any)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "IdentityType": {
+        "description": "Describes what kind of identity is described by an id",
+        "type": "string",
+        "enum": [
+          "user_builtin",
+          "silo_user"
+        ]
+      },
+      "Image": {
+        "description": "Client view of project Images",
+        "type": "object",
+        "properties": {
+          "block_size": {
+            "description": "size of blocks in bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ByteCount"
+              }
+            ]
+          },
+          "description": {
+            "description": "human-readable free-form text about a resource",
+            "type": "string"
+          },
+          "digest": {
+            "nullable": true,
+            "description": "Hash of the image contents, if applicable",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Digest"
+              }
+            ]
           },
           "id": {
             "description": "unique, immutable, system-controlled identifier for each resource",
@@ -5387,12 +5790,17 @@
             ]
           },
           "project_id": {
-            "nullable": true,
+            "description": "The project the disk belongs to",
             "type": "string",
             "format": "uuid"
           },
           "size": {
-            "$ref": "#/components/schemas/ByteCount"
+            "description": "total size in bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ByteCount"
+              }
+            ]
           },
           "time_created": {
             "description": "timestamp when this resource was created",
@@ -5406,13 +5814,21 @@
           },
           "url": {
             "nullable": true,
+            "description": "URL source of this image, if any",
+            "type": "string"
+          },
+          "version": {
+            "nullable": true,
+            "description": "Version of this, if any",
             "type": "string"
           }
         },
         "required": [
+          "block_size",
           "description",
           "id",
           "name",
+          "project_id",
           "size",
           "time_created",
           "time_modified"
@@ -5422,6 +5838,14 @@
         "description": "Create-time parameters for an [`Image`](omicron_common::api::external::Image)",
         "type": "object",
         "properties": {
+          "block_size": {
+            "description": "block size in bytes",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BlockSize"
+              }
+            ]
+          },
           "description": {
             "type": "string"
           },
@@ -5438,6 +5862,7 @@
           }
         },
         "required": [
+          "block_size",
           "description",
           "name",
           "source"
@@ -5611,6 +6036,10 @@
                 "$ref": "#/components/schemas/InstanceNetworkInterfaceAttachment"
               }
             ]
+          },
+          "user_data": {
+            "description": "User data for instance initialization systems (such as cloud-init). Must be a Base64-encoded string, as specified in RFC 4648 § 4 (+ and / characters with padding). Maximum 32 KiB unencoded data.",
+            "type": "string"
           }
         },
         "required": [
@@ -5628,22 +6057,16 @@
             "description": "During instance creation, create and attach disks",
             "type": "object",
             "properties": {
-              "block_size": {
-                "description": "size of blocks for this Disk. valid values are: 512, 2048, or 4096",
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/BlockSize"
-                  }
-                ]
-              },
               "description": {
                 "type": "string"
               },
-              "image_id": {
-                "nullable": true,
-                "description": "id for image from which the Disk should be created, if any",
-                "type": "string",
-                "format": "uuid"
+              "disk_source": {
+                "description": "initial source for this disk",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/DiskSource"
+                  }
+                ]
               },
               "name": {
                 "$ref": "#/components/schemas/Name"
@@ -5656,12 +6079,6 @@
                   }
                 ]
               },
-              "snapshot_id": {
-                "nullable": true,
-                "description": "id for snapshot from which the Disk should be created, if any",
-                "type": "string",
-                "format": "uuid"
-              },
               "type": {
                 "type": "string",
                 "enum": [
@@ -5670,8 +6087,8 @@
               }
             },
             "required": [
-              "block_size",
               "description",
+              "disk_source",
               "name",
               "size",
               "type"
@@ -5840,6 +6257,7 @@
         ]
       },
       "Ipv4Net": {
+        "example": "192.168.1.0/24",
         "title": "An IPv4 subnet",
         "description": "An IPv4 subnet, including prefix and subnet mask",
         "type": "string",
@@ -5847,6 +6265,7 @@
         "maxLength": 18
       },
       "Ipv6Net": {
+        "example": "fd12:3456::/64",
         "title": "An IPv6 subnet",
         "description": "An IPv6 subnet, including prefix and subnet mask",
         "type": "string",
@@ -5854,6 +6273,7 @@
         "maxLength": 43
       },
       "L4PortRange": {
+        "example": "22",
         "title": "A range of IP ports",
         "description": "An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port",
         "type": "string",
@@ -5873,6 +6293,7 @@
         ]
       },
       "MacAddr": {
+        "example": "ff:ff:ff:ff:ff:ff",
         "title": "A MAC address",
         "description": "A Media Access Control address, in EUI-48 format",
         "type": "string",
@@ -6098,6 +6519,50 @@
           "items"
         ]
       },
+      "OrganizationRoles": {
+        "type": "string",
+        "enum": [
+          "Admin",
+          "Collaborator"
+        ]
+      },
+      "OrganizationRolesPolicy": {
+        "description": "Client view of a [`Policy`], which describes how this resource may be accessed\n\nNote that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.",
+        "type": "object",
+        "properties": {
+          "role_assignments": {
+            "description": "Roles directly assigned on this resource",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrganizationRolesRoleAssignment"
+            }
+          }
+        },
+        "required": [
+          "role_assignments"
+        ]
+      },
+      "OrganizationRolesRoleAssignment": {
+        "description": "Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)\n\nThe resource is not part of this structure.  Rather, [`RoleAssignment`]s are put into a [`Policy`] and that Policy is applied to a particular resource.",
+        "type": "object",
+        "properties": {
+          "identity_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "identity_type": {
+            "$ref": "#/components/schemas/IdentityType"
+          },
+          "role_name": {
+            "$ref": "#/components/schemas/OrganizationRoles"
+          }
+        },
+        "required": [
+          "identity_id",
+          "identity_type",
+          "role_name"
+        ]
+      },
       "OrganizationUpdate": {
         "description": "Updateable properties of an [`Organization`](crate::external_api::views::Organization)",
         "type": "object",
@@ -6196,6 +6661,51 @@
         },
         "required": [
           "items"
+        ]
+      },
+      "ProjectRoles": {
+        "type": "string",
+        "enum": [
+          "Admin",
+          "Collaborator",
+          "Viewer"
+        ]
+      },
+      "ProjectRolesPolicy": {
+        "description": "Client view of a [`Policy`], which describes how this resource may be accessed\n\nNote that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.",
+        "type": "object",
+        "properties": {
+          "role_assignments": {
+            "description": "Roles directly assigned on this resource",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectRolesRoleAssignment"
+            }
+          }
+        },
+        "required": [
+          "role_assignments"
+        ]
+      },
+      "ProjectRolesRoleAssignment": {
+        "description": "Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)\n\nThe resource is not part of this structure.  Rather, [`RoleAssignment`]s are put into a [`Policy`] and that Policy is applied to a particular resource.",
+        "type": "object",
+        "properties": {
+          "identity_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "identity_type": {
+            "$ref": "#/components/schemas/IdentityType"
+          },
+          "role_name": {
+            "$ref": "#/components/schemas/ProjectRoles"
+          }
+        },
+        "required": [
+          "identity_id",
+          "identity_type",
+          "role_name"
         ]
       },
       "ProjectUpdate": {
@@ -6928,6 +7438,51 @@
           "items"
         ]
       },
+      "SiloRoles": {
+        "type": "string",
+        "enum": [
+          "Admin",
+          "Collaborator",
+          "Viewer"
+        ]
+      },
+      "SiloRolesPolicy": {
+        "description": "Client view of a [`Policy`], which describes how this resource may be accessed\n\nNote that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.",
+        "type": "object",
+        "properties": {
+          "role_assignments": {
+            "description": "Roles directly assigned on this resource",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiloRolesRoleAssignment"
+            }
+          }
+        },
+        "required": [
+          "role_assignments"
+        ]
+      },
+      "SiloRolesRoleAssignment": {
+        "description": "Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)\n\nThe resource is not part of this structure.  Rather, [`RoleAssignment`]s are put into a [`Policy`] and that Policy is applied to a particular resource.",
+        "type": "object",
+        "properties": {
+          "identity_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "identity_type": {
+            "$ref": "#/components/schemas/IdentityType"
+          },
+          "role_name": {
+            "$ref": "#/components/schemas/SiloRoles"
+          }
+        },
+        "required": [
+          "identity_id",
+          "identity_type",
+          "role_name"
+        ]
+      },
       "Sled": {
         "description": "Client view of an [`Sled`]",
         "type": "object",
@@ -7081,6 +7636,99 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Snapshot"
+            }
+          },
+          "next_page": {
+            "nullable": true,
+            "description": "token used to fetch the next page of results (if any)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "SshKey": {
+        "description": "Client view of a [`SshKey`]",
+        "type": "object",
+        "properties": {
+          "description": {
+            "description": "human-readable free-form text about a resource",
+            "type": "string"
+          },
+          "id": {
+            "description": "unique, immutable, system-controlled identifier for each resource",
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "description": "unique, mutable, user-controlled identifier for each resource",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Name"
+              }
+            ]
+          },
+          "public_key": {
+            "description": "SSH public key, e.g., `\"ssh-ed25519 AAAAC3NzaC...\"`",
+            "type": "string"
+          },
+          "silo_user_id": {
+            "description": "The user to whom this key belongs",
+            "type": "string",
+            "format": "uuid"
+          },
+          "time_created": {
+            "description": "timestamp when this resource was created",
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_modified": {
+            "description": "timestamp when this resource was last modified",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "description",
+          "id",
+          "name",
+          "public_key",
+          "silo_user_id",
+          "time_created",
+          "time_modified"
+        ]
+      },
+      "SshKeyCreate": {
+        "description": "Create-time parameters for an [`SshKey`](crate::external_api::views::SshKey)",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Name"
+          },
+          "public_key": {
+            "description": "SSH public key, e.g., `\"ssh-ed25519 AAAAC3NzaC...\"`",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "name",
+          "public_key"
+        ]
+      },
+      "SshKeyResultsPage": {
+        "description": "A single page of results",
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "list of items on this page of results",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SshKey"
             }
           },
           "next_page": {
@@ -8030,22 +8678,6 @@
             "nullable": true,
             "type": "string"
           },
-          "ipv4_block": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Ipv4Net"
-              }
-            ]
-          },
-          "ipv6_block": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Ipv6Net"
-              }
-            ]
-          },
           "name": {
             "nullable": true,
             "allOf": [
@@ -8223,6 +8855,13 @@
     {
       "name": "snapshots",
       "description": "Snapshots of Virtual Disks at a particular point in time.",
+      "externalDocs": {
+        "url": "http://oxide.computer/docs/#xxx"
+      }
+    },
+    {
+      "name": "sshkeys",
+      "description": "Public SSH keys for an individual user",
       "externalDocs": {
         "url": "http://oxide.computer/docs/#xxx"
       }
