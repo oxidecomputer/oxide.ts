@@ -14,5 +14,22 @@ if [[ $# != 1 ]]; then
 fi
 
 npm run --silent tsc
-node index.js $1
+
+# If input is a valid URL then temporarily copy file locally.
+# Otherwise continue to use specified file.
+URL_REGEX='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
+if [[ $1 =~ $URL_REGEX ]]
+then 
+    #echo "Copying $1 file locally"
+	OMICRON_VERSION=$(cat ../OMICRON_VERSION)
+	SPEC_SOURCE=$(echo $1 | sed "s/OMICRON_VERSION/$OMICRON_VERSION/g")
+	SPEC_DESTINATION="../spec.json"
+	curl --fail "$SPEC_SOURCE" -o $SPEC_DESTINATION
+	node index.js $SPEC_DESTINATION
+	#echo "Remove local downloaded spec file"
+	# rm $SPEC_DESTINATION
+else
+    node index.js $1
+fi
+
 rm index.js gen-client.js
