@@ -184,22 +184,6 @@ export async function generateClient(specFile: string) {
     specFile,
   )) as OpenAPIV3.Document<OpExt>;
 
-  // TODO: Remove this code once we have restored examples. Leaving this here for now
-	// will be useful to know how the examples were being generated
-  // We want to generate back out the documentation for the client and save it
-  // to the specFile.
-  // First, let's add the installation/client information.
-  //   spec.info["x-ts"] = {
-  //     client: `// Create a new HttpClient and configure it with the baseUrl and token.
-  // let client = new Api({
-  //     baseUrl: "$OXIDE_HOST",
-  //     token: "$OXIDE_TOKEN",
-  // });`,
-  //     install: `yarn add @oxidecomputer/api
-  // # - OR -
-  // $ npm install @oxidecomputer/api`,
-  //   };
-
   if (!spec.components) return;
 
   w("/* eslint-disable */\n");
@@ -305,35 +289,23 @@ export async function generateClient(specFile: string) {
 
       docComment(conf.summary || conf.description, schemaNames);
 
-      // TODO: Remove this code once we have restored examples. Leaving this here for now
-	    // will be useful to know how the examples were being generated
-      // Here we start to define what we will output back out to our spec as
-      // documentation for this client.
-      // let methodSpecDocs = `let resp = client.${methodName}(`;
-
       w(`${methodName}: (`);
       if (pathParams.length > 0) {
         w0("{ ");
-        // methodSpecDocs += `${paramsType}{`;
         const params = pathParams
           .map((p) => processParamName(p.name))
           .join(", ");
         w0(params);
-        // methodSpecDocs += `${params}`;
         if (queryParams.length > 0) {
           w0(", ...query");
         }
         w(`}: ${paramsType},`);
-        // methodSpecDocs += `}, `;
       } else {
         w(`query: ${paramsType},`);
-        // methodSpecDocs += `query, `;
       }
       if (bodyType) {
         w(`data: ${bodyType},`);
-        // methodSpecDocs += `data, `;
       }
-      // methodSpecDocs += `params);`;
       w(`  params: RequestParams = {},
          ) =>
            this.request<${successType}>({
@@ -348,18 +320,8 @@ export async function generateClient(specFile: string) {
       w(`    ...params,
            }),
       `);
-
-      // TODO: Remove this code once we have restored examples. Leaving this here for now
-	    // will be useful to know how the examples were being generated
-      // Save the documentation for the client.
-      // conf["x-ts"] = { example: methodSpecDocs };
     }
   }
   w(`  }
      }`);
-
-  // TODO: Remove this code once we have restored examples. Leaving this here for now
-	// will be useful to know how the examples were being generated
-  // Now, let's write out the actual specFile.
-  // fs.writeFileSync(specFile, JSON.stringify(spec, null, 2));
 }
