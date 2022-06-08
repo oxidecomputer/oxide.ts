@@ -159,30 +159,8 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
     : null;
 }
 
-type OpExt = {
-  "x-ts": {
-    example: string;
-  };
-};
-
-// This should go in a declaration file, but it seems to work fine here. We need
-// to extend info this way because the generic param on Document only lets you
-// extend the OperationObject type
-declare module "openapi-types" {
-  namespace OpenAPIV3 {
-    interface InfoObject {
-      "x-ts": {
-        client: string;
-        install: string;
-      };
-    }
-  }
-}
-
 export async function generateClient(specFile: string) {
-  const spec = (await SwaggerParser.parse(
-    specFile,
-  )) as OpenAPIV3.Document<OpExt>;
+  const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document;
 
   if (!spec.components) return;
 
