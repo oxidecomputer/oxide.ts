@@ -2599,7 +2599,7 @@ export class Api extends HttpClient {
       this.request<RackResultsPage>({
         path: `/hardware/racks`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -2626,7 +2626,7 @@ export class Api extends HttpClient {
       this.request<SledResultsPage>({
         path: `/hardware/sleds`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -2650,7 +2650,7 @@ export class Api extends HttpClient {
       this.request<GlobalImageResultsPage>({
         path: `/images`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -2659,13 +2659,13 @@ export class Api extends HttpClient {
      */
     imagesPost: (
       query: ImagesPostParams,
-      data: ImageCreate,
+      body: ImageCreate,
       params: RequestParams = {}
     ) =>
       this.request<GlobalImage>({
         path: `/images`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2697,13 +2697,13 @@ export class Api extends HttpClient {
 
     spoofLogin: (
       query: SpoofLoginParams,
-      data: LoginParams,
+      body: LoginParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
         path: `/login`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2724,7 +2724,7 @@ export class Api extends HttpClient {
       this.request<OrganizationResultsPage>({
         path: `/organizations`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -2733,13 +2733,13 @@ export class Api extends HttpClient {
      */
     organizationsPost: (
       query: OrganizationsPostParams,
-      data: OrganizationCreate,
+      body: OrganizationCreate,
       params: RequestParams = {}
     ) =>
       this.request<Organization>({
         path: `/organizations`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2761,13 +2761,13 @@ export class Api extends HttpClient {
      */
     organizationsPutOrganization: (
       { orgName }: OrganizationsPutOrganizationParams,
-      data: OrganizationUpdate,
+      body: OrganizationUpdate,
       params: RequestParams = {}
     ) =>
       this.request<Organization>({
         path: `/organizations/${orgName}`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2802,13 +2802,13 @@ export class Api extends HttpClient {
      */
     organizationPutPolicy: (
       { orgName }: OrganizationPutPolicyParams,
-      data: OrganizationRolesPolicy,
+      body: OrganizationRolesPolicy,
       params: RequestParams = {}
     ) =>
       this.request<OrganizationRolesPolicy>({
         path: `/organizations/${orgName}/policy`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2822,7 +2822,7 @@ export class Api extends HttpClient {
       this.request<ProjectResultsPage>({
         path: `/organizations/${orgName}/projects`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -2831,13 +2831,13 @@ export class Api extends HttpClient {
      */
     organizationProjectsPost: (
       { orgName }: OrganizationProjectsPostParams,
-      data: ProjectCreate,
+      body: ProjectCreate,
       params: RequestParams = {}
     ) =>
       this.request<Project>({
         path: `/organizations/${orgName}/projects`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2859,13 +2859,13 @@ export class Api extends HttpClient {
      */
     organizationProjectsPutProject: (
       { orgName, projectName }: OrganizationProjectsPutProjectParams,
-      data: ProjectUpdate,
+      body: ProjectUpdate,
       params: RequestParams = {}
     ) =>
       this.request<Project>({
         path: `/organizations/${orgName}/projects/${projectName}`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2892,7 +2892,7 @@ export class Api extends HttpClient {
       this.request<DiskResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/disks`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -2901,13 +2901,13 @@ export class Api extends HttpClient {
      */
     projectDisksPost: (
       { orgName, projectName }: ProjectDisksPostParams,
-      data: DiskCreate,
+      body: DiskCreate,
       params: RequestParams = {}
     ) =>
       this.request<Disk>({
         path: `/organizations/${orgName}/projects/${projectName}/disks`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -2947,7 +2947,7 @@ export class Api extends HttpClient {
       this.request<ImageResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/images`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -2956,13 +2956,13 @@ export class Api extends HttpClient {
      */
     projectImagesPost: (
       { orgName, projectName }: ProjectImagesPostParams,
-      data: ImageCreate,
+      body: ImageCreate,
       params: RequestParams = {}
     ) =>
       this.request<Image>({
         path: `/organizations/${orgName}/projects/${projectName}/images`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3002,7 +3002,7 @@ export class Api extends HttpClient {
       this.request<InstanceResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/instances`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3011,13 +3011,13 @@ export class Api extends HttpClient {
      */
     projectInstancesPost: (
       { orgName, projectName }: ProjectInstancesPostParams,
-      data: InstanceCreate,
+      body: InstanceCreate,
       params: RequestParams = {}
     ) =>
       this.request<Instance>({
         path: `/organizations/${orgName}/projects/${projectName}/instances`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3061,31 +3061,31 @@ export class Api extends HttpClient {
       this.request<DiskResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/disks`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
     instanceDisksAttach: (
       { instanceName, orgName, projectName }: InstanceDisksAttachParams,
-      data: DiskIdentifier,
+      body: DiskIdentifier,
       params: RequestParams = {}
     ) =>
       this.request<Disk>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/disks/attach`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
     instanceDisksDetach: (
       { instanceName, orgName, projectName }: InstanceDisksDetachParams,
-      data: DiskIdentifier,
+      body: DiskIdentifier,
       params: RequestParams = {}
     ) =>
       this.request<Disk>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/disks/detach`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3098,13 +3098,13 @@ export class Api extends HttpClient {
         orgName,
         projectName,
       }: ProjectInstancesMigrateInstanceParams,
-      data: InstanceMigrate,
+      body: InstanceMigrate,
       params: RequestParams = {}
     ) =>
       this.request<Instance>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/migrate`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3123,7 +3123,7 @@ export class Api extends HttpClient {
       this.request<NetworkInterfaceResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/network-interfaces`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3136,13 +3136,13 @@ export class Api extends HttpClient {
         orgName,
         projectName,
       }: InstanceNetworkInterfacesPostParams,
-      data: NetworkInterfaceCreate,
+      body: NetworkInterfaceCreate,
       params: RequestParams = {}
     ) =>
       this.request<NetworkInterface>({
         path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/network-interfaces`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3251,13 +3251,13 @@ export class Api extends HttpClient {
      */
     organizationProjectsPutProjectPolicy: (
       { orgName, projectName }: OrganizationProjectsPutProjectPolicyParams,
-      data: ProjectRolesPolicy,
+      body: ProjectRolesPolicy,
       params: RequestParams = {}
     ) =>
       this.request<ProjectRolesPolicy>({
         path: `/organizations/${orgName}/projects/${projectName}/policy`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3271,7 +3271,7 @@ export class Api extends HttpClient {
       this.request<SnapshotResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/snapshots`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3280,13 +3280,13 @@ export class Api extends HttpClient {
      */
     projectSnapshotsPost: (
       { orgName, projectName }: ProjectSnapshotsPostParams,
-      data: SnapshotCreate,
+      body: SnapshotCreate,
       params: RequestParams = {}
     ) =>
       this.request<Snapshot>({
         path: `/organizations/${orgName}/projects/${projectName}/snapshots`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3330,7 +3330,7 @@ export class Api extends HttpClient {
       this.request<VpcResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3339,13 +3339,13 @@ export class Api extends HttpClient {
      */
     projectVpcsPost: (
       { orgName, projectName }: ProjectVpcsPostParams,
-      data: VpcCreate,
+      body: VpcCreate,
       params: RequestParams = {}
     ) =>
       this.request<Vpc>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3367,13 +3367,13 @@ export class Api extends HttpClient {
      */
     projectVpcsPutVpc: (
       { orgName, projectName, vpcName }: ProjectVpcsPutVpcParams,
-      data: VpcUpdate,
+      body: VpcUpdate,
       params: RequestParams = {}
     ) =>
       this.request<Vpc>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3408,13 +3408,13 @@ export class Api extends HttpClient {
      */
     vpcFirewallRulesPut: (
       { orgName, projectName, vpcName }: VpcFirewallRulesPutParams,
-      data: VpcFirewallRuleUpdateParams,
+      body: VpcFirewallRuleUpdateParams,
       params: RequestParams = {}
     ) =>
       this.request<VpcFirewallRules>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/firewall/rules`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3428,7 +3428,7 @@ export class Api extends HttpClient {
       this.request<VpcRouterResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3437,13 +3437,13 @@ export class Api extends HttpClient {
      */
     vpcRoutersPost: (
       { orgName, projectName, vpcName }: VpcRoutersPostParams,
-      data: VpcRouterCreate,
+      body: VpcRouterCreate,
       params: RequestParams = {}
     ) =>
       this.request<VpcRouter>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3465,13 +3465,13 @@ export class Api extends HttpClient {
      */
     vpcRoutersPutRouter: (
       { orgName, projectName, routerName, vpcName }: VpcRoutersPutRouterParams,
-      data: VpcRouterUpdate,
+      body: VpcRouterUpdate,
       params: RequestParams = {}
     ) =>
       this.request<VpcRouter>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3509,7 +3509,7 @@ export class Api extends HttpClient {
       this.request<RouterRouteResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3518,13 +3518,13 @@ export class Api extends HttpClient {
      */
     routersRoutesPost: (
       { orgName, projectName, routerName, vpcName }: RoutersRoutesPostParams,
-      data: RouterRouteCreateParams,
+      body: RouterRouteCreateParams,
       params: RequestParams = {}
     ) =>
       this.request<RouterRoute>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3558,13 +3558,13 @@ export class Api extends HttpClient {
         routerName,
         vpcName,
       }: RoutersRoutesPutRouteParams,
-      data: RouterRouteUpdateParams,
+      body: RouterRouteUpdateParams,
       params: RequestParams = {}
     ) =>
       this.request<RouterRoute>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/routers/${routerName}/routes/${routeName}`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3597,7 +3597,7 @@ export class Api extends HttpClient {
       this.request<VpcSubnetResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3606,13 +3606,13 @@ export class Api extends HttpClient {
      */
     vpcSubnetsPost: (
       { orgName, projectName, vpcName }: VpcSubnetsPostParams,
-      data: VpcSubnetCreate,
+      body: VpcSubnetCreate,
       params: RequestParams = {}
     ) =>
       this.request<VpcSubnet>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3634,13 +3634,13 @@ export class Api extends HttpClient {
      */
     vpcSubnetsPutSubnet: (
       { orgName, projectName, subnetName, vpcName }: VpcSubnetsPutSubnetParams,
-      data: VpcSubnetUpdate,
+      body: VpcSubnetUpdate,
       params: RequestParams = {}
     ) =>
       this.request<VpcSubnet>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets/${subnetName}`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3678,7 +3678,7 @@ export class Api extends HttpClient {
       this.request<NetworkInterfaceResultsPage>({
         path: `/organizations/${orgName}/projects/${projectName}/vpcs/${vpcName}/subnets/${subnetName}/network-interfaces`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3697,13 +3697,13 @@ export class Api extends HttpClient {
      */
     policyPut: (
       query: PolicyPutParams,
-      data: FleetRolesPolicy,
+      body: FleetRolesPolicy,
       params: RequestParams = {}
     ) =>
       this.request<FleetRolesPolicy>({
         path: `/policy`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3714,7 +3714,7 @@ export class Api extends HttpClient {
       this.request<RoleResultsPage>({
         path: `/roles`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3738,7 +3738,7 @@ export class Api extends HttpClient {
       this.request<SagaResultsPage>({
         path: `/sagas`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3772,7 +3772,7 @@ export class Api extends HttpClient {
       this.request<SshKeyResultsPage>({
         path: `/session/me/sshkeys`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3781,13 +3781,13 @@ export class Api extends HttpClient {
      */
     sshkeysPost: (
       query: SshkeysPostParams,
-      data: SshKeyCreate,
+      body: SshKeyCreate,
       params: RequestParams = {}
     ) =>
       this.request<SshKey>({
         path: `/session/me/sshkeys`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3821,7 +3821,7 @@ export class Api extends HttpClient {
       this.request<SiloResultsPage>({
         path: `/silos`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3830,13 +3830,13 @@ export class Api extends HttpClient {
      */
     silosPost: (
       query: SilosPostParams,
-      data: SiloCreate,
+      body: SiloCreate,
       params: RequestParams = {}
     ) =>
       this.request<Silo>({
         path: `/silos`,
         method: "POST",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3884,13 +3884,13 @@ export class Api extends HttpClient {
      */
     silosPutSiloPolicy: (
       { siloName }: SilosPutSiloPolicyParams,
-      data: SiloRolesPolicy,
+      body: SiloRolesPolicy,
       params: RequestParams = {}
     ) =>
       this.request<SiloRolesPolicy>({
         path: `/silos/${siloName}/policy`,
         method: "PUT",
-        body: data,
+        body,
         ...params,
       }),
 
@@ -3904,7 +3904,7 @@ export class Api extends HttpClient {
       this.request<TimeseriesSchemaResultsPage>({
         path: `/timeseries/schema`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 
@@ -3925,7 +3925,7 @@ export class Api extends HttpClient {
       this.request<UserResultsPage>({
         path: `/users`,
         method: "GET",
-        query: query,
+        query,
         ...params,
       }),
 

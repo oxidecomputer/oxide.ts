@@ -304,7 +304,7 @@ export async function generateClient(specFile: string) {
         w(`query: ${paramsType},`);
       }
       if (bodyType) {
-        w(`data: ${bodyType},`);
+        w(`body: ${bodyType},`);
       }
       w(`  params: RequestParams = {},
          ) =>
@@ -312,10 +312,10 @@ export async function generateClient(specFile: string) {
              path: ${pathToTemplateStr(path)},
              method: "${method.toUpperCase()}",`);
       if (bodyType) {
-        w(`  body: data,`);
+        w(`  body,`);
       }
       if (queryParams.length > 0) {
-        w("  query: query,");
+        w("  query,");
       }
       w(`    ...params,
            }),
