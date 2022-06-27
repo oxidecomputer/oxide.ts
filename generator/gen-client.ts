@@ -153,7 +153,7 @@ function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
 function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
   return o &&
     "content" in o &&
-    o.content?.["application/json"].schema &&
+    o.content?.["application/json"]?.schema &&
     "$ref" in o.content["application/json"].schema
     ? o.content["application/json"].schema.$ref
     : null;
