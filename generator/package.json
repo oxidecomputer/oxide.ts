@@ -4,7 +4,6 @@
   "description": "Minimal TS OpenAPI client generator",
   "main": "index.ts",
   "scripts": {
-    "update-spec": "./update-spec.sh",
     "gen": "./gen.sh $(cat ../OMICRON_VERSION) | prettier --parser typescript > ../Api.ts",
     "gen-from": "./gen.sh",
     "test": "vitest",
