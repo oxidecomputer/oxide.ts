@@ -34,17 +34,17 @@ export type DerEncodedKeyPair = {
   publicCert: string;
 };
 
-export type DeviceAccessTokenRequestParams = {
+export type DeviceAccessTokenRequest = {
   clientId: string;
   deviceCode: string;
   grantType: string;
 };
 
-export type DeviceAuthRequestParams = {
+export type DeviceAuthRequest = {
   clientId: string;
 };
 
-export type DeviceAuthVerifyParams = {
+export type DeviceAuthVerify = {
   userCode: string;
 };
 
@@ -1569,6 +1569,10 @@ export type TimeseriesSchemaResultsPage = {
  * Client view of a {@link User}
  */
 export type User = {
+  /**
+   * Human-readable name that can identify the user
+   */
+  displayName: string;
   id: string;
 };
 
@@ -3070,7 +3074,7 @@ export class Api extends HttpClient {
      */
     deviceAuthConfirm: (
       query: DeviceAuthConfirmParams,
-      body: DeviceAuthVerifyParams,
+      body: DeviceAuthVerify,
       params: RequestParams = {}
     ) =>
       this.request<void>({
