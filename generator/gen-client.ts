@@ -107,7 +107,7 @@ function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
     w0("[]");
   } else if (schema.allOf && schema.allOf.length === 1) {
     schemaToType(schema.allOf[0], opts);
-  } else if (schema.type === "integer") {
+  } else if (schema.type === "integer" || schema.type === "number") {
     w0("number");
   } else if (schema.type === "boolean") {
     w0("boolean");
@@ -146,7 +146,8 @@ function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
   } else if (typeof schema === "object" && Object.keys(schema).length === 0) {
     w0("any");
   } else {
-    throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(schema, null, 2)}`);
+    const err = { name: opts.name, schema };
+    throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(err, null, 2)}`);
   }
 }
 
