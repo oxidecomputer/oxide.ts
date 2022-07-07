@@ -213,7 +213,7 @@ export async function generateClient(specFile: string) {
             w0(": ");
             schemaToType(param.schema, { schemaNames });
             if (nullable) w0(" | null");
-            w(",\n");
+            w(",");
           }
         }
       }
