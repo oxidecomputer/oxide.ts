@@ -706,7 +706,7 @@ export type Ipv6Net = string;
 
 /** Regex pattern for validating Ipv6Net */
 export const ipv6NetPattern =
-  "^(fd|FD)[0-9a-fA-F]{2}:((([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,6}:))/(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-6])$";
+  "^([fF][dD])[0-9a-fA-F]{2}:((([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,6}:))/(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-6])$";
 
 /**
  * A non-decreasing IPv6 address range, inclusive of both ends.
@@ -2035,93 +2035,127 @@ export type NameOrIdSortMode =
   | "name_descending"
   | "id_ascending";
 
+export interface DiskViewByIdParams {
+  id: string;
+}
+
+export interface ImageGlobalViewByIdParams {
+  id: string;
+}
+
+export interface ImageViewByIdParams {
+  id: string;
+}
+
+export interface InstanceViewByIdParams {
+  id: string;
+}
+
+export interface InstanceNetworkInterfaceViewByIdParams {
+  id: string;
+}
+
+export interface OrganizationViewByIdParams {
+  id: string;
+}
+
+export interface ProjectViewByIdParams {
+  id: string;
+}
+
+export interface SnapshotViewByIdParams {
+  id: string;
+}
+
+export interface VpcRouterRouteViewByIdParams {
+  id: string;
+}
+
+export interface VpcRouterViewByIdParams {
+  id: string;
+}
+
+export interface VpcSubnetViewByIdParams {
+  id: string;
+}
+
+export interface VpcViewByIdParams {
+  id: string;
+}
+
 export interface DeviceAuthRequestParams {}
 
 export interface DeviceAuthConfirmParams {}
 
 export interface DeviceAccessTokenParams {}
 
-export interface DeviceAuthVerifyParams {
-  userCode?: string;
-}
-
-export interface HardwareRacksGetParams {
+export interface RackListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: IdSortMode;
 }
 
-export interface HardwareRacksGetRackParams {
+export interface RackViewParams {
   rackId: string;
 }
 
-export interface HardwareSledsGetParams {
+export interface SledListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: IdSortMode;
 }
 
-export interface HardwareSledsGetSledParams {
+export interface SledViewParams {
   sledId: string;
 }
 
-export interface ImagesGetParams {
+export interface ImageGlobalListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
 }
 
-export interface ImagesPostParams {}
+export interface ImageGlobalCreateParams {}
 
-export interface ImagesGetImageParams {
+export interface ImageGlobalViewParams {
   imageName: Name;
 }
 
-export interface ImagesDeleteImageParams {
+export interface ImageGlobalDeleteParams {
   imageName: Name;
 }
 
-export interface IpPoolsGetParams {
+export interface IpPoolListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameOrIdSortMode;
 }
 
-export interface IpPoolsPostParams {}
+export interface IpPoolCreateParams {}
 
-export interface IpPoolsGetIpPoolParams {
+export interface IpPoolViewParams {
   poolName: Name;
 }
 
-export interface IpPoolsPutIpPoolParams {
+export interface IpPoolUpdateParams {
   poolName: Name;
 }
 
-export interface IpPoolsDeleteIpPoolParams {
+export interface IpPoolDeleteParams {
   poolName: Name;
 }
 
-export interface IpPoolRangesGetParams {
+export interface IpPoolRangeListParams {
   poolName: Name;
-
   limit?: number | null;
-
   pageToken?: string | null;
 }
 
-export interface IpPoolRangesAddParams {
+export interface IpPoolRangeAddParams {
   poolName: Name;
 }
 
-export interface IpPoolRangesDeleteParams {
+export interface IpPoolRangeRemoveParams {
   poolName: Name;
 }
 
@@ -2129,714 +2163,538 @@ export interface SpoofLoginParams {}
 
 export interface LoginParams {
   providerName: Name;
-
   siloName: Name;
 }
 
 export interface ConsumeCredentialsParams {
   providerName: Name;
-
   siloName: Name;
 }
 
 export interface LogoutParams {}
 
-export interface OrganizationsGetParams {
+export interface OrganizationListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameOrIdSortMode;
 }
 
-export interface OrganizationsPostParams {}
+export interface OrganizationCreateParams {}
 
-export interface OrganizationsGetOrganizationParams {
+export interface OrganizationViewParams {
   orgName: Name;
 }
 
-export interface OrganizationsPutOrganizationParams {
+export interface OrganizationUpdateParams {
   orgName: Name;
 }
 
-export interface OrganizationsDeleteOrganizationParams {
+export interface OrganizationDeleteParams {
   orgName: Name;
 }
 
-export interface OrganizationGetPolicyParams {
+export interface OrganizationPolicyViewParams {
   orgName: Name;
 }
 
-export interface OrganizationPutPolicyParams {
+export interface OrganizationPolicyUpdateParams {
   orgName: Name;
 }
 
-export interface OrganizationProjectsGetParams {
+export interface ProjectListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameOrIdSortMode;
-
   orgName: Name;
 }
 
-export interface OrganizationProjectsPostParams {
+export interface ProjectCreateParams {
   orgName: Name;
 }
 
-export interface OrganizationProjectsGetProjectParams {
+export interface ProjectViewParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface OrganizationProjectsPutProjectParams {
+export interface ProjectUpdateParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface OrganizationProjectsDeleteProjectParams {
+export interface ProjectDeleteParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectDisksGetParams {
+export interface DiskListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectDisksPostParams {
+export interface DiskCreateParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectDisksGetDiskParams {
+export interface DiskViewParams {
   diskName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectDisksDeleteDiskParams {
+export interface DiskDeleteParams {
   diskName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectImagesGetParams {
+export interface ImageListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectImagesPostParams {
+export interface ImageCreateParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectImagesGetImageParams {
+export interface ImageViewParams {
   imageName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectImagesDeleteImageParams {
+export interface ImageDeleteParams {
   imageName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesGetParams {
+export interface InstanceListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesPostParams {
+export interface InstanceCreateParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesGetInstanceParams {
+export interface InstanceViewParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesDeleteInstanceParams {
+export interface InstanceDeleteParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceDisksGetParams {
+export interface InstanceDiskListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceDisksAttachParams {
+export interface InstanceDiskAttachParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceDisksDetachParams {
+export interface InstanceDiskDetachParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesMigrateInstanceParams {
+export interface InstanceMigrateParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceNetworkInterfacesGetParams {
+export interface InstanceNetworkInterfaceListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceNetworkInterfacesPostParams {
+export interface InstanceNetworkInterfaceCreateParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceNetworkInterfacesGetInterfaceParams {
+export interface InstanceNetworkInterfaceViewParams {
   instanceName: Name;
-
   interfaceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceNetworkInterfacesPutInterfaceParams {
+export interface InstanceNetworkInterfaceUpdateParams {
   instanceName: Name;
-
   interfaceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface InstanceNetworkInterfacesDeleteInterfaceParams {
+export interface InstanceNetworkInterfaceDeleteParams {
   instanceName: Name;
-
   interfaceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesInstanceRebootParams {
+export interface InstanceRebootParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesInstanceSerialGetParams {
+export interface InstanceSerialConsoleParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
-
   fromStart?: number | null;
-
   maxBytes?: number | null;
-
   mostRecent?: number | null;
 }
 
-export interface ProjectInstancesInstanceStartParams {
+export interface InstanceStartParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectInstancesInstanceStopParams {
+export interface InstanceStopParams {
   instanceName: Name;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface OrganizationProjectsGetProjectPolicyParams {
+export interface ProjectPolicyViewParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface OrganizationProjectsPutProjectPolicyParams {
+export interface ProjectPolicyUpdateParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectSnapshotsGetParams {
+export interface SnapshotListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectSnapshotsPostParams {
+export interface SnapshotCreateParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectSnapshotsGetSnapshotParams {
+export interface SnapshotViewParams {
   orgName: Name;
-
   projectName: Name;
-
   snapshotName: Name;
 }
 
-export interface ProjectSnapshotsDeleteSnapshotParams {
+export interface SnapshotDeleteParams {
   orgName: Name;
-
   projectName: Name;
-
   snapshotName: Name;
 }
 
-export interface ProjectVpcsGetParams {
+export interface VpcListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectVpcsPostParams {
+export interface VpcCreateParams {
   orgName: Name;
-
   projectName: Name;
 }
 
-export interface ProjectVpcsGetVpcParams {
+export interface VpcViewParams {
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface ProjectVpcsPutVpcParams {
+export interface VpcUpdateParams {
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface ProjectVpcsDeleteVpcParams {
+export interface VpcDeleteParams {
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcFirewallRulesGetParams {
+export interface VpcFirewallRulesViewParams {
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcFirewallRulesPutParams {
+export interface VpcFirewallRulesUpdateParams {
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcRoutersGetParams {
+export interface VpcRouterListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcRoutersPostParams {
+export interface VpcRouterCreateParams {
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcRoutersGetRouterParams {
+export interface VpcRouterViewParams {
   orgName: Name;
-
   projectName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcRoutersPutRouterParams {
+export interface VpcRouterUpdateParams {
   orgName: Name;
-
   projectName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcRoutersDeleteRouterParams {
+export interface VpcRouterDeleteParams {
   orgName: Name;
-
   projectName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface RoutersRoutesGetParams {
+export interface VpcRouterRouteListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface RoutersRoutesPostParams {
+export interface VpcRouterRouteCreateParams {
   orgName: Name;
-
   projectName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface RoutersRoutesGetRouteParams {
+export interface VpcRouterRouteViewParams {
   orgName: Name;
-
   projectName: Name;
-
   routeName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface RoutersRoutesPutRouteParams {
+export interface VpcRouterRouteUpdateParams {
   orgName: Name;
-
   projectName: Name;
-
   routeName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface RoutersRoutesDeleteRouteParams {
+export interface VpcRouterRouteDeleteParams {
   orgName: Name;
-
   projectName: Name;
-
   routeName: Name;
-
   routerName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcSubnetsGetParams {
+export interface VpcSubnetListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcSubnetsPostParams {
+export interface VpcSubnetCreateParams {
   orgName: Name;
-
   projectName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcSubnetsGetSubnetParams {
+export interface VpcSubnetViewParams {
   orgName: Name;
-
   projectName: Name;
-
   subnetName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcSubnetsPutSubnetParams {
+export interface VpcSubnetUpdateParams {
   orgName: Name;
-
   projectName: Name;
-
   subnetName: Name;
-
   vpcName: Name;
 }
 
-export interface VpcSubnetsDeleteSubnetParams {
+export interface VpcSubnetDeleteParams {
   orgName: Name;
-
   projectName: Name;
-
   subnetName: Name;
-
   vpcName: Name;
 }
 
-export interface SubnetNetworkInterfacesGetParams {
+export interface VpcSubnetListNetworkInterfacesParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
-
   orgName: Name;
-
   projectName: Name;
-
   subnetName: Name;
-
   vpcName: Name;
 }
 
-export interface PolicyGetParams {}
+export interface PolicyViewParams {}
 
-export interface PolicyPutParams {}
+export interface PolicyUpdateParams {}
 
-export interface RolesGetParams {
+export interface RoleListParams {
   limit?: number | null;
-
   pageToken?: string | null;
 }
 
-export interface RolesGetRoleParams {
+export interface RoleViewParams {
   roleName: string;
 }
 
-export interface SagasGetParams {
+export interface SagaListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: IdSortMode;
 }
 
-export interface SagasGetSagaParams {
+export interface SagaViewParams {
   sagaId: string;
 }
 
 export interface SessionMeParams {}
 
-export interface SshkeysGetParams {
+export interface SessionSshkeyListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
 }
 
-export interface SshkeysPostParams {}
+export interface SessionSshkeyCreateParams {}
 
-export interface SshkeysGetKeyParams {
+export interface SessionSshkeyViewParams {
   sshKeyName: Name;
 }
 
-export interface SshkeysDeleteKeyParams {
+export interface SessionSshkeyDeleteParams {
   sshKeyName: Name;
 }
 
-export interface SilosGetParams {
+export interface SiloListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameOrIdSortMode;
 }
 
-export interface SilosPostParams {}
+export interface SiloCreateParams {}
 
-export interface SilosGetSiloParams {
+export interface SiloViewParams {
   siloName: Name;
 }
 
-export interface SilosDeleteSiloParams {
+export interface SiloDeleteParams {
   siloName: Name;
 }
 
-export interface SilosGetIdentityProvidersParams {
+export interface SiloIdentityProviderListParams {
   siloName: Name;
-
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: NameSortMode;
 }
 
-export interface SilosGetSiloPolicyParams {
+export interface SiloPolicyViewParams {
   siloName: Name;
 }
 
-export interface SilosPutSiloPolicyParams {
+export interface SiloPolicyUpdateParams {
   siloName: Name;
 }
 
-export interface SiloSamlIdpCreateParams {
+export interface SiloIdentityProviderCreateParams {
   siloName: Name;
 }
 
-export interface SiloSamlIdpFetchParams {
+export interface SiloIdentityProviderViewParams {
   providerName: Name;
-
   siloName: Name;
+}
+
+export interface SystemUserListParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: NameSortMode;
+}
+
+export interface SystemUserViewParams {
+  userName: Name;
 }
 
 export interface TimeseriesSchemaGetParams {
   limit?: number | null;
-
   pageToken?: string | null;
 }
 
 export interface UpdatesRefreshParams {}
 
-export interface SiloUsersGetParams {
+export interface UserListParams {
   limit?: number | null;
-
   pageToken?: string | null;
-
   sortBy?: IdSortMode;
-}
-
-export interface BuiltinUsersGetParams {
-  limit?: number | null;
-
-  pageToken?: string | null;
-
-  sortBy?: NameSortMode;
-}
-
-export interface BuiltinUsersGetUserParams {
-  userName: Name;
 }
 
 const camelToSnake = (s: string) =>
@@ -3057,6 +2915,153 @@ export class HttpClient {
 export class Api extends HttpClient {
   methods = {
     /**
+     * Get a disk by id
+     */
+    diskViewById: ({ id }: DiskViewByIdParams, params: RequestParams = {}) =>
+      this.request<Disk>({
+        path: `/by-id/disks/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get a global image by id.
+     */
+    imageGlobalViewById: (
+      { id }: ImageGlobalViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<GlobalImage>({
+        path: `/by-id/global-images/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Fetch an image by id
+     */
+    imageViewById: ({ id }: ImageViewByIdParams, params: RequestParams = {}) =>
+      this.request<Image>({
+        path: `/by-id/images/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get an instance by id.
+     */
+    instanceViewById: (
+      { id }: InstanceViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<Instance>({
+        path: `/by-id/instances/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get an instance's network interface by id.
+     */
+    instanceNetworkInterfaceViewById: (
+      { id }: InstanceNetworkInterfaceViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<NetworkInterface>({
+        path: `/by-id/network-interfaces/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get an organization by id
+     */
+    organizationViewById: (
+      { id }: OrganizationViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<Organization>({
+        path: `/by-id/organizations/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get a project by id
+     */
+    projectViewById: (
+      { id }: ProjectViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<Project>({
+        path: `/by-id/projects/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get a snapshot by id.
+     */
+    snapshotViewById: (
+      { id }: SnapshotViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<Snapshot>({
+        path: `/by-id/snapshots/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get a vpc router route by id
+     */
+    vpcRouterRouteViewById: (
+      { id }: VpcRouterRouteViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<RouterRoute>({
+        path: `/by-id/vpc-router-routes/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get a VPC Router by id
+     */
+    vpcRouterViewById: (
+      { id }: VpcRouterViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<VpcRouter>({
+        path: `/by-id/vpc-routers/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get a VPC subnet by id.
+     */
+    vpcSubnetViewById: (
+      { id }: VpcSubnetViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<VpcSubnet>({
+        path: `/by-id/vpc-subnets/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Get a VPC by id.
+     */
+    vpcViewById: ({ id }: VpcViewByIdParams, params: RequestParams = {}) =>
+      this.request<Vpc>({
+        path: `/by-id/vpcs/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
      * Start an OAuth 2.0 Device Authorization Grant
      */
     deviceAuthRequest: (
@@ -3098,26 +3103,9 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Verify an OAuth 2.0 Device Authorization Grant
-     */
-    deviceAuthVerify: (
-      query: DeviceAuthVerifyParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<void>({
-        path: `/device/verify`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
      * List racks in the system.
      */
-    hardwareRacksGet: (
-      query: HardwareRacksGetParams,
-      params: RequestParams = {}
-    ) =>
+    rackList: (query: RackListParams, params: RequestParams = {}) =>
       this.request<RackResultsPage>({
         path: `/hardware/racks`,
         method: "GET",
@@ -3128,10 +3116,7 @@ export class Api extends HttpClient {
     /**
      * Fetch information about a particular rack.
      */
-    hardwareRacksGetRack: (
-      { rackId }: HardwareRacksGetRackParams,
-      params: RequestParams = {}
-    ) =>
+    rackView: ({ rackId }: RackViewParams, params: RequestParams = {}) =>
       this.request<Rack>({
         path: `/hardware/racks/${rackId}`,
         method: "GET",
@@ -3141,10 +3126,7 @@ export class Api extends HttpClient {
     /**
      * List sleds in the system.
      */
-    hardwareSledsGet: (
-      query: HardwareSledsGetParams,
-      params: RequestParams = {}
-    ) =>
+    sledList: (query: SledListParams, params: RequestParams = {}) =>
       this.request<SledResultsPage>({
         path: `/hardware/sleds`,
         method: "GET",
@@ -3155,10 +3137,7 @@ export class Api extends HttpClient {
     /**
      * Fetch information about a sled in the system.
      */
-    hardwareSledsGetSled: (
-      { sledId }: HardwareSledsGetSledParams,
-      params: RequestParams = {}
-    ) =>
+    sledView: ({ sledId }: SledViewParams, params: RequestParams = {}) =>
       this.request<Sled>({
         path: `/hardware/sleds/${sledId}`,
         method: "GET",
@@ -3168,7 +3147,10 @@ export class Api extends HttpClient {
     /**
      * List global images.
      */
-    imagesGet: (query: ImagesGetParams, params: RequestParams = {}) =>
+    imageGlobalList: (
+      query: ImageGlobalListParams,
+      params: RequestParams = {}
+    ) =>
       this.request<GlobalImageResultsPage>({
         path: `/images`,
         method: "GET",
@@ -3179,8 +3161,8 @@ export class Api extends HttpClient {
     /**
      * Create a global image.
      */
-    imagesPost: (
-      query: ImagesPostParams,
+    imageGlobalCreate: (
+      query: ImageGlobalCreateParams,
       body: GlobalImageCreate,
       params: RequestParams = {}
     ) =>
@@ -3194,8 +3176,8 @@ export class Api extends HttpClient {
     /**
      * Get a global image.
      */
-    imagesGetImage: (
-      { imageName }: ImagesGetImageParams,
+    imageGlobalView: (
+      { imageName }: ImageGlobalViewParams,
       params: RequestParams = {}
     ) =>
       this.request<GlobalImage>({
@@ -3207,8 +3189,8 @@ export class Api extends HttpClient {
     /**
      * Delete a global image.
      */
-    imagesDeleteImage: (
-      { imageName }: ImagesDeleteImageParams,
+    imageGlobalDelete: (
+      { imageName }: ImageGlobalDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3220,7 +3202,7 @@ export class Api extends HttpClient {
     /**
      * List IP Pools.
      */
-    ipPoolsGet: (query: IpPoolsGetParams, params: RequestParams = {}) =>
+    ipPoolList: (query: IpPoolListParams, params: RequestParams = {}) =>
       this.request<IpPoolResultsPage>({
         path: `/ip-pools`,
         method: "GET",
@@ -3231,8 +3213,8 @@ export class Api extends HttpClient {
     /**
      * Create a new IP Pool.
      */
-    ipPoolsPost: (
-      query: IpPoolsPostParams,
+    ipPoolCreate: (
+      query: IpPoolCreateParams,
       body: IpPoolCreate,
       params: RequestParams = {}
     ) =>
@@ -3246,10 +3228,7 @@ export class Api extends HttpClient {
     /**
      * Fetch a single IP Pool.
      */
-    ipPoolsGetIpPool: (
-      { poolName }: IpPoolsGetIpPoolParams,
-      params: RequestParams = {}
-    ) =>
+    ipPoolView: ({ poolName }: IpPoolViewParams, params: RequestParams = {}) =>
       this.request<IpPool>({
         path: `/ip-pools/${poolName}`,
         method: "GET",
@@ -3259,8 +3238,8 @@ export class Api extends HttpClient {
     /**
      * Update an IP Pool.
      */
-    ipPoolsPutIpPool: (
-      { poolName }: IpPoolsPutIpPoolParams,
+    ipPoolUpdate: (
+      { poolName }: IpPoolUpdateParams,
       body: IpPoolUpdate,
       params: RequestParams = {}
     ) =>
@@ -3274,8 +3253,8 @@ export class Api extends HttpClient {
     /**
      * Delete an IP Pool.
      */
-    ipPoolsDeleteIpPool: (
-      { poolName }: IpPoolsDeleteIpPoolParams,
+    ipPoolDelete: (
+      { poolName }: IpPoolDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3287,8 +3266,8 @@ export class Api extends HttpClient {
     /**
      * List the ranges of IP addresses within an existing IP Pool.
      */
-    ipPoolRangesGet: (
-      { poolName, ...query }: IpPoolRangesGetParams,
+    ipPoolRangeList: (
+      { poolName, ...query }: IpPoolRangeListParams,
       params: RequestParams = {}
     ) =>
       this.request<IpPoolRangeResultsPage>({
@@ -3301,8 +3280,8 @@ export class Api extends HttpClient {
     /**
      * Add a new range to an existing IP Pool.
      */
-    ipPoolRangesAdd: (
-      { poolName }: IpPoolRangesAddParams,
+    ipPoolRangeAdd: (
+      { poolName }: IpPoolRangeAddParams,
       body: IpRange,
       params: RequestParams = {}
     ) =>
@@ -3316,13 +3295,13 @@ export class Api extends HttpClient {
     /**
      * Remove a range from an existing IP Pool.
      */
-    ipPoolRangesDelete: (
-      { poolName }: IpPoolRangesDeleteParams,
+    ipPoolRangeRemove: (
+      { poolName }: IpPoolRangeRemoveParams,
       body: IpRange,
       params: RequestParams = {}
     ) =>
       this.request<void>({
-        path: `/ip-pools/${poolName}/ranges/delete`,
+        path: `/ip-pools/${poolName}/ranges/remove`,
         method: "POST",
         body,
         ...params,
@@ -3376,8 +3355,8 @@ export class Api extends HttpClient {
     /**
      * List all organizations.
      */
-    organizationsGet: (
-      query: OrganizationsGetParams,
+    organizationList: (
+      query: OrganizationListParams,
       params: RequestParams = {}
     ) =>
       this.request<OrganizationResultsPage>({
@@ -3390,8 +3369,8 @@ export class Api extends HttpClient {
     /**
      * Create a new organization.
      */
-    organizationsPost: (
-      query: OrganizationsPostParams,
+    organizationCreate: (
+      query: OrganizationCreateParams,
       body: OrganizationCreate,
       params: RequestParams = {}
     ) =>
@@ -3405,8 +3384,8 @@ export class Api extends HttpClient {
     /**
      * Fetch a specific organization
      */
-    organizationsGetOrganization: (
-      { orgName }: OrganizationsGetOrganizationParams,
+    organizationView: (
+      { orgName }: OrganizationViewParams,
       params: RequestParams = {}
     ) =>
       this.request<Organization>({
@@ -3418,8 +3397,8 @@ export class Api extends HttpClient {
     /**
      * Update a specific organization.
      */
-    organizationsPutOrganization: (
-      { orgName }: OrganizationsPutOrganizationParams,
+    organizationUpdate: (
+      { orgName }: OrganizationUpdateParams,
       body: OrganizationUpdate,
       params: RequestParams = {}
     ) =>
@@ -3433,8 +3412,8 @@ export class Api extends HttpClient {
     /**
      * Delete a specific organization.
      */
-    organizationsDeleteOrganization: (
-      { orgName }: OrganizationsDeleteOrganizationParams,
+    organizationDelete: (
+      { orgName }: OrganizationDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3446,8 +3425,8 @@ export class Api extends HttpClient {
     /**
      * Fetch the IAM policy for this Organization
      */
-    organizationGetPolicy: (
-      { orgName }: OrganizationGetPolicyParams,
+    organizationPolicyView: (
+      { orgName }: OrganizationPolicyViewParams,
       params: RequestParams = {}
     ) =>
       this.request<OrganizationRolePolicy>({
@@ -3459,8 +3438,8 @@ export class Api extends HttpClient {
     /**
      * Update the IAM policy for this Organization
      */
-    organizationPutPolicy: (
-      { orgName }: OrganizationPutPolicyParams,
+    organizationPolicyUpdate: (
+      { orgName }: OrganizationPolicyUpdateParams,
       body: OrganizationRolePolicy,
       params: RequestParams = {}
     ) =>
@@ -3474,8 +3453,8 @@ export class Api extends HttpClient {
     /**
      * List all projects.
      */
-    organizationProjectsGet: (
-      { orgName, ...query }: OrganizationProjectsGetParams,
+    projectList: (
+      { orgName, ...query }: ProjectListParams,
       params: RequestParams = {}
     ) =>
       this.request<ProjectResultsPage>({
@@ -3488,8 +3467,8 @@ export class Api extends HttpClient {
     /**
      * Create a new project.
      */
-    organizationProjectsPost: (
-      { orgName }: OrganizationProjectsPostParams,
+    projectCreate: (
+      { orgName }: ProjectCreateParams,
       body: ProjectCreate,
       params: RequestParams = {}
     ) =>
@@ -3503,8 +3482,8 @@ export class Api extends HttpClient {
     /**
      * Fetch a specific project
      */
-    organizationProjectsGetProject: (
-      { orgName, projectName }: OrganizationProjectsGetProjectParams,
+    projectView: (
+      { orgName, projectName }: ProjectViewParams,
       params: RequestParams = {}
     ) =>
       this.request<Project>({
@@ -3516,8 +3495,8 @@ export class Api extends HttpClient {
     /**
      * Update a specific project.
      */
-    organizationProjectsPutProject: (
-      { orgName, projectName }: OrganizationProjectsPutProjectParams,
+    projectUpdate: (
+      { orgName, projectName }: ProjectUpdateParams,
       body: ProjectUpdate,
       params: RequestParams = {}
     ) =>
@@ -3531,8 +3510,8 @@ export class Api extends HttpClient {
     /**
      * Delete a specific project.
      */
-    organizationProjectsDeleteProject: (
-      { orgName, projectName }: OrganizationProjectsDeleteProjectParams,
+    projectDelete: (
+      { orgName, projectName }: ProjectDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3544,8 +3523,8 @@ export class Api extends HttpClient {
     /**
      * List disks in a project.
      */
-    projectDisksGet: (
-      { orgName, projectName, ...query }: ProjectDisksGetParams,
+    diskList: (
+      { orgName, projectName, ...query }: DiskListParams,
       params: RequestParams = {}
     ) =>
       this.request<DiskResultsPage>({
@@ -3558,8 +3537,8 @@ export class Api extends HttpClient {
     /**
      * Create a disk in a project.
      */
-    projectDisksPost: (
-      { orgName, projectName }: ProjectDisksPostParams,
+    diskCreate: (
+      { orgName, projectName }: DiskCreateParams,
       body: DiskCreate,
       params: RequestParams = {}
     ) =>
@@ -3571,10 +3550,10 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch a single disk in a project.
+     * Get a single disk in a project.
      */
-    projectDisksGetDisk: (
-      { diskName, orgName, projectName }: ProjectDisksGetDiskParams,
+    diskView: (
+      { diskName, orgName, projectName }: DiskViewParams,
       params: RequestParams = {}
     ) =>
       this.request<Disk>({
@@ -3586,8 +3565,8 @@ export class Api extends HttpClient {
     /**
      * Delete a disk from a project.
      */
-    projectDisksDeleteDisk: (
-      { diskName, orgName, projectName }: ProjectDisksDeleteDiskParams,
+    diskDelete: (
+      { diskName, orgName, projectName }: DiskDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3599,8 +3578,8 @@ export class Api extends HttpClient {
     /**
      * List images
      */
-    projectImagesGet: (
-      { orgName, projectName, ...query }: ProjectImagesGetParams,
+    imageList: (
+      { orgName, projectName, ...query }: ImageListParams,
       params: RequestParams = {}
     ) =>
       this.request<ImageResultsPage>({
@@ -3613,8 +3592,8 @@ export class Api extends HttpClient {
     /**
      * Create an image
      */
-    projectImagesPost: (
-      { orgName, projectName }: ProjectImagesPostParams,
+    imageCreate: (
+      { orgName, projectName }: ImageCreateParams,
       body: ImageCreate,
       params: RequestParams = {}
     ) =>
@@ -3628,8 +3607,8 @@ export class Api extends HttpClient {
     /**
      * Get an image
      */
-    projectImagesGetImage: (
-      { imageName, orgName, projectName }: ProjectImagesGetImageParams,
+    imageView: (
+      { imageName, orgName, projectName }: ImageViewParams,
       params: RequestParams = {}
     ) =>
       this.request<Image>({
@@ -3641,8 +3620,8 @@ export class Api extends HttpClient {
     /**
      * Delete an image
      */
-    projectImagesDeleteImage: (
-      { imageName, orgName, projectName }: ProjectImagesDeleteImageParams,
+    imageDelete: (
+      { imageName, orgName, projectName }: ImageDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3654,8 +3633,8 @@ export class Api extends HttpClient {
     /**
      * List instances in a project.
      */
-    projectInstancesGet: (
-      { orgName, projectName, ...query }: ProjectInstancesGetParams,
+    instanceList: (
+      { orgName, projectName, ...query }: InstanceListParams,
       params: RequestParams = {}
     ) =>
       this.request<InstanceResultsPage>({
@@ -3668,8 +3647,8 @@ export class Api extends HttpClient {
     /**
      * Create an instance in a project.
      */
-    projectInstancesPost: (
-      { orgName, projectName }: ProjectInstancesPostParams,
+    instanceCreate: (
+      { orgName, projectName }: InstanceCreateParams,
       body: InstanceCreate,
       params: RequestParams = {}
     ) =>
@@ -3683,8 +3662,8 @@ export class Api extends HttpClient {
     /**
      * Get an instance in a project.
      */
-    projectInstancesGetInstance: (
-      { instanceName, orgName, projectName }: ProjectInstancesGetInstanceParams,
+    instanceView: (
+      { instanceName, orgName, projectName }: InstanceViewParams,
       params: RequestParams = {}
     ) =>
       this.request<Instance>({
@@ -3696,12 +3675,8 @@ export class Api extends HttpClient {
     /**
      * Delete an instance from a project.
      */
-    projectInstancesDeleteInstance: (
-      {
-        instanceName,
-        orgName,
-        projectName,
-      }: ProjectInstancesDeleteInstanceParams,
+    instanceDelete: (
+      { instanceName, orgName, projectName }: InstanceDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3713,8 +3688,8 @@ export class Api extends HttpClient {
     /**
      * List disks attached to this instance.
      */
-    instanceDisksGet: (
-      { instanceName, orgName, projectName, ...query }: InstanceDisksGetParams,
+    instanceDiskList: (
+      { instanceName, orgName, projectName, ...query }: InstanceDiskListParams,
       params: RequestParams = {}
     ) =>
       this.request<DiskResultsPage>({
@@ -3724,8 +3699,8 @@ export class Api extends HttpClient {
         ...params,
       }),
 
-    instanceDisksAttach: (
-      { instanceName, orgName, projectName }: InstanceDisksAttachParams,
+    instanceDiskAttach: (
+      { instanceName, orgName, projectName }: InstanceDiskAttachParams,
       body: DiskIdentifier,
       params: RequestParams = {}
     ) =>
@@ -3736,8 +3711,8 @@ export class Api extends HttpClient {
         ...params,
       }),
 
-    instanceDisksDetach: (
-      { instanceName, orgName, projectName }: InstanceDisksDetachParams,
+    instanceDiskDetach: (
+      { instanceName, orgName, projectName }: InstanceDiskDetachParams,
       body: DiskIdentifier,
       params: RequestParams = {}
     ) =>
@@ -3751,12 +3726,8 @@ export class Api extends HttpClient {
     /**
      * Migrate an instance to a different propolis-server, possibly on a different sled.
      */
-    projectInstancesMigrateInstance: (
-      {
-        instanceName,
-        orgName,
-        projectName,
-      }: ProjectInstancesMigrateInstanceParams,
+    instanceMigrate: (
+      { instanceName, orgName, projectName }: InstanceMigrateParams,
       body: InstanceMigrate,
       params: RequestParams = {}
     ) =>
@@ -3770,13 +3741,13 @@ export class Api extends HttpClient {
     /**
      * List network interfaces attached to this instance.
      */
-    instanceNetworkInterfacesGet: (
+    instanceNetworkInterfaceList: (
       {
         instanceName,
         orgName,
         projectName,
         ...query
-      }: InstanceNetworkInterfacesGetParams,
+      }: InstanceNetworkInterfaceListParams,
       params: RequestParams = {}
     ) =>
       this.request<NetworkInterfaceResultsPage>({
@@ -3789,12 +3760,12 @@ export class Api extends HttpClient {
     /**
      * Create a network interface for an instance.
      */
-    instanceNetworkInterfacesPost: (
+    instanceNetworkInterfaceCreate: (
       {
         instanceName,
         orgName,
         projectName,
-      }: InstanceNetworkInterfacesPostParams,
+      }: InstanceNetworkInterfaceCreateParams,
       body: NetworkInterfaceCreate,
       params: RequestParams = {}
     ) =>
@@ -3808,13 +3779,13 @@ export class Api extends HttpClient {
     /**
      * Get an interface attached to an instance.
      */
-    instanceNetworkInterfacesGetInterface: (
+    instanceNetworkInterfaceView: (
       {
         instanceName,
         interfaceName,
         orgName,
         projectName,
-      }: InstanceNetworkInterfacesGetInterfaceParams,
+      }: InstanceNetworkInterfaceViewParams,
       params: RequestParams = {}
     ) =>
       this.request<NetworkInterface>({
@@ -3826,13 +3797,13 @@ export class Api extends HttpClient {
     /**
      * Update information about an instance's network interface
      */
-    instanceNetworkInterfacesPutInterface: (
+    instanceNetworkInterfaceUpdate: (
       {
         instanceName,
         interfaceName,
         orgName,
         projectName,
-      }: InstanceNetworkInterfacesPutInterfaceParams,
+      }: InstanceNetworkInterfaceUpdateParams,
       body: NetworkInterfaceUpdate,
       params: RequestParams = {}
     ) =>
@@ -3846,13 +3817,13 @@ export class Api extends HttpClient {
     /**
      * Detach a network interface from an instance.
      */
-    instanceNetworkInterfacesDeleteInterface: (
+    instanceNetworkInterfaceDelete: (
       {
         instanceName,
         interfaceName,
         orgName,
         projectName,
-      }: InstanceNetworkInterfacesDeleteInterfaceParams,
+      }: InstanceNetworkInterfaceDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -3864,12 +3835,8 @@ export class Api extends HttpClient {
     /**
      * Reboot an instance.
      */
-    projectInstancesInstanceReboot: (
-      {
-        instanceName,
-        orgName,
-        projectName,
-      }: ProjectInstancesInstanceRebootParams,
+    instanceReboot: (
+      { instanceName, orgName, projectName }: InstanceRebootParams,
       params: RequestParams = {}
     ) =>
       this.request<Instance>({
@@ -3881,17 +3848,17 @@ export class Api extends HttpClient {
     /**
      * Get contents of an instance's serial console.
      */
-    projectInstancesInstanceSerialGet: (
+    instanceSerialConsole: (
       {
         instanceName,
         orgName,
         projectName,
         ...query
-      }: ProjectInstancesInstanceSerialGetParams,
+      }: InstanceSerialConsoleParams,
       params: RequestParams = {}
     ) =>
       this.request<InstanceSerialConsoleData>({
-        path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/serial`,
+        path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/serial-console`,
         method: "GET",
         query,
         ...params,
@@ -3900,12 +3867,8 @@ export class Api extends HttpClient {
     /**
      * Boot an instance.
      */
-    projectInstancesInstanceStart: (
-      {
-        instanceName,
-        orgName,
-        projectName,
-      }: ProjectInstancesInstanceStartParams,
+    instanceStart: (
+      { instanceName, orgName, projectName }: InstanceStartParams,
       params: RequestParams = {}
     ) =>
       this.request<Instance>({
@@ -3917,12 +3880,8 @@ export class Api extends HttpClient {
     /**
      * Halt an instance.
      */
-    projectInstancesInstanceStop: (
-      {
-        instanceName,
-        orgName,
-        projectName,
-      }: ProjectInstancesInstanceStopParams,
+    instanceStop: (
+      { instanceName, orgName, projectName }: InstanceStopParams,
       params: RequestParams = {}
     ) =>
       this.request<Instance>({
@@ -3934,8 +3893,8 @@ export class Api extends HttpClient {
     /**
      * Fetch the IAM policy for this Project
      */
-    organizationProjectsGetProjectPolicy: (
-      { orgName, projectName }: OrganizationProjectsGetProjectPolicyParams,
+    projectPolicyView: (
+      { orgName, projectName }: ProjectPolicyViewParams,
       params: RequestParams = {}
     ) =>
       this.request<ProjectRolePolicy>({
@@ -3947,8 +3906,8 @@ export class Api extends HttpClient {
     /**
      * Update the IAM policy for this Project
      */
-    organizationProjectsPutProjectPolicy: (
-      { orgName, projectName }: OrganizationProjectsPutProjectPolicyParams,
+    projectPolicyUpdate: (
+      { orgName, projectName }: ProjectPolicyUpdateParams,
       body: ProjectRolePolicy,
       params: RequestParams = {}
     ) =>
@@ -3962,8 +3921,8 @@ export class Api extends HttpClient {
     /**
      * List snapshots in a project.
      */
-    projectSnapshotsGet: (
-      { orgName, projectName, ...query }: ProjectSnapshotsGetParams,
+    snapshotList: (
+      { orgName, projectName, ...query }: SnapshotListParams,
       params: RequestParams = {}
     ) =>
       this.request<SnapshotResultsPage>({
@@ -3976,8 +3935,8 @@ export class Api extends HttpClient {
     /**
      * Create a snapshot of a disk.
      */
-    projectSnapshotsPost: (
-      { orgName, projectName }: ProjectSnapshotsPostParams,
+    snapshotCreate: (
+      { orgName, projectName }: SnapshotCreateParams,
       body: SnapshotCreate,
       params: RequestParams = {}
     ) =>
@@ -3991,8 +3950,8 @@ export class Api extends HttpClient {
     /**
      * Get a snapshot in a project.
      */
-    projectSnapshotsGetSnapshot: (
-      { orgName, projectName, snapshotName }: ProjectSnapshotsGetSnapshotParams,
+    snapshotView: (
+      { orgName, projectName, snapshotName }: SnapshotViewParams,
       params: RequestParams = {}
     ) =>
       this.request<Snapshot>({
@@ -4004,12 +3963,8 @@ export class Api extends HttpClient {
     /**
      * Delete a snapshot from a project.
      */
-    projectSnapshotsDeleteSnapshot: (
-      {
-        orgName,
-        projectName,
-        snapshotName,
-      }: ProjectSnapshotsDeleteSnapshotParams,
+    snapshotDelete: (
+      { orgName, projectName, snapshotName }: SnapshotDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -4021,8 +3976,8 @@ export class Api extends HttpClient {
     /**
      * List VPCs in a project.
      */
-    projectVpcsGet: (
-      { orgName, projectName, ...query }: ProjectVpcsGetParams,
+    vpcList: (
+      { orgName, projectName, ...query }: VpcListParams,
       params: RequestParams = {}
     ) =>
       this.request<VpcResultsPage>({
@@ -4035,8 +3990,8 @@ export class Api extends HttpClient {
     /**
      * Create a VPC in a project.
      */
-    projectVpcsPost: (
-      { orgName, projectName }: ProjectVpcsPostParams,
+    vpcCreate: (
+      { orgName, projectName }: VpcCreateParams,
       body: VpcCreate,
       params: RequestParams = {}
     ) =>
@@ -4050,8 +4005,8 @@ export class Api extends HttpClient {
     /**
      * Get a VPC in a project.
      */
-    projectVpcsGetVpc: (
-      { orgName, projectName, vpcName }: ProjectVpcsGetVpcParams,
+    vpcView: (
+      { orgName, projectName, vpcName }: VpcViewParams,
       params: RequestParams = {}
     ) =>
       this.request<Vpc>({
@@ -4063,8 +4018,8 @@ export class Api extends HttpClient {
     /**
      * Update a VPC.
      */
-    projectVpcsPutVpc: (
-      { orgName, projectName, vpcName }: ProjectVpcsPutVpcParams,
+    vpcUpdate: (
+      { orgName, projectName, vpcName }: VpcUpdateParams,
       body: VpcUpdate,
       params: RequestParams = {}
     ) =>
@@ -4078,8 +4033,8 @@ export class Api extends HttpClient {
     /**
      * Delete a vpc from a project.
      */
-    projectVpcsDeleteVpc: (
-      { orgName, projectName, vpcName }: ProjectVpcsDeleteVpcParams,
+    vpcDelete: (
+      { orgName, projectName, vpcName }: VpcDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -4091,8 +4046,8 @@ export class Api extends HttpClient {
     /**
      * List firewall rules for a VPC.
      */
-    vpcFirewallRulesGet: (
-      { orgName, projectName, vpcName }: VpcFirewallRulesGetParams,
+    vpcFirewallRulesView: (
+      { orgName, projectName, vpcName }: VpcFirewallRulesViewParams,
       params: RequestParams = {}
     ) =>
       this.request<VpcFirewallRules>({
@@ -4104,8 +4059,8 @@ export class Api extends HttpClient {
     /**
      * Replace the firewall rules for a VPC
      */
-    vpcFirewallRulesPut: (
-      { orgName, projectName, vpcName }: VpcFirewallRulesPutParams,
+    vpcFirewallRulesUpdate: (
+      { orgName, projectName, vpcName }: VpcFirewallRulesUpdateParams,
       body: VpcFirewallRuleUpdateParams,
       params: RequestParams = {}
     ) =>
@@ -4119,8 +4074,8 @@ export class Api extends HttpClient {
     /**
      * List VPC Custom and System Routers
      */
-    vpcRoutersGet: (
-      { orgName, projectName, vpcName, ...query }: VpcRoutersGetParams,
+    vpcRouterList: (
+      { orgName, projectName, vpcName, ...query }: VpcRouterListParams,
       params: RequestParams = {}
     ) =>
       this.request<VpcRouterResultsPage>({
@@ -4133,8 +4088,8 @@ export class Api extends HttpClient {
     /**
      * Create a VPC Router
      */
-    vpcRoutersPost: (
-      { orgName, projectName, vpcName }: VpcRoutersPostParams,
+    vpcRouterCreate: (
+      { orgName, projectName, vpcName }: VpcRouterCreateParams,
       body: VpcRouterCreate,
       params: RequestParams = {}
     ) =>
@@ -4148,8 +4103,8 @@ export class Api extends HttpClient {
     /**
      * Get a VPC Router
      */
-    vpcRoutersGetRouter: (
-      { orgName, projectName, routerName, vpcName }: VpcRoutersGetRouterParams,
+    vpcRouterView: (
+      { orgName, projectName, routerName, vpcName }: VpcRouterViewParams,
       params: RequestParams = {}
     ) =>
       this.request<VpcRouter>({
@@ -4161,8 +4116,8 @@ export class Api extends HttpClient {
     /**
      * Update a VPC Router
      */
-    vpcRoutersPutRouter: (
-      { orgName, projectName, routerName, vpcName }: VpcRoutersPutRouterParams,
+    vpcRouterUpdate: (
+      { orgName, projectName, routerName, vpcName }: VpcRouterUpdateParams,
       body: VpcRouterUpdate,
       params: RequestParams = {}
     ) =>
@@ -4176,13 +4131,8 @@ export class Api extends HttpClient {
     /**
      * Delete a router from its VPC
      */
-    vpcRoutersDeleteRouter: (
-      {
-        orgName,
-        projectName,
-        routerName,
-        vpcName,
-      }: VpcRoutersDeleteRouterParams,
+    vpcRouterDelete: (
+      { orgName, projectName, routerName, vpcName }: VpcRouterDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -4194,14 +4144,14 @@ export class Api extends HttpClient {
     /**
      * List a Router's routes
      */
-    routersRoutesGet: (
+    vpcRouterRouteList: (
       {
         orgName,
         projectName,
         routerName,
         vpcName,
         ...query
-      }: RoutersRoutesGetParams,
+      }: VpcRouterRouteListParams,
       params: RequestParams = {}
     ) =>
       this.request<RouterRouteResultsPage>({
@@ -4214,8 +4164,8 @@ export class Api extends HttpClient {
     /**
      * Create a VPC Router
      */
-    routersRoutesPost: (
-      { orgName, projectName, routerName, vpcName }: RoutersRoutesPostParams,
+    vpcRouterRouteCreate: (
+      { orgName, projectName, routerName, vpcName }: VpcRouterRouteCreateParams,
       body: RouterRouteCreateParams,
       params: RequestParams = {}
     ) =>
@@ -4229,14 +4179,14 @@ export class Api extends HttpClient {
     /**
      * Get a VPC Router route
      */
-    routersRoutesGetRoute: (
+    vpcRouterRouteView: (
       {
         orgName,
         projectName,
         routeName,
         routerName,
         vpcName,
-      }: RoutersRoutesGetRouteParams,
+      }: VpcRouterRouteViewParams,
       params: RequestParams = {}
     ) =>
       this.request<RouterRoute>({
@@ -4248,14 +4198,14 @@ export class Api extends HttpClient {
     /**
      * Update a Router route
      */
-    routersRoutesPutRoute: (
+    vpcRouterRouteUpdate: (
       {
         orgName,
         projectName,
         routeName,
         routerName,
         vpcName,
-      }: RoutersRoutesPutRouteParams,
+      }: VpcRouterRouteUpdateParams,
       body: RouterRouteUpdateParams,
       params: RequestParams = {}
     ) =>
@@ -4269,14 +4219,14 @@ export class Api extends HttpClient {
     /**
      * Delete a route from its router
      */
-    routersRoutesDeleteRoute: (
+    vpcRouterRouteDelete: (
       {
         orgName,
         projectName,
         routeName,
         routerName,
         vpcName,
-      }: RoutersRoutesDeleteRouteParams,
+      }: VpcRouterRouteDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -4288,8 +4238,8 @@ export class Api extends HttpClient {
     /**
      * List subnets in a VPC.
      */
-    vpcSubnetsGet: (
-      { orgName, projectName, vpcName, ...query }: VpcSubnetsGetParams,
+    vpcSubnetList: (
+      { orgName, projectName, vpcName, ...query }: VpcSubnetListParams,
       params: RequestParams = {}
     ) =>
       this.request<VpcSubnetResultsPage>({
@@ -4302,8 +4252,8 @@ export class Api extends HttpClient {
     /**
      * Create a subnet in a VPC.
      */
-    vpcSubnetsPost: (
-      { orgName, projectName, vpcName }: VpcSubnetsPostParams,
+    vpcSubnetCreate: (
+      { orgName, projectName, vpcName }: VpcSubnetCreateParams,
       body: VpcSubnetCreate,
       params: RequestParams = {}
     ) =>
@@ -4317,8 +4267,8 @@ export class Api extends HttpClient {
     /**
      * Get subnet in a VPC.
      */
-    vpcSubnetsGetSubnet: (
-      { orgName, projectName, subnetName, vpcName }: VpcSubnetsGetSubnetParams,
+    vpcSubnetView: (
+      { orgName, projectName, subnetName, vpcName }: VpcSubnetViewParams,
       params: RequestParams = {}
     ) =>
       this.request<VpcSubnet>({
@@ -4330,8 +4280,8 @@ export class Api extends HttpClient {
     /**
      * Update a VPC Subnet.
      */
-    vpcSubnetsPutSubnet: (
-      { orgName, projectName, subnetName, vpcName }: VpcSubnetsPutSubnetParams,
+    vpcSubnetUpdate: (
+      { orgName, projectName, subnetName, vpcName }: VpcSubnetUpdateParams,
       body: VpcSubnetUpdate,
       params: RequestParams = {}
     ) =>
@@ -4345,13 +4295,8 @@ export class Api extends HttpClient {
     /**
      * Delete a subnet from a VPC.
      */
-    vpcSubnetsDeleteSubnet: (
-      {
-        orgName,
-        projectName,
-        subnetName,
-        vpcName,
-      }: VpcSubnetsDeleteSubnetParams,
+    vpcSubnetDelete: (
+      { orgName, projectName, subnetName, vpcName }: VpcSubnetDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -4363,14 +4308,14 @@ export class Api extends HttpClient {
     /**
      * List network interfaces in a VPC subnet.
      */
-    subnetNetworkInterfacesGet: (
+    vpcSubnetListNetworkInterfaces: (
       {
         orgName,
         projectName,
         subnetName,
         vpcName,
         ...query
-      }: SubnetNetworkInterfacesGetParams,
+      }: VpcSubnetListNetworkInterfacesParams,
       params: RequestParams = {}
     ) =>
       this.request<NetworkInterfaceResultsPage>({
@@ -4383,7 +4328,7 @@ export class Api extends HttpClient {
     /**
      * Fetch the top-level IAM policy
      */
-    policyGet: (query: PolicyGetParams, params: RequestParams = {}) =>
+    policyView: (query: PolicyViewParams, params: RequestParams = {}) =>
       this.request<FleetRolePolicy>({
         path: `/policy`,
         method: "GET",
@@ -4393,8 +4338,8 @@ export class Api extends HttpClient {
     /**
      * Update the top-level IAM policy
      */
-    policyPut: (
-      query: PolicyPutParams,
+    policyUpdate: (
+      query: PolicyUpdateParams,
       body: FleetRolePolicy,
       params: RequestParams = {}
     ) =>
@@ -4408,7 +4353,7 @@ export class Api extends HttpClient {
     /**
      * List the built-in roles
      */
-    rolesGet: (query: RolesGetParams, params: RequestParams = {}) =>
+    roleList: (query: RoleListParams, params: RequestParams = {}) =>
       this.request<RoleResultsPage>({
         path: `/roles`,
         method: "GET",
@@ -4419,10 +4364,7 @@ export class Api extends HttpClient {
     /**
      * Fetch a specific built-in role
      */
-    rolesGetRole: (
-      { roleName }: RolesGetRoleParams,
-      params: RequestParams = {}
-    ) =>
+    roleView: ({ roleName }: RoleViewParams, params: RequestParams = {}) =>
       this.request<Role>({
         path: `/roles/${roleName}`,
         method: "GET",
@@ -4432,7 +4374,7 @@ export class Api extends HttpClient {
     /**
      * List all sagas (for debugging)
      */
-    sagasGet: (query: SagasGetParams, params: RequestParams = {}) =>
+    sagaList: (query: SagaListParams, params: RequestParams = {}) =>
       this.request<SagaResultsPage>({
         path: `/sagas`,
         method: "GET",
@@ -4443,10 +4385,7 @@ export class Api extends HttpClient {
     /**
      * Fetch information about a single saga (for debugging)
      */
-    sagasGetSaga: (
-      { sagaId }: SagasGetSagaParams,
-      params: RequestParams = {}
-    ) =>
+    sagaView: ({ sagaId }: SagaViewParams, params: RequestParams = {}) =>
       this.request<Saga>({
         path: `/sagas/${sagaId}`,
         method: "GET",
@@ -4466,7 +4405,10 @@ export class Api extends HttpClient {
     /**
      * List the current user's SSH public keys
      */
-    sshkeysGet: (query: SshkeysGetParams, params: RequestParams = {}) =>
+    sessionSshkeyList: (
+      query: SessionSshkeyListParams,
+      params: RequestParams = {}
+    ) =>
       this.request<SshKeyResultsPage>({
         path: `/session/me/sshkeys`,
         method: "GET",
@@ -4477,8 +4419,8 @@ export class Api extends HttpClient {
     /**
      * Create a new SSH public key for the current user
      */
-    sshkeysPost: (
-      query: SshkeysPostParams,
+    sessionSshkeyCreate: (
+      query: SessionSshkeyCreateParams,
       body: SshKeyCreate,
       params: RequestParams = {}
     ) =>
@@ -4492,8 +4434,8 @@ export class Api extends HttpClient {
     /**
      * Get (by name) an SSH public key belonging to the current user
      */
-    sshkeysGetKey: (
-      { sshKeyName }: SshkeysGetKeyParams,
+    sessionSshkeyView: (
+      { sshKeyName }: SessionSshkeyViewParams,
       params: RequestParams = {}
     ) =>
       this.request<SshKey>({
@@ -4505,8 +4447,8 @@ export class Api extends HttpClient {
     /**
      * Delete (by name) an SSH public key belonging to the current user
      */
-    sshkeysDeleteKey: (
-      { sshKeyName }: SshkeysDeleteKeyParams,
+    sessionSshkeyDelete: (
+      { sshKeyName }: SessionSshkeyDeleteParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
@@ -4515,7 +4457,7 @@ export class Api extends HttpClient {
         ...params,
       }),
 
-    silosGet: (query: SilosGetParams, params: RequestParams = {}) =>
+    siloList: (query: SiloListParams, params: RequestParams = {}) =>
       this.request<SiloResultsPage>({
         path: `/silos`,
         method: "GET",
@@ -4526,8 +4468,8 @@ export class Api extends HttpClient {
     /**
      * Create a new silo.
      */
-    silosPost: (
-      query: SilosPostParams,
+    siloCreate: (
+      query: SiloCreateParams,
       body: SiloCreate,
       params: RequestParams = {}
     ) =>
@@ -4541,10 +4483,7 @@ export class Api extends HttpClient {
     /**
      * Fetch a specific silo
      */
-    silosGetSilo: (
-      { siloName }: SilosGetSiloParams,
-      params: RequestParams = {}
-    ) =>
+    siloView: ({ siloName }: SiloViewParams, params: RequestParams = {}) =>
       this.request<Silo>({
         path: `/silos/${siloName}`,
         method: "GET",
@@ -4554,10 +4493,7 @@ export class Api extends HttpClient {
     /**
      * Delete a specific silo.
      */
-    silosDeleteSilo: (
-      { siloName }: SilosDeleteSiloParams,
-      params: RequestParams = {}
-    ) =>
+    siloDelete: ({ siloName }: SiloDeleteParams, params: RequestParams = {}) =>
       this.request<void>({
         path: `/silos/${siloName}`,
         method: "DELETE",
@@ -4567,8 +4503,8 @@ export class Api extends HttpClient {
     /**
      * List Silo identity providers
      */
-    silosGetIdentityProviders: (
-      { siloName, ...query }: SilosGetIdentityProvidersParams,
+    siloIdentityProviderList: (
+      { siloName, ...query }: SiloIdentityProviderListParams,
       params: RequestParams = {}
     ) =>
       this.request<IdentityProviderResultsPage>({
@@ -4581,8 +4517,8 @@ export class Api extends HttpClient {
     /**
      * Fetch the IAM policy for this Silo
      */
-    silosGetSiloPolicy: (
-      { siloName }: SilosGetSiloPolicyParams,
+    siloPolicyView: (
+      { siloName }: SiloPolicyViewParams,
       params: RequestParams = {}
     ) =>
       this.request<SiloRolePolicy>({
@@ -4594,8 +4530,8 @@ export class Api extends HttpClient {
     /**
      * Update the IAM policy for this Silo
      */
-    silosPutSiloPolicy: (
-      { siloName }: SilosPutSiloPolicyParams,
+    siloPolicyUpdate: (
+      { siloName }: SiloPolicyUpdateParams,
       body: SiloRolePolicy,
       params: RequestParams = {}
     ) =>
@@ -4609,8 +4545,8 @@ export class Api extends HttpClient {
     /**
      * Create a new SAML identity provider for a silo.
      */
-    siloSamlIdpCreate: (
-      { siloName }: SiloSamlIdpCreateParams,
+    siloIdentityProviderCreate: (
+      { siloName }: SiloIdentityProviderCreateParams,
       body: SamlIdentityProviderCreate,
       params: RequestParams = {}
     ) =>
@@ -4624,12 +4560,36 @@ export class Api extends HttpClient {
     /**
      * GET a silo's SAML identity provider
      */
-    siloSamlIdpFetch: (
-      { providerName, siloName }: SiloSamlIdpFetchParams,
+    siloIdentityProviderView: (
+      { providerName, siloName }: SiloIdentityProviderViewParams,
       params: RequestParams = {}
     ) =>
       this.request<SamlIdentityProvider>({
         path: `/silos/${siloName}/saml_identity_providers/${providerName}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * List the built-in system users
+     */
+    systemUserList: (query: SystemUserListParams, params: RequestParams = {}) =>
+      this.request<UserBuiltinResultsPage>({
+        path: `/system/user`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Fetch a specific built-in system user
+     */
+    systemUserView: (
+      { userName }: SystemUserViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<UserBuiltin>({
+        path: `/system/user/${userName}`,
         method: "GET",
         ...params,
       }),
@@ -4661,38 +4621,11 @@ export class Api extends HttpClient {
     /**
      * List users
      */
-    siloUsersGet: (query: SiloUsersGetParams, params: RequestParams = {}) =>
+    userList: (query: UserListParams, params: RequestParams = {}) =>
       this.request<UserResultsPage>({
         path: `/users`,
         method: "GET",
         query,
-        ...params,
-      }),
-
-    /**
-     * List the built-in system users
-     */
-    builtinUsersGet: (
-      query: BuiltinUsersGetParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<UserBuiltinResultsPage>({
-        path: `/users_builtin`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Fetch a specific built-in system user
-     */
-    builtinUsersGetUser: (
-      { userName }: BuiltinUsersGetUserParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<UserBuiltin>({
-        path: `/users_builtin/${userName}`,
-        method: "GET",
         ...params,
       }),
   };
