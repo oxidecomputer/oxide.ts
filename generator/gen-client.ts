@@ -5,9 +5,8 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import fs from "fs";
 import path from "path";
 
-const outfile = path.resolve(process.cwd(), process.argv[3]);
-const out = outfile
-  ? fs.createWriteStream(outfile)
+const out = process.argv[3]
+  ? fs.createWriteStream(path.resolve(process.cwd(), process.argv[3]))
   : (process.stdout as unknown as fs.WriteStream);
 
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
