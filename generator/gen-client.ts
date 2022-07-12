@@ -4,6 +4,8 @@ const HttpMethods = O.HttpMethods;
 import SwaggerParser from "@apidevtools/swagger-parser";
 import fs from "fs";
 
+const out = fs.createWriteStream(process.argv[3]);
+
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");
 
@@ -25,12 +27,12 @@ const processParamName = (s: string) => snakeToCamel(toOrgName(s));
 
 /** write to file with newline */
 function w(s: string) {
-  console.log(s);
+  out.write(s + "\n");
 }
 
 /** same as w() but no newline */
 function w0(s: string) {
-  process.stdout.write(s);
+  out.write(s);
 }
 
 /** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
@@ -48,7 +50,7 @@ const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
  */
 const jsdocLinkify = (s: string, schemaNames: string[]) =>
   s.replace(/\[`([^`]+)`](\([^)]+\))?/g, (_, label) =>
-    schemaNames.includes(label) ? `{@link ${label}}` : "`" + label + "`",
+    schemaNames.includes(label) ? `{@link ${label}}` : "`" + label + "`"
   );
 
 /**
@@ -228,7 +230,7 @@ export async function generateClient(specFile: string) {
     fs
       .readFileSync("./base/util.ts")
       .toString()
-      .replace(/export /g, ""),
+      .replace(/export /g, "")
   );
   w(fs.readFileSync("./base/client.ts").toString());
 
@@ -246,10 +248,10 @@ export async function generateClient(specFile: string) {
       const paramsType = snakeToPascal(conf.operationId) + "Params";
       const params = conf.parameters || [];
       const pathParams = params.filter(
-        (p) => "in" in p && p.in === "path",
+        (p) => "in" in p && p.in === "path"
       ) as OpenAPIV3.ParameterObject[];
       const queryParams = params.filter(
-        (p) => "in" in p && p.in === "query",
+        (p) => "in" in p && p.in === "query"
       ) as OpenAPIV3.ParameterObject[];
 
       const bodyTypeRef = contentRef(conf.requestBody);
@@ -303,4 +305,5 @@ export async function generateClient(specFile: string) {
   }
   w(`  }
      }`);
+  out.end();
 }

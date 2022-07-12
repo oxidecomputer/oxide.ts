@@ -4,11 +4,11 @@ set -o errexit
 set -o pipefail
 
 HELP="$(cat <<EOF
-usage: ./gen.sh [spec-file]
+usage: ./gen.sh [spec-file] [out-file]
 EOF
 )"
 
-if [[ $# != 1 ]]; then
+if [[ $# != 2 ]]; then
 	echo "$HELP"
 	exit 2
 fi
@@ -20,5 +20,5 @@ SPEC_DESTINATION="../spec.json"
 curl --fail "$SPEC_SOURCE" -o $SPEC_DESTINATION
 
 npm run --silent tsc
-node index.js $SPEC_DESTINATION
+node index.js $SPEC_DESTINATION $2
 rm index.js gen-client.js $SPEC_DESTINATION
