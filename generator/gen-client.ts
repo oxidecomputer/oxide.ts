@@ -3,8 +3,9 @@ import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 import SwaggerParser from "@apidevtools/swagger-parser";
 import fs from "fs";
+import path from "path";
 
-const outfile = process.argv[3];
+const outfile = path.resolve(process.cwd(), process.argv[3]);
 const out = outfile
   ? fs.createWriteStream(outfile)
   : (process.stdout as unknown as fs.WriteStream);
