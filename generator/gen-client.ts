@@ -227,6 +227,53 @@ export async function generateClient(specFile: string) {
     }
   }
 
+  const operations = Object.values(spec.paths)
+    .map((handlers) =>
+      Object.entries(handlers!)
+        .filter(([method, value]) => method.toUpperCase() in HttpMethods)
+        .map(([_, conf]) => conf)
+    )
+    .flat()
+    .filter((handler) => {
+      return (
+        !!handler && typeof handler === "object" && "operationId" in handler
+      );
+    });
+
+  // TODO: Fix this type
+  const ops = operations as Exclude<
+    typeof operations[number],
+    | string
+    | (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
+    | OpenAPIV3.ServerObject[]
+  >[];
+
+  const idRoutes = ops.filter((op) => op.operationId?.endsWith("view_by_id"));
+  if (idRoutes.length > 0) {
+    w(
+      "export type ApiViewByIdMethods = Pick<InstanceType<typeof Api>['methods'], "
+    );
+    w0(
+      `${idRoutes
+        .map((op) => `'${snakeToCamel(op.operationId!)}'`)
+        .join(" | ")}`
+    );
+    w(">\n");
+  }
+
+  const listRoutes = ops.filter((op) => op.operationId?.endsWith("_list"));
+  if (listRoutes.length > 0) {
+    w(
+      "export type ApiListMethods = Pick<InstanceType<typeof Api>['methods'], "
+    );
+    w0(
+      `${listRoutes
+        .map((op) => `'${snakeToCamel(op.operationId!)}'`)
+        .join(" | ")}`
+    );
+    w(">\n");
+  }
+
   // HACK: in order to make utils testable without polluting the generated
   // client's exports, we have exports in the file but strip them out here
   w(
