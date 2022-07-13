@@ -271,7 +271,7 @@ export async function generateClient(specFile: string) {
         .map((op) => `'${snakeToCamel(op.operationId!)}'`)
         .join(" | ")}`
     );
-    w(">");
+    w(">\n");
   }
 
   // HACK: in order to make utils testable without polluting the generated
