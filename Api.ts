@@ -2712,6 +2712,7 @@ export type ApiViewByIdMethods = Pick<
   | "vpcSubnetViewById"
   | "vpcViewById"
 >;
+
 export type ApiListMethods = Pick<
   InstanceType<typeof Api>["methods"],
   | "rackList"
@@ -2739,6 +2740,7 @@ export type ApiListMethods = Pick<
   | "systemUserList"
   | "userList"
 >;
+
 const camelToSnake = (s: string) =>
   s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 
