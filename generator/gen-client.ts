@@ -258,7 +258,7 @@ export async function generateClient(specFile: string) {
         .map((op) => `'${snakeToCamel(op.operationId!)}'`)
         .join(" | ")}`
     );
-    w(">");
+    w(">\n");
   }
 
   const listRoutes = ops.filter((op) => op.operationId?.endsWith("_list"));
