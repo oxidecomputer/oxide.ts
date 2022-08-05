@@ -24,7 +24,7 @@ jobs:
           cd generator
           npm install
           npm run gen
-      - uses: EndBug/add-and-commit@v7
+      - uses: EndBug/add-and-commit@v9
         with:
           add: .
           message: "Autogenerate config update"
