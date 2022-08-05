@@ -4,13 +4,9 @@
 export type QueryParamsType = Record<string | number, any>;
 
 export interface FullRequestParams extends Omit<RequestInit, "body"> {
-  /** request path */
   path: string;
-  /** query params */
   query?: QueryParamsType;
-  /** request body */
   body?: unknown;
-  /** base url */
   baseUrl?: string;
 }
 
@@ -25,8 +21,9 @@ export interface ApiConfig {
   customFetch?: typeof fetch;
 }
 
-export type ErrorResponse = Response & {
-  data: null;
+export type ApiError = {
+  type: "error";
+  statusCode: number;
   // Note that this Error is not JS `Error` but rather an Error type generated
   // from the spec. The fact that it has the same name as the global Error type
   // is unfortunate. If the generated error type disappears, this will not fail
@@ -35,14 +32,13 @@ export type ErrorResponse = Response & {
   error: Error;
 };
 
-export type SuccessResponse<Data extends unknown> = Response & {
+export type ApiSuccess<Data extends unknown> = {
+  type: "success";
+  statusCode: number;
   data: Data;
-  error: null;
 };
 
-export type ApiResponse<Data extends unknown> =
-  | SuccessResponse<Data>
-  | ErrorResponse;
+export type ApiResult<Data extends unknown> = ApiSuccess<Data> | ApiError;
 
 const encodeQueryParam = (key: string, value: any) =>
   `${encodeURIComponent(camelToSnake(key))}=${encodeURIComponent(value)}`;
@@ -53,7 +49,7 @@ const toQueryString = (rawQuery?: QueryParamsType): string =>
     .map(([key, value]) =>
       Array.isArray(value)
         ? value.map((item) => encodeQueryParam(key, item)).join("&")
-        : encodeQueryParam(key, value)
+        : encodeQueryParam(key, value),
     )
     .join("&");
 
@@ -90,7 +86,7 @@ export class HttpClient {
     query,
     baseUrl,
     ...params
-  }: FullRequestParams): Promise<ApiResponse<Data>> => {
+  }: FullRequestParams): Promise<ApiResult<Data>> => {
     const requestParams = this.mergeRequestParams(params);
     const queryString = query && toQueryString(query);
 
@@ -109,22 +105,25 @@ export class HttpClient {
       body: JSON.stringify(snakeify(body)),
     });
 
-    const r = response as ApiResponse<Data>;
-    r.data = null as unknown as Data;
-    r.error = null as unknown as Error;
+    const statusCode = response.status;
 
+    let result: ApiResult<Data>;
     try {
-      const data = processResponseBody(await response.json());
-      if (r.ok) {
-        r.data = data as Data;
+      // don't attempt to pull JSON out of a 204, it will fail
+      const body =
+        statusCode === 204
+          ? void 0
+          : processResponseBody(await response.json());
+      if (response.ok) {
+        // assume it matches the type
+        return { type: "success", statusCode, data: body as Data };
       } else {
-        r.error = data as Error;
+        return { type: "error", statusCode, error: body as Error };
       }
     } catch (e) {
-      r.error = e as Error;
+      // here `e` could be anything, not just an Error response from the API. we
+      // should probably account for this possibility in the types somewhere
+      return { type: "error", statusCode, error: e as Error };
     }
-
-    if (!r.ok) throw r;
-    return r;
   };
 }
