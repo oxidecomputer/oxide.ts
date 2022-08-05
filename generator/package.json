@@ -17,7 +17,7 @@
   "devDependencies": {
     "@types/node": "^17.0.21",
     "openapi-types": "^12.0.0",
-    "prettier": "2.6.2",
+    "prettier": "2.7.1",
     "swagger-parser": "^10.0.3",
     "typescript": "^4.7.4",
     "vitest": "^0.21.0"
