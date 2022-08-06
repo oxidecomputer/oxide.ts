@@ -23,12 +23,7 @@ export interface ApiConfig {
 export type ApiError = {
   type: "error";
   statusCode: number;
-  // Note that this Error is not JS `Error` but rather an Error type generated
-  // from the spec. The fact that it has the same name as the global Error type
-  // is unfortunate. If the generated error type disappears, this will not fail
-  // typechecking here, but any code that depends on this having a certain shape
-  // will fail, so it's not that bad, though the error message may be confusing.
-  error: Error;
+  error: ErrorBody;
 };
 
 export type ApiSuccess<Data extends unknown> = {
@@ -104,28 +99,15 @@ export class HttpClient {
 
     const statusCode = response.status;
 
-    let result: ApiResult<Data>;
-    try {
-      // don't attempt to pull JSON out of a 204, it will fail
-      const body =
-        statusCode === 204
-          ? void 0
-          : processResponseBody(await response.json());
-      if (response.ok) {
-        // assume it matches the type
-        return { type: "success", statusCode, data: body as Data };
-      } else {
-        return { type: "error", statusCode, error: body as Error };
-      }
-    } catch (e) {
-      return {
-        type: "error",
-        statusCode,
-        error: {
-          name: "ClientError",
-          message: e instanceof Error ? e.message : "",
-        },
-      };
+    // don't attempt to pull JSON out of a 204 No Content
+    const respJson =
+      statusCode === 204 ? void 0 : processResponseBody(await response.json());
+    // TODO: explicitly handle JSON parse error? (as a third kind of result?)
+    if (response.ok) {
+      // assume it matches the type
+      return { type: "success", statusCode, data: respJson as Data };
+    } else {
+      return { type: "error", statusCode, error: respJson as ErrorBody };
     }
   };
 }

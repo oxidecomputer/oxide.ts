@@ -179,7 +179,16 @@ export async function generateClient(specFile: string) {
     if ("description" in schema) {
       docComment(schema.description, schemaNames);
     }
-    w0(`export type ${schemaName} =`);
+
+    // Special case for Error type because Error is already thing in JS.
+    // Important: this rename only works because no other types refer to this
+    // one
+    if (schemaName === "Error") {
+      w0(`export type ErrorBody =`);
+    } else {
+      w0(`export type ${schemaName} =`);
+    }
+
     schemaToType(schema, { schemaNames });
     w("\n");
 
