@@ -18,7 +18,6 @@ export type RequestParams = Omit<
 export interface ApiConfig {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "signal">;
-  customFetch?: typeof fetch;
 }
 
 export type ApiError = {
@@ -55,8 +54,6 @@ const toQueryString = (rawQuery?: QueryParamsType): string =>
 
 export class HttpClient {
   public baseUrl: string = "";
-  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
-    fetch(...fetchParams);
 
   private baseApiParams: RequestParams = {
     credentials: "same-origin",
@@ -96,7 +93,7 @@ export class HttpClient {
       url += "?" + queryString;
     }
 
-    const response = await this.customFetch(url, {
+    const response = await fetch(url, {
       ...requestParams,
       headers: {
         "Content-Type": "application/json",
@@ -121,9 +118,14 @@ export class HttpClient {
         return { type: "error", statusCode, error: body as Error };
       }
     } catch (e) {
-      // here `e` could be anything, not just an Error response from the API. we
-      // should probably account for this possibility in the types somewhere
-      return { type: "error", statusCode, error: e as Error };
+      return {
+        type: "error",
+        statusCode,
+        error: {
+          name: "ClientError",
+          message: e instanceof Error ? e.message : "",
+        },
+      };
     }
   };
 }
