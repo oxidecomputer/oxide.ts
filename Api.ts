@@ -1,5 +1,53 @@
 /* eslint-disable */
 
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangedouble =
+  | { end: number; type: "range_to" }
+  | { end: number; start: number; type: "range" }
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeint64 =
+  | { end: number; type: "range_to" }
+  | { end: number; start: number; type: "range" }
+  | { start: number; type: "range_from" };
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Bindouble = {
+  /**
+   * The total count of samples in this bin.
+   */
+  count: number;
+  /**
+   * The range of the support covered by this bin.
+   */
+  range: BinRangedouble;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binint64 = {
+  /**
+   * The total count of samples in this bin.
+   */
+  count: number;
+  /**
+   * The range of the support covered by this bin.
+   */
+  range: BinRangeint64;
+};
+
 export type BlockSize = number;
 
 /**
@@ -8,6 +56,36 @@ export type BlockSize = number;
  * The maximum supported byte count is `i64::MAX`.  This makes it somewhat inconvenient to define constructors: a u32 constructor can be infallible, but an i64 constructor can fail (if the value is negative) and a u64 constructor can fail (if the value is larger than i64::MAX).  We provide all of these for consumers' convenience.
  */
 export type ByteCount = number;
+
+/**
+ * A cumulative or counter data type.
+ */
+export type Cumulativedouble = {
+  startTime: string;
+  value: number;
+};
+
+/**
+ * A cumulative or counter data type.
+ */
+export type Cumulativeint64 = {
+  startTime: string;
+  value: number;
+};
+
+/**
+ * A `Datum` is a single sampled data point from a metric.
+ */
+export type Datum =
+  | { datum: boolean; type: "bool" }
+  | { datum: number; type: "i64" }
+  | { datum: number; type: "f64" }
+  | { datum: string; type: "string" }
+  | { datum: number[]; type: "bytes" }
+  | { datum: Cumulativeint64; type: "cumulative_i64" }
+  | { datum: Cumulativedouble; type: "cumulative_f64" }
+  | { datum: Histogramint64; type: "histogram_i64" }
+  | { datum: Histogramdouble; type: "histogram_f64" };
 
 /**
  * The type of an individual datum of a metric.
@@ -170,6 +248,30 @@ export type ErrorBody = {
   requestId: string;
 };
 
+export type ExternalIp = {
+  ip: string;
+  kind: IpKind;
+};
+
+/**
+ * Parameters for creating an external IP address for instances.
+ */
+export type ExternalIpCreate = { poolName?: Name | null; type: "ephemeral" };
+
+/**
+ * A single page of results
+ */
+export type ExternalIpResultsPage = {
+  /**
+   * list of items on this page of results
+   */
+  items: ExternalIp[];
+  /**
+   * token used to fetch the next page of results (if any)
+   */
+  nextPage?: string | null;
+};
+
 /**
  * The name and type information for a field of a timeseries schema.
  */
@@ -299,6 +401,60 @@ export type GlobalImageResultsPage = {
 };
 
 /**
+ * A simple type for managing a histogram metric.
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ *
+ * Example ------- ```rust use oximeter::histogram::{BinRange, Histogram};
+ *
+ * let edges = [0i64, 10, 20]; let mut hist = Histogram::new(&edges).unwrap(); assert_eq!(hist.n_bins(), 4); // One additional bin for the range (20..) assert_eq!(hist.n_samples(), 0); hist.sample(4); hist.sample(100); assert_eq!(hist.n_samples(), 2);
+ *
+ * let data = hist.iter().collect::<Vec<_>>(); assert_eq!(data[0].range, BinRange::range(i64::MIN, 0)); // An additional bin for `..0` assert_eq!(data[0].count, 0); // Nothing is in this bin
+ *
+ * assert_eq!(data[1].range, BinRange::range(0, 10)); // The range `0..10` assert_eq!(data[1].count, 1); // 4 is sampled into this bin ```
+ *
+ * Notes -----
+ *
+ * Histograms may be constructed either from their left bin edges, or from a sequence of ranges. In either case, the left-most bin may be converted upon construction. In particular, if the left-most value is not equal to the minimum of the support, a new bin will be added from the minimum to that provided value. If the left-most value _is_ the support's minimum, because the provided bin was unbounded below, such as `(..0)`, then that bin will be converted into one bounded below, `(MIN..0)` in this case.
+ *
+ * The short of this is that, most of the time, it shouldn't matter. If one specifies the extremes of the support as their bins, be aware that the left-most may be converted from a `BinRange::RangeTo` into a `BinRange::Range`. In other words, the first bin of a histogram is _always_ a `Bin::Range` or a `Bin::RangeFrom` after construction. In fact, every bin is one of those variants, the `BinRange::RangeTo` is only provided as a convenience during construction.
+ */
+export type Histogramdouble = {
+  bins: Bindouble[];
+  nSamples: number;
+  startTime: string;
+};
+
+/**
+ * A simple type for managing a histogram metric.
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ *
+ * Example ------- ```rust use oximeter::histogram::{BinRange, Histogram};
+ *
+ * let edges = [0i64, 10, 20]; let mut hist = Histogram::new(&edges).unwrap(); assert_eq!(hist.n_bins(), 4); // One additional bin for the range (20..) assert_eq!(hist.n_samples(), 0); hist.sample(4); hist.sample(100); assert_eq!(hist.n_samples(), 2);
+ *
+ * let data = hist.iter().collect::<Vec<_>>(); assert_eq!(data[0].range, BinRange::range(i64::MIN, 0)); // An additional bin for `..0` assert_eq!(data[0].count, 0); // Nothing is in this bin
+ *
+ * assert_eq!(data[1].range, BinRange::range(0, 10)); // The range `0..10` assert_eq!(data[1].count, 1); // 4 is sampled into this bin ```
+ *
+ * Notes -----
+ *
+ * Histograms may be constructed either from their left bin edges, or from a sequence of ranges. In either case, the left-most bin may be converted upon construction. In particular, if the left-most value is not equal to the minimum of the support, a new bin will be added from the minimum to that provided value. If the left-most value _is_ the support's minimum, because the provided bin was unbounded below, such as `(..0)`, then that bin will be converted into one bounded below, `(MIN..0)` in this case.
+ *
+ * The short of this is that, most of the time, it shouldn't matter. If one specifies the extremes of the support as their bins, be aware that the left-most may be converted from a `BinRange::RangeTo` into a `BinRange::Range`. In other words, the first bin of a histogram is _always_ a `Bin::Range` or a `Bin::RangeFrom` after construction. In fact, every bin is one of those variants, the `BinRange::RangeTo` is only provided as a convenience during construction.
+ */
+export type Histogramint64 = {
+  bins: Binint64[];
+  nSamples: number;
+  startTime: string;
+};
+
+/**
  * Client view of an {@link IdentityProvider}
  */
 export type IdentityProvider = {
@@ -347,7 +503,7 @@ export type IdentityProviderType = "saml";
 /**
  * Describes what kind of identity is described by an id
  */
-export type IdentityType = "silo_user";
+export type IdentityType = "silo_user" | "silo_group";
 
 export type IdpMetadataSource =
   | { type: "url"; url: string }
@@ -499,6 +655,12 @@ export type InstanceCreate = {
    * The disks to be created or attached for this instance.
    */
   disks?: InstanceDiskAttachment[] | null;
+  /**
+   * The external IP addresses provided to this instance.
+   *
+   * By default, all instances have outbound connectivity, but no inbound connectivity. These external addresses can be used to provide a fixed, known IP address for making inbound connections to the instance.
+   */
+  externalIps?: ExternalIpCreate[] | null;
   hostname: string;
   memory: ByteCount;
   name: Name;
@@ -598,6 +760,11 @@ export type InstanceState =
   | "failed"
   | "destroyed";
 
+/**
+ * The kind of an external IP address for an instance
+ */
+export type IpKind = "ephemeral" | "floating";
+
 export type IpNet = Ipv4Net | Ipv6Net;
 
 /**
@@ -616,6 +783,7 @@ export type IpPool = {
    * unique, mutable, user-controlled identifier for each resource
    */
   name: Name;
+  projectId?: string | null;
   /**
    * timestamp when this resource was created
    */
@@ -634,6 +802,8 @@ export type IpPool = {
 export type IpPoolCreate = {
   description: string;
   name: Name;
+  organization?: Name | null;
+  project?: Name | null;
 };
 
 export type IpPoolRange = {
@@ -687,7 +857,7 @@ export type Ipv4Net = string;
 
 /** Regex pattern for validating Ipv4Net */
 export const ipv4NetPattern =
-  "(^(10.(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9].){2}(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9])/(1[0-9]|2[0-8]|[8-9]))$)|(^(172.16.(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9]).(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9])/(1[2-9]|2[0-8]))$)|(^(192.168.(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9]).(25[0-5]|[1-2][0-4][0-9]|[1-9][0-9]|[0-9])/(1[6-9]|2[0-8]))$)";
+  "^(10.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]).([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]).([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/([8-9]|1[0-9]|2[0-9]|3[0-2])|172.(1[6-9]|2[0-9]|3[0-1]).([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]).([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/(1[2-9]|2[0-9]|3[0-2])|192.168.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]).([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/(1[6-9]|2[0-9]|3[0-2]))$";
 
 /**
  * A non-decreasing IPv4 address range, inclusive of both ends.
@@ -706,7 +876,7 @@ export type Ipv6Net = string;
 
 /** Regex pattern for validating Ipv6Net */
 export const ipv6NetPattern =
-  "^([fF][dD])[0-9a-fA-F]{2}:((([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,6}:))/(6[4-9]|[7-9][0-9]|1[0-1][0-9]|12[0-6])$";
+  "^([fF][dD])[0-9a-fA-F]{2}:(([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,6}:)/([1-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$";
 
 /**
  * A non-decreasing IPv6 address range, inclusive of both ends.
@@ -735,12 +905,35 @@ export type MacAddr = string;
 export const macAddrPattern = "^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$";
 
 /**
- * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'.
+ * A `Measurement` is a timestamped datum from a single metric
+ */
+export type Measurement = {
+  datum: Datum;
+  timestamp: string;
+};
+
+/**
+ * A single page of results
+ */
+export type MeasurementResultsPage = {
+  /**
+   * list of items on this page of results
+   */
+  items: Measurement[];
+  /**
+   * token used to fetch the next page of results (if any)
+   */
+  nextPage?: string | null;
+};
+
+/**
+ * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
  */
 export type Name = string;
 
 /** Regex pattern for validating Name */
-export const namePattern = "[a-z](|[a-zA-Z0-9-]*[a-zA-Z0-9])";
+export const namePattern =
+  "^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z][a-z0-9-]*[a-zA-Z0-9]$";
 
 /**
  * A `NetworkInterface` represents a virtual network interface device.
@@ -833,6 +1026,7 @@ export type NetworkInterfaceResultsPage = {
  */
 export type NetworkInterfaceUpdate = {
   description?: string | null;
+  name?: Name | null;
   /**
    * Make a secondary interface the instance's primary interface.
    *
@@ -840,9 +1034,15 @@ export type NetworkInterfaceUpdate = {
    *
    * Note that this can only be used to select a new primary interface for an instance. Requests to change the primary interface into a secondary will return an error.
    */
-  makePrimary?: boolean | null;
-  name?: Name | null;
+  primary?: boolean | null;
 };
+
+/**
+ * Unique name for a saga `Node`
+ *
+ * Each node requires a string name that's unique within its DAG.  The name is used to identify its output.  Nodes that depend on a given node (either directly or indirectly) can access the node's output using its name.
+ */
+export type NodeName = string;
 
 /**
  * Client view of an {@link Organization}
@@ -1200,7 +1400,7 @@ export type SagaResultsPage = {
 export type SagaState =
   | { state: "running" }
   | { state: "succeeded" }
-  | { errorInfo: SagaErrorInfo; errorNodeName: string; state: "failed" };
+  | { errorInfo: SagaErrorInfo; errorNodeName: NodeName; state: "failed" };
 
 /**
  * Identity-related metadata that's included in nearly all public API objects
@@ -1262,6 +1462,10 @@ export type SamlIdentityProviderCreate = {
   acsUrl: string;
   description: string;
   /**
+   * If set, SAML attributes with this name will be considered to denote a user's group membership, where the attribute value(s) should be a comma-separated list of group names.
+   */
+  groupAttributeName?: string | null;
+  /**
    * idp's entity id
    */
   idpEntityId: string;
@@ -1286,13 +1490,6 @@ export type SamlIdentityProviderCreate = {
    * customer's technical contact for saml configuration
    */
   technicalContactEmail: string;
-};
-
-/**
- * Client view of currently authed user.
- */
-export type SessionUser = {
-  id: string;
 };
 
 /**
@@ -1333,6 +1530,12 @@ export type Silo = {
  * Create-time parameters for a {@link Silo}
  */
 export type SiloCreate = {
+  /**
+   * If set, this group will be created during Silo creation and granted the "Silo Admin" role. Identity providers can assert that users belong to this group and those users can log in and further initialize the Silo.
+   *
+   * Note that if configuring a SAML based identity provider, group_attribute_name must be set for users to be considered part of a group. See {@link SamlIdentityProviderCreate} for more information.
+   */
+  adminGroupName?: string | null;
   description: string;
   discoverable: boolean;
   name: Name;
@@ -1841,7 +2044,7 @@ export type VpcFirewallRuleUpdateParams = {
 };
 
 /**
- * Collection of a {@link Vpc}'s firewall rules
+ * Collection of a Vpc's firewall rules
  */
 export type VpcFirewallRules = {
   rules: VpcFirewallRule[];
@@ -2035,6 +2238,14 @@ export type NameOrIdSortMode =
   | "name_descending"
   | "id_ascending";
 
+export type DiskMetricName =
+  | "activated"
+  | "flush"
+  | "read"
+  | "read_bytes"
+  | "write"
+  | "write_bytes";
+
 export interface DiskViewByIdParams {
   id: string;
 }
@@ -2088,6 +2299,10 @@ export interface DeviceAuthRequestParams {}
 export interface DeviceAuthConfirmParams {}
 
 export interface DeviceAccessTokenParams {}
+
+export interface GlobalPolicyViewParams {}
+
+export interface GlobalPolicyUpdateParams {}
 
 export interface RackListParams {
   limit?: number | null;
@@ -2157,6 +2372,24 @@ export interface IpPoolRangeAddParams {
 
 export interface IpPoolRangeRemoveParams {
   poolName: Name;
+}
+
+export interface IpPoolServiceViewParams {
+  rackId: string;
+}
+
+export interface IpPoolServiceRangeListParams {
+  rackId: string;
+  limit?: number | null;
+  pageToken?: string | null;
+}
+
+export interface IpPoolServiceRangeAddParams {
+  rackId: string;
+}
+
+export interface IpPoolServiceRangeRemoveParams {
+  rackId: string;
 }
 
 export interface SpoofLoginParams {}
@@ -2252,6 +2485,17 @@ export interface DiskDeleteParams {
   projectName: Name;
 }
 
+export interface DiskMetricsListParams {
+  diskName: Name;
+  metricName: DiskMetricName;
+  orgName: Name;
+  projectName: Name;
+  endTime?: string;
+  limit?: number | null;
+  pageToken?: string | null;
+  startTime?: string;
+}
+
 export interface ImageListParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -2318,6 +2562,12 @@ export interface InstanceDiskAttachParams {
 }
 
 export interface InstanceDiskDetachParams {
+  instanceName: Name;
+  orgName: Name;
+  projectName: Name;
+}
+
+export interface InstanceExternalIpListParams {
   instanceName: Name;
   orgName: Name;
   projectName: Name;
@@ -2720,12 +2970,15 @@ export type ApiListMethods = Pick<
   | "imageGlobalList"
   | "ipPoolList"
   | "ipPoolRangeList"
+  | "ipPoolServiceRangeList"
   | "organizationList"
   | "projectList"
   | "diskList"
+  | "diskMetricsList"
   | "imageList"
   | "instanceList"
   | "instanceDiskList"
+  | "instanceExternalIpList"
   | "instanceNetworkInterfaceList"
   | "snapshotList"
   | "vpcList"
@@ -2814,12 +3067,14 @@ export interface ApiConfig {
 export type ApiError = {
   type: "error";
   statusCode: number;
+  headers: Headers;
   error: ErrorBody;
 };
 
 export type ApiSuccess<Data extends unknown> = {
   type: "success";
   statusCode: number;
+  headers: Headers;
   data: Data;
 };
 
@@ -2896,9 +3151,19 @@ export class HttpClient {
     // TODO: explicitly handle JSON parse error? (as a third kind of result?)
     if (response.ok) {
       // assume it matches the type
-      return { type: "success", statusCode, data: respJson as Data };
+      return {
+        type: "success",
+        statusCode,
+        headers: response.headers,
+        data: respJson as Data,
+      };
     } else {
-      return { type: "error", statusCode, error: respJson as ErrorBody };
+      return {
+        type: "error",
+        statusCode,
+        headers: response.headers,
+        error: respJson as ErrorBody,
+      };
     }
   };
 }
@@ -2906,7 +3171,7 @@ export class HttpClient {
 export class Api extends HttpClient {
   methods = {
     /**
-     * Get a disk by id
+     * Fetch a disk by id
      */
     diskViewById: ({ id }: DiskViewByIdParams, params: RequestParams = {}) =>
       this.request<Disk>({
@@ -2916,7 +3181,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a global image by id.
+     * Fetch a global image by id
      */
     imageGlobalViewById: (
       { id }: ImageGlobalViewByIdParams,
@@ -2939,7 +3204,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get an instance by id.
+     * Fetch an instance by id
      */
     instanceViewById: (
       { id }: InstanceViewByIdParams,
@@ -2952,7 +3217,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get an instance's network interface by id.
+     * Fetch a network interface by id
      */
     instanceNetworkInterfaceViewById: (
       { id }: InstanceNetworkInterfaceViewByIdParams,
@@ -2965,7 +3230,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get an organization by id
+     * Fetch an organization by id
      */
     organizationViewById: (
       { id }: OrganizationViewByIdParams,
@@ -2978,7 +3243,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a project by id
+     * Fetch a project by id
      */
     projectViewById: (
       { id }: ProjectViewByIdParams,
@@ -2991,7 +3256,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a snapshot by id.
+     * Fetch a snapshot by id
      */
     snapshotViewById: (
       { id }: SnapshotViewByIdParams,
@@ -3004,7 +3269,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a vpc router route by id
+     * Fetch a route by id
      */
     vpcRouterRouteViewById: (
       { id }: VpcRouterRouteViewByIdParams,
@@ -3017,7 +3282,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a VPC Router by id
+     * Get a router by id
      */
     vpcRouterViewById: (
       { id }: VpcRouterViewByIdParams,
@@ -3030,7 +3295,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a VPC subnet by id.
+     * Fetch a subnet by id
      */
     vpcSubnetViewById: (
       { id }: VpcSubnetViewByIdParams,
@@ -3043,7 +3308,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a VPC by id.
+     * Fetch a VPC
      */
     vpcViewById: ({ id }: VpcViewByIdParams, params: RequestParams = {}) =>
       this.request<Vpc>({
@@ -3094,7 +3359,35 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List racks in the system.
+     * Fetch the top-level IAM policy
+     */
+    globalPolicyView: (
+      query: GlobalPolicyViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<FleetRolePolicy>({
+        path: `/global/policy`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Update the top-level IAM policy
+     */
+    globalPolicyUpdate: (
+      query: GlobalPolicyUpdateParams,
+      body: FleetRolePolicy,
+      params: RequestParams = {}
+    ) =>
+      this.request<FleetRolePolicy>({
+        path: `/global/policy`,
+        method: "PUT",
+        body,
+        ...params,
+      }),
+
+    /**
+     * List racks
      */
     rackList: (query: RackListParams, params: RequestParams = {}) =>
       this.request<RackResultsPage>({
@@ -3105,7 +3398,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch information about a particular rack.
+     * Fetch a rack
      */
     rackView: ({ rackId }: RackViewParams, params: RequestParams = {}) =>
       this.request<Rack>({
@@ -3115,7 +3408,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List sleds in the system.
+     * List sleds
      */
     sledList: (query: SledListParams, params: RequestParams = {}) =>
       this.request<SledResultsPage>({
@@ -3126,7 +3419,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch information about a sled in the system.
+     * Fetch a sled
      */
     sledView: ({ sledId }: SledViewParams, params: RequestParams = {}) =>
       this.request<Sled>({
@@ -3136,7 +3429,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List global images.
+     * List global images
      */
     imageGlobalList: (
       query: ImageGlobalListParams,
@@ -3150,7 +3443,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a global image.
+     * Create a global image
      */
     imageGlobalCreate: (
       query: ImageGlobalCreateParams,
@@ -3165,7 +3458,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a global image.
+     * Fetch a global image
      */
     imageGlobalView: (
       { imageName }: ImageGlobalViewParams,
@@ -3178,7 +3471,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a global image.
+     * Delete a global image
      */
     imageGlobalDelete: (
       { imageName }: ImageGlobalDeleteParams,
@@ -3191,7 +3484,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List IP Pools.
+     * List IP pools
      */
     ipPoolList: (query: IpPoolListParams, params: RequestParams = {}) =>
       this.request<IpPoolResultsPage>({
@@ -3202,7 +3495,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a new IP Pool.
+     * Create an IP pool
      */
     ipPoolCreate: (
       query: IpPoolCreateParams,
@@ -3217,7 +3510,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch a single IP Pool.
+     * Fetch an IP pool
      */
     ipPoolView: ({ poolName }: IpPoolViewParams, params: RequestParams = {}) =>
       this.request<IpPool>({
@@ -3227,7 +3520,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update an IP Pool.
+     * Update an IP Pool
      */
     ipPoolUpdate: (
       { poolName }: IpPoolUpdateParams,
@@ -3242,7 +3535,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete an IP Pool.
+     * Delete an IP Pool
      */
     ipPoolDelete: (
       { poolName }: IpPoolDeleteParams,
@@ -3255,7 +3548,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List the ranges of IP addresses within an existing IP Pool.
+     * List ranges for an IP pool
      */
     ipPoolRangeList: (
       { poolName, ...query }: IpPoolRangeListParams,
@@ -3269,7 +3562,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Add a new range to an existing IP Pool.
+     * Add a range to an IP pool
      */
     ipPoolRangeAdd: (
       { poolName }: IpPoolRangeAddParams,
@@ -3284,7 +3577,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Remove a range from an existing IP Pool.
+     * Remove a range from an IP pool
      */
     ipPoolRangeRemove: (
       { poolName }: IpPoolRangeRemoveParams,
@@ -3293,6 +3586,63 @@ export class Api extends HttpClient {
     ) =>
       this.request<void>({
         path: `/ip-pools/${poolName}/ranges/remove`,
+        method: "POST",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Fetch an IP pool used for Oxide services.
+     */
+    ipPoolServiceView: (
+      { rackId }: IpPoolServiceViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPool>({
+        path: `/ip-pools-service/${rackId}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * List ranges for an IP pool used for Oxide services.
+     */
+    ipPoolServiceRangeList: (
+      { rackId, ...query }: IpPoolServiceRangeListParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPoolRangeResultsPage>({
+        path: `/ip-pools-service/${rackId}/ranges`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Add a range to an IP pool used for Oxide services.
+     */
+    ipPoolServiceRangeAdd: (
+      { rackId }: IpPoolServiceRangeAddParams,
+      body: IpRange,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPoolRange>({
+        path: `/ip-pools-service/${rackId}/ranges/add`,
+        method: "POST",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Remove a range from an IP pool used for Oxide services.
+     */
+    ipPoolServiceRangeRemove: (
+      { rackId }: IpPoolServiceRangeRemoveParams,
+      body: IpRange,
+      params: RequestParams = {}
+    ) =>
+      this.request<void>({
+        path: `/ip-pools-service/${rackId}/ranges/remove`,
         method: "POST",
         body,
         ...params,
@@ -3311,7 +3661,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Ask the user to login to their identity provider
+     * Prompt user login
      */
     login: (
       { providerName, siloName }: LoginParams,
@@ -3324,7 +3674,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Consume some sort of credentials, and authenticate a user.
+     * Authenticate a user
      */
     consumeCredentials: (
       { providerName, siloName }: ConsumeCredentialsParams,
@@ -3344,7 +3694,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List all organizations.
+     * List organizations
      */
     organizationList: (
       query: OrganizationListParams,
@@ -3358,7 +3708,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a new organization.
+     * Create an organization
      */
     organizationCreate: (
       query: OrganizationCreateParams,
@@ -3373,7 +3723,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch a specific organization
+     * Fetch an organization
      */
     organizationView: (
       { orgName }: OrganizationViewParams,
@@ -3386,7 +3736,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update a specific organization.
+     * Update an organization
      */
     organizationUpdate: (
       { orgName }: OrganizationUpdateParams,
@@ -3401,7 +3751,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a specific organization.
+     * Delete an organization
      */
     organizationDelete: (
       { orgName }: OrganizationDeleteParams,
@@ -3414,7 +3764,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch the IAM policy for this Organization
+     * Fetch an organization's IAM policy
      */
     organizationPolicyView: (
       { orgName }: OrganizationPolicyViewParams,
@@ -3427,7 +3777,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update the IAM policy for this Organization
+     * Update an organization's IAM policy
      */
     organizationPolicyUpdate: (
       { orgName }: OrganizationPolicyUpdateParams,
@@ -3442,7 +3792,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List all projects.
+     * List projects
      */
     projectList: (
       { orgName, ...query }: ProjectListParams,
@@ -3456,7 +3806,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a new project.
+     * Create a project
      */
     projectCreate: (
       { orgName }: ProjectCreateParams,
@@ -3471,7 +3821,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch a specific project
+     * Fetch a project
      */
     projectView: (
       { orgName, projectName }: ProjectViewParams,
@@ -3484,7 +3834,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update a specific project.
+     * Update a project
      */
     projectUpdate: (
       { orgName, projectName }: ProjectUpdateParams,
@@ -3499,7 +3849,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a specific project.
+     * Delete a project
      */
     projectDelete: (
       { orgName, projectName }: ProjectDeleteParams,
@@ -3512,7 +3862,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List disks in a project.
+     * List disks
      */
     diskList: (
       { orgName, projectName, ...query }: DiskListParams,
@@ -3526,7 +3876,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a disk in a project.
+     * Create a disk
      */
     diskCreate: (
       { orgName, projectName }: DiskCreateParams,
@@ -3541,7 +3891,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a single disk in a project.
+     * Fetch a disk
      */
     diskView: (
       { diskName, orgName, projectName }: DiskViewParams,
@@ -3554,7 +3904,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a disk from a project.
+     * Delete a disk
      */
     diskDelete: (
       { diskName, orgName, projectName }: DiskDeleteParams,
@@ -3563,6 +3913,26 @@ export class Api extends HttpClient {
       this.request<void>({
         path: `/organizations/${orgName}/projects/${projectName}/disks/${diskName}`,
         method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * Fetch disk metrics
+     */
+    diskMetricsList: (
+      {
+        diskName,
+        metricName,
+        orgName,
+        projectName,
+        ...query
+      }: DiskMetricsListParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<MeasurementResultsPage>({
+        path: `/organizations/${orgName}/projects/${projectName}/disks/${diskName}/metrics/${metricName}`,
+        method: "GET",
+        query,
         ...params,
       }),
 
@@ -3596,7 +3966,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get an image
+     * Fetch an image
      */
     imageView: (
       { imageName, orgName, projectName }: ImageViewParams,
@@ -3622,7 +3992,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List instances in a project.
+     * List instances
      */
     instanceList: (
       { orgName, projectName, ...query }: InstanceListParams,
@@ -3636,7 +4006,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create an instance in a project.
+     * Create an instance
      */
     instanceCreate: (
       { orgName, projectName }: InstanceCreateParams,
@@ -3651,7 +4021,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get an instance in a project.
+     * Fetch an instance
      */
     instanceView: (
       { instanceName, orgName, projectName }: InstanceViewParams,
@@ -3664,7 +4034,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete an instance from a project.
+     * Delete an instance
      */
     instanceDelete: (
       { instanceName, orgName, projectName }: InstanceDeleteParams,
@@ -3677,7 +4047,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List disks attached to this instance.
+     * List an instance's disks
      */
     instanceDiskList: (
       { instanceName, orgName, projectName, ...query }: InstanceDiskListParams,
@@ -3690,6 +4060,9 @@ export class Api extends HttpClient {
         ...params,
       }),
 
+    /**
+     * Attach a disk to an instance
+     */
     instanceDiskAttach: (
       { instanceName, orgName, projectName }: InstanceDiskAttachParams,
       body: DiskIdentifier,
@@ -3702,6 +4075,9 @@ export class Api extends HttpClient {
         ...params,
       }),
 
+    /**
+     * Detach a disk from an instance
+     */
     instanceDiskDetach: (
       { instanceName, orgName, projectName }: InstanceDiskDetachParams,
       body: DiskIdentifier,
@@ -3715,7 +4091,20 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Migrate an instance to a different propolis-server, possibly on a different sled.
+     * List external IP addresses
+     */
+    instanceExternalIpList: (
+      { instanceName, orgName, projectName }: InstanceExternalIpListParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<ExternalIpResultsPage>({
+        path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/external-ips`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Migrate an instance
      */
     instanceMigrate: (
       { instanceName, orgName, projectName }: InstanceMigrateParams,
@@ -3730,7 +4119,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List network interfaces attached to this instance.
+     * List network interfaces
      */
     instanceNetworkInterfaceList: (
       {
@@ -3749,7 +4138,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a network interface for an instance.
+     * Create a network interface
      */
     instanceNetworkInterfaceCreate: (
       {
@@ -3768,7 +4157,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get an interface attached to an instance.
+     * Fetch a network interface
      */
     instanceNetworkInterfaceView: (
       {
@@ -3786,7 +4175,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update information about an instance's network interface
+     * Update a network interface
      */
     instanceNetworkInterfaceUpdate: (
       {
@@ -3806,7 +4195,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Detach a network interface from an instance.
+     * Delete a network interface
      */
     instanceNetworkInterfaceDelete: (
       {
@@ -3824,7 +4213,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Reboot an instance.
+     * Reboot an instance
      */
     instanceReboot: (
       { instanceName, orgName, projectName }: InstanceRebootParams,
@@ -3837,7 +4226,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get contents of an instance's serial console.
+     * Fetch an instance's serial console
      */
     instanceSerialConsole: (
       {
@@ -3856,7 +4245,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Boot an instance.
+     * Boot an instance
      */
     instanceStart: (
       { instanceName, orgName, projectName }: InstanceStartParams,
@@ -3869,7 +4258,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Halt an instance.
+     * Halt an instance
      */
     instanceStop: (
       { instanceName, orgName, projectName }: InstanceStopParams,
@@ -3882,7 +4271,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch the IAM policy for this Project
+     * Fetch a project's IAM policy
      */
     projectPolicyView: (
       { orgName, projectName }: ProjectPolicyViewParams,
@@ -3895,7 +4284,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update the IAM policy for this Project
+     * Update a project's IAM policy
      */
     projectPolicyUpdate: (
       { orgName, projectName }: ProjectPolicyUpdateParams,
@@ -3910,7 +4299,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List snapshots in a project.
+     * List snapshots
      */
     snapshotList: (
       { orgName, projectName, ...query }: SnapshotListParams,
@@ -3924,7 +4313,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a snapshot of a disk.
+     * Create a snapshot
      */
     snapshotCreate: (
       { orgName, projectName }: SnapshotCreateParams,
@@ -3939,7 +4328,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a snapshot in a project.
+     * Fetch a snapshot
      */
     snapshotView: (
       { orgName, projectName, snapshotName }: SnapshotViewParams,
@@ -3952,7 +4341,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a snapshot from a project.
+     * Delete a snapshot
      */
     snapshotDelete: (
       { orgName, projectName, snapshotName }: SnapshotDeleteParams,
@@ -3965,7 +4354,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List VPCs in a project.
+     * List VPCs
      */
     vpcList: (
       { orgName, projectName, ...query }: VpcListParams,
@@ -3979,7 +4368,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a VPC in a project.
+     * Create a VPC
      */
     vpcCreate: (
       { orgName, projectName }: VpcCreateParams,
@@ -3994,7 +4383,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a VPC in a project.
+     * Fetch a VPC
      */
     vpcView: (
       { orgName, projectName, vpcName }: VpcViewParams,
@@ -4007,7 +4396,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update a VPC.
+     * Update a VPC
      */
     vpcUpdate: (
       { orgName, projectName, vpcName }: VpcUpdateParams,
@@ -4022,7 +4411,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a vpc from a project.
+     * Delete a VPC
      */
     vpcDelete: (
       { orgName, projectName, vpcName }: VpcDeleteParams,
@@ -4035,7 +4424,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List firewall rules for a VPC.
+     * List firewall rules
      */
     vpcFirewallRulesView: (
       { orgName, projectName, vpcName }: VpcFirewallRulesViewParams,
@@ -4048,7 +4437,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Replace the firewall rules for a VPC
+     * Replace firewall rules
      */
     vpcFirewallRulesUpdate: (
       { orgName, projectName, vpcName }: VpcFirewallRulesUpdateParams,
@@ -4063,7 +4452,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List VPC Custom and System Routers
+     * List routers
      */
     vpcRouterList: (
       { orgName, projectName, vpcName, ...query }: VpcRouterListParams,
@@ -4077,7 +4466,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a VPC Router
+     * Create a router
      */
     vpcRouterCreate: (
       { orgName, projectName, vpcName }: VpcRouterCreateParams,
@@ -4092,7 +4481,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a VPC Router
+     * Get a router
      */
     vpcRouterView: (
       { orgName, projectName, routerName, vpcName }: VpcRouterViewParams,
@@ -4105,7 +4494,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update a VPC Router
+     * Update a router
      */
     vpcRouterUpdate: (
       { orgName, projectName, routerName, vpcName }: VpcRouterUpdateParams,
@@ -4120,7 +4509,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a router from its VPC
+     * Delete a router
      */
     vpcRouterDelete: (
       { orgName, projectName, routerName, vpcName }: VpcRouterDeleteParams,
@@ -4133,7 +4522,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List a Router's routes
+     * List routes
      */
     vpcRouterRouteList: (
       {
@@ -4153,7 +4542,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a VPC Router
+     * Create a router
      */
     vpcRouterRouteCreate: (
       { orgName, projectName, routerName, vpcName }: VpcRouterRouteCreateParams,
@@ -4168,7 +4557,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get a VPC Router route
+     * Fetch a route
      */
     vpcRouterRouteView: (
       {
@@ -4187,7 +4576,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update a Router route
+     * Update a route
      */
     vpcRouterRouteUpdate: (
       {
@@ -4208,7 +4597,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a route from its router
+     * Delete a route
      */
     vpcRouterRouteDelete: (
       {
@@ -4227,7 +4616,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List subnets in a VPC.
+     * List subnets
      */
     vpcSubnetList: (
       { orgName, projectName, vpcName, ...query }: VpcSubnetListParams,
@@ -4241,7 +4630,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a subnet in a VPC.
+     * Create a subnet
      */
     vpcSubnetCreate: (
       { orgName, projectName, vpcName }: VpcSubnetCreateParams,
@@ -4256,7 +4645,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get subnet in a VPC.
+     * Fetch a subnet
      */
     vpcSubnetView: (
       { orgName, projectName, subnetName, vpcName }: VpcSubnetViewParams,
@@ -4269,7 +4658,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update a VPC Subnet.
+     * Update a subnet
      */
     vpcSubnetUpdate: (
       { orgName, projectName, subnetName, vpcName }: VpcSubnetUpdateParams,
@@ -4284,7 +4673,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a subnet from a VPC.
+     * Delete a subnet
      */
     vpcSubnetDelete: (
       { orgName, projectName, subnetName, vpcName }: VpcSubnetDeleteParams,
@@ -4297,7 +4686,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List network interfaces in a VPC subnet.
+     * List network interfaces
      */
     vpcSubnetListNetworkInterfaces: (
       {
@@ -4317,24 +4706,24 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch the top-level IAM policy
+     * Fetch the current silo's IAM policy
      */
     policyView: (query: PolicyViewParams, params: RequestParams = {}) =>
-      this.request<FleetRolePolicy>({
+      this.request<SiloRolePolicy>({
         path: `/policy`,
         method: "GET",
         ...params,
       }),
 
     /**
-     * Update the top-level IAM policy
+     * Update the current silo's IAM policy
      */
     policyUpdate: (
       query: PolicyUpdateParams,
-      body: FleetRolePolicy,
+      body: SiloRolePolicy,
       params: RequestParams = {}
     ) =>
-      this.request<FleetRolePolicy>({
+      this.request<SiloRolePolicy>({
         path: `/policy`,
         method: "PUT",
         body,
@@ -4342,7 +4731,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List the built-in roles
+     * List built-in roles
      */
     roleList: (query: RoleListParams, params: RequestParams = {}) =>
       this.request<RoleResultsPage>({
@@ -4353,7 +4742,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch a specific built-in role
+     * Fetch a built-in role
      */
     roleView: ({ roleName }: RoleViewParams, params: RequestParams = {}) =>
       this.request<Role>({
@@ -4363,7 +4752,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List all sagas (for debugging)
+     * List sagas
      */
     sagaList: (query: SagaListParams, params: RequestParams = {}) =>
       this.request<SagaResultsPage>({
@@ -4374,7 +4763,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch information about a single saga (for debugging)
+     * Fetch a saga
      */
     sagaView: ({ sagaId }: SagaViewParams, params: RequestParams = {}) =>
       this.request<Saga>({
@@ -4387,14 +4776,14 @@ export class Api extends HttpClient {
      * Fetch the user associated with the current session
      */
     sessionMe: (query: SessionMeParams, params: RequestParams = {}) =>
-      this.request<SessionUser>({
+      this.request<User>({
         path: `/session/me`,
         method: "GET",
         ...params,
       }),
 
     /**
-     * List the current user's SSH public keys
+     * List SSH public keys
      */
     sessionSshkeyList: (
       query: SessionSshkeyListParams,
@@ -4408,7 +4797,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a new SSH public key for the current user
+     * Create an SSH public key
      */
     sessionSshkeyCreate: (
       query: SessionSshkeyCreateParams,
@@ -4423,7 +4812,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Get (by name) an SSH public key belonging to the current user
+     * Fetch an SSH public key
      */
     sessionSshkeyView: (
       { sshKeyName }: SessionSshkeyViewParams,
@@ -4436,7 +4825,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete (by name) an SSH public key belonging to the current user
+     * Delete an SSH public key
      */
     sessionSshkeyDelete: (
       { sshKeyName }: SessionSshkeyDeleteParams,
@@ -4448,6 +4837,9 @@ export class Api extends HttpClient {
         ...params,
       }),
 
+    /**
+     * List silos
+     */
     siloList: (query: SiloListParams, params: RequestParams = {}) =>
       this.request<SiloResultsPage>({
         path: `/silos`,
@@ -4457,7 +4849,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a new silo.
+     * Create a silo
      */
     siloCreate: (
       query: SiloCreateParams,
@@ -4472,7 +4864,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch a specific silo
+     * Fetch a silo
      */
     siloView: ({ siloName }: SiloViewParams, params: RequestParams = {}) =>
       this.request<Silo>({
@@ -4482,7 +4874,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Delete a specific silo.
+     * Delete a silo
      */
     siloDelete: ({ siloName }: SiloDeleteParams, params: RequestParams = {}) =>
       this.request<void>({
@@ -4492,21 +4884,21 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List Silo identity providers
+     * List a silo's IDPs
      */
     siloIdentityProviderList: (
       { siloName, ...query }: SiloIdentityProviderListParams,
       params: RequestParams = {}
     ) =>
       this.request<IdentityProviderResultsPage>({
-        path: `/silos/${siloName}/identity_providers`,
+        path: `/silos/${siloName}/identity-providers`,
         method: "GET",
         query,
         ...params,
       }),
 
     /**
-     * Fetch the IAM policy for this Silo
+     * Fetch a silo's IAM policy
      */
     siloPolicyView: (
       { siloName }: SiloPolicyViewParams,
@@ -4519,7 +4911,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Update the IAM policy for this Silo
+     * Update a silo's IAM policy
      */
     siloPolicyUpdate: (
       { siloName }: SiloPolicyUpdateParams,
@@ -4534,7 +4926,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Create a new SAML identity provider for a silo.
+     * Create a SAML IDP
      */
     siloIdentityProviderCreate: (
       { siloName }: SiloIdentityProviderCreateParams,
@@ -4542,27 +4934,27 @@ export class Api extends HttpClient {
       params: RequestParams = {}
     ) =>
       this.request<SamlIdentityProvider>({
-        path: `/silos/${siloName}/saml_identity_providers`,
+        path: `/silos/${siloName}/saml-identity-providers`,
         method: "POST",
         body,
         ...params,
       }),
 
     /**
-     * GET a silo's SAML identity provider
+     * Fetch a SAML IDP
      */
     siloIdentityProviderView: (
       { providerName, siloName }: SiloIdentityProviderViewParams,
       params: RequestParams = {}
     ) =>
       this.request<SamlIdentityProvider>({
-        path: `/silos/${siloName}/saml_identity_providers/${providerName}`,
+        path: `/silos/${siloName}/saml-identity-providers/${providerName}`,
         method: "GET",
         ...params,
       }),
 
     /**
-     * List the built-in system users
+     * List built-in users
      */
     systemUserList: (query: SystemUserListParams, params: RequestParams = {}) =>
       this.request<UserBuiltinResultsPage>({
@@ -4573,7 +4965,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Fetch a specific built-in system user
+     * Fetch a built-in user
      */
     systemUserView: (
       { userName }: SystemUserViewParams,
@@ -4586,7 +4978,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List all timeseries schema
+     * List timeseries schema
      */
     timeseriesSchemaGet: (
       query: TimeseriesSchemaGetParams,
@@ -4600,7 +4992,7 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * Refresh update metadata
+     * Refresh update data
      */
     updatesRefresh: (query: UpdatesRefreshParams, params: RequestParams = {}) =>
       this.request<void>({

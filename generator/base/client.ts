@@ -23,12 +23,14 @@ export interface ApiConfig {
 export type ApiError = {
   type: "error";
   statusCode: number;
+  headers: Headers;
   error: ErrorBody;
 };
 
 export type ApiSuccess<Data extends unknown> = {
   type: "success";
   statusCode: number;
+  headers: Headers;
   data: Data;
 };
 
@@ -43,7 +45,7 @@ const toQueryString = (rawQuery?: QueryParamsType): string =>
     .map(([key, value]) =>
       Array.isArray(value)
         ? value.map((item) => encodeQueryParam(key, item)).join("&")
-        : encodeQueryParam(key, value),
+        : encodeQueryParam(key, value)
     )
     .join("&");
 
@@ -105,9 +107,19 @@ export class HttpClient {
     // TODO: explicitly handle JSON parse error? (as a third kind of result?)
     if (response.ok) {
       // assume it matches the type
-      return { type: "success", statusCode, data: respJson as Data };
+      return {
+        type: "success",
+        statusCode,
+        headers: response.headers,
+        data: respJson as Data,
+      };
     } else {
-      return { type: "error", statusCode, error: respJson as ErrorBody };
+      return {
+        type: "error",
+        statusCode,
+        headers: response.headers,
+        error: respJson as ErrorBody,
+      };
     }
   };
 }
