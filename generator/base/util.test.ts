@@ -36,7 +36,7 @@ test("isObjectOrArray", () => {
 describe("mapObj", () => {
   const fn = mapObj(
     (k) => k + "_",
-    (k, v) => (typeof v === "number" ? v * 2 : v),
+    (k, v) => (typeof v === "number" ? v * 2 : v)
   );
 
   it("leaves non-objects alone", () => {
@@ -83,7 +83,7 @@ describe("parseIfDate", () => {
   it("parses dates if key starts with time_", () => {
     const value = parseIfDate("time_whatever", dateStr);
     expect(value).toBeInstanceOf(Date);
-    expect(value.getTime()).toEqual(timestamp);
+    expect((value as Date).getTime()).toEqual(timestamp);
   });
 
   it("passes through values that fail to parse as dates", () => {
