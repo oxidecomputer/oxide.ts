@@ -2,18 +2,16 @@ import { handleResponse } from "./http-client";
 import { describe, expect, it } from "vitest";
 import { Response } from "whatwg-fetch";
 
-const respInit = {
-  headers: { "Content-Type": "application/json" },
-};
+const headers = { "Content-Type": "application/json" };
 
-const respHeaders = {
-  headers: new Headers({ "Content-Type": "application/json" }),
-};
+const respHeaders = { headers: new Headers(headers) };
+
+const json = (body: any, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers });
 
 describe("handleResponse", () => {
   it("handles success", async () => {
-    const resp = new Response(JSON.stringify({ abc: 123 }), respInit);
-    expect(await handleResponse(resp)).toMatchObject({
+    expect(await handleResponse(json({ abc: 123 }))).toMatchObject({
       data: { abc: 123 },
       statusCode: 200,
       type: "success",
@@ -22,11 +20,7 @@ describe("handleResponse", () => {
   });
 
   it('API error returns type "error"', async () => {
-    const resp = new Response(JSON.stringify({ bad_stuff: "hi" }), {
-      status: 400,
-      ...respInit,
-    });
-    expect(await handleResponse(resp)).toMatchObject({
+    expect(await handleResponse(json({ bad_stuff: "hi" }, 400))).toMatchObject({
       error: { badStuff: "hi" },
       statusCode: 400,
       type: "error",
@@ -35,7 +29,7 @@ describe("handleResponse", () => {
   });
 
   it("non-json response causes client_error w/ text and error", async () => {
-    const resp = new Response("not json", respInit);
+    const resp = new Response("not json", { headers });
     expect(await handleResponse(resp)).toMatchObject({
       error: new SyntaxError("Unexpected token o in JSON at position 1"),
       statusCode: 200,
@@ -46,10 +40,7 @@ describe("handleResponse", () => {
   });
 
   it("parses dates and converts to camel case", async () => {
-    const resp = new Response(
-      JSON.stringify({ time_created: "2022-05-01" }),
-      respInit
-    );
+    const resp = json({ time_created: "2022-05-01" });
     expect(await handleResponse(resp)).toMatchObject({
       type: "success",
       data: {
@@ -59,10 +50,7 @@ describe("handleResponse", () => {
   });
 
   it("leaves unparseable dates alone", async () => {
-    const resp = new Response(
-      JSON.stringify({ time_created: "abc" }),
-      respInit
-    );
+    const resp = json({ time_created: "abc" });
     expect(await handleResponse(resp)).toMatchObject({
       type: "success",
       data: {
