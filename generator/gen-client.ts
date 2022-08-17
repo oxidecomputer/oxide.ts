@@ -5,11 +5,14 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import fs from "fs";
 import path from "path";
 
-const destDir = process.argv[3];
+function createOutStream() {
+  const destDir = process.argv[3];
+  if (!destDir) return process.stdout as unknown as fs.WriteStream;
+  const outPath = path.resolve(process.cwd(), destDir, "Api.ts");
+  return fs.createWriteStream(outPath, { flags: "w" });
+}
 
-const out = destDir
-  ? fs.createWriteStream(path.resolve(process.cwd(), destDir, "Api.ts"))
-  : (process.stdout as unknown as fs.WriteStream);
+const out = createOutStream();
 
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");

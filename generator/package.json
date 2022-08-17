@@ -4,9 +4,9 @@
   "description": "Minimal TS OpenAPI client generator",
   "main": "index.ts",
   "scripts": {
-    "gen": "./gen.sh $(cat ../OMICRON_VERSION) ../",
+    "gen": "./gen.sh $(cat ../OMICRON_VERSION) ../client",
     "gen-from": "./gen.sh",
-    "postgen": "prettier --parser typescript --write ../Api.ts",
+    "postgen": "prettier --parser typescript --write ../client",
     "postgen-from": "npm run postgen",
     "test": "vitest",
     "test:ui": "vitest --ui",
