@@ -3,16 +3,16 @@ import {
   snakeToCamel,
   snakeToPascal,
   pascalToCamel,
-} from "./gen-client";
+} from "./util";
 import { expect, test } from "vitest";
 
 test("pathToTemplateStr", () => {
   expect(
     pathToTemplateStr(
-      "/organizations/{organization_name}/projects/{project_name}/disks/{disk_name}",
-    ),
+      "/organizations/{organization_name}/projects/{project_name}/disks/{disk_name}"
+    )
   ).toEqual(
-    "`/organizations/${orgName}/projects/${projectName}/disks/${diskName}`",
+    "`/organizations/${orgName}/projects/${projectName}/disks/${diskName}`"
   );
 });
 

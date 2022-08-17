@@ -1,6 +1,6 @@
 # oxide.ts
 
-This will be automated, but to generate the client (`Api.ts`) manually:
+To generate the client manually:
 
 ```
 # optional: update omicron sha in OMICRON_VERSION
@@ -8,3 +8,5 @@ cd generator
 npm i
 npm run gen
 ```
+
+Output will appear in [`client`](client/).

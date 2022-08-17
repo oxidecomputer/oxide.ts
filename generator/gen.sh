@@ -21,4 +21,4 @@ curl --fail "$SPEC_SOURCE" -o $SPEC_DESTINATION
 
 npm run --silent tsc
 node index.js $SPEC_DESTINATION $2
-rm index.js gen-client.js $SPEC_DESTINATION
+rm *.js $SPEC_DESTINATION

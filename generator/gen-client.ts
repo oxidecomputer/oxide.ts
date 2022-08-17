@@ -4,34 +4,24 @@ const HttpMethods = O.HttpMethods;
 import SwaggerParser from "@apidevtools/swagger-parser";
 import fs from "fs";
 import path from "path";
+import {
+  pascalToCamel,
+  pathToTemplateStr,
+  processParamName,
+  snakeToCamel,
+  snakeToPascal,
+} from "./util";
 
-function createOutStream() {
-  const destDir = process.argv[3];
-  if (!destDir) return process.stdout as unknown as fs.WriteStream;
-  const outPath = path.resolve(process.cwd(), destDir, "Api.ts");
-  return fs.createWriteStream(outPath, { flags: "w" });
-}
+const destDirArg = process.argv[3];
 
-const out = createOutStream();
+if (!destDirArg) throw Error("Missing destDir argument");
 
-const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
-  s.split("_").map(fn).join("");
+// used later to copy files
+const destDir = path.resolve(process.cwd(), destDirArg);
 
-const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : "");
-
-export const snakeToPascal = snakeTo(cap);
-export const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
-
-export const pascalToCamel = (s: string) =>
-  s ? s[0].toLowerCase() + s.slice(1) : s;
-
-// HACK: we will probably do this rename in Nexus at some point because
-// "organization" is really long. Luckily it is only ever used as an
-// interpolated variable in request paths, so renaming it is fine as long
-// as we do it everywhere.
-const toOrgName = (s: string) => s.replace("organization_name", "org_name");
-
-const processParamName = (s: string) => snakeToCamel(toOrgName(s));
+const out = fs.createWriteStream(path.resolve(destDir, "Api.ts"), {
+  flags: "w",
+});
 
 /** write to file with newline */
 function w(s: string) {
@@ -42,13 +32,6 @@ function w(s: string) {
 function w0(s: string) {
   out.write(s);
 }
-
-/** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
-const segmentToInterpolation = (s: string) =>
-  s.startsWith("{") ? `\$\{${processParamName(s.slice(1, -1))}\}` : s;
-
-export const pathToTemplateStr = (s: string) =>
-  "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";
 
 const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
 
@@ -177,6 +160,10 @@ export async function generateClient(specFile: string) {
 
   w("/* eslint-disable */\n");
 
+  // first template in imports
+  fs.copyFileSync("./base/util.ts", path.resolve(destDir, "util.ts"));
+  w("import { camelToSnake, processResponseBody, snakeify } from './util'\n");
+
   const schemaNames = Object.keys(spec.components.schemas || {});
 
   for (const schemaName in spec.components.schemas) {
@@ -288,14 +275,6 @@ export async function generateClient(specFile: string) {
     w(">\n");
   }
 
-  // HACK: in order to make utils testable without polluting the generated
-  // client's exports, we have exports in the file but strip them out here
-  w(
-    fs
-      .readFileSync("./base/util.ts")
-      .toString()
-      .replace(/export /g, "")
-  );
   w(fs.readFileSync("./base/client.ts").toString());
 
   w(`export class Api extends HttpClient {
