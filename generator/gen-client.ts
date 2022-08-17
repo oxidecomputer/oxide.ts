@@ -168,7 +168,6 @@ export async function generateClient(specFile: string) {
   w("/* eslint-disable */\n");
 
   fs.copyFileSync("./base/util.ts", path.resolve(destDir, "util.ts"));
-  w("import { camelToSnake, processResponseBody, snakeify } from './util'\n");
 
   fs.copyFileSync(
     "./base/http-client.ts",
