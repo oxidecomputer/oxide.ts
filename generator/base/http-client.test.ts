@@ -47,13 +47,13 @@ describe("handleResponse", () => {
 
   it("parses dates and converts to camel case", async () => {
     const resp = new Response(
-      JSON.stringify({ time_created: "2022-05-01T05:00:00.000Z" }),
+      JSON.stringify({ time_created: "2022-05-01" }),
       respInit
     );
     expect(await handleResponse(resp)).toMatchObject({
       type: "success",
       data: {
-        timeCreated: new Date(2022, 4, 1),
+        timeCreated: new Date(Date.UTC(2022, 4, 1)),
       },
     });
   });
