@@ -20,6 +20,7 @@ export const isObjectOrArray = (o: unknown) =>
 export const mapObj =
   (
     kf: (k: string) => string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vf: (k: string | undefined, v: unknown) => any = (k, v) => v
   ) =>
   (o: unknown): unknown => {
@@ -34,6 +35,7 @@ export const mapObj =
     return newObj;
   };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const parseIfDate = (k: string | undefined, v: any) => {
   if (typeof v === "string" && k?.startsWith("time_")) {
     const d = new Date(v);

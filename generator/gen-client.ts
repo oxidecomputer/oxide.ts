@@ -153,6 +153,13 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
     : null;
 }
 
+function copyAndImport(filename: string, imports: string[]) {
+  fs.copyFileSync(`./base/${filename}`, path.resolve(destDir, filename));
+  w(
+    `import { ${imports.join(", ")} } from './${filename.replace(".ts", "")}'\n`
+  );
+}
+
 export async function generateClient(specFile: string) {
   const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document;
 
@@ -160,9 +167,24 @@ export async function generateClient(specFile: string) {
 
   w("/* eslint-disable */\n");
 
-  // first template in imports
   fs.copyFileSync("./base/util.ts", path.resolve(destDir, "util.ts"));
   w("import { camelToSnake, processResponseBody, snakeify } from './util'\n");
+
+  fs.copyFileSync(
+    "./base/http-client.ts",
+    path.resolve(destDir, "http-client.ts")
+  );
+  w("import { HttpClient, RequestParams } from './http-client'\n");
+  w(
+    `export type {
+      ApiConfig, 
+      ApiError, 
+      ApiResult,
+      ClientError, 
+      ErrorResult,
+    } from './http-client'
+    `
+  );
 
   const schemaNames = Object.keys(spec.components.schemas || {});
 
@@ -274,8 +296,6 @@ export async function generateClient(specFile: string) {
     );
     w(">\n");
   }
-
-  w(fs.readFileSync("./base/client.ts").toString());
 
   w(`export class Api extends HttpClient {
        methods = {`);
