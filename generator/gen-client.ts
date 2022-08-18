@@ -2,6 +2,7 @@ import type { OpenAPIV3 } from "openapi-types";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 import SwaggerParser from "@apidevtools/swagger-parser";
+import assert from "assert";
 import fs from "fs";
 import path from "path";
 import {
@@ -153,10 +154,30 @@ function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
     : null;
 }
 
-function copyAndImport(filename: string, imports: string[]) {
-  fs.copyFileSync(`./base/${filename}`, path.resolve(destDir, filename));
-  w(
-    `import { ${imports.join(", ")} } from './${filename.replace(".ts", "")}'\n`
+/**
+ * `Error` is hard-coded into `http-client.ts` as `ErrorBody` so we can check
+ * and test that file statically, i.e., without doing any generation. We just
+ * need to make sure `ErrorBody` has not gotten out of sync with the API spec.
+ * If this check fails, update both this and `ErrorBody` to match the new spec.
+ *
+ * The keen-eyed observer will notice there is nothing keeping _this_ check in
+ * sync with `ErrorBody`. It would be hard to do that without some real
+ * shenanigans since that is a type and this is runtime code.
+ */
+function checkErrorSchema(schema: Schema) {
+  assert.deepStrictEqual(
+    schema,
+    {
+      description: "Error information from a response.",
+      type: "object",
+      properties: {
+        error_code: { type: "string" },
+        message: { type: "string" },
+        request_id: { type: "string" },
+      },
+      required: ["message", "request_id"],
+    },
+    "Error schema does not match the one hard-coded as ErrorBody in http-client.ts."
   );
 }
 
@@ -173,34 +194,40 @@ export async function generateClient(specFile: string) {
     "./base/http-client.ts",
     path.resolve(destDir, "http-client.ts")
   );
-  w("import { HttpClient, RequestParams } from './http-client'\n");
-  w(
-    `export type {
+
+  w(`import type { RequestParams } from './http-client'
+    import { HttpClient } from './http-client'
+
+    export type {
       ApiConfig, 
       ApiError, 
       ApiResult,
       ClientError, 
+      ErrorBody,
       ErrorResult,
     } from './http-client'
-    `
-  );
+    `);
 
   const schemaNames = Object.keys(spec.components.schemas || {});
 
   for (const schemaName in spec.components.schemas) {
     const schema = spec.components.schemas[schemaName];
+
+    // Special case for Error type for two reasons:
+    //   1) Error is already a thing in JS, so we rename to ErrorBody. This
+    //      rename only works because no other types refer to this one
+    //   2) We hard-code the definition of `ErrorBody` in http-client.ts, so we
+    //      want to skip writing it here
+    if (schemaName === "Error") {
+      checkErrorSchema(schema);
+      continue;
+    }
+
     if ("description" in schema) {
       docComment(schema.description, schemaNames);
     }
 
-    // Special case for Error type because Error is already thing in JS.
-    // Important: this rename only works because no other types refer to this
-    // one
-    if (schemaName === "Error") {
-      w0(`export type ErrorBody =`);
-    } else {
-      w0(`export type ${schemaName} =`);
-    }
+    w0(`export type ${schemaName} =`);
 
     schemaToType(schema, { schemaNames });
     w("\n");
