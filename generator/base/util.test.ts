@@ -86,6 +86,12 @@ describe("parseIfDate", () => {
     expect((value as Date).getTime()).toEqual(timestamp);
   });
 
+  it("parses dates if key = 'timestamp'", () => {
+    const value = parseIfDate("timestamp", dateStr);
+    expect(value).toBeInstanceOf(Date);
+    expect((value as Date).getTime()).toEqual(timestamp);
+  });
+
   it("passes through values that fail to parse as dates", () => {
     const value = parseIfDate("time_whatever", "blah");
     expect(value).toEqual("blah");
