@@ -912,7 +912,7 @@ export const macAddrPattern = "^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$";
  */
 export type Measurement = {
   datum: Datum;
-  timestamp: string;
+  timestamp: Date;
 };
 
 /**

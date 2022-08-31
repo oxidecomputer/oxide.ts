@@ -85,7 +85,7 @@ function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
       }
     } else if (
       schema.format === "date-time" &&
-      opts.name?.startsWith("time_")
+      (opts.name?.startsWith("time_") || opts.name === "timestamp")
     ) {
       w0("Date");
     } else {
