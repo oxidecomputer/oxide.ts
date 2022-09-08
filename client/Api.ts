@@ -673,6 +673,10 @@ export type InstanceCreate = {
    */
   networkInterfaces?: InstanceNetworkInterfaceAttachment | null;
   /**
+   * Should this instance be started upon creation; true by default.
+   */
+  start?: boolean | null;
+  /**
    * User data for instance initialization systems (such as cloud-init). Must be a Base64-encoded string, as specified in RFC 4648 § 4 (+ and / characters with padding). Maximum 32 KiB unencoded data.
    */
   userData?: string | null;
@@ -1636,6 +1640,7 @@ export type Snapshot = {
   name: Name;
   projectId: string;
   size: ByteCount;
+  state: SnapshotState;
   /**
    * timestamp when this resource was created
    */
@@ -1671,6 +1676,8 @@ export type SnapshotResultsPage = {
    */
   nextPage?: string | null;
 };
+
+export type SnapshotState = "creating" | "ready" | "faulted" | "destroyed";
 
 export type SpoofLoginBody = {
   username: string;
@@ -2303,10 +2310,6 @@ export interface DeviceAuthConfirmParams {}
 
 export interface DeviceAccessTokenParams {}
 
-export interface GlobalPolicyViewParams {}
-
-export interface GlobalPolicyUpdateParams {}
-
 export interface RackListParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -2927,6 +2930,10 @@ export interface SiloIdentityProviderViewParams {
   siloName: Name;
 }
 
+export interface SystemPolicyViewParams {}
+
+export interface SystemPolicyUpdateParams {}
+
 export interface SystemUserListParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -3184,34 +3191,6 @@ export class Api extends HttpClient {
       this.request<void>({
         path: `/device/token`,
         method: "POST",
-        ...params,
-      }),
-
-    /**
-     * Fetch the top-level IAM policy
-     */
-    globalPolicyView: (
-      query: GlobalPolicyViewParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<FleetRolePolicy>({
-        path: `/global/policy`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * Update the top-level IAM policy
-     */
-    globalPolicyUpdate: (
-      query: GlobalPolicyUpdateParams,
-      body: FleetRolePolicy,
-      params: RequestParams = {}
-    ) =>
-      this.request<FleetRolePolicy>({
-        path: `/global/policy`,
-        method: "PUT",
-        body,
         ...params,
       }),
 
@@ -4779,6 +4758,34 @@ export class Api extends HttpClient {
       this.request<SamlIdentityProvider>({
         path: `/silos/${siloName}/saml-identity-providers/${providerName}`,
         method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Fetch the top-level IAM policy
+     */
+    systemPolicyView: (
+      query: SystemPolicyViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<FleetRolePolicy>({
+        path: `/system/policy`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Update the top-level IAM policy
+     */
+    systemPolicyUpdate: (
+      query: SystemPolicyUpdateParams,
+      body: FleetRolePolicy,
+      params: RequestParams = {}
+    ) =>
+      this.request<FleetRolePolicy>({
+        path: `/system/policy`,
+        method: "PUT",
+        body,
         ...params,
       }),
 
