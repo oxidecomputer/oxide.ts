@@ -4,9 +4,8 @@ To generate the client manually:
 
 ```
 # optional: update omicron sha in OMICRON_VERSION
-cd generator
 npm i
 npm run gen
 ```
 
-Output will appear in [`client`](client/).
+The TypeScript client code will be written to [`client`](client/). Browser ready code will be added to [`dist`](dist/).
