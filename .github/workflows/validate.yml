@@ -22,7 +22,5 @@ jobs:
       - name: TypeCheck and Test
         shell: bash
         run: |
-          cd generator
           npm install
-          npm run tsc
-          npm test run
+          npm test

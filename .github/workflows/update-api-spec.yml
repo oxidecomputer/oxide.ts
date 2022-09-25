@@ -21,7 +21,6 @@ jobs:
       - name: Generate spec
         shell: bash
         run: |
-          cd generator
           npm install
           npm run gen
       - uses: EndBug/add-and-commit@v9

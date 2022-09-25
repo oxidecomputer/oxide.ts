@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "tsup client/Api.ts --format cjs,esm --dts --clean",
-    "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client",
+    "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client && npm run build",
     "gen-from": "./tools/gen.sh",
     "postgen": "prettier --parser typescript --write ./client",
     "postgen-from": "npm run postgen",
