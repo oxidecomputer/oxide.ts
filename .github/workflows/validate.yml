@@ -23,5 +23,6 @@ jobs:
         shell: bash
         run: |
           npm install
+          npm run gen
           npm run tsc
           npm test
