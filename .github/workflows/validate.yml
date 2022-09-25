@@ -23,4 +23,5 @@ jobs:
         shell: bash
         run: |
           npm install
+          npm run tsc
           npm test
