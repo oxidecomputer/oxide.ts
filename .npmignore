@@ -6,3 +6,4 @@ OMICRON_VERSION
 package-lock.json
 .prettierrc
 tsconfig.*
+tests

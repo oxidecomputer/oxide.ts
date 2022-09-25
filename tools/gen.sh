@@ -20,3 +20,4 @@ SPEC_DESTINATION="./spec.json"
 curl --fail "$SPEC_SOURCE" -o $SPEC_DESTINATION
 
 node -r esbuild-register lib/index.ts $SPEC_DESTINATION $2
+rm $SPEC_DESTINATION
