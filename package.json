@@ -1,5 +1,5 @@
 {
-  "name": "@oxide/sdk",
+  "name": "@oxide/api",
   "version": "0.0.1",
   "description": "Oxide's JavaScript and TypeScript SDK",
   "main": "./dist/Api.js",
