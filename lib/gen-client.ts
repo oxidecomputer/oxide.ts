@@ -12,29 +12,13 @@ import {
   snakeToCamel,
   snakeToPascal,
 } from "./util";
+import { schemaToZod, setupZod } from "./zodSchema";
+import { initIO, outDir } from "./io";
+import { refToSchemaName } from "./schema";
 
-const destDirArg = process.argv[3];
-
-if (!destDirArg) throw Error("Missing destDir argument");
-
-// used later to copy files
-const destDir = path.resolve(process.cwd(), destDirArg);
-
-const out = fs.createWriteStream(path.resolve(destDir, "Api.ts"), {
-  flags: "w",
-});
-
-/** write to file with newline */
-function w(s: string) {
-  out.write(s + "\n");
-}
-
-/** same as w() but no newline */
-function w0(s: string) {
-  out.write(s);
-}
-
-const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
+const destDir = outDir();
+const io = initIO(destDir);
+const { w, w0, out } = io;
 
 /**
  * Convert ``[`Vpc`](crate::external_api::views::Vpc)`` or plain ``[`Vpc`]`` to
@@ -196,9 +180,11 @@ export async function generateClient(specFile: string) {
   );
 
   w(`import type { RequestParams } from './http-client'
-    import { HttpClient } from './http-client'
+    import { HttpClient } from './http-client'`);
 
-    export type {
+  setupZod(io);
+
+  w(`export type {
       ApiConfig, 
       ApiError, 
       ApiResult,
@@ -227,10 +213,9 @@ export async function generateClient(specFile: string) {
       docComment(schema.description, schemaNames);
     }
 
-    w0(`export type ${schemaName} =`);
-
-    schemaToType(schema, { schemaNames });
-    w("\n");
+    w0(`export const ${schemaName} =`);
+    schemaToZod(schema, io);
+    w(`export type ${schemaName} = z.infer<typeof ${schemaName}>\n`);
 
     if ("type" in schema && schema.type === "string" && schema.pattern) {
       w(`/** Regex pattern for validating ${schemaName} */`);
