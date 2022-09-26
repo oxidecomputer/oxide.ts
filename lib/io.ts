@@ -30,7 +30,7 @@ export class TestWritable extends Writable {
   }
 
   value(): string {
-    return this.buffer.toString();
+    return this.buffer.toString().trim();
   }
 
   clear(): void {
@@ -38,22 +38,19 @@ export class TestWritable extends Writable {
   }
 }
 
-export type Out<T> = T extends true ? TestWritable : Writable;
-
-export interface IO<T extends boolean = false> {
+export interface IO {
   w: (str: string) => void;
   w0: (str: string) => void;
-  out: Out<T>;
+  out: Writable;
 }
 
-export function initIO<T extends boolean = false>(
-  destDir: T extends false ? string : never
-): IO<T> {
+// TODO: Fix the arg to be required when not testing
+export function initIO(destDir?: string): IO {
   let out: Writable;
   if (process.env.NODE_ENV === "test") {
     out = new TestWritable();
   } else {
-    out = fs.createWriteStream(path.resolve(destDir, "Api.ts"), {
+    out = fs.createWriteStream(path.resolve(destDir!, "Api.ts"), {
       flags: "w",
     });
   }
@@ -69,6 +66,6 @@ export function initIO<T extends boolean = false>(
       out.write(s);
     },
 
-    out: out as Out<T>,
+    out,
   };
 }

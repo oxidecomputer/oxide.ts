@@ -3,6 +3,7 @@ import {
   snakeToCamel,
   snakeToPascal,
   pascalToCamel,
+  topologicalSort,
 } from "./util";
 import { expect, test } from "vitest";
 
@@ -32,4 +33,15 @@ test("pascalToCamel", () => {
   expect(pascalToCamel("")).toEqual("");
   expect(pascalToCamel("Ipv4Block")).toEqual("ipv4Block");
   expect(pascalToCamel("ALotOfWords")).toEqual("aLotOfWords");
+});
+
+test("topologicalSort", () => {
+  expect(
+    topologicalSort([
+      ["a", ["b", "c"]],
+      ["b", ["c"]],
+      ["c", undefined],
+      ["d", []],
+    ])
+  ).toEqual(["c", "b", "a", "d"]);
 });

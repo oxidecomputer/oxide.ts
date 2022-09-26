@@ -42,17 +42,17 @@ export function schemaToZod(schema: Schema, io: IO) {
   w("");
 }
 
-function schemaToZodBool(schema: OpenAPIV3.SchemaObject, { w, w0 }: IO) {
+function schemaToZodBool(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   w0(`z.boolean()`);
-  if (schema.default) {
+  if ("default" in schema) {
     w0(`.default(${schema.default})`);
   }
 }
 
-function schemaToZodString(schema: OpenAPIV3.SchemaObject, { w, w0 }: IO) {
+function schemaToZodString(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   w0(`z.string()`);
 
-  if (schema.default) {
+  if ("default" in schema) {
     w0(`.default(${JSON.stringify(schema.default)})`);
   }
   if (schema.format === "uuid") {
@@ -77,7 +77,7 @@ function schemaToZodEnum(schema: OpenAPIV3.SchemaObject, io: IO) {
   w0(`z.enum(${JSON.stringify(schema.enum)})`);
 }
 
-function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w, w0 }: IO) {
+function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   w0(`z.number()`);
   if (schema.default) {
     w0(`.default(${schema.default})`);
@@ -128,7 +128,7 @@ function schemaToZodObject(schema: OpenAPIV3.SchemaObject, io: IO) {
 
 function schemaToZodUnion(schema: OpenAPIV3.SchemaObject, io: IO) {
   if (!schema.oneOf) return;
-  const { w0, w } = io;
+  const { w } = io;
 
   if (schema.oneOf.length === 1) {
     schemaToZod(schema.oneOf[0], io);
