@@ -1,7 +1,13 @@
 {
   "name": "@oxide/api",
   "version": "0.0.1",
-  "description": "Oxide's JavaScript and TypeScript SDK",
+  "description": "The official JavaScript and TypeScript client SDK for interacting with the Oxide API",
+  "keywords": [
+    "oxide",
+    "oxide.ts",
+    "oxide computer",
+    "oxide sdk"
+  ],
   "main": "./dist/Api.js",
   "module": "./dist/Api.mjs",
   "types": "./dist/Api.d.ts",
