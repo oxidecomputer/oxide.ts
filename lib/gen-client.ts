@@ -188,10 +188,10 @@ export async function generateClient(specFile: string) {
 
   w("/* eslint-disable */\n");
 
-  fs.copyFileSync("./base/util.ts", path.resolve(destDir, "util.ts"));
+  fs.copyFileSync("./static/util.ts", path.resolve(destDir, "util.ts"));
 
   fs.copyFileSync(
-    "./base/http-client.ts",
+    "./static/http-client.ts",
     path.resolve(destDir, "http-client.ts")
   );
 

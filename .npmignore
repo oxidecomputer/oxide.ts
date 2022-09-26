@@ -1,0 +1,10 @@
+.github
+lib
+static
+tools
+OMICRON_VERSION
+package-lock.json
+.prettierrc
+tsconfig.*
+tests
+spec.json

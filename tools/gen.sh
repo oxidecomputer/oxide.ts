@@ -15,10 +15,9 @@ fi
 
 API_SOURCE="https://raw.githubusercontent.com/oxidecomputer/omicron/OMICRON_VERSION/openapi/nexus.json"
 SPEC_SOURCE=$(echo $API_SOURCE | sed "s/OMICRON_VERSION/$1/g")
-SPEC_DESTINATION="../spec.json"
+SPEC_DESTINATION="./spec.json"
 
 curl --fail "$SPEC_SOURCE" -o $SPEC_DESTINATION
 
-npm run --silent tsc
-node index.js $SPEC_DESTINATION $2
-rm *.js $SPEC_DESTINATION
+node -r esbuild-register lib/index.ts $SPEC_DESTINATION $2
+rm $SPEC_DESTINATION

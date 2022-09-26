@@ -1,1 +1,0 @@
-# TS OpenAPI client generator
