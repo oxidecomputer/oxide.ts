@@ -11,22 +11,23 @@ test("ensure only desired files are published", async () => {
     .map((l) => l.replace("npm notice", "").trim())
     .filter((l) => l.match(/^\d+/))
     .map((l) => l.match(/.*\s+(.*)/)?.[1])
-    // We know that we want all files in `client/` and `dist/` so let's just collapse those down
-    .map((l) => l?.replace(/^(client|dist)\/.*/g, "$1/*"))
-    // Filter out any duplicates
-    .filter((l, index, arr) => arr.indexOf(l) === index);
+    .sort((a, b) => a!.localeCompare(b!));
 
-  // This list includes all the files that should be included in the publish
-  // _expect_ those in `client/*` and `dist/*`. If this test fails and you've
-  // added a new file you should update this list if it should be included in
-  // the npm package or update the .npmignore file to exclude it.
+  // This list includes all the files that should be included in the publish.
+  // If this test fails and you've added a new file you should update this list
+  // if it should be included in the npm package or update the .npmignore file
+  // to exclude it.
   expect(packageLog).toMatchInlineSnapshot(`
     [
+      "client/Api.ts",
+      "client/http-client.ts",
+      "client/util.ts",
+      "dist/Api.d.ts",
+      "dist/Api.js",
+      "dist/Api.mjs",
       "LICENSE",
-      "README.md",
-      "client/*",
-      "dist/*",
       "package.json",
+      "README.md",
     ]
   `);
 });
