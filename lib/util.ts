@@ -23,3 +23,28 @@ const segmentToInterpolation = (s: string) =>
 
 export const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";
+
+export const topologicalSort = (
+  edges: [vertex: string, adjacents: string[] | undefined][]
+) => {
+  const result: string[] = [];
+  const visited: Record<string, boolean> = {};
+
+  const visit = (vertex: string, adjacents: string[] = []) => {
+    visited[vertex] = true;
+    for (const adj of adjacents) {
+      if (!visited[adj]) {
+        visit(adj, edges.find(([v]) => v === adj)?.[1]);
+      }
+    }
+    result.push(vertex);
+  };
+
+  for (const [vertex, adjacents] of edges) {
+    if (!visited[vertex]) {
+      visit(vertex, adjacents);
+    }
+  }
+
+  return result;
+};

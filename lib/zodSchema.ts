@@ -34,7 +34,7 @@ export function schemaToZod(schema: Schema, io: IO) {
     .with({ type: "object" }, () => schemaToZodObject(schema, io))
     .with({ oneOf: P.not(P.nullish) }, () => schemaToZodUnion(schema, io))
     .with({ allOf: P.not(P.nullish) }, (s) => schemaToZod(s.allOf[0], io))
-    .with({}, () => {})
+    .with({}, () => w0("z.object({}).optional()"))
     .otherwise(() => {
       throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(schema, null, 2)}`);
     });
@@ -65,7 +65,7 @@ function schemaToZodString(schema: OpenAPIV3.SchemaObject, { w, w0 }: IO) {
     w0(`.max(${schema.maxLength})`);
   }
   if (schema.pattern) {
-    w0(`.regex("${new RegExp(schema.pattern).toString()}")`);
+    w0(`.regex(${new RegExp(schema.pattern).toString()})`);
   }
   if (schema.nullable) {
     w0(".nullable()");
@@ -88,7 +88,7 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w, w0 }: IO) {
     w0(`.min(${schema.minimum})`);
   } else if (unsigned) {
     w0(`.min(0)`);
-  } else if (size) {
+  } else if (size && parseInt(size) < 64) {
     w0(`.min(-${Math.pow(2, parseInt(size) - 1) - 1})`);
   }
 
