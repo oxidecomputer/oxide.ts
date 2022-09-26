@@ -1,0 +1,79 @@
+// Vitest Snapshot v1
+
+exports[`Known properties > Type allOf should contain only known properties 1`] = `
+[
+  "allOf",
+  "default",
+  "description",
+  "nullable",
+  "title",
+]
+`;
+
+exports[`Known properties > Type array should contain only known properties 1`] = `
+[
+  "default",
+  "description",
+  "items",
+  "nullable",
+  "type",
+]
+`;
+
+exports[`Known properties > Type boolean should contain only known properties 1`] = `
+[
+  "default",
+  "description",
+  "type",
+]
+`;
+
+exports[`Known properties > Type integer should contain only known properties 1`] = `
+[
+  "description",
+  "enum",
+  "format",
+  "minimum",
+  "title",
+  "type",
+]
+`;
+
+exports[`Known properties > Type number should contain only known properties 1`] = `
+[
+  "format",
+  "type",
+]
+`;
+
+exports[`Known properties > Type object should contain only known properties 1`] = `
+[
+  "description",
+  "properties",
+  "required",
+  "type",
+]
+`;
+
+exports[`Known properties > Type oneOf should contain only known properties 1`] = `
+[
+  "description",
+  "oneOf",
+]
+`;
+
+exports[`Known properties > Type string should contain only known properties 1`] = `
+[
+  "default",
+  "description",
+  "enum",
+  "example",
+  "format",
+  "maxLength",
+  "minLength",
+  "nullable",
+  "pattern",
+  "title",
+  "type",
+]
+`;

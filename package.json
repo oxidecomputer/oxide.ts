@@ -18,7 +18,7 @@
     "gen-from": "./tools/gen.sh",
     "postgen": "prettier --parser typescript --write ./client",
     "postgen-from": "npm run postgen",
-    "pretest": "npm run build",
+    "pretest": "npm run gen",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "tsc": "tsc"
