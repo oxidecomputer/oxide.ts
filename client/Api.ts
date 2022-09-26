@@ -598,7 +598,7 @@ export const InstanceCreate = z.object({
   ncpus: InstanceCpuCount,
   network_interfaces: InstanceNetworkInterfaceAttachment.optional(),
   start: z.boolean().default(true).optional(),
-  user_data: z.string().optional(),
+  user_data: z.string().default("").optional(),
 });
 export type InstanceCreate = z.infer<typeof InstanceCreate>;
 
@@ -804,7 +804,7 @@ export type NetworkInterfaceResultsPage = z.infer<
 export const NetworkInterfaceUpdate = z.object({
   description: z.string().nullable().optional(),
   name: Name.optional(),
-  primary: z.boolean().optional(),
+  primary: z.boolean().default(false).optional(),
 });
 export type NetworkInterfaceUpdate = z.infer<typeof NetworkInterfaceUpdate>;
 
