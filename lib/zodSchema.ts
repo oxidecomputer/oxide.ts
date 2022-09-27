@@ -2,6 +2,7 @@ import { IO } from "./io";
 import { match, P } from "ts-pattern";
 import { refToSchemaName, Schema } from "./schema";
 import { OpenAPIV3 } from "openapi-types";
+import { snakeToCamel } from "./util";
 
 export function setupZod({ w }: IO) {
   w("import { z, ZodType } from 'zod';");
@@ -138,7 +139,7 @@ function schemaToZodObject(schema: OpenAPIV3.SchemaObject, io: IO) {
   const { w0, w } = io;
   w0("z.object({");
   for (const [name, subSchema] of Object.entries(schema.properties || {})) {
-    w0(`${JSON.stringify(name)}: `);
+    w0(`${JSON.stringify(snakeToCamel(name))}: `);
     schemaToZod(subSchema, io);
     if (!schema.required?.includes(name)) {
       w0(`.optional()`);

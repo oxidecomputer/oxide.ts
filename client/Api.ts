@@ -82,7 +82,7 @@ export type ByteCount = z.infer<typeof ByteCount>;
  * A cumulative or counter data type.
  */
 export const Cumulativedouble = z.object({
-  start_time: DateType,
+  startTime: DateType,
   value: z.number(),
 });
 export type Cumulativedouble = z.infer<typeof Cumulativedouble>;
@@ -91,7 +91,7 @@ export type Cumulativedouble = z.infer<typeof Cumulativedouble>;
  * A cumulative or counter data type.
  */
 export const Cumulativeint64 = z.object({
-  start_time: DateType,
+  startTime: DateType,
   value: z.number(),
 });
 export type Cumulativeint64 = z.infer<typeof Cumulativeint64>;
@@ -119,8 +119,8 @@ export type Cumulativeint64 = z.infer<typeof Cumulativeint64>;
  */
 export const Histogramint64 = z.object({
   bins: Binint64.array(),
-  n_samples: z.number().min(0),
-  start_time: DateType,
+  nSamples: z.number().min(0),
+  startTime: DateType,
 });
 export type Histogramint64 = z.infer<typeof Histogramint64>;
 
@@ -147,8 +147,8 @@ export type Histogramint64 = z.infer<typeof Histogramint64>;
  */
 export const Histogramdouble = z.object({
   bins: Bindouble.array(),
-  n_samples: z.number().min(0),
-  start_time: DateType,
+  nSamples: z.number().min(0),
+  startTime: DateType,
 });
 export type Histogramdouble = z.infer<typeof Histogramdouble>;
 
@@ -189,22 +189,22 @@ export const DatumType = z.enum([
 export type DatumType = z.infer<typeof DatumType>;
 
 export const DerEncodedKeyPair = z.object({
-  private_key: z.string(),
-  public_cert: z.string(),
+  privateKey: z.string(),
+  publicCert: z.string(),
 });
 export type DerEncodedKeyPair = z.infer<typeof DerEncodedKeyPair>;
 
 export const DeviceAccessTokenRequest = z.object({
-  client_id: z.string().uuid(),
-  device_code: z.string(),
-  grant_type: z.string(),
+  clientId: z.string().uuid(),
+  deviceCode: z.string(),
+  grantType: z.string(),
 });
 export type DeviceAccessTokenRequest = z.infer<typeof DeviceAccessTokenRequest>;
 
-export const DeviceAuthRequest = z.object({ client_id: z.string().uuid() });
+export const DeviceAuthRequest = z.object({ clientId: z.string().uuid() });
 export type DeviceAuthRequest = z.infer<typeof DeviceAuthRequest>;
 
-export const DeviceAuthVerify = z.object({ user_code: z.string() });
+export const DeviceAuthVerify = z.object({ userCode: z.string() });
 export type DeviceAuthVerify = z.infer<typeof DeviceAuthVerify>;
 
 export const Digest = z.object({ type: z.enum(["sha256"]), value: z.string() });
@@ -243,18 +243,18 @@ export type DiskState = z.infer<typeof DiskState>;
  * Client view of a {@link Disk}
  */
 export const Disk = z.object({
-  block_size: ByteCount,
+  blockSize: ByteCount,
   description: z.string(),
-  device_path: z.string(),
+  devicePath: z.string(),
   id: z.string().uuid(),
-  image_id: z.string().uuid().nullable().optional(),
+  imageId: z.string().uuid().nullable().optional(),
   name: Name,
-  project_id: z.string().uuid(),
+  projectId: z.string().uuid(),
   size: ByteCount,
-  snapshot_id: z.string().uuid().nullable().optional(),
+  snapshotId: z.string().uuid().nullable().optional(),
   state: DiskState,
-  time_created: DateType,
-  time_modified: DateType,
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type Disk = z.infer<typeof Disk>;
 
@@ -262,10 +262,10 @@ export type Disk = z.infer<typeof Disk>;
  * Different sources for a disk
  */
 export const DiskSource = z.union([
-  z.object({ block_size: BlockSize, type: z.enum(["blank"]) }),
-  z.object({ snapshot_id: z.string().uuid(), type: z.enum(["snapshot"]) }),
-  z.object({ image_id: z.string().uuid(), type: z.enum(["image"]) }),
-  z.object({ image_id: z.string().uuid(), type: z.enum(["global_image"]) }),
+  z.object({ blockSize: BlockSize, type: z.enum(["blank"]) }),
+  z.object({ snapshotId: z.string().uuid(), type: z.enum(["snapshot"]) }),
+  z.object({ imageId: z.string().uuid(), type: z.enum(["image"]) }),
+  z.object({ imageId: z.string().uuid(), type: z.enum(["global_image"]) }),
 ]);
 
 export type DiskSource = z.infer<typeof DiskSource>;
@@ -275,7 +275,7 @@ export type DiskSource = z.infer<typeof DiskSource>;
  */
 export const DiskCreate = z.object({
   description: z.string(),
-  disk_source: DiskSource,
+  diskSource: DiskSource,
   name: Name,
   size: ByteCount,
 });
@@ -292,7 +292,7 @@ export type DiskIdentifier = z.infer<typeof DiskIdentifier>;
  */
 export const DiskResultsPage = z.object({
   items: Disk.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type DiskResultsPage = z.infer<typeof DiskResultsPage>;
 
@@ -315,7 +315,7 @@ export type ExternalIp = z.infer<typeof ExternalIp>;
  * Parameters for creating an external IP address for instances.
  */
 export const ExternalIpCreate = z.object({
-  pool_name: Name.nullable().optional(),
+  poolName: Name.nullable().optional(),
   type: z.enum(["ephemeral"]),
 });
 
@@ -326,7 +326,7 @@ export type ExternalIpCreate = z.infer<typeof ExternalIpCreate>;
  */
 export const ExternalIpResultsPage = z.object({
   items: ExternalIp.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type ExternalIpResultsPage = z.infer<typeof ExternalIpResultsPage>;
 
@@ -367,9 +367,9 @@ export type IdentityType = z.infer<typeof IdentityType>;
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
 export const FleetRoleRoleAssignment = z.object({
-  identity_id: z.string().uuid(),
-  identity_type: IdentityType,
-  role_name: FleetRole,
+  identityId: z.string().uuid(),
+  identityType: IdentityType,
+  roleName: FleetRole,
 });
 export type FleetRoleRoleAssignment = z.infer<typeof FleetRoleRoleAssignment>;
 
@@ -379,7 +379,7 @@ export type FleetRoleRoleAssignment = z.infer<typeof FleetRoleRoleAssignment>;
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
 export const FleetRolePolicy = z.object({
-  role_assignments: FleetRoleRoleAssignment.array(),
+  roleAssignments: FleetRoleRoleAssignment.array(),
 });
 export type FleetRolePolicy = z.infer<typeof FleetRolePolicy>;
 
@@ -387,15 +387,15 @@ export type FleetRolePolicy = z.infer<typeof FleetRolePolicy>;
  * Client view of global Images
  */
 export const GlobalImage = z.object({
-  block_size: ByteCount,
+  blockSize: ByteCount,
   description: z.string(),
   digest: Digest.nullable().optional(),
   distribution: z.string(),
   id: z.string().uuid(),
   name: Name,
   size: ByteCount,
-  time_created: DateType,
-  time_modified: DateType,
+  timeCreated: DateType,
+  timeModified: DateType,
   url: z.string().nullable().optional(),
   version: z.string(),
 });
@@ -416,7 +416,7 @@ export type ImageSource = z.infer<typeof ImageSource>;
  * Create-time parameters for an {@link GlobalImage}
  */
 export const GlobalImageCreate = z.object({
-  block_size: BlockSize,
+  blockSize: BlockSize,
   description: z.string(),
   distribution: Distribution,
   name: Name,
@@ -429,7 +429,7 @@ export type GlobalImageCreate = z.infer<typeof GlobalImageCreate>;
  */
 export const GlobalImageResultsPage = z.object({
   items: GlobalImage.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type GlobalImageResultsPage = z.infer<typeof GlobalImageResultsPage>;
 
@@ -443,9 +443,9 @@ export const IdentityProvider = z.object({
   description: z.string(),
   id: z.string().uuid(),
   name: Name,
-  provider_type: IdentityProviderType,
-  time_created: DateType,
-  time_modified: DateType,
+  providerType: IdentityProviderType,
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type IdentityProvider = z.infer<typeof IdentityProvider>;
 
@@ -454,7 +454,7 @@ export type IdentityProvider = z.infer<typeof IdentityProvider>;
  */
 export const IdentityProviderResultsPage = z.object({
   items: IdentityProvider.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type IdentityProviderResultsPage = z.infer<
   typeof IdentityProviderResultsPage
@@ -471,15 +471,15 @@ export type IdpMetadataSource = z.infer<typeof IdpMetadataSource>;
  * Client view of project Images
  */
 export const Image = z.object({
-  block_size: ByteCount,
+  blockSize: ByteCount,
   description: z.string(),
   digest: Digest.nullable().optional(),
   id: z.string().uuid(),
   name: Name,
-  project_id: z.string().uuid(),
+  projectId: z.string().uuid(),
   size: ByteCount,
-  time_created: DateType,
-  time_modified: DateType,
+  timeCreated: DateType,
+  timeModified: DateType,
   url: z.string().nullable().optional(),
   version: z.string().nullable().optional(),
 });
@@ -489,7 +489,7 @@ export type Image = z.infer<typeof Image>;
  * Create-time parameters for an {@link Image}
  */
 export const ImageCreate = z.object({
-  block_size: BlockSize,
+  blockSize: BlockSize,
   description: z.string(),
   name: Name,
   source: ImageSource,
@@ -501,7 +501,7 @@ export type ImageCreate = z.infer<typeof ImageCreate>;
  */
 export const ImageResultsPage = z.object({
   items: Image.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type ImageResultsPage = z.infer<typeof ImageResultsPage>;
 
@@ -540,11 +540,11 @@ export const Instance = z.object({
   memory: ByteCount,
   name: Name,
   ncpus: InstanceCpuCount,
-  project_id: z.string().uuid(),
-  run_state: InstanceState,
-  time_created: DateType,
-  time_modified: DateType,
-  time_run_state_updated: DateType,
+  projectId: z.string().uuid(),
+  runState: InstanceState,
+  timeCreated: DateType,
+  timeModified: DateType,
+  timeRunStateUpdated: DateType,
 });
 export type Instance = z.infer<typeof Instance>;
 
@@ -554,7 +554,7 @@ export type Instance = z.infer<typeof Instance>;
 export const InstanceDiskAttachment = z.union([
   z.object({
     description: z.string(),
-    disk_source: DiskSource,
+    diskSource: DiskSource,
     name: Name,
     size: ByteCount,
     type: z.enum(["create"]),
@@ -571,8 +571,8 @@ export const NetworkInterfaceCreate = z.object({
   description: z.string(),
   ip: z.string().nullable().optional(),
   name: Name,
-  subnet_name: Name,
-  vpc_name: Name,
+  subnetName: Name,
+  vpcName: Name,
 });
 export type NetworkInterfaceCreate = z.infer<typeof NetworkInterfaceCreate>;
 
@@ -598,23 +598,23 @@ export type InstanceNetworkInterfaceAttachment = z.infer<
 export const InstanceCreate = z.object({
   description: z.string(),
   disks: InstanceDiskAttachment.array().default([]).optional(),
-  external_ips: ExternalIpCreate.array().default([]).optional(),
+  externalIps: ExternalIpCreate.array().default([]).optional(),
   hostname: z.string(),
   memory: ByteCount,
   name: Name,
   ncpus: InstanceCpuCount,
-  network_interfaces: InstanceNetworkInterfaceAttachment.default({
+  networkInterfaces: InstanceNetworkInterfaceAttachment.default({
     type: "default",
   }).optional(),
   start: z.boolean().default(true).optional(),
-  user_data: z.string().default("").optional(),
+  userData: z.string().default("").optional(),
 });
 export type InstanceCreate = z.infer<typeof InstanceCreate>;
 
 /**
  * Migration parameters for an {@link Instance}
  */
-export const InstanceMigrate = z.object({ dst_sled_id: z.string().uuid() });
+export const InstanceMigrate = z.object({ dstSledId: z.string().uuid() });
 export type InstanceMigrate = z.infer<typeof InstanceMigrate>;
 
 /**
@@ -622,7 +622,7 @@ export type InstanceMigrate = z.infer<typeof InstanceMigrate>;
  */
 export const InstanceResultsPage = z.object({
   items: Instance.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type InstanceResultsPage = z.infer<typeof InstanceResultsPage>;
 
@@ -631,7 +631,7 @@ export type InstanceResultsPage = z.infer<typeof InstanceResultsPage>;
  */
 export const InstanceSerialConsoleData = z.object({
   data: z.number().min(0).max(255).array(),
-  last_byte_offset: z.number().min(0),
+  lastByteOffset: z.number().min(0),
 });
 export type InstanceSerialConsoleData = z.infer<
   typeof InstanceSerialConsoleData
@@ -672,9 +672,9 @@ export const IpPool = z.object({
   description: z.string(),
   id: z.string().uuid(),
   name: Name,
-  project_id: z.string().uuid().nullable().optional(),
-  time_created: DateType,
-  time_modified: DateType,
+  projectId: z.string().uuid().nullable().optional(),
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type IpPool = z.infer<typeof IpPool>;
 
@@ -714,7 +714,7 @@ export type IpRange = z.infer<typeof IpRange>;
 export const IpPoolRange = z.object({
   id: z.string().uuid(),
   range: IpRange,
-  time_created: DateType,
+  timeCreated: DateType,
 });
 export type IpPoolRange = z.infer<typeof IpPoolRange>;
 
@@ -723,7 +723,7 @@ export type IpPoolRange = z.infer<typeof IpPoolRange>;
  */
 export const IpPoolRangeResultsPage = z.object({
   items: IpPoolRange.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type IpPoolRangeResultsPage = z.infer<typeof IpPoolRangeResultsPage>;
 
@@ -732,7 +732,7 @@ export type IpPoolRangeResultsPage = z.infer<typeof IpPoolRangeResultsPage>;
  */
 export const IpPoolResultsPage = z.object({
   items: IpPool.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type IpPoolResultsPage = z.infer<typeof IpPoolResultsPage>;
 
@@ -780,7 +780,7 @@ export type Measurement = z.infer<typeof Measurement>;
  */
 export const MeasurementResultsPage = z.object({
   items: Measurement.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type MeasurementResultsPage = z.infer<typeof MeasurementResultsPage>;
 
@@ -790,15 +790,15 @@ export type MeasurementResultsPage = z.infer<typeof MeasurementResultsPage>;
 export const NetworkInterface = z.object({
   description: z.string(),
   id: z.string().uuid(),
-  instance_id: z.string().uuid(),
+  instanceId: z.string().uuid(),
   ip: z.string(),
   mac: MacAddr,
   name: Name,
   primary: z.boolean(),
-  subnet_id: z.string().uuid(),
-  time_created: DateType,
-  time_modified: DateType,
-  vpc_id: z.string().uuid(),
+  subnetId: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
+  vpcId: z.string().uuid(),
 });
 export type NetworkInterface = z.infer<typeof NetworkInterface>;
 
@@ -807,7 +807,7 @@ export type NetworkInterface = z.infer<typeof NetworkInterface>;
  */
 export const NetworkInterfaceResultsPage = z.object({
   items: NetworkInterface.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type NetworkInterfaceResultsPage = z.infer<
   typeof NetworkInterfaceResultsPage
@@ -840,8 +840,8 @@ export const Organization = z.object({
   description: z.string(),
   id: z.string().uuid(),
   name: Name,
-  time_created: DateType,
-  time_modified: DateType,
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type Organization = z.infer<typeof Organization>;
 
@@ -859,7 +859,7 @@ export type OrganizationCreate = z.infer<typeof OrganizationCreate>;
  */
 export const OrganizationResultsPage = z.object({
   items: Organization.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type OrganizationResultsPage = z.infer<typeof OrganizationResultsPage>;
 
@@ -872,9 +872,9 @@ export type OrganizationRole = z.infer<typeof OrganizationRole>;
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
 export const OrganizationRoleRoleAssignment = z.object({
-  identity_id: z.string().uuid(),
-  identity_type: IdentityType,
-  role_name: OrganizationRole,
+  identityId: z.string().uuid(),
+  identityType: IdentityType,
+  roleName: OrganizationRole,
 });
 export type OrganizationRoleRoleAssignment = z.infer<
   typeof OrganizationRoleRoleAssignment
@@ -886,7 +886,7 @@ export type OrganizationRoleRoleAssignment = z.infer<
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
 export const OrganizationRolePolicy = z.object({
-  role_assignments: OrganizationRoleRoleAssignment.array(),
+  roleAssignments: OrganizationRoleRoleAssignment.array(),
 });
 export type OrganizationRolePolicy = z.infer<typeof OrganizationRolePolicy>;
 
@@ -906,9 +906,9 @@ export const Project = z.object({
   description: z.string(),
   id: z.string().uuid(),
   name: Name,
-  organization_id: z.string().uuid(),
-  time_created: DateType,
-  time_modified: DateType,
+  organizationId: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type Project = z.infer<typeof Project>;
 
@@ -923,7 +923,7 @@ export type ProjectCreate = z.infer<typeof ProjectCreate>;
  */
 export const ProjectResultsPage = z.object({
   items: Project.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type ProjectResultsPage = z.infer<typeof ProjectResultsPage>;
 
@@ -936,9 +936,9 @@ export type ProjectRole = z.infer<typeof ProjectRole>;
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
 export const ProjectRoleRoleAssignment = z.object({
-  identity_id: z.string().uuid(),
-  identity_type: IdentityType,
-  role_name: ProjectRole,
+  identityId: z.string().uuid(),
+  identityType: IdentityType,
+  roleName: ProjectRole,
 });
 export type ProjectRoleRoleAssignment = z.infer<
   typeof ProjectRoleRoleAssignment
@@ -950,7 +950,7 @@ export type ProjectRoleRoleAssignment = z.infer<
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
 export const ProjectRolePolicy = z.object({
-  role_assignments: ProjectRoleRoleAssignment.array(),
+  roleAssignments: ProjectRoleRoleAssignment.array(),
 });
 export type ProjectRolePolicy = z.infer<typeof ProjectRolePolicy>;
 
@@ -968,8 +968,8 @@ export type ProjectUpdate = z.infer<typeof ProjectUpdate>;
  */
 export const Rack = z.object({
   id: z.string().uuid(),
-  time_created: DateType,
-  time_modified: DateType,
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type Rack = z.infer<typeof Rack>;
 
@@ -978,7 +978,7 @@ export type Rack = z.infer<typeof Rack>;
  */
 export const RackResultsPage = z.object({
   items: Rack.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type RackResultsPage = z.infer<typeof RackResultsPage>;
 
@@ -1004,7 +1004,7 @@ export type Role = z.infer<typeof Role>;
  */
 export const RoleResultsPage = z.object({
   items: Role.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type RoleResultsPage = z.infer<typeof RoleResultsPage>;
 
@@ -1058,9 +1058,9 @@ export const RouterRoute = z.object({
   kind: RouterRouteKind,
   name: Name,
   target: RouteTarget,
-  time_created: DateType,
-  time_modified: DateType,
-  vpc_router_id: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
+  vpcRouterId: z.string().uuid(),
 });
 export type RouterRoute = z.infer<typeof RouterRoute>;
 
@@ -1080,7 +1080,7 @@ export type RouterRouteCreateParams = z.infer<typeof RouterRouteCreateParams>;
  */
 export const RouterRouteResultsPage = z.object({
   items: RouterRoute.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type RouterRouteResultsPage = z.infer<typeof RouterRouteResultsPage>;
 
@@ -1098,7 +1098,7 @@ export type RouterRouteUpdateParams = z.infer<typeof RouterRouteUpdateParams>;
 export const SagaErrorInfo = z.union([
   z.object({
     error: z.enum(["action_failed"]),
-    source_error: z.object({}).optional(),
+    sourceError: z.object({}).optional(),
   }),
   z.object({ error: z.enum(["deserialize_failed"]), message: z.string() }),
   z.object({ error: z.enum(["injected_error"]) }),
@@ -1112,8 +1112,8 @@ export const SagaState = z.union([
   z.object({ state: z.enum(["running"]) }),
   z.object({ state: z.enum(["succeeded"]) }),
   z.object({
-    error_info: SagaErrorInfo,
-    error_node_name: NodeName,
+    errorInfo: SagaErrorInfo,
+    errorNodeName: NodeName,
     state: z.enum(["failed"]),
   }),
 ]);
@@ -1128,7 +1128,7 @@ export type Saga = z.infer<typeof Saga>;
  */
 export const SagaResultsPage = z.object({
   items: Saga.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type SagaResultsPage = z.infer<typeof SagaResultsPage>;
 
@@ -1136,17 +1136,17 @@ export type SagaResultsPage = z.infer<typeof SagaResultsPage>;
  * Identity-related metadata that's included in nearly all public API objects
  */
 export const SamlIdentityProvider = z.object({
-  acs_url: z.string(),
+  acsUrl: z.string(),
   description: z.string(),
   id: z.string().uuid(),
-  idp_entity_id: z.string(),
+  idpEntityId: z.string(),
   name: Name,
-  public_cert: z.string().nullable().optional(),
-  slo_url: z.string(),
-  sp_client_id: z.string(),
-  technical_contact_email: z.string(),
-  time_created: DateType,
-  time_modified: DateType,
+  publicCert: z.string().nullable().optional(),
+  sloUrl: z.string(),
+  spClientId: z.string(),
+  technicalContactEmail: z.string(),
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type SamlIdentityProvider = z.infer<typeof SamlIdentityProvider>;
 
@@ -1154,16 +1154,16 @@ export type SamlIdentityProvider = z.infer<typeof SamlIdentityProvider>;
  * Create-time identity-related parameters
  */
 export const SamlIdentityProviderCreate = z.object({
-  acs_url: z.string(),
+  acsUrl: z.string(),
   description: z.string(),
-  group_attribute_name: z.string().nullable().optional(),
-  idp_entity_id: z.string(),
-  idp_metadata_source: IdpMetadataSource,
+  groupAttributeName: z.string().nullable().optional(),
+  idpEntityId: z.string(),
+  idpMetadataSource: IdpMetadataSource,
   name: Name,
-  signing_keypair: DerEncodedKeyPair.nullable().optional(),
-  slo_url: z.string(),
-  sp_client_id: z.string(),
-  technical_contact_email: z.string(),
+  signingKeypair: DerEncodedKeyPair.nullable().optional(),
+  sloUrl: z.string(),
+  spClientId: z.string(),
+  technicalContactEmail: z.string(),
 });
 export type SamlIdentityProviderCreate = z.infer<
   typeof SamlIdentityProviderCreate
@@ -1183,9 +1183,9 @@ export const Silo = z.object({
   discoverable: z.boolean(),
   id: z.string().uuid(),
   name: Name,
-  time_created: DateType,
-  time_modified: DateType,
-  user_provision_type: UserProvisionType,
+  timeCreated: DateType,
+  timeModified: DateType,
+  userProvisionType: UserProvisionType,
 });
 export type Silo = z.infer<typeof Silo>;
 
@@ -1193,11 +1193,11 @@ export type Silo = z.infer<typeof Silo>;
  * Create-time parameters for a {@link Silo}
  */
 export const SiloCreate = z.object({
-  admin_group_name: z.string().nullable().optional(),
+  adminGroupName: z.string().nullable().optional(),
   description: z.string(),
   discoverable: z.boolean(),
   name: Name,
-  user_provision_type: UserProvisionType,
+  userProvisionType: UserProvisionType,
 });
 export type SiloCreate = z.infer<typeof SiloCreate>;
 
@@ -1206,7 +1206,7 @@ export type SiloCreate = z.infer<typeof SiloCreate>;
  */
 export const SiloResultsPage = z.object({
   items: Silo.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type SiloResultsPage = z.infer<typeof SiloResultsPage>;
 
@@ -1219,9 +1219,9 @@ export type SiloRole = z.infer<typeof SiloRole>;
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
 export const SiloRoleRoleAssignment = z.object({
-  identity_id: z.string().uuid(),
-  identity_type: IdentityType,
-  role_name: SiloRole,
+  identityId: z.string().uuid(),
+  identityType: IdentityType,
+  roleName: SiloRole,
 });
 export type SiloRoleRoleAssignment = z.infer<typeof SiloRoleRoleAssignment>;
 
@@ -1231,7 +1231,7 @@ export type SiloRoleRoleAssignment = z.infer<typeof SiloRoleRoleAssignment>;
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
 export const SiloRolePolicy = z.object({
-  role_assignments: SiloRoleRoleAssignment.array(),
+  roleAssignments: SiloRoleRoleAssignment.array(),
 });
 export type SiloRolePolicy = z.infer<typeof SiloRolePolicy>;
 
@@ -1240,9 +1240,9 @@ export type SiloRolePolicy = z.infer<typeof SiloRolePolicy>;
  */
 export const Sled = z.object({
   id: z.string().uuid(),
-  service_address: z.string(),
-  time_created: DateType,
-  time_modified: DateType,
+  serviceAddress: z.string(),
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type Sled = z.infer<typeof Sled>;
 
@@ -1251,7 +1251,7 @@ export type Sled = z.infer<typeof Sled>;
  */
 export const SledResultsPage = z.object({
   items: Sled.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type SledResultsPage = z.infer<typeof SledResultsPage>;
 
@@ -1268,14 +1268,14 @@ export type SnapshotState = z.infer<typeof SnapshotState>;
  */
 export const Snapshot = z.object({
   description: z.string(),
-  disk_id: z.string().uuid(),
+  diskId: z.string().uuid(),
   id: z.string().uuid(),
   name: Name,
-  project_id: z.string().uuid(),
+  projectId: z.string().uuid(),
   size: ByteCount,
   state: SnapshotState,
-  time_created: DateType,
-  time_modified: DateType,
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type Snapshot = z.infer<typeof Snapshot>;
 
@@ -1294,7 +1294,7 @@ export type SnapshotCreate = z.infer<typeof SnapshotCreate>;
  */
 export const SnapshotResultsPage = z.object({
   items: Snapshot.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type SnapshotResultsPage = z.infer<typeof SnapshotResultsPage>;
 
@@ -1308,10 +1308,10 @@ export const SshKey = z.object({
   description: z.string(),
   id: z.string().uuid(),
   name: Name,
-  public_key: z.string(),
-  silo_user_id: z.string().uuid(),
-  time_created: DateType,
-  time_modified: DateType,
+  publicKey: z.string(),
+  siloUserId: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type SshKey = z.infer<typeof SshKey>;
 
@@ -1321,7 +1321,7 @@ export type SshKey = z.infer<typeof SshKey>;
 export const SshKeyCreate = z.object({
   description: z.string(),
   name: Name,
-  public_key: z.string(),
+  publicKey: z.string(),
 });
 export type SshKeyCreate = z.infer<typeof SshKeyCreate>;
 
@@ -1330,7 +1330,7 @@ export type SshKeyCreate = z.infer<typeof SshKeyCreate>;
  */
 export const SshKeyResultsPage = z.object({
   items: SshKey.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type SshKeyResultsPage = z.infer<typeof SshKeyResultsPage>;
 
@@ -1353,9 +1353,9 @@ export type TimeseriesName = z.infer<typeof TimeseriesName>;
  */
 export const TimeseriesSchema = z.object({
   created: DateType,
-  datum_type: DatumType,
-  field_schema: FieldSchema.array(),
-  timeseries_name: TimeseriesName,
+  datumType: DatumType,
+  fieldSchema: FieldSchema.array(),
+  timeseriesName: TimeseriesName,
 });
 export type TimeseriesSchema = z.infer<typeof TimeseriesSchema>;
 
@@ -1364,7 +1364,7 @@ export type TimeseriesSchema = z.infer<typeof TimeseriesSchema>;
  */
 export const TimeseriesSchemaResultsPage = z.object({
   items: TimeseriesSchema.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type TimeseriesSchemaResultsPage = z.infer<
   typeof TimeseriesSchemaResultsPage
@@ -1374,7 +1374,7 @@ export type TimeseriesSchemaResultsPage = z.infer<
  * Client view of a {@link User}
  */
 export const User = z.object({
-  display_name: z.string(),
+  displayName: z.string(),
   id: z.string().uuid(),
 });
 export type User = z.infer<typeof User>;
@@ -1386,8 +1386,8 @@ export const UserBuiltin = z.object({
   description: z.string(),
   id: z.string().uuid(),
   name: Name,
-  time_created: DateType,
-  time_modified: DateType,
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type UserBuiltin = z.infer<typeof UserBuiltin>;
 
@@ -1396,7 +1396,7 @@ export type UserBuiltin = z.infer<typeof UserBuiltin>;
  */
 export const UserBuiltinResultsPage = z.object({
   items: UserBuiltin.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type UserBuiltinResultsPage = z.infer<typeof UserBuiltinResultsPage>;
 
@@ -1405,7 +1405,7 @@ export type UserBuiltinResultsPage = z.infer<typeof UserBuiltinResultsPage>;
  */
 export const UserResultsPage = z.object({
   items: User.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type UserResultsPage = z.infer<typeof UserResultsPage>;
 
@@ -1414,14 +1414,14 @@ export type UserResultsPage = z.infer<typeof UserResultsPage>;
  */
 export const Vpc = z.object({
   description: z.string(),
-  dns_name: Name,
+  dnsName: Name,
   id: z.string().uuid(),
-  ipv6_prefix: Ipv6Net,
+  ipv6Prefix: Ipv6Net,
   name: Name,
-  project_id: z.string().uuid(),
-  system_router_id: z.string().uuid(),
-  time_created: DateType,
-  time_modified: DateType,
+  projectId: z.string().uuid(),
+  systemRouterId: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
 });
 export type Vpc = z.infer<typeof Vpc>;
 
@@ -1430,8 +1430,8 @@ export type Vpc = z.infer<typeof Vpc>;
  */
 export const VpcCreate = z.object({
   description: z.string(),
-  dns_name: Name,
-  ipv6_prefix: Ipv6Net.nullable().optional(),
+  dnsName: Name,
+  ipv6Prefix: Ipv6Net.nullable().optional(),
   name: Name,
 });
 export type VpcCreate = z.infer<typeof VpcCreate>;
@@ -1502,9 +1502,9 @@ export const VpcFirewallRule = z.object({
   priority: z.number().min(0).max(65535),
   status: VpcFirewallRuleStatus,
   targets: VpcFirewallRuleTarget.array(),
-  time_created: DateType,
-  time_modified: DateType,
-  vpc_id: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
+  vpcId: z.string().uuid(),
 });
 export type VpcFirewallRule = z.infer<typeof VpcFirewallRule>;
 
@@ -1544,7 +1544,7 @@ export type VpcFirewallRules = z.infer<typeof VpcFirewallRules>;
  */
 export const VpcResultsPage = z.object({
   items: Vpc.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type VpcResultsPage = z.infer<typeof VpcResultsPage>;
 
@@ -1559,9 +1559,9 @@ export const VpcRouter = z.object({
   id: z.string().uuid(),
   kind: VpcRouterKind,
   name: Name,
-  time_created: DateType,
-  time_modified: DateType,
-  vpc_id: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
+  vpcId: z.string().uuid(),
 });
 export type VpcRouter = z.infer<typeof VpcRouter>;
 
@@ -1579,7 +1579,7 @@ export type VpcRouterCreate = z.infer<typeof VpcRouterCreate>;
  */
 export const VpcRouterResultsPage = z.object({
   items: VpcRouter.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type VpcRouterResultsPage = z.infer<typeof VpcRouterResultsPage>;
 
@@ -1598,12 +1598,12 @@ export type VpcRouterUpdate = z.infer<typeof VpcRouterUpdate>;
 export const VpcSubnet = z.object({
   description: z.string(),
   id: z.string().uuid(),
-  ipv4_block: Ipv4Net,
-  ipv6_block: Ipv6Net,
+  ipv4Block: Ipv4Net,
+  ipv6Block: Ipv6Net,
   name: Name,
-  time_created: DateType,
-  time_modified: DateType,
-  vpc_id: z.string().uuid(),
+  timeCreated: DateType,
+  timeModified: DateType,
+  vpcId: z.string().uuid(),
 });
 export type VpcSubnet = z.infer<typeof VpcSubnet>;
 
@@ -1612,8 +1612,8 @@ export type VpcSubnet = z.infer<typeof VpcSubnet>;
  */
 export const VpcSubnetCreate = z.object({
   description: z.string(),
-  ipv4_block: Ipv4Net,
-  ipv6_block: Ipv6Net.nullable().optional(),
+  ipv4Block: Ipv4Net,
+  ipv6Block: Ipv6Net.nullable().optional(),
   name: Name,
 });
 export type VpcSubnetCreate = z.infer<typeof VpcSubnetCreate>;
@@ -1623,7 +1623,7 @@ export type VpcSubnetCreate = z.infer<typeof VpcSubnetCreate>;
  */
 export const VpcSubnetResultsPage = z.object({
   items: VpcSubnet.array(),
-  next_page: z.string().nullable().optional(),
+  nextPage: z.string().nullable().optional(),
 });
 export type VpcSubnetResultsPage = z.infer<typeof VpcSubnetResultsPage>;
 
@@ -1641,7 +1641,7 @@ export type VpcSubnetUpdate = z.infer<typeof VpcSubnetUpdate>;
  */
 export const VpcUpdate = z.object({
   description: z.string().nullable().optional(),
-  dns_name: Name.nullable().optional(),
+  dnsName: Name.nullable().optional(),
   name: Name.nullable().optional(),
 });
 export type VpcUpdate = z.infer<typeof VpcUpdate>;
