@@ -590,8 +590,8 @@ export type InstanceNetworkInterfaceAttachment = z.infer<
  */
 export const InstanceCreate = z.object({
   description: z.string(),
-  disks: InstanceDiskAttachment.array().optional(),
-  external_ips: ExternalIpCreate.array().optional(),
+  disks: InstanceDiskAttachment.array().default([]).optional(),
+  external_ips: ExternalIpCreate.array().default([]).optional(),
   hostname: z.string(),
   memory: ByteCount,
   name: Name,
@@ -1448,9 +1448,9 @@ export type VpcFirewallRuleProtocol = z.infer<typeof VpcFirewallRuleProtocol>;
  * Filter for a firewall rule. A given packet must match every field that is present for the rule to apply to it. A packet matches a field if any entry in that field matches the packet.
  */
 export const VpcFirewallRuleFilter = z.object({
-  hosts: VpcFirewallRuleHostFilter.array().optional(),
-  ports: L4PortRange.array().optional(),
-  protocols: VpcFirewallRuleProtocol.array().optional(),
+  hosts: VpcFirewallRuleHostFilter.array().nullable().optional(),
+  ports: L4PortRange.array().nullable().optional(),
+  protocols: VpcFirewallRuleProtocol.array().nullable().optional(),
 });
 export type VpcFirewallRuleFilter = z.infer<typeof VpcFirewallRuleFilter>;
 

@@ -110,6 +110,12 @@ function schemaToZodArray(schema: OpenAPIV3.ArraySchemaObject, io: IO) {
   const { w0 } = io;
   schemaToZod(schema.items, io);
   w0(".array()");
+  if ("default" in schema) {
+    w0(`.default(${JSON.stringify(schema.default)})`);
+  }
+  if ("nullable" in schema) {
+    w0(".nullable()");
+  }
 }
 
 function schemaToZodObject(schema: OpenAPIV3.SchemaObject, io: IO) {
