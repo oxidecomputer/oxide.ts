@@ -64,7 +64,10 @@ export const Binint64 = z.object({
 });
 export type Binint64 = z.infer<typeof Binint64>;
 
-export const BlockSize = IntEnum([512, 2048, 4096]);
+/**
+ * disk block size in bytes
+ */
+export const BlockSize = IntEnum([512, 2048, 4096] as const);
 export type BlockSize = z.infer<typeof BlockSize>;
 
 /**
@@ -209,6 +212,8 @@ export const Digest = z.object({ type: z.enum(["sha256"]), value: z.string() });
 export type Digest = z.infer<typeof Digest>;
 
 /**
+ * A name unique within the parent collection
+ *
  * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
  */
 export const Name = z
@@ -633,6 +638,8 @@ export type InstanceSerialConsoleData = z.infer<
 >;
 
 /**
+ * An IPv4 subnet
+ *
  * An IPv4 subnet, including prefix and subnet mask
  */
 export const Ipv4Net = z
@@ -643,6 +650,8 @@ export const Ipv4Net = z
 export type Ipv4Net = z.infer<typeof Ipv4Net>;
 
 /**
+ * An IPv6 subnet
+ *
  * An IPv6 subnet, including prefix and subnet mask
  */
 export const Ipv6Net = z
@@ -737,6 +746,8 @@ export const IpPoolUpdate = z.object({
 export type IpPoolUpdate = z.infer<typeof IpPoolUpdate>;
 
 /**
+ * A range of IP ports
+ *
  * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
  */
 export const L4PortRange = z
@@ -747,6 +758,8 @@ export const L4PortRange = z
 export type L4PortRange = z.infer<typeof L4PortRange>;
 
 /**
+ * A MAC address
+ *
  * A Media Access Control address, in EUI-48 format
  */
 export const MacAddr = z
@@ -970,6 +983,8 @@ export const RackResultsPage = z.object({
 export type RackResultsPage = z.infer<typeof RackResultsPage>;
 
 /**
+ * A name for a built-in role
+ *
  * Role names consist of two string components separated by dot (".").
  */
 export const RoleName = z
@@ -1320,6 +1335,8 @@ export const SshKeyResultsPage = z.object({
 export type SshKeyResultsPage = z.infer<typeof SshKeyResultsPage>;
 
 /**
+ * The name of a timeseries
+ *
  * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
  */
 export const TimeseriesName = z

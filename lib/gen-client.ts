@@ -132,8 +132,11 @@ export async function generateClient(specFile: string) {
       continue;
     }
 
-    if ("description" in schema) {
-      docComment(schema.description, schemaNames);
+    if ("description" in schema || "title" in schema) {
+      docComment(
+        [schema.title, schema.description].filter((n) => n).join("\n\n"),
+        schemaNames
+      );
     }
 
     w0(`export const ${schemaName} =`);
@@ -155,8 +158,13 @@ export async function generateClient(specFile: string) {
         if ("name" in param) {
           if (param.schema) {
             const isQuery = param.in === "query";
-            if ("description" in param.schema) {
-              docComment(param.schema.description, schemaNames);
+            if ("description" in param.schema || "title" in param.schema) {
+              docComment(
+                [param.schema.title, param.schema.description]
+                  .filter((n) => n)
+                  .join("\n\n"),
+                schemaNames
+              );
             }
 
             w0(`  ${processParamName(param.name)}`);
