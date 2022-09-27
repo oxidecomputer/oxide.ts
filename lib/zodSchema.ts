@@ -90,7 +90,7 @@ function schemaToZodEnum(schema: OpenAPIV3.SchemaObject, io: IO) {
 function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   if ("enum" in schema) {
     /**  See comment in {@link setupZod} */
-    w0(`IntEnum(${JSON.stringify(schema.enum)})`);
+    w0(`IntEnum(${JSON.stringify(schema.enum)} as const)`);
   } else {
     w0(`z.number()`);
   }
