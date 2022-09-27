@@ -68,16 +68,16 @@ function schemaToZodString(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   if (schema.format === "uuid") {
     w0(".uuid()");
   }
-  if (schema.minLength) {
+  if ("minLength" in schema) {
     w0(`.min(${schema.minLength})`);
   }
-  if (schema.maxLength) {
+  if ("maxLength" in schema) {
     w0(`.max(${schema.maxLength})`);
   }
-  if (schema.pattern) {
-    w0(`.regex(${new RegExp(schema.pattern).toString()})`);
+  if ("pattern" in schema) {
+    w0(`.regex(${new RegExp(schema.pattern!).toString()})`);
   }
-  if (schema.nullable) {
+  if ("nullable" in schema) {
     w0(".nullable()");
   }
 }
@@ -100,7 +100,7 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   }
 
   const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) || [];
-  if (schema.minimum) {
+  if ("minimum" in schema) {
     w0(`.min(${schema.minimum})`);
   } else if (unsigned) {
     w0(`.min(0)`);
@@ -108,7 +108,7 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
     w0(`.min(-${Math.pow(2, parseInt(size) - 1) - 1})`);
   }
 
-  if (schema.maximum) {
+  if ("maximum" in schema) {
     w0(`.max(${schema.maximum})`);
   } else if (size && unsigned && parseInt(size) < 64) {
     w0(`.max(${Math.pow(2, parseInt(size)) - 1})`);
@@ -117,7 +117,7 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
     w0(`.max(${Math.pow(2, parseInt(size) - 1) - 1})`);
   }
 
-  if (schema.nullable) {
+  if ("nullable" in schema) {
     w0(".nullable()");
   }
 }
