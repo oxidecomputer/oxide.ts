@@ -4,12 +4,22 @@ import { refToSchemaName, Schema } from "./schema";
 import { OpenAPIV3 } from "openapi-types";
 
 export function setupZod({ w }: IO) {
-  w("import { z } from 'zod';");
+  w("import { z, ZodType } from 'zod';");
   w(`
     const DateType = z.preprocess((arg) => {
       if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
     }, z.date());
-    type DateType = z.infer<typeof DateType>;
+    type DateType = z.infer<typeof DateType>;`);
+
+  /**
+   * Zod only supports string enums at the moment. A previous issue was opened
+   * and closed as stale but it provided a hint on how to implement it.
+   *
+   * @see https://github.com/colinhacks/zod/issues/1118
+   * TODO: PR an update for zod to support other native enum types
+   */
+  w(`const IntEnum = <T extends readonly number[]>(values: T) => 
+      z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
   `);
 }
 
@@ -78,7 +88,13 @@ function schemaToZodEnum(schema: OpenAPIV3.SchemaObject, io: IO) {
 }
 
 function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
-  w0(`z.number()`);
+  if ("enum" in schema) {
+    /**  See comment in {@link setupZod} */
+    w0(`IntEnum(${JSON.stringify(schema.enum)})`);
+  } else {
+    w0(`z.number()`);
+  }
+
   if (schema.default) {
     w0(`.default(${schema.default})`);
   }

@@ -1,7 +1,6 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { OpenAPIV3 } from "openapi-types";
 import { match, P } from "ts-pattern";
-import { expect } from "vitest";
 
 type SchemaTypes = Record<
   NonNullable<OpenAPIV3.SchemaObject["type"]> | "oneOf" | "allOf",

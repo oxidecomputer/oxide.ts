@@ -2,12 +2,14 @@
 
 import type { RequestParams } from "./http-client";
 import { HttpClient } from "./http-client";
-import { z } from "zod";
+import { z, ZodType } from "zod";
 
 const DateType = z.preprocess((arg) => {
   if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
 }, z.date());
 type DateType = z.infer<typeof DateType>;
+const IntEnum = <T extends readonly number[]>(values: T) =>
+  z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
 
 export type {
   ApiConfig,
@@ -62,7 +64,7 @@ export const Binint64 = z.object({
 });
 export type Binint64 = z.infer<typeof Binint64>;
 
-export const BlockSize = z.number();
+export const BlockSize = IntEnum([512, 2048, 4096]);
 export type BlockSize = z.infer<typeof BlockSize>;
 
 /**
