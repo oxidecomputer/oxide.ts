@@ -33,7 +33,7 @@ export function schemaToZod(schema: Schema, io: IO) {
     .with({ type: "array" }, (s) => schemaToZodArray(s, io))
     .with({ type: "object" }, () => schemaToZodObject(schema, io))
     .with({ oneOf: P.not(P.nullish) }, () => schemaToZodUnion(schema, io))
-    .with({ allOf: P.not(P.nullish) }, (s) => schemaToZod(s.allOf[0], io))
+    .with({ allOf: P.not(P.nullish) }, () => schemaToZodAllOf(schema, io))
     .with({}, () => w0("z.object({}).optional()"))
     .otherwise(() => {
       throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(schema, null, 2)}`);
@@ -141,4 +141,33 @@ function schemaToZodUnion(schema: OpenAPIV3.SchemaObject, io: IO) {
     w(",");
   }
   w("])");
+}
+
+function schemaToZodAllOf(schema: OpenAPIV3.SchemaObject, io: IO) {
+  if (!schema.allOf) return;
+  const { w, w0 } = io;
+
+  if (schema.allOf.length === 0) {
+    throw new Error(
+      `Unexpected "allOf" should have at least one schema: ${schema}`
+    );
+  }
+
+  if (schema.allOf.length === 1) {
+    schemaToZod(schema.allOf[0], io);
+  } else {
+    w("z.intersection([");
+    for (const s of schema.allOf) {
+      schemaToZod(s, io);
+      w(",");
+    }
+    w("])");
+  }
+
+  if ("default" in schema) {
+    w0(`.default(${JSON.stringify(schema.default)})`);
+  }
+  if ("nullable" in schema) {
+    w0(`.nullable()`);
+  }
 }

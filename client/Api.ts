@@ -308,7 +308,7 @@ export type ExternalIp = z.infer<typeof ExternalIp>;
  * Parameters for creating an external IP address for instances.
  */
 export const ExternalIpCreate = z.object({
-  pool_name: Name.optional(),
+  pool_name: Name.nullable().optional(),
   type: z.enum(["ephemeral"]),
 });
 
@@ -382,7 +382,7 @@ export type FleetRolePolicy = z.infer<typeof FleetRolePolicy>;
 export const GlobalImage = z.object({
   block_size: ByteCount,
   description: z.string(),
-  digest: Digest.optional(),
+  digest: Digest.nullable().optional(),
   distribution: z.string(),
   id: z.string().uuid(),
   name: Name,
@@ -466,7 +466,7 @@ export type IdpMetadataSource = z.infer<typeof IdpMetadataSource>;
 export const Image = z.object({
   block_size: ByteCount,
   description: z.string(),
-  digest: Digest.optional(),
+  digest: Digest.nullable().optional(),
   id: z.string().uuid(),
   name: Name,
   project_id: z.string().uuid(),
@@ -596,7 +596,9 @@ export const InstanceCreate = z.object({
   memory: ByteCount,
   name: Name,
   ncpus: InstanceCpuCount,
-  network_interfaces: InstanceNetworkInterfaceAttachment.optional(),
+  network_interfaces: InstanceNetworkInterfaceAttachment.default({
+    type: "default",
+  }).optional(),
   start: z.boolean().default(true).optional(),
   user_data: z.string().default("").optional(),
 });
@@ -728,7 +730,7 @@ export type IpPoolResultsPage = z.infer<typeof IpPoolResultsPage>;
  */
 export const IpPoolUpdate = z.object({
   description: z.string().nullable().optional(),
-  name: Name.optional(),
+  name: Name.nullable().optional(),
 });
 export type IpPoolUpdate = z.infer<typeof IpPoolUpdate>;
 
@@ -803,7 +805,7 @@ export type NetworkInterfaceResultsPage = z.infer<
  */
 export const NetworkInterfaceUpdate = z.object({
   description: z.string().nullable().optional(),
-  name: Name.optional(),
+  name: Name.nullable().optional(),
   primary: z.boolean().default(false).optional(),
 });
 export type NetworkInterfaceUpdate = z.infer<typeof NetworkInterfaceUpdate>;
@@ -878,7 +880,7 @@ export type OrganizationRolePolicy = z.infer<typeof OrganizationRolePolicy>;
  */
 export const OrganizationUpdate = z.object({
   description: z.string().nullable().optional(),
-  name: Name.optional(),
+  name: Name.nullable().optional(),
 });
 export type OrganizationUpdate = z.infer<typeof OrganizationUpdate>;
 
@@ -942,7 +944,7 @@ export type ProjectRolePolicy = z.infer<typeof ProjectRolePolicy>;
  */
 export const ProjectUpdate = z.object({
   description: z.string().nullable().optional(),
-  name: Name.optional(),
+  name: Name.nullable().optional(),
 });
 export type ProjectUpdate = z.infer<typeof ProjectUpdate>;
 
@@ -1071,7 +1073,7 @@ export type RouterRouteResultsPage = z.infer<typeof RouterRouteResultsPage>;
 export const RouterRouteUpdateParams = z.object({
   description: z.string().nullable().optional(),
   destination: RouteDestination,
-  name: Name.optional(),
+  name: Name.nullable().optional(),
   target: RouteTarget,
 });
 export type RouterRouteUpdateParams = z.infer<typeof RouterRouteUpdateParams>;
@@ -1141,7 +1143,7 @@ export const SamlIdentityProviderCreate = z.object({
   idp_entity_id: z.string(),
   idp_metadata_source: IdpMetadataSource,
   name: Name,
-  signing_keypair: DerEncodedKeyPair.optional(),
+  signing_keypair: DerEncodedKeyPair.nullable().optional(),
   slo_url: z.string(),
   sp_client_id: z.string(),
   technical_contact_email: z.string(),
@@ -1410,7 +1412,7 @@ export type Vpc = z.infer<typeof Vpc>;
 export const VpcCreate = z.object({
   description: z.string(),
   dns_name: Name,
-  ipv6_prefix: Ipv6Net.optional(),
+  ipv6_prefix: Ipv6Net.nullable().optional(),
   name: Name,
 });
 export type VpcCreate = z.infer<typeof VpcCreate>;
@@ -1567,7 +1569,7 @@ export type VpcRouterResultsPage = z.infer<typeof VpcRouterResultsPage>;
  */
 export const VpcRouterUpdate = z.object({
   description: z.string().nullable().optional(),
-  name: Name.optional(),
+  name: Name.nullable().optional(),
 });
 export type VpcRouterUpdate = z.infer<typeof VpcRouterUpdate>;
 
@@ -1592,7 +1594,7 @@ export type VpcSubnet = z.infer<typeof VpcSubnet>;
 export const VpcSubnetCreate = z.object({
   description: z.string(),
   ipv4_block: Ipv4Net,
-  ipv6_block: Ipv6Net.optional(),
+  ipv6_block: Ipv6Net.nullable().optional(),
   name: Name,
 });
 export type VpcSubnetCreate = z.infer<typeof VpcSubnetCreate>;
@@ -1611,7 +1613,7 @@ export type VpcSubnetResultsPage = z.infer<typeof VpcSubnetResultsPage>;
  */
 export const VpcSubnetUpdate = z.object({
   description: z.string().nullable().optional(),
-  name: Name.optional(),
+  name: Name.nullable().optional(),
 });
 export type VpcSubnetUpdate = z.infer<typeof VpcSubnetUpdate>;
 
@@ -1620,8 +1622,8 @@ export type VpcSubnetUpdate = z.infer<typeof VpcSubnetUpdate>;
  */
 export const VpcUpdate = z.object({
   description: z.string().nullable().optional(),
-  dns_name: Name.optional(),
-  name: Name.optional(),
+  dns_name: Name.nullable().optional(),
+  name: Name.nullable().optional(),
 });
 export type VpcUpdate = z.infer<typeof VpcUpdate>;
 
