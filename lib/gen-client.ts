@@ -6,7 +6,6 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import {
-  pascalToCamel,
   pathToTemplateStr,
   processParamName,
   snakeToCamel,
@@ -156,9 +155,6 @@ export async function generateClient(specFile: string) {
         if ("name" in param) {
           if (param.schema) {
             const isQuery = param.in === "query";
-            const nullable =
-              "nullable" in param.schema && param.schema.nullable;
-
             if ("description" in param.schema) {
               docComment(param.schema.description, schemaNames);
             }
