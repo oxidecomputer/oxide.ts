@@ -24,7 +24,7 @@
     "gen-from": "./tools/gen.sh",
     "postgen": "prettier --parser typescript --write ./client",
     "postgen-from": "npm run postgen",
-    "pretest": "npm run build",
+    "pretest": "npm run gen",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "tsc": "tsc"
@@ -38,8 +38,10 @@
     "openapi-types": "^12.0.0",
     "prettier": "2.7.1",
     "swagger-parser": "^10.0.3",
+    "ts-pattern": "^4.0.5",
     "tsup": "^6.2.3",
     "typescript": "^4.7.4",
-    "vitest": "^0.22.0"
+    "vitest": "^0.22.0",
+    "zod": "^3.19.1"
   }
 }

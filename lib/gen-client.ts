@@ -6,35 +6,19 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import {
-  pascalToCamel,
   pathToTemplateStr,
   processParamName,
   snakeToCamel,
   snakeToPascal,
+  topologicalSort,
 } from "./util";
+import { schemaToZod, setupZod } from "./zodSchema";
+import { initIO, outDir } from "./io";
+import { refToSchemaName, Schema } from "./schema";
 
-const destDirArg = process.argv[3];
-
-if (!destDirArg) throw Error("Missing destDir argument");
-
-// used later to copy files
-const destDir = path.resolve(process.cwd(), destDirArg);
-
-const out = fs.createWriteStream(path.resolve(destDir, "Api.ts"), {
-  flags: "w",
-});
-
-/** write to file with newline */
-function w(s: string) {
-  out.write(s + "\n");
-}
-
-/** same as w() but no newline */
-function w0(s: string) {
-  out.write(s);
-}
-
-const refToSchemaName = (s: string) => s.replace("#/components/schemas/", "");
+const destDir = outDir();
+const io = initIO(destDir);
+const { w, w0, out } = io;
 
 /**
  * Convert ``[`Vpc`](crate::external_api::views::Vpc)`` or plain ``[`Vpc`]`` to
@@ -57,91 +41,6 @@ function docComment(s: string | undefined, schemaNames: string[]) {
       w("* " + line);
     }
     w(" */");
-  }
-}
-
-type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
-
-type SchemaToTypeOpts = {
-  propsInline?: boolean;
-  name?: string;
-  schemaNames?: string[]; // only here to pass to docComment
-};
-
-function schemaToType(schema: Schema, opts: SchemaToTypeOpts = {}) {
-  if ("$ref" in schema) {
-    w0(refToSchemaName(schema.$ref));
-    return;
-  }
-
-  if (schema.type === "string") {
-    if (schema.enum) {
-      if (schema.enum.length === 1) {
-        w0(`'${schema.enum[0]}'`);
-      } else {
-        for (const item of schema.enum) {
-          w(`  | "${item}"`);
-        }
-      }
-    } else if (
-      schema.format === "date-time" &&
-      (opts.name?.startsWith("time_") || opts.name === "timestamp")
-    ) {
-      w0("Date");
-    } else {
-      w0("string");
-    }
-  } else if (schema.oneOf) {
-    for (const prop of schema.oneOf) {
-      w0("  | ");
-      schemaToType(prop, { ...opts, propsInline: true });
-    }
-  } else if (schema.type === "array") {
-    schemaToType(schema.items, opts);
-    w0("[]");
-  } else if (schema.allOf && schema.allOf.length === 1) {
-    schemaToType(schema.allOf[0], opts);
-  } else if (schema.type === "integer" || schema.type === "number") {
-    w0("number");
-  } else if (schema.type === "boolean") {
-    w0("boolean");
-  } else if (schema.type === "object") {
-    if (
-      schema.additionalProperties &&
-      typeof schema.additionalProperties === "object"
-    ) {
-      w0("Record<string, ");
-      schemaToType(schema.additionalProperties, opts);
-      w0(">");
-    } else {
-      // hack for getting cute inline object types for unions
-      const suffix = opts.propsInline ? "" : "\n";
-      w0("{ " + suffix);
-      for (const propName in schema.properties) {
-        const prop = schema.properties[propName];
-        const nullable =
-          ("nullable" in prop && prop.nullable) ||
-          !schema.required ||
-          !schema.required.includes(propName);
-
-        if ("description" in prop) {
-          docComment(prop.description, opts.schemaNames || []);
-        }
-
-        w0(snakeToCamel(propName));
-        if (nullable) w0("?");
-        w0(": ");
-        schemaToType(prop, { ...opts, name: propName });
-        if (nullable) w0(" | null");
-        w0(", " + suffix);
-      }
-      w(" }");
-    }
-  } else if (typeof schema === "object" && Object.keys(schema).length === 0) {
-    w0("any");
-  } else {
-    const err = { name: opts.name, schema };
-    throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(err, null, 2)}`);
   }
 }
 
@@ -196,9 +95,11 @@ export async function generateClient(specFile: string) {
   );
 
   w(`import type { RequestParams } from './http-client'
-    import { HttpClient } from './http-client'
+    import { HttpClient } from './http-client'`);
 
-    export type {
+  setupZod(io);
+
+  w(`export type {
       ApiConfig, 
       ApiError, 
       ApiResult,
@@ -208,10 +109,18 @@ export async function generateClient(specFile: string) {
     } from './http-client'
     `);
 
-  const schemaNames = Object.keys(spec.components.schemas || {});
+  const unsortedSchemaNames = Object.keys(spec.components.schemas || {});
+  const schemaDeps: [name: string, deps: string[] | undefined][] =
+    unsortedSchemaNames.map((name) => [
+      name,
+      JSON.stringify(spec.components!.schemas![name])
+        .match(/#\/components\/schemas\/[A-Za-z0-9]+/g)
+        ?.map((s) => s.replace("#/components/schemas/", "")),
+    ]);
+  const schemaNames = topologicalSort(schemaDeps);
 
-  for (const schemaName in spec.components.schemas) {
-    const schema = spec.components.schemas[schemaName];
+  for (const schemaName of schemaNames) {
+    const schema = spec.components.schemas![schemaName];
 
     // Special case for Error type for two reasons:
     //   1) Error is already a thing in JS, so we rename to ErrorBody. This
@@ -223,22 +132,16 @@ export async function generateClient(specFile: string) {
       continue;
     }
 
-    if ("description" in schema) {
-      docComment(schema.description, schemaNames);
+    if ("description" in schema || "title" in schema) {
+      docComment(
+        [schema.title, schema.description].filter((n) => n).join("\n\n"),
+        schemaNames
+      );
     }
 
-    w0(`export type ${schemaName} =`);
-
-    schemaToType(schema, { schemaNames });
-    w("\n");
-
-    if ("type" in schema && schema.type === "string" && schema.pattern) {
-      w(`/** Regex pattern for validating ${schemaName} */`);
-      w(`export const ${pascalToCamel(schemaName)}Pattern = `);
-      // make pattern a string for now because one of them doesn't actually
-      // parse as a regex. consider changing to `/${pattern}/` once fixed
-      w(`"${schema.pattern}"\n`);
-    }
+    w0(`export const ${schemaName} =`);
+    schemaToZod(schema, io);
+    w(`export type ${schemaName} = z.infer<typeof ${schemaName}>\n`);
   }
 
   for (const path in spec.paths) {
@@ -250,28 +153,30 @@ export async function generateClient(specFile: string) {
 
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
-      w(`export interface ${opName}Params {`);
+      w(`export const ${opName}Params = z.object({`);
       for (const param of params || []) {
         if ("name" in param) {
           if (param.schema) {
             const isQuery = param.in === "query";
-            const nullable =
-              "nullable" in param.schema && param.schema.nullable;
-
-            if ("description" in param.schema) {
-              docComment(param.schema.description, schemaNames);
+            if ("description" in param.schema || "title" in param.schema) {
+              docComment(
+                [param.schema.title, param.schema.description]
+                  .filter((n) => n)
+                  .join("\n\n"),
+                schemaNames
+              );
             }
 
             w0(`  ${processParamName(param.name)}`);
-            if (nullable || isQuery) w0("?");
             w0(": ");
-            schemaToType(param.schema, { schemaNames });
-            if (nullable) w0(" | null");
+            schemaToZod(param.schema, io);
+            if (isQuery) w0(".optional()");
             w(",");
           }
         }
       }
-      w(`}`);
+      w(`})`);
+      w(`export type ${opName}Params = z.infer<typeof ${opName}Params>`);
       w("");
     }
   }
