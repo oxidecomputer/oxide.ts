@@ -1170,10 +1170,10 @@ export type SamlIdentityProviderCreate = z.infer<
 >;
 
 /**
- * How users will be provisioned in a silo during authentication.
+ * Describes how identities are managed and users are authenticated in this Silo
  */
-export const UserProvisionType = z.enum(["fixed", "jit"]);
-export type UserProvisionType = z.infer<typeof UserProvisionType>;
+export const SiloIdentityMode = z.enum(["saml_jit", "local_only"]);
+export type SiloIdentityMode = z.infer<typeof SiloIdentityMode>;
 
 /**
  * Client view of a ['Silo']
@@ -1182,10 +1182,10 @@ export const Silo = z.object({
   description: z.string(),
   discoverable: z.boolean(),
   id: z.string().uuid(),
+  identityMode: SiloIdentityMode,
   name: Name,
   timeCreated: DateType,
   timeModified: DateType,
-  userProvisionType: UserProvisionType,
 });
 export type Silo = z.infer<typeof Silo>;
 
@@ -1196,8 +1196,8 @@ export const SiloCreate = z.object({
   adminGroupName: z.string().nullable().optional(),
   description: z.string(),
   discoverable: z.boolean(),
+  identityMode: SiloIdentityMode,
   name: Name,
-  userProvisionType: UserProvisionType,
 });
 export type SiloCreate = z.infer<typeof SiloCreate>;
 
@@ -1647,22 +1647,6 @@ export const VpcUpdate = z.object({
 export type VpcUpdate = z.infer<typeof VpcUpdate>;
 
 /**
- * Supported set of sort modes for scanning by id only.
- *
- * Currently, we only support scanning in ascending order.
- */
-export const IdSortMode = z.enum(["id_ascending"]);
-export type IdSortMode = z.infer<typeof IdSortMode>;
-
-/**
- * Supported set of sort modes for scanning by name only
- *
- * Currently, we only support scanning in ascending order.
- */
-export const NameSortMode = z.enum(["name_ascending"]);
-export type NameSortMode = z.infer<typeof NameSortMode>;
-
-/**
  * Supported set of sort modes for scanning by name or id
  */
 export const NameOrIdSortMode = z.enum([
@@ -1671,6 +1655,14 @@ export const NameOrIdSortMode = z.enum([
   "id_ascending",
 ]);
 export type NameOrIdSortMode = z.infer<typeof NameOrIdSortMode>;
+
+/**
+ * Supported set of sort modes for scanning by name only
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export const NameSortMode = z.enum(["name_ascending"]);
+export type NameSortMode = z.infer<typeof NameSortMode>;
 
 export const DiskMetricName = z.enum([
   "activated",
@@ -1682,17 +1674,18 @@ export const DiskMetricName = z.enum([
 ]);
 export type DiskMetricName = z.infer<typeof DiskMetricName>;
 
+/**
+ * Supported set of sort modes for scanning by id only.
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export const IdSortMode = z.enum(["id_ascending"]);
+export type IdSortMode = z.infer<typeof IdSortMode>;
+
 export const DiskViewByIdParams = z.object({
   id: z.string().uuid(),
 });
 export type DiskViewByIdParams = z.infer<typeof DiskViewByIdParams>;
-
-export const ImageGlobalViewByIdParams = z.object({
-  id: z.string().uuid(),
-});
-export type ImageGlobalViewByIdParams = z.infer<
-  typeof ImageGlobalViewByIdParams
->;
 
 export const ImageViewByIdParams = z.object({
   id: z.string().uuid(),
@@ -1759,134 +1752,20 @@ export type DeviceAuthConfirmParams = z.infer<typeof DeviceAuthConfirmParams>;
 export const DeviceAccessTokenParams = z.object({});
 export type DeviceAccessTokenParams = z.infer<typeof DeviceAccessTokenParams>;
 
-export const RackListParams = z.object({
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-  sortBy: IdSortMode.optional(),
-});
-export type RackListParams = z.infer<typeof RackListParams>;
+export const LoginSpoofParams = z.object({});
+export type LoginSpoofParams = z.infer<typeof LoginSpoofParams>;
 
-export const RackViewParams = z.object({
-  rackId: z.string().uuid(),
-});
-export type RackViewParams = z.infer<typeof RackViewParams>;
-
-export const SledListParams = z.object({
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-  sortBy: IdSortMode.optional(),
-});
-export type SledListParams = z.infer<typeof SledListParams>;
-
-export const SledViewParams = z.object({
-  sledId: z.string().uuid(),
-});
-export type SledViewParams = z.infer<typeof SledViewParams>;
-
-export const ImageGlobalListParams = z.object({
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-  sortBy: NameSortMode.optional(),
-});
-export type ImageGlobalListParams = z.infer<typeof ImageGlobalListParams>;
-
-export const ImageGlobalCreateParams = z.object({});
-export type ImageGlobalCreateParams = z.infer<typeof ImageGlobalCreateParams>;
-
-export const ImageGlobalViewParams = z.object({
-  imageName: Name,
-});
-export type ImageGlobalViewParams = z.infer<typeof ImageGlobalViewParams>;
-
-export const ImageGlobalDeleteParams = z.object({
-  imageName: Name,
-});
-export type ImageGlobalDeleteParams = z.infer<typeof ImageGlobalDeleteParams>;
-
-export const IpPoolListParams = z.object({
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-  sortBy: NameOrIdSortMode.optional(),
-});
-export type IpPoolListParams = z.infer<typeof IpPoolListParams>;
-
-export const IpPoolCreateParams = z.object({});
-export type IpPoolCreateParams = z.infer<typeof IpPoolCreateParams>;
-
-export const IpPoolViewParams = z.object({
-  poolName: Name,
-});
-export type IpPoolViewParams = z.infer<typeof IpPoolViewParams>;
-
-export const IpPoolUpdateParams = z.object({
-  poolName: Name,
-});
-export type IpPoolUpdateParams = z.infer<typeof IpPoolUpdateParams>;
-
-export const IpPoolDeleteParams = z.object({
-  poolName: Name,
-});
-export type IpPoolDeleteParams = z.infer<typeof IpPoolDeleteParams>;
-
-export const IpPoolRangeListParams = z.object({
-  poolName: Name,
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-});
-export type IpPoolRangeListParams = z.infer<typeof IpPoolRangeListParams>;
-
-export const IpPoolRangeAddParams = z.object({
-  poolName: Name,
-});
-export type IpPoolRangeAddParams = z.infer<typeof IpPoolRangeAddParams>;
-
-export const IpPoolRangeRemoveParams = z.object({
-  poolName: Name,
-});
-export type IpPoolRangeRemoveParams = z.infer<typeof IpPoolRangeRemoveParams>;
-
-export const IpPoolServiceViewParams = z.object({
-  rackId: z.string().uuid(),
-});
-export type IpPoolServiceViewParams = z.infer<typeof IpPoolServiceViewParams>;
-
-export const IpPoolServiceRangeListParams = z.object({
-  rackId: z.string().uuid(),
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-});
-export type IpPoolServiceRangeListParams = z.infer<
-  typeof IpPoolServiceRangeListParams
->;
-
-export const IpPoolServiceRangeAddParams = z.object({
-  rackId: z.string().uuid(),
-});
-export type IpPoolServiceRangeAddParams = z.infer<
-  typeof IpPoolServiceRangeAddParams
->;
-
-export const IpPoolServiceRangeRemoveParams = z.object({
-  rackId: z.string().uuid(),
-});
-export type IpPoolServiceRangeRemoveParams = z.infer<
-  typeof IpPoolServiceRangeRemoveParams
->;
-
-export const SpoofLoginParams = z.object({});
-export type SpoofLoginParams = z.infer<typeof SpoofLoginParams>;
-
-export const LoginParams = z.object({
+export const LoginSamlBeginParams = z.object({
   providerName: Name,
   siloName: Name,
 });
-export type LoginParams = z.infer<typeof LoginParams>;
+export type LoginSamlBeginParams = z.infer<typeof LoginSamlBeginParams>;
 
-export const ConsumeCredentialsParams = z.object({
+export const LoginSamlParams = z.object({
   providerName: Name,
   siloName: Name,
 });
-export type ConsumeCredentialsParams = z.infer<typeof ConsumeCredentialsParams>;
+export type LoginSamlParams = z.infer<typeof LoginSamlParams>;
 
 export const LogoutParams = z.object({});
 export type LogoutParams = z.infer<typeof LogoutParams>;
@@ -2445,18 +2324,6 @@ export const RoleViewParams = z.object({
 });
 export type RoleViewParams = z.infer<typeof RoleViewParams>;
 
-export const SagaListParams = z.object({
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-  sortBy: IdSortMode.optional(),
-});
-export type SagaListParams = z.infer<typeof SagaListParams>;
-
-export const SagaViewParams = z.object({
-  sagaId: z.string().uuid(),
-});
-export type SagaViewParams = z.infer<typeof SagaViewParams>;
-
 export const SessionMeParams = z.object({});
 export type SessionMeParams = z.infer<typeof SessionMeParams>;
 
@@ -2483,6 +2350,155 @@ export const SessionSshkeyDeleteParams = z.object({
 export type SessionSshkeyDeleteParams = z.infer<
   typeof SessionSshkeyDeleteParams
 >;
+
+export const SystemImageViewByIdParams = z.object({
+  id: z.string().uuid(),
+});
+export type SystemImageViewByIdParams = z.infer<
+  typeof SystemImageViewByIdParams
+>;
+
+export const IpPoolViewByIdParams = z.object({
+  id: z.string().uuid(),
+});
+export type IpPoolViewByIdParams = z.infer<typeof IpPoolViewByIdParams>;
+
+export const SiloViewByIdParams = z.object({
+  id: z.string().uuid(),
+});
+export type SiloViewByIdParams = z.infer<typeof SiloViewByIdParams>;
+
+export const RackListParams = z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: IdSortMode.optional(),
+});
+export type RackListParams = z.infer<typeof RackListParams>;
+
+export const RackViewParams = z.object({
+  rackId: z.string().uuid(),
+});
+export type RackViewParams = z.infer<typeof RackViewParams>;
+
+export const SledListParams = z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: IdSortMode.optional(),
+});
+export type SledListParams = z.infer<typeof SledListParams>;
+
+export const SledViewParams = z.object({
+  sledId: z.string().uuid(),
+});
+export type SledViewParams = z.infer<typeof SledViewParams>;
+
+export const SystemImageListParams = z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: NameSortMode.optional(),
+});
+export type SystemImageListParams = z.infer<typeof SystemImageListParams>;
+
+export const SystemImageCreateParams = z.object({});
+export type SystemImageCreateParams = z.infer<typeof SystemImageCreateParams>;
+
+export const SystemImageViewParams = z.object({
+  imageName: Name,
+});
+export type SystemImageViewParams = z.infer<typeof SystemImageViewParams>;
+
+export const SystemImageDeleteParams = z.object({
+  imageName: Name,
+});
+export type SystemImageDeleteParams = z.infer<typeof SystemImageDeleteParams>;
+
+export const IpPoolListParams = z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: NameOrIdSortMode.optional(),
+});
+export type IpPoolListParams = z.infer<typeof IpPoolListParams>;
+
+export const IpPoolCreateParams = z.object({});
+export type IpPoolCreateParams = z.infer<typeof IpPoolCreateParams>;
+
+export const IpPoolViewParams = z.object({
+  poolName: Name,
+});
+export type IpPoolViewParams = z.infer<typeof IpPoolViewParams>;
+
+export const IpPoolUpdateParams = z.object({
+  poolName: Name,
+});
+export type IpPoolUpdateParams = z.infer<typeof IpPoolUpdateParams>;
+
+export const IpPoolDeleteParams = z.object({
+  poolName: Name,
+});
+export type IpPoolDeleteParams = z.infer<typeof IpPoolDeleteParams>;
+
+export const IpPoolRangeListParams = z.object({
+  poolName: Name,
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+});
+export type IpPoolRangeListParams = z.infer<typeof IpPoolRangeListParams>;
+
+export const IpPoolRangeAddParams = z.object({
+  poolName: Name,
+});
+export type IpPoolRangeAddParams = z.infer<typeof IpPoolRangeAddParams>;
+
+export const IpPoolRangeRemoveParams = z.object({
+  poolName: Name,
+});
+export type IpPoolRangeRemoveParams = z.infer<typeof IpPoolRangeRemoveParams>;
+
+export const IpPoolServiceViewParams = z.object({
+  rackId: z.string().uuid(),
+});
+export type IpPoolServiceViewParams = z.infer<typeof IpPoolServiceViewParams>;
+
+export const IpPoolServiceRangeListParams = z.object({
+  rackId: z.string().uuid(),
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+});
+export type IpPoolServiceRangeListParams = z.infer<
+  typeof IpPoolServiceRangeListParams
+>;
+
+export const IpPoolServiceRangeAddParams = z.object({
+  rackId: z.string().uuid(),
+});
+export type IpPoolServiceRangeAddParams = z.infer<
+  typeof IpPoolServiceRangeAddParams
+>;
+
+export const IpPoolServiceRangeRemoveParams = z.object({
+  rackId: z.string().uuid(),
+});
+export type IpPoolServiceRangeRemoveParams = z.infer<
+  typeof IpPoolServiceRangeRemoveParams
+>;
+
+export const SystemPolicyViewParams = z.object({});
+export type SystemPolicyViewParams = z.infer<typeof SystemPolicyViewParams>;
+
+export const SystemPolicyUpdateParams = z.object({});
+export type SystemPolicyUpdateParams = z.infer<typeof SystemPolicyUpdateParams>;
+
+export const SagaListParams = z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: IdSortMode.optional(),
+});
+export type SagaListParams = z.infer<typeof SagaListParams>;
+
+export const SagaViewParams = z.object({
+  sagaId: z.string().uuid(),
+});
+export type SagaViewParams = z.infer<typeof SagaViewParams>;
 
 export const SiloListParams = z.object({
   limit: z.number().min(1).max(4294967295).nullable().optional(),
@@ -2514,6 +2530,21 @@ export type SiloIdentityProviderListParams = z.infer<
   typeof SiloIdentityProviderListParams
 >;
 
+export const SamlIdentityProviderCreateParams = z.object({
+  siloName: Name,
+});
+export type SamlIdentityProviderCreateParams = z.infer<
+  typeof SamlIdentityProviderCreateParams
+>;
+
+export const SamlIdentityProviderViewParams = z.object({
+  providerName: Name,
+  siloName: Name,
+});
+export type SamlIdentityProviderViewParams = z.infer<
+  typeof SamlIdentityProviderViewParams
+>;
+
 export const SiloPolicyViewParams = z.object({
   siloName: Name,
 });
@@ -2524,26 +2555,8 @@ export const SiloPolicyUpdateParams = z.object({
 });
 export type SiloPolicyUpdateParams = z.infer<typeof SiloPolicyUpdateParams>;
 
-export const SiloIdentityProviderCreateParams = z.object({
-  siloName: Name,
-});
-export type SiloIdentityProviderCreateParams = z.infer<
-  typeof SiloIdentityProviderCreateParams
->;
-
-export const SiloIdentityProviderViewParams = z.object({
-  providerName: Name,
-  siloName: Name,
-});
-export type SiloIdentityProviderViewParams = z.infer<
-  typeof SiloIdentityProviderViewParams
->;
-
-export const SystemPolicyViewParams = z.object({});
-export type SystemPolicyViewParams = z.infer<typeof SystemPolicyViewParams>;
-
-export const SystemPolicyUpdateParams = z.object({});
-export type SystemPolicyUpdateParams = z.infer<typeof SystemPolicyUpdateParams>;
+export const UpdatesRefreshParams = z.object({});
+export type UpdatesRefreshParams = z.infer<typeof UpdatesRefreshParams>;
 
 export const SystemUserListParams = z.object({
   limit: z.number().min(1).max(4294967295).nullable().optional(),
@@ -2565,9 +2578,6 @@ export type TimeseriesSchemaGetParams = z.infer<
   typeof TimeseriesSchemaGetParams
 >;
 
-export const UpdatesRefreshParams = z.object({});
-export type UpdatesRefreshParams = z.infer<typeof UpdatesRefreshParams>;
-
 export const UserListParams = z.object({
   limit: z.number().min(1).max(4294967295).nullable().optional(),
   pageToken: z.string().nullable().optional(),
@@ -2578,7 +2588,6 @@ export type UserListParams = z.infer<typeof UserListParams>;
 export type ApiViewByIdMethods = Pick<
   InstanceType<typeof Api>["methods"],
   | "diskViewById"
-  | "imageGlobalViewById"
   | "imageViewById"
   | "instanceViewById"
   | "instanceNetworkInterfaceViewById"
@@ -2589,16 +2598,13 @@ export type ApiViewByIdMethods = Pick<
   | "vpcRouterViewById"
   | "vpcSubnetViewById"
   | "vpcViewById"
+  | "systemImageViewById"
+  | "ipPoolViewById"
+  | "siloViewById"
 >;
 
 export type ApiListMethods = Pick<
   InstanceType<typeof Api>["methods"],
-  | "rackList"
-  | "sledList"
-  | "imageGlobalList"
-  | "ipPoolList"
-  | "ipPoolRangeList"
-  | "ipPoolServiceRangeList"
   | "organizationList"
   | "projectList"
   | "diskList"
@@ -2614,8 +2620,14 @@ export type ApiListMethods = Pick<
   | "vpcRouterRouteList"
   | "vpcSubnetList"
   | "roleList"
-  | "sagaList"
   | "sessionSshkeyList"
+  | "rackList"
+  | "sledList"
+  | "systemImageList"
+  | "ipPoolList"
+  | "ipPoolRangeList"
+  | "ipPoolServiceRangeList"
+  | "sagaList"
   | "siloList"
   | "siloIdentityProviderList"
   | "systemUserList"
@@ -2630,19 +2642,6 @@ export class Api extends HttpClient {
     diskViewById: ({ id }: DiskViewByIdParams, params: RequestParams = {}) =>
       this.request<Disk>({
         path: `/by-id/disks/${id}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * Fetch a global image by id
-     */
-    imageGlobalViewById: (
-      { id }: ImageGlobalViewByIdParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<GlobalImage>({
-        path: `/by-id/global-images/${id}`,
         method: "GET",
         ...params,
       }),
@@ -2812,270 +2811,8 @@ export class Api extends HttpClient {
         ...params,
       }),
 
-    /**
-     * List racks
-     */
-    rackList: (query: RackListParams, params: RequestParams = {}) =>
-      this.request<RackResultsPage>({
-        path: `/hardware/racks`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Fetch a rack
-     */
-    rackView: ({ rackId }: RackViewParams, params: RequestParams = {}) =>
-      this.request<Rack>({
-        path: `/hardware/racks/${rackId}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * List sleds
-     */
-    sledList: (query: SledListParams, params: RequestParams = {}) =>
-      this.request<SledResultsPage>({
-        path: `/hardware/sleds`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Fetch a sled
-     */
-    sledView: ({ sledId }: SledViewParams, params: RequestParams = {}) =>
-      this.request<Sled>({
-        path: `/hardware/sleds/${sledId}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * List global images
-     */
-    imageGlobalList: (
-      query: ImageGlobalListParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<GlobalImageResultsPage>({
-        path: `/images`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Create a global image
-     */
-    imageGlobalCreate: (
-      query: ImageGlobalCreateParams,
-      body: GlobalImageCreate,
-      params: RequestParams = {}
-    ) =>
-      this.request<GlobalImage>({
-        path: `/images`,
-        method: "POST",
-        body,
-        ...params,
-      }),
-
-    /**
-     * Fetch a global image
-     */
-    imageGlobalView: (
-      { imageName }: ImageGlobalViewParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<GlobalImage>({
-        path: `/images/${imageName}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * Delete a global image
-     */
-    imageGlobalDelete: (
-      { imageName }: ImageGlobalDeleteParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<void>({
-        path: `/images/${imageName}`,
-        method: "DELETE",
-        ...params,
-      }),
-
-    /**
-     * List IP pools
-     */
-    ipPoolList: (query: IpPoolListParams, params: RequestParams = {}) =>
-      this.request<IpPoolResultsPage>({
-        path: `/ip-pools`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Create an IP pool
-     */
-    ipPoolCreate: (
-      query: IpPoolCreateParams,
-      body: IpPoolCreate,
-      params: RequestParams = {}
-    ) =>
-      this.request<IpPool>({
-        path: `/ip-pools`,
-        method: "POST",
-        body,
-        ...params,
-      }),
-
-    /**
-     * Fetch an IP pool
-     */
-    ipPoolView: ({ poolName }: IpPoolViewParams, params: RequestParams = {}) =>
-      this.request<IpPool>({
-        path: `/ip-pools/${poolName}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * Update an IP Pool
-     */
-    ipPoolUpdate: (
-      { poolName }: IpPoolUpdateParams,
-      body: IpPoolUpdate,
-      params: RequestParams = {}
-    ) =>
-      this.request<IpPool>({
-        path: `/ip-pools/${poolName}`,
-        method: "PUT",
-        body,
-        ...params,
-      }),
-
-    /**
-     * Delete an IP Pool
-     */
-    ipPoolDelete: (
-      { poolName }: IpPoolDeleteParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<void>({
-        path: `/ip-pools/${poolName}`,
-        method: "DELETE",
-        ...params,
-      }),
-
-    /**
-     * List ranges for an IP pool
-     */
-    ipPoolRangeList: (
-      { poolName, ...query }: IpPoolRangeListParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<IpPoolRangeResultsPage>({
-        path: `/ip-pools/${poolName}/ranges`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Add a range to an IP pool
-     */
-    ipPoolRangeAdd: (
-      { poolName }: IpPoolRangeAddParams,
-      body: IpRange,
-      params: RequestParams = {}
-    ) =>
-      this.request<IpPoolRange>({
-        path: `/ip-pools/${poolName}/ranges/add`,
-        method: "POST",
-        body,
-        ...params,
-      }),
-
-    /**
-     * Remove a range from an IP pool
-     */
-    ipPoolRangeRemove: (
-      { poolName }: IpPoolRangeRemoveParams,
-      body: IpRange,
-      params: RequestParams = {}
-    ) =>
-      this.request<void>({
-        path: `/ip-pools/${poolName}/ranges/remove`,
-        method: "POST",
-        body,
-        ...params,
-      }),
-
-    /**
-     * Fetch an IP pool used for Oxide services.
-     */
-    ipPoolServiceView: (
-      { rackId }: IpPoolServiceViewParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<IpPool>({
-        path: `/ip-pools-service/${rackId}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
-     * List ranges for an IP pool used for Oxide services.
-     */
-    ipPoolServiceRangeList: (
-      { rackId, ...query }: IpPoolServiceRangeListParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<IpPoolRangeResultsPage>({
-        path: `/ip-pools-service/${rackId}/ranges`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Add a range to an IP pool used for Oxide services.
-     */
-    ipPoolServiceRangeAdd: (
-      { rackId }: IpPoolServiceRangeAddParams,
-      body: IpRange,
-      params: RequestParams = {}
-    ) =>
-      this.request<IpPoolRange>({
-        path: `/ip-pools-service/${rackId}/ranges/add`,
-        method: "POST",
-        body,
-        ...params,
-      }),
-
-    /**
-     * Remove a range from an IP pool used for Oxide services.
-     */
-    ipPoolServiceRangeRemove: (
-      { rackId }: IpPoolServiceRangeRemoveParams,
-      body: IpRange,
-      params: RequestParams = {}
-    ) =>
-      this.request<void>({
-        path: `/ip-pools-service/${rackId}/ranges/remove`,
-        method: "POST",
-        body,
-        ...params,
-      }),
-
-    spoofLogin: (
-      query: SpoofLoginParams,
+    loginSpoof: (
+      query: LoginSpoofParams,
       body: SpoofLoginBody,
       params: RequestParams = {}
     ) =>
@@ -3089,12 +2826,12 @@ export class Api extends HttpClient {
     /**
      * Prompt user login
      */
-    login: (
-      { providerName, siloName }: LoginParams,
+    loginSamlBegin: (
+      { providerName, siloName }: LoginSamlBeginParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
-        path: `/login/${siloName}/${providerName}`,
+        path: `/login/${siloName}/saml/${providerName}`,
         method: "GET",
         ...params,
       }),
@@ -3102,12 +2839,12 @@ export class Api extends HttpClient {
     /**
      * Authenticate a user
      */
-    consumeCredentials: (
-      { providerName, siloName }: ConsumeCredentialsParams,
+    loginSaml: (
+      { providerName, siloName }: LoginSamlParams,
       params: RequestParams = {}
     ) =>
       this.request<void>({
-        path: `/login/${siloName}/${providerName}`,
+        path: `/login/${siloName}/saml/${providerName}`,
         method: "POST",
         ...params,
       }),
@@ -4178,27 +3915,6 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List sagas
-     */
-    sagaList: (query: SagaListParams, params: RequestParams = {}) =>
-      this.request<SagaResultsPage>({
-        path: `/sagas`,
-        method: "GET",
-        query,
-        ...params,
-      }),
-
-    /**
-     * Fetch a saga
-     */
-    sagaView: ({ sagaId }: SagaViewParams, params: RequestParams = {}) =>
-      this.request<Saga>({
-        path: `/sagas/${sagaId}`,
-        method: "GET",
-        ...params,
-      }),
-
-    /**
      * Fetch the user associated with the current session
      */
     sessionMe: (query: SessionMeParams, params: RequestParams = {}) =>
@@ -4264,118 +3980,300 @@ export class Api extends HttpClient {
       }),
 
     /**
-     * List silos
+     * Fetch a system-wide image by id
      */
-    siloList: (query: SiloListParams, params: RequestParams = {}) =>
-      this.request<SiloResultsPage>({
-        path: `/silos`,
+    systemImageViewById: (
+      { id }: SystemImageViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<GlobalImage>({
+        path: `/system/by-id/images/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Fetch an IP pool by id
+     */
+    ipPoolViewById: (
+      { id }: IpPoolViewByIdParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPool>({
+        path: `/system/by-id/ip-pools/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Fetch a silo by id
+     */
+    siloViewById: ({ id }: SiloViewByIdParams, params: RequestParams = {}) =>
+      this.request<Silo>({
+        path: `/system/by-id/silos/${id}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * List racks
+     */
+    rackList: (query: RackListParams, params: RequestParams = {}) =>
+      this.request<RackResultsPage>({
+        path: `/system/hardware/racks`,
         method: "GET",
         query,
         ...params,
       }),
 
     /**
-     * Create a silo
+     * Fetch a rack
      */
-    siloCreate: (
-      query: SiloCreateParams,
-      body: SiloCreate,
+    rackView: ({ rackId }: RackViewParams, params: RequestParams = {}) =>
+      this.request<Rack>({
+        path: `/system/hardware/racks/${rackId}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * List sleds
+     */
+    sledList: (query: SledListParams, params: RequestParams = {}) =>
+      this.request<SledResultsPage>({
+        path: `/system/hardware/sleds`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Fetch a sled
+     */
+    sledView: ({ sledId }: SledViewParams, params: RequestParams = {}) =>
+      this.request<Sled>({
+        path: `/system/hardware/sleds/${sledId}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * List system-wide images
+     */
+    systemImageList: (
+      query: SystemImageListParams,
       params: RequestParams = {}
     ) =>
-      this.request<Silo>({
-        path: `/silos`,
+      this.request<GlobalImageResultsPage>({
+        path: `/system/images`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Create a system-wide image
+     */
+    systemImageCreate: (
+      query: SystemImageCreateParams,
+      body: GlobalImageCreate,
+      params: RequestParams = {}
+    ) =>
+      this.request<GlobalImage>({
+        path: `/system/images`,
         method: "POST",
         body,
         ...params,
       }),
 
     /**
-     * Fetch a silo
+     * Fetch a system-wide image
      */
-    siloView: ({ siloName }: SiloViewParams, params: RequestParams = {}) =>
-      this.request<Silo>({
-        path: `/silos/${siloName}`,
+    systemImageView: (
+      { imageName }: SystemImageViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<GlobalImage>({
+        path: `/system/images/${imageName}`,
         method: "GET",
         ...params,
       }),
 
     /**
-     * Delete a silo
+     * Delete a system-wide image
      */
-    siloDelete: ({ siloName }: SiloDeleteParams, params: RequestParams = {}) =>
+    systemImageDelete: (
+      { imageName }: SystemImageDeleteParams,
+      params: RequestParams = {}
+    ) =>
       this.request<void>({
-        path: `/silos/${siloName}`,
+        path: `/system/images/${imageName}`,
         method: "DELETE",
         ...params,
       }),
 
     /**
-     * List a silo's IDPs
+     * List IP pools
      */
-    siloIdentityProviderList: (
-      { siloName, ...query }: SiloIdentityProviderListParams,
-      params: RequestParams = {}
-    ) =>
-      this.request<IdentityProviderResultsPage>({
-        path: `/silos/${siloName}/identity-providers`,
+    ipPoolList: (query: IpPoolListParams, params: RequestParams = {}) =>
+      this.request<IpPoolResultsPage>({
+        path: `/system/ip-pools`,
         method: "GET",
         query,
         ...params,
       }),
 
     /**
-     * Fetch a silo's IAM policy
+     * Create an IP pool
      */
-    siloPolicyView: (
-      { siloName }: SiloPolicyViewParams,
+    ipPoolCreate: (
+      query: IpPoolCreateParams,
+      body: IpPoolCreate,
       params: RequestParams = {}
     ) =>
-      this.request<SiloRolePolicy>({
-        path: `/silos/${siloName}/policy`,
+      this.request<IpPool>({
+        path: `/system/ip-pools`,
+        method: "POST",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Fetch an IP pool
+     */
+    ipPoolView: ({ poolName }: IpPoolViewParams, params: RequestParams = {}) =>
+      this.request<IpPool>({
+        path: `/system/ip-pools/${poolName}`,
         method: "GET",
         ...params,
       }),
 
     /**
-     * Update a silo's IAM policy
+     * Update an IP Pool
      */
-    siloPolicyUpdate: (
-      { siloName }: SiloPolicyUpdateParams,
-      body: SiloRolePolicy,
+    ipPoolUpdate: (
+      { poolName }: IpPoolUpdateParams,
+      body: IpPoolUpdate,
       params: RequestParams = {}
     ) =>
-      this.request<SiloRolePolicy>({
-        path: `/silos/${siloName}/policy`,
+      this.request<IpPool>({
+        path: `/system/ip-pools/${poolName}`,
         method: "PUT",
         body,
         ...params,
       }),
 
     /**
-     * Create a SAML IDP
+     * Delete an IP Pool
      */
-    siloIdentityProviderCreate: (
-      { siloName }: SiloIdentityProviderCreateParams,
-      body: SamlIdentityProviderCreate,
+    ipPoolDelete: (
+      { poolName }: IpPoolDeleteParams,
       params: RequestParams = {}
     ) =>
-      this.request<SamlIdentityProvider>({
-        path: `/silos/${siloName}/saml-identity-providers`,
+      this.request<void>({
+        path: `/system/ip-pools/${poolName}`,
+        method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * List ranges for an IP pool
+     */
+    ipPoolRangeList: (
+      { poolName, ...query }: IpPoolRangeListParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPoolRangeResultsPage>({
+        path: `/system/ip-pools/${poolName}/ranges`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Add a range to an IP pool
+     */
+    ipPoolRangeAdd: (
+      { poolName }: IpPoolRangeAddParams,
+      body: IpRange,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPoolRange>({
+        path: `/system/ip-pools/${poolName}/ranges/add`,
         method: "POST",
         body,
         ...params,
       }),
 
     /**
-     * Fetch a SAML IDP
+     * Remove a range from an IP pool
      */
-    siloIdentityProviderView: (
-      { providerName, siloName }: SiloIdentityProviderViewParams,
+    ipPoolRangeRemove: (
+      { poolName }: IpPoolRangeRemoveParams,
+      body: IpRange,
       params: RequestParams = {}
     ) =>
-      this.request<SamlIdentityProvider>({
-        path: `/silos/${siloName}/saml-identity-providers/${providerName}`,
+      this.request<void>({
+        path: `/system/ip-pools/${poolName}/ranges/remove`,
+        method: "POST",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Fetch an IP pool used for Oxide services.
+     */
+    ipPoolServiceView: (
+      { rackId }: IpPoolServiceViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPool>({
+        path: `/system/ip-pools-service/${rackId}`,
         method: "GET",
+        ...params,
+      }),
+
+    /**
+     * List ranges for an IP pool used for Oxide services.
+     */
+    ipPoolServiceRangeList: (
+      { rackId, ...query }: IpPoolServiceRangeListParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPoolRangeResultsPage>({
+        path: `/system/ip-pools-service/${rackId}/ranges`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Add a range to an IP pool used for Oxide services.
+     */
+    ipPoolServiceRangeAdd: (
+      { rackId }: IpPoolServiceRangeAddParams,
+      body: IpRange,
+      params: RequestParams = {}
+    ) =>
+      this.request<IpPoolRange>({
+        path: `/system/ip-pools-service/${rackId}/ranges/add`,
+        method: "POST",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Remove a range from an IP pool used for Oxide services.
+     */
+    ipPoolServiceRangeRemove: (
+      { rackId }: IpPoolServiceRangeRemoveParams,
+      body: IpRange,
+      params: RequestParams = {}
+    ) =>
+      this.request<void>({
+        path: `/system/ip-pools-service/${rackId}/ranges/remove`,
+        method: "POST",
+        body,
         ...params,
       }),
 
@@ -4404,6 +4302,153 @@ export class Api extends HttpClient {
         path: `/system/policy`,
         method: "PUT",
         body,
+        ...params,
+      }),
+
+    /**
+     * List sagas
+     */
+    sagaList: (query: SagaListParams, params: RequestParams = {}) =>
+      this.request<SagaResultsPage>({
+        path: `/system/sagas`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Fetch a saga
+     */
+    sagaView: ({ sagaId }: SagaViewParams, params: RequestParams = {}) =>
+      this.request<Saga>({
+        path: `/system/sagas/${sagaId}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * List silos
+     */
+    siloList: (query: SiloListParams, params: RequestParams = {}) =>
+      this.request<SiloResultsPage>({
+        path: `/system/silos`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Create a silo
+     */
+    siloCreate: (
+      query: SiloCreateParams,
+      body: SiloCreate,
+      params: RequestParams = {}
+    ) =>
+      this.request<Silo>({
+        path: `/system/silos`,
+        method: "POST",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Fetch a silo
+     */
+    siloView: ({ siloName }: SiloViewParams, params: RequestParams = {}) =>
+      this.request<Silo>({
+        path: `/system/silos/${siloName}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Delete a silo
+     */
+    siloDelete: ({ siloName }: SiloDeleteParams, params: RequestParams = {}) =>
+      this.request<void>({
+        path: `/system/silos/${siloName}`,
+        method: "DELETE",
+        ...params,
+      }),
+
+    /**
+     * List a silo's IDPs
+     */
+    siloIdentityProviderList: (
+      { siloName, ...query }: SiloIdentityProviderListParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<IdentityProviderResultsPage>({
+        path: `/system/silos/${siloName}/identity-providers`,
+        method: "GET",
+        query,
+        ...params,
+      }),
+
+    /**
+     * Create a SAML IDP
+     */
+    samlIdentityProviderCreate: (
+      { siloName }: SamlIdentityProviderCreateParams,
+      body: SamlIdentityProviderCreate,
+      params: RequestParams = {}
+    ) =>
+      this.request<SamlIdentityProvider>({
+        path: `/system/silos/${siloName}/identity-providers/saml`,
+        method: "POST",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Fetch a SAML IDP
+     */
+    samlIdentityProviderView: (
+      { providerName, siloName }: SamlIdentityProviderViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<SamlIdentityProvider>({
+        path: `/system/silos/${siloName}/identity-providers/saml/${providerName}`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Fetch a silo's IAM policy
+     */
+    siloPolicyView: (
+      { siloName }: SiloPolicyViewParams,
+      params: RequestParams = {}
+    ) =>
+      this.request<SiloRolePolicy>({
+        path: `/system/silos/${siloName}/policy`,
+        method: "GET",
+        ...params,
+      }),
+
+    /**
+     * Update a silo's IAM policy
+     */
+    siloPolicyUpdate: (
+      { siloName }: SiloPolicyUpdateParams,
+      body: SiloRolePolicy,
+      params: RequestParams = {}
+    ) =>
+      this.request<SiloRolePolicy>({
+        path: `/system/silos/${siloName}/policy`,
+        method: "PUT",
+        body,
+        ...params,
+      }),
+
+    /**
+     * Refresh update data
+     */
+    updatesRefresh: (query: UpdatesRefreshParams, params: RequestParams = {}) =>
+      this.request<void>({
+        path: `/system/updates/refresh`,
+        method: "POST",
         ...params,
       }),
 
@@ -4442,16 +4487,6 @@ export class Api extends HttpClient {
         path: `/timeseries/schema`,
         method: "GET",
         query,
-        ...params,
-      }),
-
-    /**
-     * Refresh update data
-     */
-    updatesRefresh: (query: UpdatesRefreshParams, params: RequestParams = {}) =>
-      this.request<void>({
-        path: `/updates/refresh`,
-        method: "POST",
         ...params,
       }),
 
