@@ -43,7 +43,7 @@ export function schemaToZod(schema: Schema, io: IO) {
     .with({ type: "integer" }, () => schemaToZodInt(schema, io))
     .with({ type: "array" }, (s) => schemaToZodArray(s, io))
     .with({ type: "object" }, () => schemaToZodObject(schema, io))
-    .with({ oneOf: P.not(P.nullish) }, () => schemaToZodUnion(schema, io))
+    .with({ oneOf: P.not(P.nullish) }, () => schemaToZodOneOf(schema, io))
     .with({ allOf: P.not(P.nullish) }, () => schemaToZodAllOf(schema, io))
     .with({}, () => w0("z.object({}).optional()"))
     .otherwise(() => {
@@ -149,12 +149,20 @@ function schemaToZodObject(schema: OpenAPIV3.SchemaObject, io: IO) {
   w0("})");
 }
 
-function schemaToZodUnion(schema: OpenAPIV3.SchemaObject, io: IO) {
+function schemaToZodOneOf(schema: OpenAPIV3.SchemaObject, io: IO) {
   if (!schema.oneOf) return;
   const { w } = io;
 
   if (schema.oneOf.length === 1) {
     schemaToZod(schema.oneOf[0], io);
+    return;
+  }
+
+  if (schema.oneOf.every((s) => s && "enum" in s && s.enum?.length === 1)) {
+    const enums = schema.oneOf.map(
+      (s) => (s as OpenAPIV3.SchemaObject).enum![0]
+    );
+    w(`z.enum([${enums.map((e) => JSON.stringify(e)).join(", ")}])`);
     return;
   }
 
