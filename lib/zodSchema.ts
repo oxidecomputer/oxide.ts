@@ -158,8 +158,10 @@ function schemaToZodOneOf(schema: OpenAPIV3.SchemaObject, io: IO) {
     return;
   }
 
-  if (schema.oneOf.every((s) => "enum" in s && s.enum.length === 1)) {
-    const enums = schema.oneOf.map((s) => s.enum[0]);
+  if (schema.oneOf.every((s) => s && "enum" in s && s.enum?.length === 1)) {
+    const enums = schema.oneOf.map(
+      (s) => (s as OpenAPIV3.SchemaObject).enum![0]
+    );
     w(`z.enum([${enums.map((e) => JSON.stringify(e)).join(", ")}])`);
     return;
   }
