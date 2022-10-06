@@ -18,21 +18,11 @@ export type {
  */
 export type BinRangedouble =
   /** A range unbounded below and exclusively above, `..end`. */
-  | {
-      end: number;
-      type: "range_to";
-    }
+  | { end: number; type: "range_to" }
   /** A range bounded inclusively below and exclusively above, `start..end`. */
-  | {
-      end: number;
-      start: number;
-      type: "range";
-    }
+  | { end: number; start: number; type: "range" }
   /** A range bounded inclusively below and unbounded above, `start..`. */
-  | {
-      start: number;
-      type: "range_from";
-    };
+  | { start: number; type: "range_from" };
 
 /**
  * A type storing a range over `T`.
@@ -41,21 +31,11 @@ export type BinRangedouble =
  */
 export type BinRangeint64 =
   /** A range unbounded below and exclusively above, `..end`. */
-  | {
-      end: number;
-      type: "range_to";
-    }
+  | { end: number; type: "range_to" }
   /** A range bounded inclusively below and exclusively above, `start..end`. */
-  | {
-      end: number;
-      start: number;
-      type: "range";
-    }
+  | { end: number; start: number; type: "range" }
   /** A range bounded inclusively below and unbounded above, `start..`. */
-  | {
-      start: number;
-      type: "range_from";
-    };
+  | { start: number; type: "range_from" };
 
 /**
  * Type storing bin edges and a count of samples within it.
@@ -92,18 +72,12 @@ export type ByteCount = number;
 /**
  * A cumulative or counter data type.
  */
-export type Cumulativedouble = {
-  startTime: Date;
-  value: number;
-};
+export type Cumulativedouble = { startTime: Date; value: number };
 
 /**
  * A cumulative or counter data type.
  */
-export type Cumulativeint64 = {
-  startTime: Date;
-  value: number;
-};
+export type Cumulativeint64 = { startTime: Date; value: number };
 
 /**
  * A simple type for managing a histogram metric.
@@ -163,42 +137,15 @@ export type Histogramdouble = {
  * A `Datum` is a single sampled data point from a metric.
  */
 export type Datum =
-  | {
-      datum: boolean;
-      type: "bool";
-    }
-  | {
-      datum: number;
-      type: "i64";
-    }
-  | {
-      datum: number;
-      type: "f64";
-    }
-  | {
-      datum: string;
-      type: "string";
-    }
-  | {
-      datum: number[];
-      type: "bytes";
-    }
-  | {
-      datum: Cumulativeint64;
-      type: "cumulative_i64";
-    }
-  | {
-      datum: Cumulativedouble;
-      type: "cumulative_f64";
-    }
-  | {
-      datum: Histogramint64;
-      type: "histogram_i64";
-    }
-  | {
-      datum: Histogramdouble;
-      type: "histogram_f64";
-    };
+  | { datum: boolean; type: "bool" }
+  | { datum: number; type: "i64" }
+  | { datum: number; type: "f64" }
+  | { datum: string; type: "string" }
+  | { datum: number[]; type: "bytes" }
+  | { datum: Cumulativeint64; type: "cumulative_i64" }
+  | { datum: Cumulativedouble; type: "cumulative_f64" }
+  | { datum: Histogramint64; type: "histogram_i64" }
+  | { datum: Histogramdouble; type: "histogram_f64" };
 
 /**
  * The type of an individual datum of a metric.
@@ -227,18 +174,11 @@ export type DeviceAccessTokenRequest = {
   grantType: string;
 };
 
-export type DeviceAuthRequest = {
-  clientId: string;
-};
+export type DeviceAuthRequest = { clientId: string };
 
-export type DeviceAuthVerify = {
-  userCode: string;
-};
+export type DeviceAuthVerify = { userCode: string };
 
-export type Digest = {
-  type: "sha256";
-  value: string;
-};
+export type Digest = { type: "sha256"; value: string };
 
 /**
  * A name unique within the parent collection
@@ -252,36 +192,19 @@ export type Name = string;
  */
 export type DiskState =
   /** Disk is being initialized */
-  | {
-      state: "creating";
-    }
+  | { state: "creating" }
   /** Disk is ready but detached from any Instance */
-  | {
-      state: "detached";
-    }
+  | { state: "detached" }
   /** Disk is being attached to the given Instance */
-  | {
-      instance: string;
-      state: "attaching";
-    }
+  | { instance: string; state: "attaching" }
   /** Disk is attached to the given Instance */
-  | {
-      instance: string;
-      state: "attached";
-    }
+  | { instance: string; state: "attached" }
   /** Disk is being detached from the given Instance */
-  | {
-      instance: string;
-      state: "detaching";
-    }
+  | { instance: string; state: "detaching" }
   /** Disk has been destroyed */
-  | {
-      state: "destroyed";
-    }
+  | { state: "destroyed" }
   /** Disk is unavailable */
-  | {
-      state: "faulted";
-    };
+  | { state: "faulted" };
 
 /**
  * Client view of a {@link Disk}
@@ -317,20 +240,11 @@ export type DiskSource =
       type: "blank";
     }
   /** Create a disk from a disk snapshot */
-  | {
-      snapshotId: string;
-      type: "snapshot";
-    }
+  | { snapshotId: string; type: "snapshot" }
   /** Create a disk from a project image */
-  | {
-      imageId: string;
-      type: "image";
-    }
+  | { imageId: string; type: "image" }
   /** Create a disk from a global image */
-  | {
-      imageId: string;
-      type: "global_image";
-    };
+  | { imageId: string; type: "global_image" };
 
 /**
  * Create-time parameters for a {@link Disk}
@@ -347,9 +261,7 @@ export type DiskCreate = {
 /**
  * Parameters for the {@link Disk} to be attached or detached to an instance
  */
-export type DiskIdentifier = {
-  name: Name;
-};
+export type DiskIdentifier = { name: Name };
 
 /**
  * A single page of results
@@ -376,18 +288,12 @@ export type Distribution = {
  */
 export type IpKind = "ephemeral" | "floating";
 
-export type ExternalIp = {
-  ip: string;
-  kind: IpKind;
-};
+export type ExternalIp = { ip: string; kind: IpKind };
 
 /**
  * Parameters for creating an external IP address for instances.
  */
-export type ExternalIpCreate = {
-  poolName?: Name;
-  type: "ephemeral";
-};
+export type ExternalIpCreate = { poolName?: Name; type: "ephemeral" };
 
 /**
  * A single page of results
@@ -412,11 +318,7 @@ export type FieldType = "string" | "i64" | "ip_addr" | "uuid" | "bool";
 /**
  * The name and type information for a field of a timeseries schema.
  */
-export type FieldSchema = {
-  name: string;
-  source: FieldSource;
-  ty: FieldType;
-};
+export type FieldSchema = { name: string; source: FieldSource; ty: FieldType };
 
 export type FleetRole = "admin" | "collaborator" | "viewer";
 
@@ -478,18 +380,10 @@ export type GlobalImage = {
  * The source of the underlying image.
  */
 export type ImageSource =
-  | {
-      type: "url";
-      url: string;
-    }
-  | {
-      id: string;
-      type: "snapshot";
-    }
+  | { type: "url"; url: string }
+  | { id: string; type: "snapshot" }
   /** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
-  | {
-      type: "you_can_boot_anything_as_long_as_its_alpine";
-    };
+  | { type: "you_can_boot_anything_as_long_as_its_alpine" };
 
 /**
  * Create-time parameters for an {@link GlobalImage}
@@ -546,14 +440,8 @@ export type IdentityProviderResultsPage = {
 };
 
 export type IdpMetadataSource =
-  | {
-      type: "url";
-      url: string;
-    }
-  | {
-      data: string;
-      type: "base64_encoded_xml";
-    };
+  | { type: "url"; url: string }
+  | { data: string; type: "base64_encoded_xml" };
 
 /**
  * Client view of project Images
@@ -705,18 +593,11 @@ export type InstanceNetworkInterfaceAttachment =
   /** Create one or more `NetworkInterface`s for the `Instance`.
 
 If more than one interface is provided, then the first will be designated the primary interface for the instance. */
-  | {
-      params: NetworkInterfaceCreate[];
-      type: "create";
-    }
+  | { params: NetworkInterfaceCreate[]; type: "create" }
   /** The default networking configuration for an instance is to create a single primary interface with an automatically-assigned IP address. The IP will be pulled from the Project's default VPC / VPC Subnet. */
-  | {
-      type: "default";
-    }
+  | { type: "default" }
   /** No network interfaces at all will be created for the instance. */
-  | {
-      type: "none";
-    };
+  | { type: "none" };
 
 /**
  * Create-time parameters for an {@link Instance}
@@ -744,9 +625,7 @@ By default, all instances have outbound connectivity, but no inbound connectivit
 /**
  * Migration parameters for an {@link Instance}
  */
-export type InstanceMigrate = {
-  dstSledId: string;
-};
+export type InstanceMigrate = { dstSledId: string };
 
 /**
  * A single page of results
@@ -818,28 +697,18 @@ export type IpPoolCreate = {
  *
  * The first address must be less than or equal to the last address.
  */
-export type Ipv4Range = {
-  first: string;
-  last: string;
-};
+export type Ipv4Range = { first: string; last: string };
 
 /**
  * A non-decreasing IPv6 address range, inclusive of both ends.
  *
  * The first address must be less than or equal to the last address.
  */
-export type Ipv6Range = {
-  first: string;
-  last: string;
-};
+export type Ipv6Range = { first: string; last: string };
 
 export type IpRange = Ipv4Range | Ipv6Range;
 
-export type IpPoolRange = {
-  id: string;
-  range: IpRange;
-  timeCreated: Date;
-};
+export type IpPoolRange = { id: string; range: IpRange; timeCreated: Date };
 
 /**
  * A single page of results
@@ -864,10 +733,7 @@ export type IpPoolResultsPage = {
 /**
  * Parameters for updating an IP Pool
  */
-export type IpPoolUpdate = {
-  description?: string;
-  name?: Name;
-};
+export type IpPoolUpdate = { description?: string; name?: Name };
 
 /**
  * A range of IP ports
@@ -886,10 +752,7 @@ export type MacAddr = string;
 /**
  * A `Measurement` is a timestamped datum from a single metric
  */
-export type Measurement = {
-  datum: Datum;
-  timestamp: Date;
-};
+export type Measurement = { datum: Datum; timestamp: Date };
 
 /**
  * A single page of results
@@ -981,10 +844,7 @@ export type Organization = {
 /**
  * Create-time parameters for an {@link Organization}
  */
-export type OrganizationCreate = {
-  description: string;
-  name: Name;
-};
+export type OrganizationCreate = { description: string; name: Name };
 
 /**
  * A single page of results
@@ -1022,10 +882,7 @@ export type OrganizationRolePolicy = {
 /**
  * Updateable properties of an {@link Organization}
  */
-export type OrganizationUpdate = {
-  description?: string;
-  name?: Name;
-};
+export type OrganizationUpdate = { description?: string; name?: Name };
 
 /**
  * Client view of a {@link Project}
@@ -1047,10 +904,7 @@ export type Project = {
 /**
  * Create-time parameters for a {@link Project}
  */
-export type ProjectCreate = {
-  description: string;
-  name: Name;
-};
+export type ProjectCreate = { description: string; name: Name };
 
 /**
  * A single page of results
@@ -1088,10 +942,7 @@ export type ProjectRolePolicy = {
 /**
  * Updateable properties of a {@link Project}
  */
-export type ProjectUpdate = {
-  description?: string;
-  name?: Name;
-};
+export type ProjectUpdate = { description?: string; name?: Name };
 
 /**
  * Client view of an {@link Rack}
@@ -1125,10 +976,7 @@ export type RoleName = string;
 /**
  * Client view of a {@link Role}
  */
-export type Role = {
-  description: string;
-  name: RoleName;
-};
+export type Role = { description: string; name: RoleName };
 
 /**
  * A single page of results
@@ -1147,55 +995,28 @@ export type RoleResultsPage = {
  */
 export type RouteDestination =
   /** Route applies to traffic destined for a specific IP address */
-  | {
-      type: "ip";
-      value: string;
-    }
+  | { type: "ip"; value: string }
   /** Route applies to traffic destined for a specific IP subnet */
-  | {
-      type: "ip_net";
-      value: IpNet;
-    }
+  | { type: "ip_net"; value: IpNet }
   /** Route applies to traffic destined for the given VPC. */
-  | {
-      type: "vpc";
-      value: Name;
-    }
+  | { type: "vpc"; value: Name }
   /** Route applies to traffic */
-  | {
-      type: "subnet";
-      value: Name;
-    };
+  | { type: "subnet"; value: Name };
 
 /**
  * A `RouteTarget` describes the possible locations that traffic matching a route destination can be sent.
  */
 export type RouteTarget =
   /** Forward traffic to a particular IP address. */
-  | {
-      type: "ip";
-      value: string;
-    }
+  | { type: "ip"; value: string }
   /** Forward traffic to a VPC */
-  | {
-      type: "vpc";
-      value: Name;
-    }
+  | { type: "vpc"; value: Name }
   /** Forward traffic to a VPC Subnet */
-  | {
-      type: "subnet";
-      value: Name;
-    }
+  | { type: "subnet"; value: Name }
   /** Forward traffic to a specific instance */
-  | {
-      type: "instance";
-      value: Name;
-    }
+  | { type: "instance"; value: Name }
   /** Forward traffic to an internet gateway */
-  | {
-      type: "internet_gateway";
-      value: Name;
-    };
+  | { type: "internet_gateway"; value: Name };
 
 /**
  * The classification of a {@link RouterRoute} as defined by the system. The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
@@ -1273,43 +1094,18 @@ export type RouterRouteUpdateParams = {
 };
 
 export type SagaErrorInfo =
-  | {
-      error: "action_failed";
-      sourceError: object;
-    }
-  | {
-      error: "deserialize_failed";
-      message: string;
-    }
-  | {
-      error: "injected_error";
-    }
-  | {
-      error: "serialize_failed";
-      message: string;
-    }
-  | {
-      error: "subsaga_create_failed";
-      message: string;
-    };
+  | { error: "action_failed"; sourceError: object }
+  | { error: "deserialize_failed"; message: string }
+  | { error: "injected_error" }
+  | { error: "serialize_failed"; message: string }
+  | { error: "subsaga_create_failed"; message: string };
 
 export type SagaState =
-  | {
-      state: "running";
-    }
-  | {
-      state: "succeeded";
-    }
-  | {
-      errorInfo: SagaErrorInfo;
-      errorNodeName: NodeName;
-      state: "failed";
-    };
+  | { state: "running" }
+  | { state: "succeeded" }
+  | { errorInfo: SagaErrorInfo; errorNodeName: NodeName; state: "failed" };
 
-export type Saga = {
-  id: string;
-  state: SagaState;
-};
+export type Saga = { id: string; state: SagaState };
 
 /**
  * A single page of results
@@ -1514,9 +1310,7 @@ export type SnapshotResultsPage = {
   nextPage?: string;
 };
 
-export type SpoofLoginBody = {
-  username: string;
-};
+export type SpoofLoginBody = { username: string };
 
 /**
  * Client view of a {@link SshKey}
@@ -1678,30 +1472,15 @@ export type VpcFirewallRuleDirection = "inbound" | "outbound";
  */
 export type VpcFirewallRuleHostFilter =
   /** The rule applies to traffic from/to all instances in the VPC */
-  | {
-      type: "vpc";
-      value: Name;
-    }
+  | { type: "vpc"; value: Name }
   /** The rule applies to traffic from/to all instances in the VPC Subnet */
-  | {
-      type: "subnet";
-      value: Name;
-    }
+  | { type: "subnet"; value: Name }
   /** The rule applies to traffic from/to this specific instance */
-  | {
-      type: "instance";
-      value: Name;
-    }
+  | { type: "instance"; value: Name }
   /** The rule applies to traffic from/to a specific IP address */
-  | {
-      type: "ip";
-      value: string;
-    }
+  | { type: "ip"; value: string }
   /** The rule applies to traffic from/to a specific IP subnet */
-  | {
-      type: "ip_net";
-      value: IpNet;
-    };
+  | { type: "ip_net"; value: IpNet };
 
 /**
  * The protocols that may be specified in a firewall rule's filter
@@ -1727,30 +1506,15 @@ export type VpcFirewallRuleStatus = "disabled" | "enabled";
  */
 export type VpcFirewallRuleTarget =
   /** The rule applies to all instances in the VPC */
-  | {
-      type: "vpc";
-      value: Name;
-    }
+  | { type: "vpc"; value: Name }
   /** The rule applies to all instances in the VPC Subnet */
-  | {
-      type: "subnet";
-      value: Name;
-    }
+  | { type: "subnet"; value: Name }
   /** The rule applies to this specific instance */
-  | {
-      type: "instance";
-      value: Name;
-    }
+  | { type: "instance"; value: Name }
   /** The rule applies to a specific IP address */
-  | {
-      type: "ip";
-      value: string;
-    }
+  | { type: "ip"; value: string }
   /** The rule applies to a specific IP subnet */
-  | {
-      type: "ip_net";
-      value: IpNet;
-    };
+  | { type: "ip_net"; value: IpNet };
 
 /**
  * A single rule in a VPC firewall
@@ -1807,16 +1571,12 @@ export type VpcFirewallRuleUpdate = {
 /**
  * Updateable properties of a `Vpc`'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
  */
-export type VpcFirewallRuleUpdateParams = {
-  rules: VpcFirewallRuleUpdate[];
-};
+export type VpcFirewallRuleUpdateParams = { rules: VpcFirewallRuleUpdate[] };
 
 /**
  * Collection of a Vpc's firewall rules
  */
-export type VpcFirewallRules = {
-  rules: VpcFirewallRule[];
-};
+export type VpcFirewallRules = { rules: VpcFirewallRule[] };
 
 /**
  * A single page of results
@@ -1852,10 +1612,7 @@ export type VpcRouter = {
 /**
  * Create-time parameters for a {@link VpcRouter}
  */
-export type VpcRouterCreate = {
-  description: string;
-  name: Name;
-};
+export type VpcRouterCreate = { description: string; name: Name };
 
 /**
  * A single page of results
@@ -1870,10 +1627,7 @@ export type VpcRouterResultsPage = {
 /**
  * Updateable properties of a {@link VpcRouter}
  */
-export type VpcRouterUpdate = {
-  description?: string;
-  name?: Name;
-};
+export type VpcRouterUpdate = { description?: string; name?: Name };
 
 /**
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionall an IPv6 subnetwork.
@@ -1926,19 +1680,12 @@ export type VpcSubnetResultsPage = {
 /**
  * Updateable properties of a {@link VpcSubnet}
  */
-export type VpcSubnetUpdate = {
-  description?: string;
-  name?: Name;
-};
+export type VpcSubnetUpdate = { description?: string; name?: Name };
 
 /**
  * Updateable properties of a {@link Vpc}
  */
-export type VpcUpdate = {
-  description?: string;
-  dnsName?: Name;
-  name?: Name;
-};
+export type VpcUpdate = { description?: string; dnsName?: Name; name?: Name };
 
 /**
  * Supported set of sort modes for scanning by name or id

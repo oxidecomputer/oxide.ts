@@ -36,15 +36,15 @@ export const schemaToTypes = makeSchemaGenerator({
   },
   object(schema, io) {
     const { w0, w } = io;
-    w("{");
+    w0("{");
     for (const [name, subSchema] of Object.entries(schema.properties || {})) {
       const optional = schema.required?.includes(name) ? "" : "?";
       if ("description" in subSchema) {
-        w(`/** ${subSchema.description} */`);
+        w(`\n/** ${subSchema.description} */`);
       }
       w0(`${JSON.stringify(snakeToCamel(name))}${optional}: `);
       schemaToTypes(subSchema, io);
-      w(",");
+      w0(",");
     }
     w0("}");
   },
