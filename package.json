@@ -41,6 +41,9 @@
   },
   "author": "",
   "license": "MIT",
+  "optionalDependencies": {
+    "zod": "^3.19.1"
+  },
   "devDependencies": {
     "@types/node": "^18.7.20",
     "esbuild-register": "^3.3.3",
