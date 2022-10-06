@@ -95,6 +95,14 @@ export const schemaToZod = makeSchemaGenerator({
       return;
     }
 
+    /**
+     * When dropshot serializes an enum sometimes it breaks it down into a `oneOf` with
+     * single element enums such that each individual enum can contain its own description. For zod
+     * this translates into a union of single element enums which is unnecessarily complex. We just
+     * flatten it down to a single enum here.
+     *
+     * @see https://github.com/oxidecomputer/oxide.ts/issues/178 for more details
+     */
     if (schema.oneOf.every((s) => s && "enum" in s && s.enum?.length === 1)) {
       const enums = schema.oneOf.map(
         (s) => (s as OpenAPIV3.SchemaObject).enum![0]
