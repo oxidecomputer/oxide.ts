@@ -1,57 +1,20 @@
 import type { OpenAPIV3 } from "openapi-types";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
-import SwaggerParser from "@apidevtools/swagger-parser";
 import assert from "assert";
-import fs from "fs";
-import path from "path";
 import {
   pathToTemplateStr,
   processParamName,
   snakeToCamel,
   snakeToPascal,
-  topologicalSort,
-} from "./util";
-import { schemaToZod, setupZod } from "./zodSchema";
-import { initIO, outDir } from "./io";
-import { refToSchemaName, Schema } from "./schema";
+} from "../util";
+import { initIO } from "../io";
+import { refToSchemaName, Schema } from "../schema/base";
+import { contentRef, docComment, getSortedSchemas } from "./base";
+import { schemaToTypes } from "../schema/types";
 
-const destDir = outDir();
-const io = initIO(destDir);
-const { w, w0, out } = io;
-
-/**
- * Convert ``[`Vpc`](crate::external_api::views::Vpc)`` or plain ``[`Vpc`]`` to
- * `{` `@link Vpc}`, but only if that name exists in the list of schemas.
- */
-const jsdocLinkify = (s: string, schemaNames: string[]) =>
-  s.replace(/\[`([^`]+)`](\([^)]+\))?/g, (_, label) =>
-    schemaNames.includes(label) ? `{@link ${label}}` : "`" + label + "`"
-  );
-
-/**
- * Turn a description into a block comment. We use the list of `schemaNames` to
- * decide whether to turn a given crate references into an `@link`.
- */
-function docComment(s: string | undefined, schemaNames: string[]) {
-  if (s) {
-    const processed = jsdocLinkify(s, schemaNames);
-    w("/**");
-    for (const line of processed.split("\n")) {
-      w("* " + line);
-    }
-    w(" */");
-  }
-}
-
-function contentRef(o: Schema | OpenAPIV3.RequestBodyObject | undefined) {
-  return o &&
-    "content" in o &&
-    o.content?.["application/json"]?.schema &&
-    "$ref" in o.content["application/json"].schema
-    ? o.content["application/json"].schema.$ref
-    : null;
-}
+const io = initIO("Api.ts");
+const { w, w0, out, copy } = io;
 
 /**
  * `Error` is hard-coded into `http-client.ts` as `ErrorBody` so we can check
@@ -80,24 +43,16 @@ function checkErrorSchema(schema: Schema) {
   );
 }
 
-export async function generateClient(specFile: string) {
-  const spec = (await SwaggerParser.parse(specFile)) as OpenAPIV3.Document;
-
+export function generateRuntime(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
   w("/* eslint-disable */\n");
 
-  fs.copyFileSync("./static/util.ts", path.resolve(destDir, "util.ts"));
-
-  fs.copyFileSync(
-    "./static/http-client.ts",
-    path.resolve(destDir, "http-client.ts")
-  );
+  copy("./static/util.ts");
+  copy("./static/http-client.ts");
 
   w(`import type { RequestParams } from './http-client'
     import { HttpClient } from './http-client'`);
-
-  setupZod(io);
 
   w(`export type {
       ApiConfig, 
@@ -109,19 +64,9 @@ export async function generateClient(specFile: string) {
     } from './http-client'
     `);
 
-  const unsortedSchemaNames = Object.keys(spec.components.schemas || {});
-  const schemaDeps: [name: string, deps: string[] | undefined][] =
-    unsortedSchemaNames.map((name) => [
-      name,
-      JSON.stringify(spec.components!.schemas![name])
-        .match(/#\/components\/schemas\/[A-Za-z0-9]+/g)
-        ?.map((s) => s.replace("#/components/schemas/", "")),
-    ]);
-  const schemaNames = topologicalSort(schemaDeps);
-
+  const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {
-    const schema = spec.components.schemas![schemaName];
-
+    const schema = spec.components!.schemas![schemaName];
     // Special case for Error type for two reasons:
     //   1) Error is already a thing in JS, so we rename to ErrorBody. This
     //      rename only works because no other types refer to this one
@@ -135,13 +80,14 @@ export async function generateClient(specFile: string) {
     if ("description" in schema || "title" in schema) {
       docComment(
         [schema.title, schema.description].filter((n) => n).join("\n\n"),
-        schemaNames
+        schemaNames,
+        io
       );
     }
 
-    w0(`export const ${schemaName} =`);
-    schemaToZod(schema, io);
-    w(`export type ${schemaName} = z.infer<typeof ${schemaName}>\n`);
+    w(`export type ${schemaName} =`);
+    schemaToTypes(schema, io);
+    w(";\n");
   }
 
   for (const path in spec.paths) {
@@ -153,7 +99,7 @@ export async function generateClient(specFile: string) {
 
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
-      w(`export const ${opName}Params = z.object({`);
+      w(`export interface ${opName}Params {`);
       for (const param of params || []) {
         if ("name" in param) {
           if (param.schema) {
@@ -163,20 +109,19 @@ export async function generateClient(specFile: string) {
                 [param.schema.title, param.schema.description]
                   .filter((n) => n)
                   .join("\n\n"),
-                schemaNames
+                schemaNames,
+                io
               );
             }
 
             w0(`  ${processParamName(param.name)}`);
-            w0(": ");
-            schemaToZod(param.schema, io);
-            if (isQuery) w0(".optional()");
+            w0(`${isQuery ? "?" : ""}: `);
+            schemaToTypes(param.schema, io);
             w(",");
           }
         }
       }
-      w(`})`);
-      w(`export type ${opName}Params = z.infer<typeof ${opName}Params>`);
+      w(`}`);
       w("");
     }
   }
@@ -184,7 +129,7 @@ export async function generateClient(specFile: string) {
   const operations = Object.values(spec.paths)
     .map((handlers) =>
       Object.entries(handlers!)
-        .filter(([method, value]) => method.toUpperCase() in HttpMethods)
+        .filter(([method]) => method.toUpperCase() in HttpMethods)
         .map(([_, conf]) => conf)
     )
     .flat()
@@ -262,7 +207,7 @@ export async function generateClient(specFile: string) {
         ? refToSchemaName(successTypeRef)
         : "void";
 
-      docComment(conf.summary || conf.description, schemaNames);
+      docComment(conf.summary || conf.description, schemaNames, io);
 
       w(`${methodName}: (`);
       if (pathParams.length > 0) {

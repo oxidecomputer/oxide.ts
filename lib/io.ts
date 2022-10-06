@@ -2,18 +2,6 @@ import path from "path";
 import fs from "fs";
 import { Writable } from "stream";
 
-let _out: string;
-export function outDir() {
-  if (_out) {
-    return _out;
-  }
-
-  const out = process.argv[3];
-  if (!out) throw Error("Missing outDir argument");
-  _out = path.resolve(process.cwd(), out);
-  return _out;
-}
-
 /**
  * A test stream that stores a buffer internally
  */
@@ -38,19 +26,22 @@ export class TestWritable extends Writable {
   }
 }
 
-export interface IO {
+export interface IO<O extends Writable = Writable> {
   w: (str: string) => void;
   w0: (str: string) => void;
-  out: Writable;
+  copy: (file: string) => void;
+  out: O;
 }
 
-// TODO: Fix the arg to be required when not testing
-export function initIO(destDir?: string): IO {
+export function initIO(): IO<TestWritable>;
+export function initIO(outFile: string): IO<Writable>;
+export function initIO(outFile?: string): IO {
+  const destDir = process.argv[3];
   let out: Writable;
-  if (process.env.NODE_ENV === "test") {
+  if (!destDir || !outFile) {
     out = new TestWritable();
   } else {
-    out = fs.createWriteStream(path.resolve(destDir!, "Api.ts"), {
+    out = fs.createWriteStream(path.resolve(process.cwd(), destDir, outFile), {
       flags: "w",
     });
   }
@@ -64,6 +55,14 @@ export function initIO(destDir?: string): IO {
     /** same as w() but no newline */
     w0(s: string) {
       out.write(s);
+    },
+
+    copy(file) {
+      destDir &&
+        fs.copyFileSync(
+          file,
+          path.resolve(process.cwd(), destDir, path.basename(file))
+        );
     },
 
     out,
