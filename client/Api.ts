@@ -1492,11 +1492,11 @@ export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
  */
 export type VpcFirewallRuleFilter = {
   /** If present, the sources (if incoming) or destinations (if outgoing) this rule applies to. */
-  hosts?: VpcFirewallRuleHostFilter[];
+  hosts?: VpcFirewallRuleHostFilter[] | null;
   /** If present, the destination ports this rule applies to. */
-  ports?: L4PortRange[];
+  ports?: L4PortRange[] | null;
   /** If present, the networking protocols this rule applies to. */
-  protocols?: VpcFirewallRuleProtocol[];
+  protocols?: VpcFirewallRuleProtocol[] | null;
 };
 
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
