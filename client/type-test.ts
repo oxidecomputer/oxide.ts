@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { assert, Equals } from "tsafe";
 import type {
   BinRangedouble as BinRangedouble_Type,
   BinRangeint64 as BinRangeint64_Type,
@@ -325,246 +326,274 @@ import {
   DiskMetricName,
   IdSortMode,
 } from "./validate";
-const assertType = <T1, T2 extends T1>() => {};
-assertType<BinRangedouble_Type, z.infer<typeof BinRangedouble>>();
-assertType<BinRangeint64_Type, z.infer<typeof BinRangeint64>>();
-assertType<Bindouble_Type, z.infer<typeof Bindouble>>();
-assertType<Binint64_Type, z.infer<typeof Binint64>>();
-assertType<BlockSize_Type, z.infer<typeof BlockSize>>();
-assertType<ByteCount_Type, z.infer<typeof ByteCount>>();
-assertType<Cumulativedouble_Type, z.infer<typeof Cumulativedouble>>();
-assertType<Cumulativeint64_Type, z.infer<typeof Cumulativeint64>>();
-assertType<Histogramint64_Type, z.infer<typeof Histogramint64>>();
-assertType<Histogramdouble_Type, z.infer<typeof Histogramdouble>>();
-assertType<Datum_Type, z.infer<typeof Datum>>();
-assertType<DatumType_Type, z.infer<typeof DatumType>>();
-assertType<DerEncodedKeyPair_Type, z.infer<typeof DerEncodedKeyPair>>();
-assertType<
-  DeviceAccessTokenRequest_Type,
-  z.infer<typeof DeviceAccessTokenRequest>
+assert<Equals<BinRangedouble_Type, z.infer<typeof BinRangedouble>>>();
+assert<Equals<BinRangeint64_Type, z.infer<typeof BinRangeint64>>>();
+assert<Equals<Bindouble_Type, z.infer<typeof Bindouble>>>();
+assert<Equals<Binint64_Type, z.infer<typeof Binint64>>>();
+assert<Equals<BlockSize_Type, z.infer<typeof BlockSize>>>();
+assert<Equals<ByteCount_Type, z.infer<typeof ByteCount>>>();
+assert<Equals<Cumulativedouble_Type, z.infer<typeof Cumulativedouble>>>();
+assert<Equals<Cumulativeint64_Type, z.infer<typeof Cumulativeint64>>>();
+assert<Equals<Histogramint64_Type, z.infer<typeof Histogramint64>>>();
+assert<Equals<Histogramdouble_Type, z.infer<typeof Histogramdouble>>>();
+assert<Equals<Datum_Type, z.infer<typeof Datum>>>();
+assert<Equals<DatumType_Type, z.infer<typeof DatumType>>>();
+assert<Equals<DerEncodedKeyPair_Type, z.infer<typeof DerEncodedKeyPair>>>();
+assert<
+  Equals<
+    DeviceAccessTokenRequest_Type,
+    z.infer<typeof DeviceAccessTokenRequest>
+  >
 >();
-assertType<DeviceAuthRequest_Type, z.infer<typeof DeviceAuthRequest>>();
-assertType<DeviceAuthVerify_Type, z.infer<typeof DeviceAuthVerify>>();
-assertType<Digest_Type, z.infer<typeof Digest>>();
-assertType<Name_Type, z.infer<typeof Name>>();
-assertType<DiskState_Type, z.infer<typeof DiskState>>();
-assertType<Disk_Type, z.infer<typeof Disk>>();
-assertType<DiskSource_Type, z.infer<typeof DiskSource>>();
-assertType<DiskCreate_Type, z.infer<typeof DiskCreate>>();
-assertType<DiskIdentifier_Type, z.infer<typeof DiskIdentifier>>();
-assertType<DiskResultsPage_Type, z.infer<typeof DiskResultsPage>>();
-assertType<Distribution_Type, z.infer<typeof Distribution>>();
-assertType<IpKind_Type, z.infer<typeof IpKind>>();
-assertType<ExternalIp_Type, z.infer<typeof ExternalIp>>();
-assertType<ExternalIpCreate_Type, z.infer<typeof ExternalIpCreate>>();
-assertType<ExternalIpResultsPage_Type, z.infer<typeof ExternalIpResultsPage>>();
-assertType<FieldSource_Type, z.infer<typeof FieldSource>>();
-assertType<FieldType_Type, z.infer<typeof FieldType>>();
-assertType<FieldSchema_Type, z.infer<typeof FieldSchema>>();
-assertType<FleetRole_Type, z.infer<typeof FleetRole>>();
-assertType<IdentityType_Type, z.infer<typeof IdentityType>>();
-assertType<
-  FleetRoleRoleAssignment_Type,
-  z.infer<typeof FleetRoleRoleAssignment>
+assert<Equals<DeviceAuthRequest_Type, z.infer<typeof DeviceAuthRequest>>>();
+assert<Equals<DeviceAuthVerify_Type, z.infer<typeof DeviceAuthVerify>>>();
+assert<Equals<Digest_Type, z.infer<typeof Digest>>>();
+assert<Equals<Name_Type, z.infer<typeof Name>>>();
+assert<Equals<DiskState_Type, z.infer<typeof DiskState>>>();
+assert<Equals<Disk_Type, z.infer<typeof Disk>>>();
+assert<Equals<DiskSource_Type, z.infer<typeof DiskSource>>>();
+assert<Equals<DiskCreate_Type, z.infer<typeof DiskCreate>>>();
+assert<Equals<DiskIdentifier_Type, z.infer<typeof DiskIdentifier>>>();
+assert<Equals<DiskResultsPage_Type, z.infer<typeof DiskResultsPage>>>();
+assert<Equals<Distribution_Type, z.infer<typeof Distribution>>>();
+assert<Equals<IpKind_Type, z.infer<typeof IpKind>>>();
+assert<Equals<ExternalIp_Type, z.infer<typeof ExternalIp>>>();
+assert<Equals<ExternalIpCreate_Type, z.infer<typeof ExternalIpCreate>>>();
+assert<
+  Equals<ExternalIpResultsPage_Type, z.infer<typeof ExternalIpResultsPage>>
 >();
-assertType<FleetRolePolicy_Type, z.infer<typeof FleetRolePolicy>>();
-assertType<GlobalImage_Type, z.infer<typeof GlobalImage>>();
-assertType<ImageSource_Type, z.infer<typeof ImageSource>>();
-assertType<GlobalImageCreate_Type, z.infer<typeof GlobalImageCreate>>();
-assertType<
-  GlobalImageResultsPage_Type,
-  z.infer<typeof GlobalImageResultsPage>
+assert<Equals<FieldSource_Type, z.infer<typeof FieldSource>>>();
+assert<Equals<FieldType_Type, z.infer<typeof FieldType>>>();
+assert<Equals<FieldSchema_Type, z.infer<typeof FieldSchema>>>();
+assert<Equals<FleetRole_Type, z.infer<typeof FleetRole>>>();
+assert<Equals<IdentityType_Type, z.infer<typeof IdentityType>>>();
+assert<
+  Equals<FleetRoleRoleAssignment_Type, z.infer<typeof FleetRoleRoleAssignment>>
 >();
-assertType<IdentityProviderType_Type, z.infer<typeof IdentityProviderType>>();
-assertType<IdentityProvider_Type, z.infer<typeof IdentityProvider>>();
-assertType<
-  IdentityProviderResultsPage_Type,
-  z.infer<typeof IdentityProviderResultsPage>
+assert<Equals<FleetRolePolicy_Type, z.infer<typeof FleetRolePolicy>>>();
+assert<Equals<GlobalImage_Type, z.infer<typeof GlobalImage>>>();
+assert<Equals<ImageSource_Type, z.infer<typeof ImageSource>>>();
+assert<Equals<GlobalImageCreate_Type, z.infer<typeof GlobalImageCreate>>>();
+assert<
+  Equals<GlobalImageResultsPage_Type, z.infer<typeof GlobalImageResultsPage>>
 >();
-assertType<IdpMetadataSource_Type, z.infer<typeof IdpMetadataSource>>();
-assertType<Image_Type, z.infer<typeof Image>>();
-assertType<ImageCreate_Type, z.infer<typeof ImageCreate>>();
-assertType<ImageResultsPage_Type, z.infer<typeof ImageResultsPage>>();
-assertType<InstanceCpuCount_Type, z.infer<typeof InstanceCpuCount>>();
-assertType<InstanceState_Type, z.infer<typeof InstanceState>>();
-assertType<Instance_Type, z.infer<typeof Instance>>();
-assertType<
-  InstanceDiskAttachment_Type,
-  z.infer<typeof InstanceDiskAttachment>
+assert<
+  Equals<IdentityProviderType_Type, z.infer<typeof IdentityProviderType>>
 >();
-assertType<
-  NetworkInterfaceCreate_Type,
-  z.infer<typeof NetworkInterfaceCreate>
+assert<Equals<IdentityProvider_Type, z.infer<typeof IdentityProvider>>>();
+assert<
+  Equals<
+    IdentityProviderResultsPage_Type,
+    z.infer<typeof IdentityProviderResultsPage>
+  >
 >();
-assertType<
-  InstanceNetworkInterfaceAttachment_Type,
-  z.infer<typeof InstanceNetworkInterfaceAttachment>
+assert<Equals<IdpMetadataSource_Type, z.infer<typeof IdpMetadataSource>>>();
+assert<Equals<Image_Type, z.infer<typeof Image>>>();
+assert<Equals<ImageCreate_Type, z.infer<typeof ImageCreate>>>();
+assert<Equals<ImageResultsPage_Type, z.infer<typeof ImageResultsPage>>>();
+assert<Equals<InstanceCpuCount_Type, z.infer<typeof InstanceCpuCount>>>();
+assert<Equals<InstanceState_Type, z.infer<typeof InstanceState>>>();
+assert<Equals<Instance_Type, z.infer<typeof Instance>>>();
+assert<
+  Equals<InstanceDiskAttachment_Type, z.infer<typeof InstanceDiskAttachment>>
 >();
-assertType<InstanceCreate_Type, z.infer<typeof InstanceCreate>>();
-assertType<InstanceMigrate_Type, z.infer<typeof InstanceMigrate>>();
-assertType<InstanceResultsPage_Type, z.infer<typeof InstanceResultsPage>>();
-assertType<
-  InstanceSerialConsoleData_Type,
-  z.infer<typeof InstanceSerialConsoleData>
+assert<
+  Equals<NetworkInterfaceCreate_Type, z.infer<typeof NetworkInterfaceCreate>>
 >();
-assertType<Ipv4Net_Type, z.infer<typeof Ipv4Net>>();
-assertType<Ipv6Net_Type, z.infer<typeof Ipv6Net>>();
-assertType<IpNet_Type, z.infer<typeof IpNet>>();
-assertType<IpPool_Type, z.infer<typeof IpPool>>();
-assertType<IpPoolCreate_Type, z.infer<typeof IpPoolCreate>>();
-assertType<Ipv4Range_Type, z.infer<typeof Ipv4Range>>();
-assertType<Ipv6Range_Type, z.infer<typeof Ipv6Range>>();
-assertType<IpRange_Type, z.infer<typeof IpRange>>();
-assertType<IpPoolRange_Type, z.infer<typeof IpPoolRange>>();
-assertType<
-  IpPoolRangeResultsPage_Type,
-  z.infer<typeof IpPoolRangeResultsPage>
+assert<
+  Equals<
+    InstanceNetworkInterfaceAttachment_Type,
+    z.infer<typeof InstanceNetworkInterfaceAttachment>
+  >
 >();
-assertType<IpPoolResultsPage_Type, z.infer<typeof IpPoolResultsPage>>();
-assertType<IpPoolUpdate_Type, z.infer<typeof IpPoolUpdate>>();
-assertType<L4PortRange_Type, z.infer<typeof L4PortRange>>();
-assertType<MacAddr_Type, z.infer<typeof MacAddr>>();
-assertType<Measurement_Type, z.infer<typeof Measurement>>();
-assertType<
-  MeasurementResultsPage_Type,
-  z.infer<typeof MeasurementResultsPage>
+assert<Equals<InstanceCreate_Type, z.infer<typeof InstanceCreate>>>();
+assert<Equals<InstanceMigrate_Type, z.infer<typeof InstanceMigrate>>>();
+assert<Equals<InstanceResultsPage_Type, z.infer<typeof InstanceResultsPage>>>();
+assert<
+  Equals<
+    InstanceSerialConsoleData_Type,
+    z.infer<typeof InstanceSerialConsoleData>
+  >
 >();
-assertType<NetworkInterface_Type, z.infer<typeof NetworkInterface>>();
-assertType<
-  NetworkInterfaceResultsPage_Type,
-  z.infer<typeof NetworkInterfaceResultsPage>
+assert<Equals<Ipv4Net_Type, z.infer<typeof Ipv4Net>>>();
+assert<Equals<Ipv6Net_Type, z.infer<typeof Ipv6Net>>>();
+assert<Equals<IpNet_Type, z.infer<typeof IpNet>>>();
+assert<Equals<IpPool_Type, z.infer<typeof IpPool>>>();
+assert<Equals<IpPoolCreate_Type, z.infer<typeof IpPoolCreate>>>();
+assert<Equals<Ipv4Range_Type, z.infer<typeof Ipv4Range>>>();
+assert<Equals<Ipv6Range_Type, z.infer<typeof Ipv6Range>>>();
+assert<Equals<IpRange_Type, z.infer<typeof IpRange>>>();
+assert<Equals<IpPoolRange_Type, z.infer<typeof IpPoolRange>>>();
+assert<
+  Equals<IpPoolRangeResultsPage_Type, z.infer<typeof IpPoolRangeResultsPage>>
 >();
-assertType<
-  NetworkInterfaceUpdate_Type,
-  z.infer<typeof NetworkInterfaceUpdate>
+assert<Equals<IpPoolResultsPage_Type, z.infer<typeof IpPoolResultsPage>>>();
+assert<Equals<IpPoolUpdate_Type, z.infer<typeof IpPoolUpdate>>>();
+assert<Equals<L4PortRange_Type, z.infer<typeof L4PortRange>>>();
+assert<Equals<MacAddr_Type, z.infer<typeof MacAddr>>>();
+assert<Equals<Measurement_Type, z.infer<typeof Measurement>>>();
+assert<
+  Equals<MeasurementResultsPage_Type, z.infer<typeof MeasurementResultsPage>>
 >();
-assertType<NodeName_Type, z.infer<typeof NodeName>>();
-assertType<Organization_Type, z.infer<typeof Organization>>();
-assertType<OrganizationCreate_Type, z.infer<typeof OrganizationCreate>>();
-assertType<
-  OrganizationResultsPage_Type,
-  z.infer<typeof OrganizationResultsPage>
+assert<Equals<NetworkInterface_Type, z.infer<typeof NetworkInterface>>>();
+assert<
+  Equals<
+    NetworkInterfaceResultsPage_Type,
+    z.infer<typeof NetworkInterfaceResultsPage>
+  >
 >();
-assertType<OrganizationRole_Type, z.infer<typeof OrganizationRole>>();
-assertType<
-  OrganizationRoleRoleAssignment_Type,
-  z.infer<typeof OrganizationRoleRoleAssignment>
+assert<
+  Equals<NetworkInterfaceUpdate_Type, z.infer<typeof NetworkInterfaceUpdate>>
 >();
-assertType<
-  OrganizationRolePolicy_Type,
-  z.infer<typeof OrganizationRolePolicy>
+assert<Equals<NodeName_Type, z.infer<typeof NodeName>>>();
+assert<Equals<Organization_Type, z.infer<typeof Organization>>>();
+assert<Equals<OrganizationCreate_Type, z.infer<typeof OrganizationCreate>>>();
+assert<
+  Equals<OrganizationResultsPage_Type, z.infer<typeof OrganizationResultsPage>>
 >();
-assertType<OrganizationUpdate_Type, z.infer<typeof OrganizationUpdate>>();
-assertType<Project_Type, z.infer<typeof Project>>();
-assertType<ProjectCreate_Type, z.infer<typeof ProjectCreate>>();
-assertType<ProjectResultsPage_Type, z.infer<typeof ProjectResultsPage>>();
-assertType<ProjectRole_Type, z.infer<typeof ProjectRole>>();
-assertType<
-  ProjectRoleRoleAssignment_Type,
-  z.infer<typeof ProjectRoleRoleAssignment>
+assert<Equals<OrganizationRole_Type, z.infer<typeof OrganizationRole>>>();
+assert<
+  Equals<
+    OrganizationRoleRoleAssignment_Type,
+    z.infer<typeof OrganizationRoleRoleAssignment>
+  >
 >();
-assertType<ProjectRolePolicy_Type, z.infer<typeof ProjectRolePolicy>>();
-assertType<ProjectUpdate_Type, z.infer<typeof ProjectUpdate>>();
-assertType<Rack_Type, z.infer<typeof Rack>>();
-assertType<RackResultsPage_Type, z.infer<typeof RackResultsPage>>();
-assertType<RoleName_Type, z.infer<typeof RoleName>>();
-assertType<Role_Type, z.infer<typeof Role>>();
-assertType<RoleResultsPage_Type, z.infer<typeof RoleResultsPage>>();
-assertType<RouteDestination_Type, z.infer<typeof RouteDestination>>();
-assertType<RouteTarget_Type, z.infer<typeof RouteTarget>>();
-assertType<RouterRouteKind_Type, z.infer<typeof RouterRouteKind>>();
-assertType<RouterRoute_Type, z.infer<typeof RouterRoute>>();
-assertType<
-  RouterRouteCreateParams_Type,
-  z.infer<typeof RouterRouteCreateParams>
+assert<
+  Equals<OrganizationRolePolicy_Type, z.infer<typeof OrganizationRolePolicy>>
 >();
-assertType<
-  RouterRouteResultsPage_Type,
-  z.infer<typeof RouterRouteResultsPage>
+assert<Equals<OrganizationUpdate_Type, z.infer<typeof OrganizationUpdate>>>();
+assert<Equals<Project_Type, z.infer<typeof Project>>>();
+assert<Equals<ProjectCreate_Type, z.infer<typeof ProjectCreate>>>();
+assert<Equals<ProjectResultsPage_Type, z.infer<typeof ProjectResultsPage>>>();
+assert<Equals<ProjectRole_Type, z.infer<typeof ProjectRole>>>();
+assert<
+  Equals<
+    ProjectRoleRoleAssignment_Type,
+    z.infer<typeof ProjectRoleRoleAssignment>
+  >
 >();
-assertType<
-  RouterRouteUpdateParams_Type,
-  z.infer<typeof RouterRouteUpdateParams>
+assert<Equals<ProjectRolePolicy_Type, z.infer<typeof ProjectRolePolicy>>>();
+assert<Equals<ProjectUpdate_Type, z.infer<typeof ProjectUpdate>>>();
+assert<Equals<Rack_Type, z.infer<typeof Rack>>>();
+assert<Equals<RackResultsPage_Type, z.infer<typeof RackResultsPage>>>();
+assert<Equals<RoleName_Type, z.infer<typeof RoleName>>>();
+assert<Equals<Role_Type, z.infer<typeof Role>>>();
+assert<Equals<RoleResultsPage_Type, z.infer<typeof RoleResultsPage>>>();
+assert<Equals<RouteDestination_Type, z.infer<typeof RouteDestination>>>();
+assert<Equals<RouteTarget_Type, z.infer<typeof RouteTarget>>>();
+assert<Equals<RouterRouteKind_Type, z.infer<typeof RouterRouteKind>>>();
+assert<Equals<RouterRoute_Type, z.infer<typeof RouterRoute>>>();
+assert<
+  Equals<RouterRouteCreateParams_Type, z.infer<typeof RouterRouteCreateParams>>
 >();
-assertType<SagaErrorInfo_Type, z.infer<typeof SagaErrorInfo>>();
-assertType<SagaState_Type, z.infer<typeof SagaState>>();
-assertType<Saga_Type, z.infer<typeof Saga>>();
-assertType<SagaResultsPage_Type, z.infer<typeof SagaResultsPage>>();
-assertType<SamlIdentityProvider_Type, z.infer<typeof SamlIdentityProvider>>();
-assertType<
-  SamlIdentityProviderCreate_Type,
-  z.infer<typeof SamlIdentityProviderCreate>
+assert<
+  Equals<RouterRouteResultsPage_Type, z.infer<typeof RouterRouteResultsPage>>
 >();
-assertType<SiloIdentityMode_Type, z.infer<typeof SiloIdentityMode>>();
-assertType<Silo_Type, z.infer<typeof Silo>>();
-assertType<SiloCreate_Type, z.infer<typeof SiloCreate>>();
-assertType<SiloResultsPage_Type, z.infer<typeof SiloResultsPage>>();
-assertType<SiloRole_Type, z.infer<typeof SiloRole>>();
-assertType<
-  SiloRoleRoleAssignment_Type,
-  z.infer<typeof SiloRoleRoleAssignment>
+assert<
+  Equals<RouterRouteUpdateParams_Type, z.infer<typeof RouterRouteUpdateParams>>
 >();
-assertType<SiloRolePolicy_Type, z.infer<typeof SiloRolePolicy>>();
-assertType<Sled_Type, z.infer<typeof Sled>>();
-assertType<SledResultsPage_Type, z.infer<typeof SledResultsPage>>();
-assertType<SnapshotState_Type, z.infer<typeof SnapshotState>>();
-assertType<Snapshot_Type, z.infer<typeof Snapshot>>();
-assertType<SnapshotCreate_Type, z.infer<typeof SnapshotCreate>>();
-assertType<SnapshotResultsPage_Type, z.infer<typeof SnapshotResultsPage>>();
-assertType<SpoofLoginBody_Type, z.infer<typeof SpoofLoginBody>>();
-assertType<SshKey_Type, z.infer<typeof SshKey>>();
-assertType<SshKeyCreate_Type, z.infer<typeof SshKeyCreate>>();
-assertType<SshKeyResultsPage_Type, z.infer<typeof SshKeyResultsPage>>();
-assertType<TimeseriesName_Type, z.infer<typeof TimeseriesName>>();
-assertType<TimeseriesSchema_Type, z.infer<typeof TimeseriesSchema>>();
-assertType<
-  TimeseriesSchemaResultsPage_Type,
-  z.infer<typeof TimeseriesSchemaResultsPage>
+assert<Equals<SagaErrorInfo_Type, z.infer<typeof SagaErrorInfo>>>();
+assert<Equals<SagaState_Type, z.infer<typeof SagaState>>>();
+assert<Equals<Saga_Type, z.infer<typeof Saga>>>();
+assert<Equals<SagaResultsPage_Type, z.infer<typeof SagaResultsPage>>>();
+assert<
+  Equals<SamlIdentityProvider_Type, z.infer<typeof SamlIdentityProvider>>
 >();
-assertType<User_Type, z.infer<typeof User>>();
-assertType<UserBuiltin_Type, z.infer<typeof UserBuiltin>>();
-assertType<
-  UserBuiltinResultsPage_Type,
-  z.infer<typeof UserBuiltinResultsPage>
+assert<
+  Equals<
+    SamlIdentityProviderCreate_Type,
+    z.infer<typeof SamlIdentityProviderCreate>
+  >
 >();
-assertType<UserResultsPage_Type, z.infer<typeof UserResultsPage>>();
-assertType<Vpc_Type, z.infer<typeof Vpc>>();
-assertType<VpcCreate_Type, z.infer<typeof VpcCreate>>();
-assertType<VpcFirewallRuleAction_Type, z.infer<typeof VpcFirewallRuleAction>>();
-assertType<
-  VpcFirewallRuleDirection_Type,
-  z.infer<typeof VpcFirewallRuleDirection>
+assert<Equals<SiloIdentityMode_Type, z.infer<typeof SiloIdentityMode>>>();
+assert<Equals<Silo_Type, z.infer<typeof Silo>>>();
+assert<Equals<SiloCreate_Type, z.infer<typeof SiloCreate>>>();
+assert<Equals<SiloResultsPage_Type, z.infer<typeof SiloResultsPage>>>();
+assert<Equals<SiloRole_Type, z.infer<typeof SiloRole>>>();
+assert<
+  Equals<SiloRoleRoleAssignment_Type, z.infer<typeof SiloRoleRoleAssignment>>
 >();
-assertType<
-  VpcFirewallRuleHostFilter_Type,
-  z.infer<typeof VpcFirewallRuleHostFilter>
+assert<Equals<SiloRolePolicy_Type, z.infer<typeof SiloRolePolicy>>>();
+assert<Equals<Sled_Type, z.infer<typeof Sled>>>();
+assert<Equals<SledResultsPage_Type, z.infer<typeof SledResultsPage>>>();
+assert<Equals<SnapshotState_Type, z.infer<typeof SnapshotState>>>();
+assert<Equals<Snapshot_Type, z.infer<typeof Snapshot>>>();
+assert<Equals<SnapshotCreate_Type, z.infer<typeof SnapshotCreate>>>();
+assert<Equals<SnapshotResultsPage_Type, z.infer<typeof SnapshotResultsPage>>>();
+assert<Equals<SpoofLoginBody_Type, z.infer<typeof SpoofLoginBody>>>();
+assert<Equals<SshKey_Type, z.infer<typeof SshKey>>>();
+assert<Equals<SshKeyCreate_Type, z.infer<typeof SshKeyCreate>>>();
+assert<Equals<SshKeyResultsPage_Type, z.infer<typeof SshKeyResultsPage>>>();
+assert<Equals<TimeseriesName_Type, z.infer<typeof TimeseriesName>>>();
+assert<Equals<TimeseriesSchema_Type, z.infer<typeof TimeseriesSchema>>>();
+assert<
+  Equals<
+    TimeseriesSchemaResultsPage_Type,
+    z.infer<typeof TimeseriesSchemaResultsPage>
+  >
 >();
-assertType<
-  VpcFirewallRuleProtocol_Type,
-  z.infer<typeof VpcFirewallRuleProtocol>
+assert<Equals<User_Type, z.infer<typeof User>>>();
+assert<Equals<UserBuiltin_Type, z.infer<typeof UserBuiltin>>>();
+assert<
+  Equals<UserBuiltinResultsPage_Type, z.infer<typeof UserBuiltinResultsPage>>
 >();
-assertType<VpcFirewallRuleFilter_Type, z.infer<typeof VpcFirewallRuleFilter>>();
-assertType<VpcFirewallRuleStatus_Type, z.infer<typeof VpcFirewallRuleStatus>>();
-assertType<VpcFirewallRuleTarget_Type, z.infer<typeof VpcFirewallRuleTarget>>();
-assertType<VpcFirewallRule_Type, z.infer<typeof VpcFirewallRule>>();
-assertType<VpcFirewallRuleUpdate_Type, z.infer<typeof VpcFirewallRuleUpdate>>();
-assertType<
-  VpcFirewallRuleUpdateParams_Type,
-  z.infer<typeof VpcFirewallRuleUpdateParams>
+assert<Equals<UserResultsPage_Type, z.infer<typeof UserResultsPage>>>();
+assert<Equals<Vpc_Type, z.infer<typeof Vpc>>>();
+assert<Equals<VpcCreate_Type, z.infer<typeof VpcCreate>>>();
+assert<
+  Equals<VpcFirewallRuleAction_Type, z.infer<typeof VpcFirewallRuleAction>>
 >();
-assertType<VpcFirewallRules_Type, z.infer<typeof VpcFirewallRules>>();
-assertType<VpcResultsPage_Type, z.infer<typeof VpcResultsPage>>();
-assertType<VpcRouterKind_Type, z.infer<typeof VpcRouterKind>>();
-assertType<VpcRouter_Type, z.infer<typeof VpcRouter>>();
-assertType<VpcRouterCreate_Type, z.infer<typeof VpcRouterCreate>>();
-assertType<VpcRouterResultsPage_Type, z.infer<typeof VpcRouterResultsPage>>();
-assertType<VpcRouterUpdate_Type, z.infer<typeof VpcRouterUpdate>>();
-assertType<VpcSubnet_Type, z.infer<typeof VpcSubnet>>();
-assertType<VpcSubnetCreate_Type, z.infer<typeof VpcSubnetCreate>>();
-assertType<VpcSubnetResultsPage_Type, z.infer<typeof VpcSubnetResultsPage>>();
-assertType<VpcSubnetUpdate_Type, z.infer<typeof VpcSubnetUpdate>>();
-assertType<VpcUpdate_Type, z.infer<typeof VpcUpdate>>();
-assertType<NameOrIdSortMode_Type, z.infer<typeof NameOrIdSortMode>>();
-assertType<NameSortMode_Type, z.infer<typeof NameSortMode>>();
-assertType<DiskMetricName_Type, z.infer<typeof DiskMetricName>>();
-assertType<IdSortMode_Type, z.infer<typeof IdSortMode>>();
+assert<
+  Equals<
+    VpcFirewallRuleDirection_Type,
+    z.infer<typeof VpcFirewallRuleDirection>
+  >
+>();
+assert<
+  Equals<
+    VpcFirewallRuleHostFilter_Type,
+    z.infer<typeof VpcFirewallRuleHostFilter>
+  >
+>();
+assert<
+  Equals<VpcFirewallRuleProtocol_Type, z.infer<typeof VpcFirewallRuleProtocol>>
+>();
+assert<
+  Equals<VpcFirewallRuleFilter_Type, z.infer<typeof VpcFirewallRuleFilter>>
+>();
+assert<
+  Equals<VpcFirewallRuleStatus_Type, z.infer<typeof VpcFirewallRuleStatus>>
+>();
+assert<
+  Equals<VpcFirewallRuleTarget_Type, z.infer<typeof VpcFirewallRuleTarget>>
+>();
+assert<Equals<VpcFirewallRule_Type, z.infer<typeof VpcFirewallRule>>>();
+assert<
+  Equals<VpcFirewallRuleUpdate_Type, z.infer<typeof VpcFirewallRuleUpdate>>
+>();
+assert<
+  Equals<
+    VpcFirewallRuleUpdateParams_Type,
+    z.infer<typeof VpcFirewallRuleUpdateParams>
+  >
+>();
+assert<Equals<VpcFirewallRules_Type, z.infer<typeof VpcFirewallRules>>>();
+assert<Equals<VpcResultsPage_Type, z.infer<typeof VpcResultsPage>>>();
+assert<Equals<VpcRouterKind_Type, z.infer<typeof VpcRouterKind>>>();
+assert<Equals<VpcRouter_Type, z.infer<typeof VpcRouter>>>();
+assert<Equals<VpcRouterCreate_Type, z.infer<typeof VpcRouterCreate>>>();
+assert<
+  Equals<VpcRouterResultsPage_Type, z.infer<typeof VpcRouterResultsPage>>
+>();
+assert<Equals<VpcRouterUpdate_Type, z.infer<typeof VpcRouterUpdate>>>();
+assert<Equals<VpcSubnet_Type, z.infer<typeof VpcSubnet>>>();
+assert<Equals<VpcSubnetCreate_Type, z.infer<typeof VpcSubnetCreate>>>();
+assert<
+  Equals<VpcSubnetResultsPage_Type, z.infer<typeof VpcSubnetResultsPage>>
+>();
+assert<Equals<VpcSubnetUpdate_Type, z.infer<typeof VpcSubnetUpdate>>>();
+assert<Equals<VpcUpdate_Type, z.infer<typeof VpcUpdate>>>();
+assert<Equals<NameOrIdSortMode_Type, z.infer<typeof NameOrIdSortMode>>>();
+assert<Equals<NameSortMode_Type, z.infer<typeof NameSortMode>>>();
+assert<Equals<DiskMetricName_Type, z.infer<typeof DiskMetricName>>>();
+assert<Equals<IdSortMode_Type, z.infer<typeof IdSortMode>>>();

@@ -11,6 +11,7 @@ export function generateTypeTests(spec: OpenAPIV3.Document) {
   const schemaNames = getSortedSchemas(spec).filter((name) => name !== "Error");
 
   w('import { z } from "zod";');
+  w('import { assert, Equals } from "tsafe"');
   w("import type {");
   for (const name of schemaNames) {
     const schema = spec.components!.schemas![name];
@@ -29,12 +30,10 @@ export function generateTypeTests(spec: OpenAPIV3.Document) {
   }
   w('} from "./validate"');
 
-  w("const assertType = <T1, T2 extends T1>() => {}");
-
   for (const name of schemaNames) {
     const schema = spec.components!.schemas![name];
     if (!schema) continue;
 
-    w(`assertType<${name}_Type, z.infer<typeof ${name}>>();`);
+    w(`assert<Equals<${name}_Type, z.infer<typeof ${name}>>>();`);
   }
 }
