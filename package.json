@@ -16,10 +16,19 @@
       "require": "./dist/Api.js",
       "import": "./dist/Api.mjs",
       "types": "./dist/Api.d.ts"
+    },
+    "./validate": {
+      "require": "./dist/validate.js",
+      "import": "./dist/validate.mjs",
+      "types": "./dist/validate.d.ts"
     }
   },
+  "files": [
+    "client",
+    "dist"
+  ],
   "scripts": {
-    "build": "tsup client/Api.ts --format cjs,esm --dts --clean",
+    "build": "tsup client/Api.ts client/validate.ts --format cjs,esm --dts --clean",
     "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client && npm run build",
     "gen-from": "./tools/gen.sh",
     "postgen": "prettier --parser typescript --write ./client",
