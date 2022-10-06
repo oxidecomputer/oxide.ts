@@ -69,10 +69,14 @@ export const schemaToTypes = makeSchemaGenerator({
   },
   allOf(schema, io) {
     if (schema.allOf!.length === 1) {
-      return schemaToTypes(schema.allOf![0], io);
+      schemaToTypes(schema.allOf![0], io);
+    } else {
+      for (const s of schema.allOf!) {
+        io.w(`& ${JSON.stringify(s)}`);
+      }
     }
-    for (const s of schema.allOf!) {
-      io.w(`& ${JSON.stringify(s)}`);
+    if ("nullable" in schema) {
+      io.w0(` | null`);
     }
   },
   empty({ w0 }) {

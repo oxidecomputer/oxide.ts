@@ -293,7 +293,7 @@ export type ExternalIp = { ip: string; kind: IpKind };
 /**
  * Parameters for creating an external IP address for instances.
  */
-export type ExternalIpCreate = { poolName?: Name; type: "ephemeral" };
+export type ExternalIpCreate = { poolName?: Name | null; type: "ephemeral" };
 
 /**
  * A single page of results
@@ -357,7 +357,7 @@ export type GlobalImage = {
   /** human-readable free-form text about a resource */
   description: string;
   /** Hash of the image contents, if applicable */
-  digest?: Digest;
+  digest?: Digest | null;
   /** Image distribution */
   distribution: string;
   /** unique, immutable, system-controlled identifier for each resource */
@@ -452,7 +452,7 @@ export type Image = {
   /** human-readable free-form text about a resource */
   description: string;
   /** Hash of the image contents, if applicable */
-  digest?: Digest;
+  digest?: Digest | null;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   /** unique, mutable, user-controlled identifier for each resource */
@@ -733,7 +733,7 @@ export type IpPoolResultsPage = {
 /**
  * Parameters for updating an IP Pool
  */
-export type IpPoolUpdate = { description?: string | null; name?: Name };
+export type IpPoolUpdate = { description?: string | null; name?: Name | null };
 
 /**
  * A range of IP ports
@@ -809,7 +809,7 @@ export type NetworkInterfaceResultsPage = {
  */
 export type NetworkInterfaceUpdate = {
   description?: string | null;
-  name?: Name;
+  name?: Name | null;
   /** Make a secondary interface the instance's primary interface.
 
 If applied to a secondary interface, that interface will become the primary on the next reboot of the instance. Note that this may have implications for routing between instances, as the new primary interface will be on a distinct subnet from the previous primary interface.
@@ -882,7 +882,10 @@ export type OrganizationRolePolicy = {
 /**
  * Updateable properties of an {@link Organization}
  */
-export type OrganizationUpdate = { description?: string | null; name?: Name };
+export type OrganizationUpdate = {
+  description?: string | null;
+  name?: Name | null;
+};
 
 /**
  * Client view of a {@link Project}
@@ -942,7 +945,7 @@ export type ProjectRolePolicy = {
 /**
  * Updateable properties of a {@link Project}
  */
-export type ProjectUpdate = { description?: string | null; name?: Name };
+export type ProjectUpdate = { description?: string | null; name?: Name | null };
 
 /**
  * Client view of an {@link Rack}
@@ -1089,7 +1092,7 @@ export type RouterRouteResultsPage = {
 export type RouterRouteUpdateParams = {
   description?: string | null;
   destination: RouteDestination;
-  name?: Name;
+  name?: Name | null;
   target: RouteTarget;
 };
 
@@ -1160,7 +1163,7 @@ export type SamlIdentityProviderCreate = {
   idpMetadataSource: IdpMetadataSource;
   name: Name;
   /** optional request signing key pair */
-  signingKeypair?: DerEncodedKeyPair;
+  signingKeypair?: DerEncodedKeyPair | null;
   /** service provider endpoint where the idp should send log out requests */
   sloUrl: string;
   /** sp's client id */
@@ -1459,7 +1462,7 @@ export type VpcCreate = {
   /** The IPv6 prefix for this VPC.
 
 All IPv6 subnets created from this VPC must be taken from this range, which sould be a Unique Local Address in the range `fd00::/48`. The default VPC Subnet will have the first `/64` range from this prefix. */
-  ipv6Prefix?: Ipv6Net;
+  ipv6Prefix?: Ipv6Net | null;
   name: Name;
 };
 
@@ -1627,7 +1630,10 @@ export type VpcRouterResultsPage = {
 /**
  * Updateable properties of a {@link VpcRouter}
  */
-export type VpcRouterUpdate = { description?: string | null; name?: Name };
+export type VpcRouterUpdate = {
+  description?: string | null;
+  name?: Name | null;
+};
 
 /**
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionall an IPv6 subnetwork.
@@ -1663,7 +1669,7 @@ It must be allocated from an RFC 1918 private address range, and must not overla
   /** The IPv6 address range for this subnet.
 
 It must be allocated from the RFC 4193 Unique Local Address range, with the prefix equal to the parent VPC's prefix. A random `/64` block will be assigned if one is not provided. It must not overlap with any existing subnet in the VPC. */
-  ipv6Block?: Ipv6Net;
+  ipv6Block?: Ipv6Net | null;
   name: Name;
 };
 
@@ -1680,15 +1686,18 @@ export type VpcSubnetResultsPage = {
 /**
  * Updateable properties of a {@link VpcSubnet}
  */
-export type VpcSubnetUpdate = { description?: string | null; name?: Name };
+export type VpcSubnetUpdate = {
+  description?: string | null;
+  name?: Name | null;
+};
 
 /**
  * Updateable properties of a {@link Vpc}
  */
 export type VpcUpdate = {
   description?: string | null;
-  dnsName?: Name;
-  name?: Name;
+  dnsName?: Name | null;
+  name?: Name | null;
 };
 
 /**
