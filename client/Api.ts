@@ -1094,7 +1094,7 @@ export type RouterRouteUpdateParams = {
 };
 
 export type SagaErrorInfo =
-  | { error: "action_failed"; sourceError: object }
+  | { error: "action_failed"; sourceError: Record<string, unknown> }
   | { error: "deserialize_failed"; message: string }
   | { error: "injected_error" }
   | { error: "serialize_failed"; message: string }

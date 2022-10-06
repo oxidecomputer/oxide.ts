@@ -70,7 +70,7 @@ export const schemaToTypes = makeSchemaGenerator({
     }
   },
   empty({ w0 }) {
-    w0(`object`);
+    w0(`Record<string, unknown>`);
   },
   default(schema) {
     throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(schema, null, 2)}`);
