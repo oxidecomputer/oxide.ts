@@ -149,7 +149,7 @@ export const schemaToZod = makeSchemaGenerator({
   },
 
   empty({ w0 }) {
-    w0("z.object({}).optional()");
+    w0("z.record(z.unknown())");
   },
 
   default(schema) {
