@@ -1,6 +1,6 @@
 import { expect, test, beforeEach } from "vitest";
-import { initIO, TestWritable } from "./io";
-import { schemaToZod } from "./zodSchema";
+import { initIO, TestWritable } from "../io";
+import { schemaToZod } from "./zod";
 
 const io = initIO();
 const out = io.out as TestWritable;
