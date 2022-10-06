@@ -25,6 +25,7 @@
   },
   "files": [
     "client",
+    "!client/type-test.ts",
     "dist"
   ],
   "scripts": {

@@ -43,7 +43,7 @@ function checkErrorSchema(schema: Schema) {
   );
 }
 
-export function generateRuntime(spec: OpenAPIV3.Document) {
+export function generateApi(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
   w("/* eslint-disable */\n");
