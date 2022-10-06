@@ -2,8 +2,6 @@ import type { OpenAPIV3 } from "openapi-types";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 import assert from "assert";
-import fs from "fs";
-import path from "path";
 import {
   pathToTemplateStr,
   processParamName,
@@ -131,7 +129,7 @@ export function generateRuntime(spec: OpenAPIV3.Document) {
   const operations = Object.values(spec.paths)
     .map((handlers) =>
       Object.entries(handlers!)
-        .filter(([method, value]) => method.toUpperCase() in HttpMethods)
+        .filter(([method]) => method.toUpperCase() in HttpMethods)
         .map(([_, conf]) => conf)
     )
     .flat()
