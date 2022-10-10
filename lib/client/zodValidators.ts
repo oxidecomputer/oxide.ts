@@ -12,15 +12,15 @@ const { w, w0, out } = io;
 export function generateZodValidators(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
-  w("/* eslint-disable */\n");
-  w("import { z, ZodType } from 'zod';");
-  w(`
-    const DateType = z.preprocess((arg) => {
-      if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
-    }, z.date());
-    type DateType = z.infer<typeof DateType>;\n`);
+  w(`/* eslint-disable */
+  import { z, ZodType } from 'zod';
+  import { snakeify, processResponseBody } from './util';
 
-  w(`
+  const DateType = z.preprocess((arg) => {
+    if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
+  }, z.date());
+  type DateType = z.infer<typeof DateType>;
+
   /**
    * Zod only supports string enums at the moment. A previous issue was opened
    * and closed as stale but it provided a hint on how to implement it.
@@ -44,9 +44,9 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
       );
     }
 
-    w0(`export const ${schemaName} = `);
+    w0(`export const ${schemaName} = z.preprocess(processResponseBody,`);
     schemaToZod(schema, io);
-    w("\n");
+    w(")\n");
   }
 
   for (const path in spec.paths) {
@@ -58,7 +58,9 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
 
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
-      w(`export const ${opName}Params = z.object({`);
+      w(
+        `export const ${opName}Params = z.preprocess(processResponseBody, z.object({`
+      );
       for (const param of params || []) {
         if ("name" in param) {
           if (param.schema) {
@@ -81,8 +83,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
           }
         }
       }
-      w(`})`);
-      w(`export type ${opName}Params = z.infer<typeof ${opName}Params>`);
+      w(`}))`);
       w("");
     }
   }

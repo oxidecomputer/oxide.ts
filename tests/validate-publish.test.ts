@@ -26,6 +26,7 @@ test("ensure only desired files are published", async () => {
       "dist/Api.d.ts",
       "dist/Api.js",
       "dist/Api.mjs",
+      "dist/chunk-XYDDUAPD.mjs",
       "dist/validate.d.ts",
       "dist/validate.js",
       "dist/validate.mjs",
