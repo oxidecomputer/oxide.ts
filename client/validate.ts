@@ -261,11 +261,11 @@ export const Disk = z.preprocess(
     description: z.string(),
     devicePath: z.string(),
     id: z.string().uuid(),
-    imageId: z.string().uuid().nullable().optional(),
+    imageId: z.string().uuid().optional(),
     name: Name,
     projectId: z.string().uuid(),
     size: ByteCount,
-    snapshotId: z.string().uuid().nullable().optional(),
+    snapshotId: z.string().uuid().optional(),
     state: DiskState,
     timeCreated: DateType,
     timeModified: DateType,
@@ -311,7 +311,7 @@ export const DiskIdentifier = z.preprocess(
  */
 export const DiskResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Disk.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Disk.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -352,10 +352,7 @@ export const ExternalIp = z.preprocess(
  */
 export const ExternalIpCreate = z.preprocess(
   processResponseBody,
-  z.object({
-    poolName: Name.nullable().optional(),
-    type: z.enum(["ephemeral"]),
-  })
+  z.object({ poolName: Name.optional(), type: z.enum(["ephemeral"]) })
 );
 
 /**
@@ -363,10 +360,7 @@ export const ExternalIpCreate = z.preprocess(
  */
 export const ExternalIpResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: ExternalIp.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: ExternalIp.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -438,14 +432,14 @@ export const GlobalImage = z.preprocess(
   z.object({
     blockSize: ByteCount,
     description: z.string(),
-    digest: Digest.nullable().optional(),
+    digest: Digest.optional(),
     distribution: z.string(),
     id: z.string().uuid(),
     name: Name,
     size: ByteCount,
     timeCreated: DateType,
     timeModified: DateType,
-    url: z.string().nullable().optional(),
+    url: z.string().optional(),
     version: z.string(),
   })
 );
@@ -481,10 +475,7 @@ export const GlobalImageCreate = z.preprocess(
  */
 export const GlobalImageResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: GlobalImage.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: GlobalImage.array(), nextPage: z.string().optional() })
 );
 
 export const IdentityProviderType = z.preprocess(
@@ -512,10 +503,7 @@ export const IdentityProvider = z.preprocess(
  */
 export const IdentityProviderResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: IdentityProvider.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: IdentityProvider.array(), nextPage: z.string().optional() })
 );
 
 export const IdpMetadataSource = z.preprocess(
@@ -534,15 +522,15 @@ export const Image = z.preprocess(
   z.object({
     blockSize: ByteCount,
     description: z.string(),
-    digest: Digest.nullable().optional(),
+    digest: Digest.optional(),
     id: z.string().uuid(),
     name: Name,
     projectId: z.string().uuid(),
     size: ByteCount,
     timeCreated: DateType,
     timeModified: DateType,
-    url: z.string().nullable().optional(),
-    version: z.string().nullable().optional(),
+    url: z.string().optional(),
+    version: z.string().optional(),
   })
 );
 
@@ -564,7 +552,7 @@ export const ImageCreate = z.preprocess(
  */
 export const ImageResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Image.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Image.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -640,7 +628,7 @@ export const NetworkInterfaceCreate = z.preprocess(
   processResponseBody,
   z.object({
     description: z.string(),
-    ip: z.string().nullable().optional(),
+    ip: z.string().optional(),
     name: Name,
     subnetName: Name,
     vpcName: Name,
@@ -696,10 +684,7 @@ export const InstanceMigrate = z.preprocess(
  */
 export const InstanceResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: Instance.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: Instance.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -755,7 +740,7 @@ export const IpPool = z.preprocess(
     description: z.string(),
     id: z.string().uuid(),
     name: Name,
-    projectId: z.string().uuid().nullable().optional(),
+    projectId: z.string().uuid().optional(),
     timeCreated: DateType,
     timeModified: DateType,
   })
@@ -811,10 +796,7 @@ export const IpPoolRange = z.preprocess(
  */
 export const IpPoolRangeResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: IpPoolRange.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: IpPoolRange.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -822,10 +804,7 @@ export const IpPoolRangeResultsPage = z.preprocess(
  */
 export const IpPoolResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: IpPool.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: IpPool.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -833,10 +812,7 @@ export const IpPoolResultsPage = z.preprocess(
  */
 export const IpPoolUpdate = z.preprocess(
   processResponseBody,
-  z.object({
-    description: z.string().nullable().optional(),
-    name: Name.nullable().optional(),
-  })
+  z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
 /**
@@ -880,10 +856,7 @@ export const Measurement = z.preprocess(
  */
 export const MeasurementResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: Measurement.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: Measurement.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -911,10 +884,7 @@ export const NetworkInterface = z.preprocess(
  */
 export const NetworkInterfaceResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: NetworkInterface.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: NetworkInterface.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -925,8 +895,8 @@ export const NetworkInterfaceResultsPage = z.preprocess(
 export const NetworkInterfaceUpdate = z.preprocess(
   processResponseBody,
   z.object({
-    description: z.string().nullable().optional(),
-    name: Name.nullable().optional(),
+    description: z.string().optional(),
+    name: Name.optional(),
     primary: z.boolean().default(false).optional(),
   })
 );
@@ -965,10 +935,7 @@ export const OrganizationCreate = z.preprocess(
  */
 export const OrganizationResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: Organization.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: Organization.array(), nextPage: z.string().optional() })
 );
 
 export const OrganizationRole = z.preprocess(
@@ -1005,10 +972,7 @@ export const OrganizationRolePolicy = z.preprocess(
  */
 export const OrganizationUpdate = z.preprocess(
   processResponseBody,
-  z.object({
-    description: z.string().nullable().optional(),
-    name: Name.nullable().optional(),
-  })
+  z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
 /**
@@ -1039,10 +1003,7 @@ export const ProjectCreate = z.preprocess(
  */
 export const ProjectResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: Project.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: Project.array(), nextPage: z.string().optional() })
 );
 
 export const ProjectRole = z.preprocess(
@@ -1079,10 +1040,7 @@ export const ProjectRolePolicy = z.preprocess(
  */
 export const ProjectUpdate = z.preprocess(
   processResponseBody,
-  z.object({
-    description: z.string().nullable().optional(),
-    name: Name.nullable().optional(),
-  })
+  z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
 /**
@@ -1102,7 +1060,7 @@ export const Rack = z.preprocess(
  */
 export const RackResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Rack.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Rack.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1131,7 +1089,7 @@ export const Role = z.preprocess(
  */
 export const RoleResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Role.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Role.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1209,10 +1167,7 @@ export const RouterRouteCreateParams = z.preprocess(
  */
 export const RouterRouteResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: RouterRoute.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: RouterRoute.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1221,9 +1176,9 @@ export const RouterRouteResultsPage = z.preprocess(
 export const RouterRouteUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
-    description: z.string().nullable().optional(),
+    description: z.string().optional(),
     destination: RouteDestination,
-    name: Name.nullable().optional(),
+    name: Name.optional(),
     target: RouteTarget,
   })
 );
@@ -1265,7 +1220,7 @@ export const Saga = z.preprocess(
  */
 export const SagaResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Saga.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Saga.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1279,7 +1234,7 @@ export const SamlIdentityProvider = z.preprocess(
     id: z.string().uuid(),
     idpEntityId: z.string(),
     name: Name,
-    publicCert: z.string().nullable().optional(),
+    publicCert: z.string().optional(),
     sloUrl: z.string(),
     spClientId: z.string(),
     technicalContactEmail: z.string(),
@@ -1296,11 +1251,11 @@ export const SamlIdentityProviderCreate = z.preprocess(
   z.object({
     acsUrl: z.string(),
     description: z.string(),
-    groupAttributeName: z.string().nullable().optional(),
+    groupAttributeName: z.string().optional(),
     idpEntityId: z.string(),
     idpMetadataSource: IdpMetadataSource,
     name: Name,
-    signingKeypair: DerEncodedKeyPair.nullable().optional(),
+    signingKeypair: DerEncodedKeyPair.optional(),
     sloUrl: z.string(),
     spClientId: z.string(),
     technicalContactEmail: z.string(),
@@ -1337,7 +1292,7 @@ export const Silo = z.preprocess(
 export const SiloCreate = z.preprocess(
   processResponseBody,
   z.object({
-    adminGroupName: z.string().nullable().optional(),
+    adminGroupName: z.string().optional(),
     description: z.string(),
     discoverable: z.boolean(),
     identityMode: SiloIdentityMode,
@@ -1350,7 +1305,7 @@ export const SiloCreate = z.preprocess(
  */
 export const SiloResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Silo.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Silo.array(), nextPage: z.string().optional() })
 );
 
 export const SiloRole = z.preprocess(
@@ -1400,7 +1355,7 @@ export const Sled = z.preprocess(
  */
 export const SledResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Sled.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Sled.array(), nextPage: z.string().optional() })
 );
 
 export const SnapshotState = z.preprocess(
@@ -1439,10 +1394,7 @@ export const SnapshotCreate = z.preprocess(
  */
 export const SnapshotResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: Snapshot.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: Snapshot.array(), nextPage: z.string().optional() })
 );
 
 export const SpoofLoginBody = z.preprocess(
@@ -1479,10 +1431,7 @@ export const SshKeyCreate = z.preprocess(
  */
 export const SshKeyResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: SshKey.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: SshKey.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1519,10 +1468,7 @@ export const TimeseriesSchema = z.preprocess(
  */
 export const TimeseriesSchemaResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: TimeseriesSchema.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: TimeseriesSchema.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1552,10 +1498,7 @@ export const UserBuiltin = z.preprocess(
  */
 export const UserBuiltinResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: UserBuiltin.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: UserBuiltin.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1563,7 +1506,7 @@ export const UserBuiltinResultsPage = z.preprocess(
  */
 export const UserResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: User.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: User.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1592,7 +1535,7 @@ export const VpcCreate = z.preprocess(
   z.object({
     description: z.string(),
     dnsName: Name,
-    ipv6Prefix: Ipv6Net.nullable().optional(),
+    ipv6Prefix: Ipv6Net.optional(),
     name: Name,
   })
 );
@@ -1635,9 +1578,9 @@ export const VpcFirewallRuleProtocol = z.preprocess(
 export const VpcFirewallRuleFilter = z.preprocess(
   processResponseBody,
   z.object({
-    hosts: VpcFirewallRuleHostFilter.array().nullable().optional(),
-    ports: L4PortRange.array().nullable().optional(),
-    protocols: VpcFirewallRuleProtocol.array().nullable().optional(),
+    hosts: VpcFirewallRuleHostFilter.array().optional(),
+    ports: L4PortRange.array().optional(),
+    protocols: VpcFirewallRuleProtocol.array().optional(),
   })
 );
 
@@ -1719,7 +1662,7 @@ export const VpcFirewallRules = z.preprocess(
  */
 export const VpcResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Vpc.array(), nextPage: z.string().nullable().optional() })
+  z.object({ items: Vpc.array(), nextPage: z.string().optional() })
 );
 
 export const VpcRouterKind = z.preprocess(
@@ -1756,10 +1699,7 @@ export const VpcRouterCreate = z.preprocess(
  */
 export const VpcRouterResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: VpcRouter.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: VpcRouter.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1767,10 +1707,7 @@ export const VpcRouterResultsPage = z.preprocess(
  */
 export const VpcRouterUpdate = z.preprocess(
   processResponseBody,
-  z.object({
-    description: z.string().nullable().optional(),
-    name: Name.nullable().optional(),
-  })
+  z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
 /**
@@ -1798,7 +1735,7 @@ export const VpcSubnetCreate = z.preprocess(
   z.object({
     description: z.string(),
     ipv4Block: Ipv4Net,
-    ipv6Block: Ipv6Net.nullable().optional(),
+    ipv6Block: Ipv6Net.optional(),
     name: Name,
   })
 );
@@ -1808,10 +1745,7 @@ export const VpcSubnetCreate = z.preprocess(
  */
 export const VpcSubnetResultsPage = z.preprocess(
   processResponseBody,
-  z.object({
-    items: VpcSubnet.array(),
-    nextPage: z.string().nullable().optional(),
-  })
+  z.object({ items: VpcSubnet.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1819,10 +1753,7 @@ export const VpcSubnetResultsPage = z.preprocess(
  */
 export const VpcSubnetUpdate = z.preprocess(
   processResponseBody,
-  z.object({
-    description: z.string().nullable().optional(),
-    name: Name.nullable().optional(),
-  })
+  z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
 /**
@@ -1831,9 +1762,9 @@ export const VpcSubnetUpdate = z.preprocess(
 export const VpcUpdate = z.preprocess(
   processResponseBody,
   z.object({
-    description: z.string().nullable().optional(),
-    dnsName: Name.nullable().optional(),
-    name: Name.nullable().optional(),
+    description: z.string().optional(),
+    dnsName: Name.optional(),
+    name: Name.optional(),
   })
 );
 
@@ -1985,8 +1916,8 @@ export const LogoutParams = z.preprocess(processResponseBody, z.object({}));
 export const OrganizationListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameOrIdSortMode.optional(),
   })
 );
@@ -2034,8 +1965,8 @@ export const OrganizationPolicyUpdateParams = z.preprocess(
 export const ProjectListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameOrIdSortMode.optional(),
     orgName: Name,
   })
@@ -2075,8 +2006,8 @@ export const ProjectDeleteParams = z.preprocess(
 export const DiskListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2117,8 +2048,8 @@ export const DiskMetricsListParams = z.preprocess(
     orgName: Name,
     projectName: Name,
     endTime: DateType.optional(),
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     startTime: DateType.optional(),
   })
 );
@@ -2126,8 +2057,8 @@ export const DiskMetricsListParams = z.preprocess(
 export const ImageListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2163,8 +2094,8 @@ export const ImageDeleteParams = z.preprocess(
 export const InstanceListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2200,8 +2131,8 @@ export const InstanceDeleteParams = z.preprocess(
 export const InstanceDiskListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     instanceName: Name,
     orgName: Name,
@@ -2248,8 +2179,8 @@ export const InstanceMigrateParams = z.preprocess(
 export const InstanceNetworkInterfaceListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     instanceName: Name,
     orgName: Name,
@@ -2311,9 +2242,9 @@ export const InstanceSerialConsoleParams = z.preprocess(
     instanceName: Name,
     orgName: Name,
     projectName: Name,
-    fromStart: z.number().min(0).nullable().optional(),
-    maxBytes: z.number().min(0).nullable().optional(),
-    mostRecent: z.number().min(0).nullable().optional(),
+    fromStart: z.number().min(0).optional(),
+    maxBytes: z.number().min(0).optional(),
+    mostRecent: z.number().min(0).optional(),
   })
 );
 
@@ -2354,8 +2285,8 @@ export const ProjectPolicyUpdateParams = z.preprocess(
 export const SnapshotListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2391,8 +2322,8 @@ export const SnapshotDeleteParams = z.preprocess(
 export const VpcListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2455,8 +2386,8 @@ export const VpcFirewallRulesUpdateParams = z.preprocess(
 export const VpcRouterListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2506,8 +2437,8 @@ export const VpcRouterDeleteParams = z.preprocess(
 export const VpcRouterRouteListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2562,8 +2493,8 @@ export const VpcRouterRouteDeleteParams = z.preprocess(
 export const VpcSubnetListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2613,8 +2544,8 @@ export const VpcSubnetDeleteParams = z.preprocess(
 export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
     orgName: Name,
     projectName: Name,
@@ -2633,8 +2564,8 @@ export const PolicyUpdateParams = z.preprocess(
 export const RoleListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
   })
 );
 
@@ -2650,8 +2581,8 @@ export const SessionMeParams = z.preprocess(processResponseBody, z.object({}));
 export const SessionSshkeyListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
   })
 );
@@ -2699,8 +2630,8 @@ export const SiloViewByIdParams = z.preprocess(
 export const RackListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: IdSortMode.optional(),
   })
 );
@@ -2715,8 +2646,8 @@ export const RackViewParams = z.preprocess(
 export const SledListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: IdSortMode.optional(),
   })
 );
@@ -2731,8 +2662,8 @@ export const SledViewParams = z.preprocess(
 export const SystemImageListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
   })
 );
@@ -2759,8 +2690,8 @@ export const SystemImageDeleteParams = z.preprocess(
 export const IpPoolListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameOrIdSortMode.optional(),
   })
 );
@@ -2795,8 +2726,8 @@ export const IpPoolRangeListParams = z.preprocess(
   processResponseBody,
   z.object({
     poolName: Name,
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
   })
 );
 
@@ -2825,8 +2756,8 @@ export const IpPoolServiceRangeListParams = z.preprocess(
   processResponseBody,
   z.object({
     rackId: z.string().uuid(),
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
   })
 );
 
@@ -2857,8 +2788,8 @@ export const SystemPolicyUpdateParams = z.preprocess(
 export const SagaListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: IdSortMode.optional(),
   })
 );
@@ -2873,8 +2804,8 @@ export const SagaViewParams = z.preprocess(
 export const SiloListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameOrIdSortMode.optional(),
   })
 );
@@ -2899,8 +2830,8 @@ export const SiloIdentityProviderListParams = z.preprocess(
   processResponseBody,
   z.object({
     siloName: Name,
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
   })
 );
@@ -2942,8 +2873,8 @@ export const UpdatesRefreshParams = z.preprocess(
 export const SystemUserListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: NameSortMode.optional(),
   })
 );
@@ -2958,16 +2889,16 @@ export const SystemUserViewParams = z.preprocess(
 export const TimeseriesSchemaGetParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
   })
 );
 
 export const UserListParams = z.preprocess(
   processResponseBody,
   z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
+    limit: z.number().min(1).max(4294967295).optional(),
+    pageToken: z.string().optional(),
     sortBy: IdSortMode.optional(),
   })
 );

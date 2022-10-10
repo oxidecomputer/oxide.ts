@@ -18,11 +18,8 @@ export const schemaToTypes = makeSchemaGenerator({
   boolean(_, { w0 }) {
     w0(`boolean`);
   },
-  string(schema, { w0 }) {
+  string(_, { w0 }) {
     w0(`string`);
-    if ("nullable" in schema) {
-      w0(` | null`);
-    }
   },
   date(_, { w0 }) {
     w0(`Date`);
@@ -36,9 +33,6 @@ export const schemaToTypes = makeSchemaGenerator({
   array(schema, io) {
     schemaToTypes(schema.items, io);
     io.w0(`[]`);
-    if ("nullable" in schema) {
-      io.w0(` | null`);
-    }
   },
   object(schema, io) {
     const { w0, w } = io;
@@ -74,9 +68,6 @@ export const schemaToTypes = makeSchemaGenerator({
       for (const s of schema.allOf!) {
         io.w(`& ${JSON.stringify(s)}`);
       }
-    }
-    if ("nullable" in schema) {
-      io.w0(` | null`);
     }
   },
   empty({ w0 }) {

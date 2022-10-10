@@ -45,9 +45,6 @@ export const schemaToZod = makeSchemaGenerator({
     if ("pattern" in schema) {
       w0(`.regex(${new RegExp(schema.pattern!).toString()})`);
     }
-    if ("nullable" in schema) {
-      w0(".nullable()");
-    }
   },
 
   date(_, { w0 }) {
@@ -66,9 +63,6 @@ export const schemaToZod = makeSchemaGenerator({
     w0(".array()");
     if ("default" in schema) {
       w0(`.default(${JSON.stringify(schema.default)})`);
-    }
-    if ("nullable" in schema) {
-      w0(".nullable()");
     }
   },
 
@@ -143,9 +137,6 @@ export const schemaToZod = makeSchemaGenerator({
     if ("default" in schema) {
       w0(`.default(${JSON.stringify(schema.default)})`);
     }
-    if ("nullable" in schema) {
-      w0(`.nullable()`);
-    }
   },
 
   empty({ w0 }) {
@@ -185,9 +176,5 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   } else if (size && parseInt(size) < 64) {
     // It's signed so remove the most significant bit
     w0(`.max(${Math.pow(2, parseInt(size) - 1) - 1})`);
-  }
-
-  if ("nullable" in schema) {
-    w0(".nullable()");
   }
 }
