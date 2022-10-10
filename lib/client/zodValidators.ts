@@ -1,7 +1,12 @@
 import { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { schemaToZod } from "../schema/zod";
-import { processParamName, snakeToPascal } from "../util";
+import {
+  pascalToCamel,
+  processParamName,
+  snakeToCamel,
+  snakeToPascal,
+} from "../util";
 import { docComment, getSortedSchemas } from "./base";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
@@ -34,12 +39,12 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
   /**
    * Normalizes input to make it compatible with validators. This entails converting from snake to camel case and parsing dates.
    **/
-  export const processSchema = <T extends z.ZodType>(schema: T) => z.preprocess((input) => processResponseBody(input), schema);
+  const processSchema = <T extends z.ZodType>(schema: T) => z.preprocess((input) => processResponseBody(input), schema);
 
   /**
    * Normalizes schema output to make it compatible with the API. This entails converting from camel to snake case.
    **/
-  export const transformSchema = <T extends z.ZodType>(schema: T) => schema.transform(snakeify);
+  export const snakeifySchema = <T extends z.ZodType>(schema: T) => schema.transform(snakeify);
   `);
 
   const schemaNames = getSortedSchemas(spec);
@@ -54,9 +59,9 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
       );
     }
 
-    w0(`export const ${schemaName} = `);
+    w0(`export const ${schemaName} = processSchema(`);
     schemaToZod(schema, io);
-    w("\n");
+    w(")\n");
   }
 
   for (const path in spec.paths) {
@@ -68,7 +73,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
 
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
-      w(`export const ${opName}Params = z.object({`);
+      w(`export const ${opName}Params = processSchema(z.object({`);
       for (const param of params || []) {
         if ("name" in param) {
           if (param.schema) {
@@ -91,8 +96,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
           }
         }
       }
-      w(`})`);
-      w(`export type ${opName}Params = z.infer<typeof ${opName}Params>`);
+      w(`}))`);
       w("");
     }
   }
