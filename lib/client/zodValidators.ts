@@ -1,12 +1,7 @@
 import { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { schemaToZod } from "../schema/zod";
-import {
-  pascalToCamel,
-  processParamName,
-  snakeToCamel,
-  snakeToPascal,
-} from "../util";
+import { processParamName, snakeToPascal } from "../util";
 import { docComment, getSortedSchemas } from "./base";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
@@ -37,11 +32,6 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
       z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
 
   /**
-   * Normalizes input to make it compatible with validators. This entails converting from snake to camel case and parsing dates.
-   **/
-  const processSchema = <T extends z.ZodType>(schema: T) => z.preprocess((input) => processResponseBody(input), schema);
-
-  /**
    * Normalizes schema output to make it compatible with the API. This entails converting from camel to snake case.
    **/
   export const snakeifySchema = <T extends z.ZodType>(schema: T) => schema.transform(snakeify);
@@ -59,7 +49,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
       );
     }
 
-    w0(`export const ${schemaName} = processSchema(`);
+    w0(`export const ${schemaName} = z.preprocess(processResponseBody,`);
     schemaToZod(schema, io);
     w(")\n");
   }
@@ -73,7 +63,9 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
 
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
-      w(`export const ${opName}Params = processSchema(z.object({`);
+      w(
+        `export const ${opName}Params = z.preprocess(processResponseBody, z.object({`
+      );
       for (const param of params || []) {
         if ("name" in param) {
           if (param.schema) {

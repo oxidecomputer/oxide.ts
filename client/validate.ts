@@ -18,12 +18,6 @@ const IntEnum = <T extends readonly number[]>(values: T) =>
   z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
 
 /**
- * Normalizes input to make it compatible with validators. This entails converting from snake to camel case and parsing dates.
- **/
-const processSchema = <T extends z.ZodType>(schema: T) =>
-  z.preprocess((input) => processResponseBody(input), schema);
-
-/**
  * Normalizes schema output to make it compatible with the API. This entails converting from camel to snake case.
  **/
 export const snakeifySchema = <T extends z.ZodType>(schema: T) =>
@@ -34,7 +28,8 @@ export const snakeifySchema = <T extends z.ZodType>(schema: T) =>
  *
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
-export const BinRangedouble = processSchema(
+export const BinRangedouble = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
@@ -47,7 +42,8 @@ export const BinRangedouble = processSchema(
  *
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
-export const BinRangeint64 = processSchema(
+export const BinRangeint64 = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
@@ -58,40 +54,47 @@ export const BinRangeint64 = processSchema(
 /**
  * Type storing bin edges and a count of samples within it.
  */
-export const Bindouble = processSchema(
+export const Bindouble = z.preprocess(
+  processResponseBody,
   z.object({ count: z.number().min(0), range: BinRangedouble })
 );
 
 /**
  * Type storing bin edges and a count of samples within it.
  */
-export const Binint64 = processSchema(
+export const Binint64 = z.preprocess(
+  processResponseBody,
   z.object({ count: z.number().min(0), range: BinRangeint64 })
 );
 
 /**
  * disk block size in bytes
  */
-export const BlockSize = processSchema(IntEnum([512, 2048, 4096] as const));
+export const BlockSize = z.preprocess(
+  processResponseBody,
+  IntEnum([512, 2048, 4096] as const)
+);
 
 /**
  * A count of bytes, typically used either for memory or storage capacity
  *
  * The maximum supported byte count is `i64::MAX`.  This makes it somewhat inconvenient to define constructors: a u32 constructor can be infallible, but an i64 constructor can fail (if the value is negative) and a u64 constructor can fail (if the value is larger than i64::MAX).  We provide all of these for consumers' convenience.
  */
-export const ByteCount = processSchema(z.number().min(0));
+export const ByteCount = z.preprocess(processResponseBody, z.number().min(0));
 
 /**
  * A cumulative or counter data type.
  */
-export const Cumulativedouble = processSchema(
+export const Cumulativedouble = z.preprocess(
+  processResponseBody,
   z.object({ startTime: DateType, value: z.number() })
 );
 
 /**
  * A cumulative or counter data type.
  */
-export const Cumulativeint64 = processSchema(
+export const Cumulativeint64 = z.preprocess(
+  processResponseBody,
   z.object({ startTime: DateType, value: z.number() })
 );
 
@@ -116,7 +119,8 @@ export const Cumulativeint64 = processSchema(
  *
  * The short of this is that, most of the time, it shouldn't matter. If one specifies the extremes of the support as their bins, be aware that the left-most may be converted from a `BinRange::RangeTo` into a `BinRange::Range`. In other words, the first bin of a histogram is _always_ a `Bin::Range` or a `Bin::RangeFrom` after construction. In fact, every bin is one of those variants, the `BinRange::RangeTo` is only provided as a convenience during construction.
  */
-export const Histogramint64 = processSchema(
+export const Histogramint64 = z.preprocess(
+  processResponseBody,
   z.object({
     bins: Binint64.array(),
     nSamples: z.number().min(0),
@@ -145,7 +149,8 @@ export const Histogramint64 = processSchema(
  *
  * The short of this is that, most of the time, it shouldn't matter. If one specifies the extremes of the support as their bins, be aware that the left-most may be converted from a `BinRange::RangeTo` into a `BinRange::Range`. In other words, the first bin of a histogram is _always_ a `Bin::Range` or a `Bin::RangeFrom` after construction. In fact, every bin is one of those variants, the `BinRange::RangeTo` is only provided as a convenience during construction.
  */
-export const Histogramdouble = processSchema(
+export const Histogramdouble = z.preprocess(
+  processResponseBody,
   z.object({
     bins: Bindouble.array(),
     nSamples: z.number().min(0),
@@ -156,7 +161,8 @@ export const Histogramdouble = processSchema(
 /**
  * A `Datum` is a single sampled data point from a metric.
  */
-export const Datum = processSchema(
+export const Datum = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ datum: z.boolean(), type: z.enum(["bool"]) }),
     z.object({ datum: z.number(), type: z.enum(["i64"]) }),
@@ -176,7 +182,8 @@ export const Datum = processSchema(
 /**
  * The type of an individual datum of a metric.
  */
-export const DatumType = processSchema(
+export const DatumType = z.preprocess(
+  processResponseBody,
   z.enum([
     "bool",
     "i64",
@@ -190,11 +197,13 @@ export const DatumType = processSchema(
   ])
 );
 
-export const DerEncodedKeyPair = processSchema(
+export const DerEncodedKeyPair = z.preprocess(
+  processResponseBody,
   z.object({ privateKey: z.string(), publicCert: z.string() })
 );
 
-export const DeviceAccessTokenRequest = processSchema(
+export const DeviceAccessTokenRequest = z.preprocess(
+  processResponseBody,
   z.object({
     clientId: z.string().uuid(),
     deviceCode: z.string(),
@@ -202,15 +211,18 @@ export const DeviceAccessTokenRequest = processSchema(
   })
 );
 
-export const DeviceAuthRequest = processSchema(
+export const DeviceAuthRequest = z.preprocess(
+  processResponseBody,
   z.object({ clientId: z.string().uuid() })
 );
 
-export const DeviceAuthVerify = processSchema(
+export const DeviceAuthVerify = z.preprocess(
+  processResponseBody,
   z.object({ userCode: z.string() })
 );
 
-export const Digest = processSchema(
+export const Digest = z.preprocess(
+  processResponseBody,
   z.object({ type: z.enum(["sha256"]), value: z.string() })
 );
 
@@ -219,7 +231,8 @@ export const Digest = processSchema(
  *
  * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
  */
-export const Name = processSchema(
+export const Name = z.preprocess(
+  processResponseBody,
   z
     .string()
     .max(63)
@@ -231,7 +244,8 @@ export const Name = processSchema(
 /**
  * State of a Disk (primarily: attached or not)
  */
-export const DiskState = processSchema(
+export const DiskState = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ state: z.enum(["creating"]) }),
     z.object({ state: z.enum(["detached"]) }),
@@ -246,7 +260,8 @@ export const DiskState = processSchema(
 /**
  * Client view of a {@link Disk}
  */
-export const Disk = processSchema(
+export const Disk = z.preprocess(
+  processResponseBody,
   z.object({
     blockSize: ByteCount,
     description: z.string(),
@@ -266,7 +281,8 @@ export const Disk = processSchema(
 /**
  * Different sources for a disk
  */
-export const DiskSource = processSchema(
+export const DiskSource = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ blockSize: BlockSize, type: z.enum(["blank"]) }),
     z.object({ snapshotId: z.string().uuid(), type: z.enum(["snapshot"]) }),
@@ -278,7 +294,8 @@ export const DiskSource = processSchema(
 /**
  * Create-time parameters for a {@link Disk}
  */
-export const DiskCreate = processSchema(
+export const DiskCreate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     diskSource: DiskSource,
@@ -290,26 +307,32 @@ export const DiskCreate = processSchema(
 /**
  * Parameters for the {@link Disk} to be attached or detached to an instance
  */
-export const DiskIdentifier = processSchema(z.object({ name: Name }));
+export const DiskIdentifier = z.preprocess(
+  processResponseBody,
+  z.object({ name: Name })
+);
 
 /**
  * A single page of results
  */
-export const DiskResultsPage = processSchema(
+export const DiskResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Disk.array(), nextPage: z.string().nullable().optional() })
 );
 
 /**
  * OS image distribution
  */
-export const Distribution = processSchema(
+export const Distribution = z.preprocess(
+  processResponseBody,
   z.object({ name: Name, version: z.string() })
 );
 
 /**
  * Error information from a response.
  */
-export const Error = processSchema(
+export const Error = z.preprocess(
+  processResponseBody,
   z.object({
     errorCode: z.string().optional(),
     message: z.string(),
@@ -320,16 +343,21 @@ export const Error = processSchema(
 /**
  * The kind of an external IP address for an instance
  */
-export const IpKind = processSchema(z.enum(["ephemeral", "floating"]));
+export const IpKind = z.preprocess(
+  processResponseBody,
+  z.enum(["ephemeral", "floating"])
+);
 
-export const ExternalIp = processSchema(
+export const ExternalIp = z.preprocess(
+  processResponseBody,
   z.object({ ip: z.string(), kind: IpKind })
 );
 
 /**
  * Parameters for creating an external IP address for instances.
  */
-export const ExternalIpCreate = processSchema(
+export const ExternalIpCreate = z.preprocess(
+  processResponseBody,
   z.object({
     poolName: Name.nullable().optional(),
     type: z.enum(["ephemeral"]),
@@ -339,7 +367,8 @@ export const ExternalIpCreate = processSchema(
 /**
  * A single page of results
  */
-export const ExternalIpResultsPage = processSchema(
+export const ExternalIpResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: ExternalIp.array(),
     nextPage: z.string().nullable().optional(),
@@ -349,37 +378,47 @@ export const ExternalIpResultsPage = processSchema(
 /**
  * The source from which a field is derived, the target or metric.
  */
-export const FieldSource = processSchema(z.enum(["target", "metric"]));
+export const FieldSource = z.preprocess(
+  processResponseBody,
+  z.enum(["target", "metric"])
+);
 
 /**
  * The `FieldType` identifies the data type of a target or metric field.
  */
-export const FieldType = processSchema(
+export const FieldType = z.preprocess(
+  processResponseBody,
   z.enum(["string", "i64", "ip_addr", "uuid", "bool"])
 );
 
 /**
  * The name and type information for a field of a timeseries schema.
  */
-export const FieldSchema = processSchema(
+export const FieldSchema = z.preprocess(
+  processResponseBody,
   z.object({ name: z.string(), source: FieldSource, ty: FieldType })
 );
 
-export const FleetRole = processSchema(
+export const FleetRole = z.preprocess(
+  processResponseBody,
   z.enum(["admin", "collaborator", "viewer"])
 );
 
 /**
  * Describes what kind of identity is described by an id
  */
-export const IdentityType = processSchema(z.enum(["silo_user", "silo_group"]));
+export const IdentityType = z.preprocess(
+  processResponseBody,
+  z.enum(["silo_user", "silo_group"])
+);
 
 /**
  * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
  *
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
-export const FleetRoleRoleAssignment = processSchema(
+export const FleetRoleRoleAssignment = z.preprocess(
+  processResponseBody,
   z.object({
     identityId: z.string().uuid(),
     identityType: IdentityType,
@@ -392,14 +431,16 @@ export const FleetRoleRoleAssignment = processSchema(
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
-export const FleetRolePolicy = processSchema(
+export const FleetRolePolicy = z.preprocess(
+  processResponseBody,
   z.object({ roleAssignments: FleetRoleRoleAssignment.array() })
 );
 
 /**
  * Client view of global Images
  */
-export const GlobalImage = processSchema(
+export const GlobalImage = z.preprocess(
+  processResponseBody,
   z.object({
     blockSize: ByteCount,
     description: z.string(),
@@ -418,7 +459,8 @@ export const GlobalImage = processSchema(
 /**
  * The source of the underlying image.
  */
-export const ImageSource = processSchema(
+export const ImageSource = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ type: z.enum(["url"]), url: z.string() }),
     z.object({ id: z.string().uuid(), type: z.enum(["snapshot"]) }),
@@ -429,7 +471,8 @@ export const ImageSource = processSchema(
 /**
  * Create-time parameters for an {@link GlobalImage}
  */
-export const GlobalImageCreate = processSchema(
+export const GlobalImageCreate = z.preprocess(
+  processResponseBody,
   z.object({
     blockSize: BlockSize,
     description: z.string(),
@@ -442,19 +485,24 @@ export const GlobalImageCreate = processSchema(
 /**
  * A single page of results
  */
-export const GlobalImageResultsPage = processSchema(
+export const GlobalImageResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: GlobalImage.array(),
     nextPage: z.string().nullable().optional(),
   })
 );
 
-export const IdentityProviderType = processSchema(z.enum(["saml"]));
+export const IdentityProviderType = z.preprocess(
+  processResponseBody,
+  z.enum(["saml"])
+);
 
 /**
  * Client view of an {@link IdentityProvider}
  */
-export const IdentityProvider = processSchema(
+export const IdentityProvider = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -468,14 +516,16 @@ export const IdentityProvider = processSchema(
 /**
  * A single page of results
  */
-export const IdentityProviderResultsPage = processSchema(
+export const IdentityProviderResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: IdentityProvider.array(),
     nextPage: z.string().nullable().optional(),
   })
 );
 
-export const IdpMetadataSource = processSchema(
+export const IdpMetadataSource = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ type: z.enum(["url"]), url: z.string() }),
     z.object({ data: z.string(), type: z.enum(["base64_encoded_xml"]) }),
@@ -485,7 +535,8 @@ export const IdpMetadataSource = processSchema(
 /**
  * Client view of project Images
  */
-export const Image = processSchema(
+export const Image = z.preprocess(
+  processResponseBody,
   z.object({
     blockSize: ByteCount,
     description: z.string(),
@@ -504,7 +555,8 @@ export const Image = processSchema(
 /**
  * Create-time parameters for an {@link Image}
  */
-export const ImageCreate = processSchema(
+export const ImageCreate = z.preprocess(
+  processResponseBody,
   z.object({
     blockSize: BlockSize,
     description: z.string(),
@@ -516,21 +568,26 @@ export const ImageCreate = processSchema(
 /**
  * A single page of results
  */
-export const ImageResultsPage = processSchema(
+export const ImageResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Image.array(), nextPage: z.string().nullable().optional() })
 );
 
 /**
  * The number of CPUs in an Instance
  */
-export const InstanceCpuCount = processSchema(z.number().min(0).max(65535));
+export const InstanceCpuCount = z.preprocess(
+  processResponseBody,
+  z.number().min(0).max(65535)
+);
 
 /**
  * Running state of an Instance (primarily: booted or stopped)
  *
  * This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
  */
-export const InstanceState = processSchema(
+export const InstanceState = z.preprocess(
+  processResponseBody,
   z.enum([
     "creating",
     "starting",
@@ -548,7 +605,8 @@ export const InstanceState = processSchema(
 /**
  * Client view of an {@link Instance}
  */
-export const Instance = processSchema(
+export const Instance = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     hostname: z.string(),
@@ -567,7 +625,8 @@ export const Instance = processSchema(
 /**
  * Describe the instance's disks at creation time
  */
-export const InstanceDiskAttachment = processSchema(
+export const InstanceDiskAttachment = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({
       description: z.string(),
@@ -583,7 +642,8 @@ export const InstanceDiskAttachment = processSchema(
 /**
  * Create-time parameters for a {@link NetworkInterface}
  */
-export const NetworkInterfaceCreate = processSchema(
+export const NetworkInterfaceCreate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     ip: z.string().nullable().optional(),
@@ -596,7 +656,8 @@ export const NetworkInterfaceCreate = processSchema(
 /**
  * Describes an attachment of a `NetworkInterface` to an `Instance`, at the time the instance is created.
  */
-export const InstanceNetworkInterfaceAttachment = processSchema(
+export const InstanceNetworkInterfaceAttachment = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({
       params: NetworkInterfaceCreate.array(),
@@ -610,7 +671,8 @@ export const InstanceNetworkInterfaceAttachment = processSchema(
 /**
  * Create-time parameters for an {@link Instance}
  */
-export const InstanceCreate = processSchema(
+export const InstanceCreate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     disks: InstanceDiskAttachment.array().default([]).optional(),
@@ -630,14 +692,16 @@ export const InstanceCreate = processSchema(
 /**
  * Migration parameters for an {@link Instance}
  */
-export const InstanceMigrate = processSchema(
+export const InstanceMigrate = z.preprocess(
+  processResponseBody,
   z.object({ dstSledId: z.string().uuid() })
 );
 
 /**
  * A single page of results
  */
-export const InstanceResultsPage = processSchema(
+export const InstanceResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: Instance.array(),
     nextPage: z.string().nullable().optional(),
@@ -647,7 +711,8 @@ export const InstanceResultsPage = processSchema(
 /**
  * Contents of an Instance's serial console buffer.
  */
-export const InstanceSerialConsoleData = processSchema(
+export const InstanceSerialConsoleData = z.preprocess(
+  processResponseBody,
   z.object({
     data: z.number().min(0).max(255).array(),
     lastByteOffset: z.number().min(0),
@@ -659,7 +724,8 @@ export const InstanceSerialConsoleData = processSchema(
  *
  * An IPv4 subnet, including prefix and subnet mask
  */
-export const Ipv4Net = processSchema(
+export const Ipv4Net = z.preprocess(
+  processResponseBody,
   z
     .string()
     .regex(
@@ -672,7 +738,8 @@ export const Ipv4Net = processSchema(
  *
  * An IPv6 subnet, including prefix and subnet mask
  */
-export const Ipv6Net = processSchema(
+export const Ipv6Net = z.preprocess(
+  processResponseBody,
   z
     .string()
     .regex(
@@ -680,12 +747,16 @@ export const Ipv6Net = processSchema(
     )
 );
 
-export const IpNet = processSchema(z.union([Ipv4Net, Ipv6Net]));
+export const IpNet = z.preprocess(
+  processResponseBody,
+  z.union([Ipv4Net, Ipv6Net])
+);
 
 /**
  * Identity-related metadata that's included in nearly all public API objects
  */
-export const IpPool = processSchema(
+export const IpPool = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -701,7 +772,8 @@ export const IpPool = processSchema(
  *
  * See {@link IpPool}
  */
-export const IpPoolCreate = processSchema(
+export const IpPoolCreate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     name: Name,
@@ -715,7 +787,8 @@ export const IpPoolCreate = processSchema(
  *
  * The first address must be less than or equal to the last address.
  */
-export const Ipv4Range = processSchema(
+export const Ipv4Range = z.preprocess(
+  processResponseBody,
   z.object({ first: z.string(), last: z.string() })
 );
 
@@ -724,20 +797,26 @@ export const Ipv4Range = processSchema(
  *
  * The first address must be less than or equal to the last address.
  */
-export const Ipv6Range = processSchema(
+export const Ipv6Range = z.preprocess(
+  processResponseBody,
   z.object({ first: z.string(), last: z.string() })
 );
 
-export const IpRange = processSchema(z.union([Ipv4Range, Ipv6Range]));
+export const IpRange = z.preprocess(
+  processResponseBody,
+  z.union([Ipv4Range, Ipv6Range])
+);
 
-export const IpPoolRange = processSchema(
+export const IpPoolRange = z.preprocess(
+  processResponseBody,
   z.object({ id: z.string().uuid(), range: IpRange, timeCreated: DateType })
 );
 
 /**
  * A single page of results
  */
-export const IpPoolRangeResultsPage = processSchema(
+export const IpPoolRangeResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: IpPoolRange.array(),
     nextPage: z.string().nullable().optional(),
@@ -747,7 +826,8 @@ export const IpPoolRangeResultsPage = processSchema(
 /**
  * A single page of results
  */
-export const IpPoolResultsPage = processSchema(
+export const IpPoolResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: IpPool.array(),
     nextPage: z.string().nullable().optional(),
@@ -757,7 +837,8 @@ export const IpPoolResultsPage = processSchema(
 /**
  * Parameters for updating an IP Pool
  */
-export const IpPoolUpdate = processSchema(
+export const IpPoolUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     name: Name.nullable().optional(),
@@ -769,7 +850,8 @@ export const IpPoolUpdate = processSchema(
  *
  * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
  */
-export const L4PortRange = processSchema(
+export const L4PortRange = z.preprocess(
+  processResponseBody,
   z
     .string()
     .min(1)
@@ -782,7 +864,8 @@ export const L4PortRange = processSchema(
  *
  * A Media Access Control address, in EUI-48 format
  */
-export const MacAddr = processSchema(
+export const MacAddr = z.preprocess(
+  processResponseBody,
   z
     .string()
     .min(17)
@@ -793,14 +876,16 @@ export const MacAddr = processSchema(
 /**
  * A `Measurement` is a timestamped datum from a single metric
  */
-export const Measurement = processSchema(
+export const Measurement = z.preprocess(
+  processResponseBody,
   z.object({ datum: Datum, timestamp: DateType })
 );
 
 /**
  * A single page of results
  */
-export const MeasurementResultsPage = processSchema(
+export const MeasurementResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: Measurement.array(),
     nextPage: z.string().nullable().optional(),
@@ -810,7 +895,8 @@ export const MeasurementResultsPage = processSchema(
 /**
  * A `NetworkInterface` represents a virtual network interface device.
  */
-export const NetworkInterface = processSchema(
+export const NetworkInterface = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -829,7 +915,8 @@ export const NetworkInterface = processSchema(
 /**
  * A single page of results
  */
-export const NetworkInterfaceResultsPage = processSchema(
+export const NetworkInterfaceResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: NetworkInterface.array(),
     nextPage: z.string().nullable().optional(),
@@ -841,7 +928,8 @@ export const NetworkInterfaceResultsPage = processSchema(
  *
  * Note that modifying IP addresses for an interface is not yet supported, a new interface must be created instead.
  */
-export const NetworkInterfaceUpdate = processSchema(
+export const NetworkInterfaceUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     name: Name.nullable().optional(),
@@ -854,12 +942,13 @@ export const NetworkInterfaceUpdate = processSchema(
  *
  * Each node requires a string name that's unique within its DAG.  The name is used to identify its output.  Nodes that depend on a given node (either directly or indirectly) can access the node's output using its name.
  */
-export const NodeName = processSchema(z.string());
+export const NodeName = z.preprocess(processResponseBody, z.string());
 
 /**
  * Client view of an {@link Organization}
  */
-export const Organization = processSchema(
+export const Organization = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -872,21 +961,24 @@ export const Organization = processSchema(
 /**
  * Create-time parameters for an {@link Organization}
  */
-export const OrganizationCreate = processSchema(
+export const OrganizationCreate = z.preprocess(
+  processResponseBody,
   z.object({ description: z.string(), name: Name })
 );
 
 /**
  * A single page of results
  */
-export const OrganizationResultsPage = processSchema(
+export const OrganizationResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: Organization.array(),
     nextPage: z.string().nullable().optional(),
   })
 );
 
-export const OrganizationRole = processSchema(
+export const OrganizationRole = z.preprocess(
+  processResponseBody,
   z.enum(["admin", "collaborator", "viewer"])
 );
 
@@ -895,7 +987,8 @@ export const OrganizationRole = processSchema(
  *
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
-export const OrganizationRoleRoleAssignment = processSchema(
+export const OrganizationRoleRoleAssignment = z.preprocess(
+  processResponseBody,
   z.object({
     identityId: z.string().uuid(),
     identityType: IdentityType,
@@ -908,14 +1001,16 @@ export const OrganizationRoleRoleAssignment = processSchema(
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
-export const OrganizationRolePolicy = processSchema(
+export const OrganizationRolePolicy = z.preprocess(
+  processResponseBody,
   z.object({ roleAssignments: OrganizationRoleRoleAssignment.array() })
 );
 
 /**
  * Updateable properties of an {@link Organization}
  */
-export const OrganizationUpdate = processSchema(
+export const OrganizationUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     name: Name.nullable().optional(),
@@ -925,7 +1020,8 @@ export const OrganizationUpdate = processSchema(
 /**
  * Client view of a {@link Project}
  */
-export const Project = processSchema(
+export const Project = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -939,21 +1035,24 @@ export const Project = processSchema(
 /**
  * Create-time parameters for a {@link Project}
  */
-export const ProjectCreate = processSchema(
+export const ProjectCreate = z.preprocess(
+  processResponseBody,
   z.object({ description: z.string(), name: Name })
 );
 
 /**
  * A single page of results
  */
-export const ProjectResultsPage = processSchema(
+export const ProjectResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: Project.array(),
     nextPage: z.string().nullable().optional(),
   })
 );
 
-export const ProjectRole = processSchema(
+export const ProjectRole = z.preprocess(
+  processResponseBody,
   z.enum(["admin", "collaborator", "viewer"])
 );
 
@@ -962,7 +1061,8 @@ export const ProjectRole = processSchema(
  *
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
-export const ProjectRoleRoleAssignment = processSchema(
+export const ProjectRoleRoleAssignment = z.preprocess(
+  processResponseBody,
   z.object({
     identityId: z.string().uuid(),
     identityType: IdentityType,
@@ -975,14 +1075,16 @@ export const ProjectRoleRoleAssignment = processSchema(
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
-export const ProjectRolePolicy = processSchema(
+export const ProjectRolePolicy = z.preprocess(
+  processResponseBody,
   z.object({ roleAssignments: ProjectRoleRoleAssignment.array() })
 );
 
 /**
  * Updateable properties of a {@link Project}
  */
-export const ProjectUpdate = processSchema(
+export const ProjectUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     name: Name.nullable().optional(),
@@ -992,7 +1094,8 @@ export const ProjectUpdate = processSchema(
 /**
  * Client view of an {@link Rack}
  */
-export const Rack = processSchema(
+export const Rack = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
     timeCreated: DateType,
@@ -1003,7 +1106,8 @@ export const Rack = processSchema(
 /**
  * A single page of results
  */
-export const RackResultsPage = processSchema(
+export const RackResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Rack.array(), nextPage: z.string().nullable().optional() })
 );
 
@@ -1012,7 +1116,8 @@ export const RackResultsPage = processSchema(
  *
  * Role names consist of two string components separated by dot (".").
  */
-export const RoleName = processSchema(
+export const RoleName = z.preprocess(
+  processResponseBody,
   z
     .string()
     .max(63)
@@ -1022,14 +1127,16 @@ export const RoleName = processSchema(
 /**
  * Client view of a {@link Role}
  */
-export const Role = processSchema(
+export const Role = z.preprocess(
+  processResponseBody,
   z.object({ description: z.string(), name: RoleName })
 );
 
 /**
  * A single page of results
  */
-export const RoleResultsPage = processSchema(
+export const RoleResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Role.array(), nextPage: z.string().nullable().optional() })
 );
 
@@ -1038,7 +1145,8 @@ export const RoleResultsPage = processSchema(
  *
  * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding {@link RouterRoute} applies, and traffic will be forward to the {@link RouteTarget} for that rule.
  */
-export const RouteDestination = processSchema(
+export const RouteDestination = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ type: z.enum(["ip"]), value: z.string() }),
     z.object({ type: z.enum(["ip_net"]), value: IpNet }),
@@ -1050,7 +1158,8 @@ export const RouteDestination = processSchema(
 /**
  * A `RouteTarget` describes the possible locations that traffic matching a route destination can be sent.
  */
-export const RouteTarget = processSchema(
+export const RouteTarget = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ type: z.enum(["ip"]), value: z.string() }),
     z.object({ type: z.enum(["vpc"]), value: Name }),
@@ -1065,14 +1174,16 @@ export const RouteTarget = processSchema(
  *
  * See [RFD-21](https://rfd.shared.oxide.computer/rfd/0021#concept-router) for more context
  */
-export const RouterRouteKind = processSchema(
+export const RouterRouteKind = z.preprocess(
+  processResponseBody,
   z.enum(["default", "vpc_subnet", "vpc_peering", "custom"])
 );
 
 /**
  * A route defines a rule that governs where traffic should be sent based on its destination.
  */
-export const RouterRoute = processSchema(
+export const RouterRoute = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     destination: RouteDestination,
@@ -1089,7 +1200,8 @@ export const RouterRoute = processSchema(
 /**
  * Create-time parameters for a {@link RouterRoute}
  */
-export const RouterRouteCreateParams = processSchema(
+export const RouterRouteCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     destination: RouteDestination,
@@ -1101,7 +1213,8 @@ export const RouterRouteCreateParams = processSchema(
 /**
  * A single page of results
  */
-export const RouterRouteResultsPage = processSchema(
+export const RouterRouteResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: RouterRoute.array(),
     nextPage: z.string().nullable().optional(),
@@ -1111,7 +1224,8 @@ export const RouterRouteResultsPage = processSchema(
 /**
  * Updateable properties of a {@link RouterRoute}
  */
-export const RouterRouteUpdateParams = processSchema(
+export const RouterRouteUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     destination: RouteDestination,
@@ -1120,7 +1234,8 @@ export const RouterRouteUpdateParams = processSchema(
   })
 );
 
-export const SagaErrorInfo = processSchema(
+export const SagaErrorInfo = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({
       error: z.enum(["action_failed"]),
@@ -1133,7 +1248,8 @@ export const SagaErrorInfo = processSchema(
   ])
 );
 
-export const SagaState = processSchema(
+export const SagaState = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ state: z.enum(["running"]) }),
     z.object({ state: z.enum(["succeeded"]) }),
@@ -1145,21 +1261,24 @@ export const SagaState = processSchema(
   ])
 );
 
-export const Saga = processSchema(
+export const Saga = z.preprocess(
+  processResponseBody,
   z.object({ id: z.string().uuid(), state: SagaState })
 );
 
 /**
  * A single page of results
  */
-export const SagaResultsPage = processSchema(
+export const SagaResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Saga.array(), nextPage: z.string().nullable().optional() })
 );
 
 /**
  * Identity-related metadata that's included in nearly all public API objects
  */
-export const SamlIdentityProvider = processSchema(
+export const SamlIdentityProvider = z.preprocess(
+  processResponseBody,
   z.object({
     acsUrl: z.string(),
     description: z.string(),
@@ -1178,7 +1297,8 @@ export const SamlIdentityProvider = processSchema(
 /**
  * Create-time identity-related parameters
  */
-export const SamlIdentityProviderCreate = processSchema(
+export const SamlIdentityProviderCreate = z.preprocess(
+  processResponseBody,
   z.object({
     acsUrl: z.string(),
     description: z.string(),
@@ -1196,14 +1316,16 @@ export const SamlIdentityProviderCreate = processSchema(
 /**
  * Describes how identities are managed and users are authenticated in this Silo
  */
-export const SiloIdentityMode = processSchema(
+export const SiloIdentityMode = z.preprocess(
+  processResponseBody,
   z.enum(["saml_jit", "local_only"])
 );
 
 /**
  * Client view of a ['Silo']
  */
-export const Silo = processSchema(
+export const Silo = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     discoverable: z.boolean(),
@@ -1218,7 +1340,8 @@ export const Silo = processSchema(
 /**
  * Create-time parameters for a {@link Silo}
  */
-export const SiloCreate = processSchema(
+export const SiloCreate = z.preprocess(
+  processResponseBody,
   z.object({
     adminGroupName: z.string().nullable().optional(),
     description: z.string(),
@@ -1231,11 +1354,13 @@ export const SiloCreate = processSchema(
 /**
  * A single page of results
  */
-export const SiloResultsPage = processSchema(
+export const SiloResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Silo.array(), nextPage: z.string().nullable().optional() })
 );
 
-export const SiloRole = processSchema(
+export const SiloRole = z.preprocess(
+  processResponseBody,
   z.enum(["admin", "collaborator", "viewer"])
 );
 
@@ -1244,7 +1369,8 @@ export const SiloRole = processSchema(
  *
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
-export const SiloRoleRoleAssignment = processSchema(
+export const SiloRoleRoleAssignment = z.preprocess(
+  processResponseBody,
   z.object({
     identityId: z.string().uuid(),
     identityType: IdentityType,
@@ -1257,14 +1383,16 @@ export const SiloRoleRoleAssignment = processSchema(
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
-export const SiloRolePolicy = processSchema(
+export const SiloRolePolicy = z.preprocess(
+  processResponseBody,
   z.object({ roleAssignments: SiloRoleRoleAssignment.array() })
 );
 
 /**
  * Client view of an {@link Sled}
  */
-export const Sled = processSchema(
+export const Sled = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
     serviceAddress: z.string(),
@@ -1276,18 +1404,21 @@ export const Sled = processSchema(
 /**
  * A single page of results
  */
-export const SledResultsPage = processSchema(
+export const SledResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Sled.array(), nextPage: z.string().nullable().optional() })
 );
 
-export const SnapshotState = processSchema(
+export const SnapshotState = z.preprocess(
+  processResponseBody,
   z.enum(["creating", "ready", "faulted", "destroyed"])
 );
 
 /**
  * Client view of a Snapshot
  */
-export const Snapshot = processSchema(
+export const Snapshot = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     diskId: z.string().uuid(),
@@ -1304,26 +1435,32 @@ export const Snapshot = processSchema(
 /**
  * Create-time parameters for a {@link Snapshot}
  */
-export const SnapshotCreate = processSchema(
+export const SnapshotCreate = z.preprocess(
+  processResponseBody,
   z.object({ description: z.string(), disk: Name, name: Name })
 );
 
 /**
  * A single page of results
  */
-export const SnapshotResultsPage = processSchema(
+export const SnapshotResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: Snapshot.array(),
     nextPage: z.string().nullable().optional(),
   })
 );
 
-export const SpoofLoginBody = processSchema(z.object({ username: z.string() }));
+export const SpoofLoginBody = z.preprocess(
+  processResponseBody,
+  z.object({ username: z.string() })
+);
 
 /**
  * Client view of a {@link SshKey}
  */
-export const SshKey = processSchema(
+export const SshKey = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1338,14 +1475,16 @@ export const SshKey = processSchema(
 /**
  * Create-time parameters for an {@link SshKey}
  */
-export const SshKeyCreate = processSchema(
+export const SshKeyCreate = z.preprocess(
+  processResponseBody,
   z.object({ description: z.string(), name: Name, publicKey: z.string() })
 );
 
 /**
  * A single page of results
  */
-export const SshKeyResultsPage = processSchema(
+export const SshKeyResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: SshKey.array(),
     nextPage: z.string().nullable().optional(),
@@ -1357,7 +1496,8 @@ export const SshKeyResultsPage = processSchema(
  *
  * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
  */
-export const TimeseriesName = processSchema(
+export const TimeseriesName = z.preprocess(
+  processResponseBody,
   z
     .string()
     .regex(
@@ -1370,7 +1510,8 @@ export const TimeseriesName = processSchema(
  *
  * This includes the name of the timeseries, as well as the datum type of its metric and the schema for each field.
  */
-export const TimeseriesSchema = processSchema(
+export const TimeseriesSchema = z.preprocess(
+  processResponseBody,
   z.object({
     created: DateType,
     datumType: DatumType,
@@ -1382,7 +1523,8 @@ export const TimeseriesSchema = processSchema(
 /**
  * A single page of results
  */
-export const TimeseriesSchemaResultsPage = processSchema(
+export const TimeseriesSchemaResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: TimeseriesSchema.array(),
     nextPage: z.string().nullable().optional(),
@@ -1392,14 +1534,16 @@ export const TimeseriesSchemaResultsPage = processSchema(
 /**
  * Client view of a {@link User}
  */
-export const User = processSchema(
+export const User = z.preprocess(
+  processResponseBody,
   z.object({ displayName: z.string(), id: z.string().uuid() })
 );
 
 /**
  * Client view of a {@link UserBuiltin}
  */
-export const UserBuiltin = processSchema(
+export const UserBuiltin = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1412,7 +1556,8 @@ export const UserBuiltin = processSchema(
 /**
  * A single page of results
  */
-export const UserBuiltinResultsPage = processSchema(
+export const UserBuiltinResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: UserBuiltin.array(),
     nextPage: z.string().nullable().optional(),
@@ -1422,14 +1567,16 @@ export const UserBuiltinResultsPage = processSchema(
 /**
  * A single page of results
  */
-export const UserResultsPage = processSchema(
+export const UserResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: User.array(), nextPage: z.string().nullable().optional() })
 );
 
 /**
  * Client view of a {@link Vpc}
  */
-export const Vpc = processSchema(
+export const Vpc = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     dnsName: Name,
@@ -1446,7 +1593,8 @@ export const Vpc = processSchema(
 /**
  * Create-time parameters for a {@link Vpc}
  */
-export const VpcCreate = processSchema(
+export const VpcCreate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     dnsName: Name,
@@ -1455,16 +1603,21 @@ export const VpcCreate = processSchema(
   })
 );
 
-export const VpcFirewallRuleAction = processSchema(z.enum(["allow", "deny"]));
+export const VpcFirewallRuleAction = z.preprocess(
+  processResponseBody,
+  z.enum(["allow", "deny"])
+);
 
-export const VpcFirewallRuleDirection = processSchema(
+export const VpcFirewallRuleDirection = z.preprocess(
+  processResponseBody,
   z.enum(["inbound", "outbound"])
 );
 
 /**
  * The `VpcFirewallRuleHostFilter` is used to filter traffic on the basis of its source or destination host.
  */
-export const VpcFirewallRuleHostFilter = processSchema(
+export const VpcFirewallRuleHostFilter = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ type: z.enum(["vpc"]), value: Name }),
     z.object({ type: z.enum(["subnet"]), value: Name }),
@@ -1477,14 +1630,16 @@ export const VpcFirewallRuleHostFilter = processSchema(
 /**
  * The protocols that may be specified in a firewall rule's filter
  */
-export const VpcFirewallRuleProtocol = processSchema(
+export const VpcFirewallRuleProtocol = z.preprocess(
+  processResponseBody,
   z.enum(["TCP", "UDP", "ICMP"])
 );
 
 /**
  * Filter for a firewall rule. A given packet must match every field that is present for the rule to apply to it. A packet matches a field if any entry in that field matches the packet.
  */
-export const VpcFirewallRuleFilter = processSchema(
+export const VpcFirewallRuleFilter = z.preprocess(
+  processResponseBody,
   z.object({
     hosts: VpcFirewallRuleHostFilter.array().nullable().optional(),
     ports: L4PortRange.array().nullable().optional(),
@@ -1492,14 +1647,16 @@ export const VpcFirewallRuleFilter = processSchema(
   })
 );
 
-export const VpcFirewallRuleStatus = processSchema(
+export const VpcFirewallRuleStatus = z.preprocess(
+  processResponseBody,
   z.enum(["disabled", "enabled"])
 );
 
 /**
  * A `VpcFirewallRuleTarget` is used to specify the set of {@link Instance}s to which a firewall rule applies.
  */
-export const VpcFirewallRuleTarget = processSchema(
+export const VpcFirewallRuleTarget = z.preprocess(
+  processResponseBody,
   z.union([
     z.object({ type: z.enum(["vpc"]), value: Name }),
     z.object({ type: z.enum(["subnet"]), value: Name }),
@@ -1512,7 +1669,8 @@ export const VpcFirewallRuleTarget = processSchema(
 /**
  * A single rule in a VPC firewall
  */
-export const VpcFirewallRule = processSchema(
+export const VpcFirewallRule = z.preprocess(
+  processResponseBody,
   z.object({
     action: VpcFirewallRuleAction,
     description: z.string(),
@@ -1532,7 +1690,8 @@ export const VpcFirewallRule = processSchema(
 /**
  * A single rule in a VPC firewall
  */
-export const VpcFirewallRuleUpdate = processSchema(
+export const VpcFirewallRuleUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     action: VpcFirewallRuleAction,
     description: z.string(),
@@ -1548,30 +1707,37 @@ export const VpcFirewallRuleUpdate = processSchema(
 /**
  * Updateable properties of a `Vpc`'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
  */
-export const VpcFirewallRuleUpdateParams = processSchema(
+export const VpcFirewallRuleUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({ rules: VpcFirewallRuleUpdate.array() })
 );
 
 /**
  * Collection of a Vpc's firewall rules
  */
-export const VpcFirewallRules = processSchema(
+export const VpcFirewallRules = z.preprocess(
+  processResponseBody,
   z.object({ rules: VpcFirewallRule.array() })
 );
 
 /**
  * A single page of results
  */
-export const VpcResultsPage = processSchema(
+export const VpcResultsPage = z.preprocess(
+  processResponseBody,
   z.object({ items: Vpc.array(), nextPage: z.string().nullable().optional() })
 );
 
-export const VpcRouterKind = processSchema(z.enum(["system", "custom"]));
+export const VpcRouterKind = z.preprocess(
+  processResponseBody,
+  z.enum(["system", "custom"])
+);
 
 /**
  * A VPC router defines a series of rules that indicate where traffic should be sent depending on its destination.
  */
-export const VpcRouter = processSchema(
+export const VpcRouter = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1586,14 +1752,16 @@ export const VpcRouter = processSchema(
 /**
  * Create-time parameters for a {@link VpcRouter}
  */
-export const VpcRouterCreate = processSchema(
+export const VpcRouterCreate = z.preprocess(
+  processResponseBody,
   z.object({ description: z.string(), name: Name })
 );
 
 /**
  * A single page of results
  */
-export const VpcRouterResultsPage = processSchema(
+export const VpcRouterResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: VpcRouter.array(),
     nextPage: z.string().nullable().optional(),
@@ -1603,7 +1771,8 @@ export const VpcRouterResultsPage = processSchema(
 /**
  * Updateable properties of a {@link VpcRouter}
  */
-export const VpcRouterUpdate = processSchema(
+export const VpcRouterUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     name: Name.nullable().optional(),
@@ -1613,7 +1782,8 @@ export const VpcRouterUpdate = processSchema(
 /**
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionall an IPv6 subnetwork.
  */
-export const VpcSubnet = processSchema(
+export const VpcSubnet = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1629,7 +1799,8 @@ export const VpcSubnet = processSchema(
 /**
  * Create-time parameters for a {@link VpcSubnet}
  */
-export const VpcSubnetCreate = processSchema(
+export const VpcSubnetCreate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string(),
     ipv4Block: Ipv4Net,
@@ -1641,7 +1812,8 @@ export const VpcSubnetCreate = processSchema(
 /**
  * A single page of results
  */
-export const VpcSubnetResultsPage = processSchema(
+export const VpcSubnetResultsPage = z.preprocess(
+  processResponseBody,
   z.object({
     items: VpcSubnet.array(),
     nextPage: z.string().nullable().optional(),
@@ -1651,7 +1823,8 @@ export const VpcSubnetResultsPage = processSchema(
 /**
  * Updateable properties of a {@link VpcSubnet}
  */
-export const VpcSubnetUpdate = processSchema(
+export const VpcSubnetUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     name: Name.nullable().optional(),
@@ -1661,7 +1834,8 @@ export const VpcSubnetUpdate = processSchema(
 /**
  * Updateable properties of a {@link Vpc}
  */
-export const VpcUpdate = processSchema(
+export const VpcUpdate = z.preprocess(
+  processResponseBody,
   z.object({
     description: z.string().nullable().optional(),
     dnsName: Name.nullable().optional(),
@@ -1672,7 +1846,8 @@ export const VpcUpdate = processSchema(
 /**
  * Supported set of sort modes for scanning by name or id
  */
-export const NameOrIdSortMode = processSchema(
+export const NameOrIdSortMode = z.preprocess(
+  processResponseBody,
   z.enum(["name_ascending", "name_descending", "id_ascending"])
 );
 
@@ -1681,9 +1856,13 @@ export const NameOrIdSortMode = processSchema(
  *
  * Currently, we only support scanning in ascending order.
  */
-export const NameSortMode = processSchema(z.enum(["name_ascending"]));
+export const NameSortMode = z.preprocess(
+  processResponseBody,
+  z.enum(["name_ascending"])
+);
 
-export const DiskMetricName = processSchema(
+export const DiskMetricName = z.preprocess(
+  processResponseBody,
   z.enum(["activated", "flush", "read", "read_bytes", "write", "write_bytes"])
 );
 
@@ -1692,99 +1871,125 @@ export const DiskMetricName = processSchema(
  *
  * Currently, we only support scanning in ascending order.
  */
-export const IdSortMode = processSchema(z.enum(["id_ascending"]));
+export const IdSortMode = z.preprocess(
+  processResponseBody,
+  z.enum(["id_ascending"])
+);
 
-export const DiskViewByIdParams = processSchema(
+export const DiskViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const ImageViewByIdParams = processSchema(
+export const ImageViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const InstanceViewByIdParams = processSchema(
+export const InstanceViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const InstanceNetworkInterfaceViewByIdParams = processSchema(
+export const InstanceNetworkInterfaceViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const OrganizationViewByIdParams = processSchema(
+export const OrganizationViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const ProjectViewByIdParams = processSchema(
+export const ProjectViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const SnapshotViewByIdParams = processSchema(
+export const SnapshotViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const VpcRouterRouteViewByIdParams = processSchema(
+export const VpcRouterRouteViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const VpcRouterViewByIdParams = processSchema(
+export const VpcRouterViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const VpcSubnetViewByIdParams = processSchema(
+export const VpcSubnetViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const VpcViewByIdParams = processSchema(
+export const VpcViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const DeviceAuthRequestParams = processSchema(z.object({}));
+export const DeviceAuthRequestParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const DeviceAuthConfirmParams = processSchema(z.object({}));
+export const DeviceAuthConfirmParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const DeviceAccessTokenParams = processSchema(z.object({}));
+export const DeviceAccessTokenParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const LoginSpoofParams = processSchema(z.object({}));
+export const LoginSpoofParams = z.preprocess(processResponseBody, z.object({}));
 
-export const LoginSamlBeginParams = processSchema(
+export const LoginSamlBeginParams = z.preprocess(
+  processResponseBody,
   z.object({
     providerName: Name,
     siloName: Name,
   })
 );
 
-export const LoginSamlParams = processSchema(
+export const LoginSamlParams = z.preprocess(
+  processResponseBody,
   z.object({
     providerName: Name,
     siloName: Name,
   })
 );
 
-export const LogoutParams = processSchema(z.object({}));
+export const LogoutParams = z.preprocess(processResponseBody, z.object({}));
 
-export const OrganizationListParams = processSchema(
+export const OrganizationListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -1792,39 +1997,48 @@ export const OrganizationListParams = processSchema(
   })
 );
 
-export const OrganizationCreateParams = processSchema(z.object({}));
+export const OrganizationCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const OrganizationViewParams = processSchema(
+export const OrganizationViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
   })
 );
 
-export const OrganizationUpdateParams = processSchema(
+export const OrganizationUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
   })
 );
 
-export const OrganizationDeleteParams = processSchema(
+export const OrganizationDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
   })
 );
 
-export const OrganizationPolicyViewParams = processSchema(
+export const OrganizationPolicyViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
   })
 );
 
-export const OrganizationPolicyUpdateParams = processSchema(
+export const OrganizationPolicyUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
   })
 );
 
-export const ProjectListParams = processSchema(
+export const ProjectListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -1833,34 +2047,39 @@ export const ProjectListParams = processSchema(
   })
 );
 
-export const ProjectCreateParams = processSchema(
+export const ProjectCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
   })
 );
 
-export const ProjectViewParams = processSchema(
-  z.object({
-    orgName: Name,
-    projectName: Name,
-  })
-);
-
-export const ProjectUpdateParams = processSchema(
+export const ProjectViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const ProjectDeleteParams = processSchema(
+export const ProjectUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const DiskListParams = processSchema(
+export const ProjectDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    orgName: Name,
+    projectName: Name,
+  })
+);
+
+export const DiskListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -1870,22 +2089,16 @@ export const DiskListParams = processSchema(
   })
 );
 
-export const DiskCreateParams = processSchema(
+export const DiskCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const DiskViewParams = processSchema(
-  z.object({
-    diskName: Name,
-    orgName: Name,
-    projectName: Name,
-  })
-);
-
-export const DiskDeleteParams = processSchema(
+export const DiskViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     diskName: Name,
     orgName: Name,
@@ -1893,7 +2106,17 @@ export const DiskDeleteParams = processSchema(
   })
 );
 
-export const DiskMetricsListParams = processSchema(
+export const DiskDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    diskName: Name,
+    orgName: Name,
+    projectName: Name,
+  })
+);
+
+export const DiskMetricsListParams = z.preprocess(
+  processResponseBody,
   z.object({
     diskName: Name,
     metricName: DiskMetricName,
@@ -1906,7 +2129,8 @@ export const DiskMetricsListParams = processSchema(
   })
 );
 
-export const ImageListParams = processSchema(
+export const ImageListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -1916,14 +2140,16 @@ export const ImageListParams = processSchema(
   })
 );
 
-export const ImageCreateParams = processSchema(
+export const ImageCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const ImageViewParams = processSchema(
+export const ImageViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     imageName: Name,
     orgName: Name,
@@ -1931,7 +2157,8 @@ export const ImageViewParams = processSchema(
   })
 );
 
-export const ImageDeleteParams = processSchema(
+export const ImageDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     imageName: Name,
     orgName: Name,
@@ -1939,7 +2166,8 @@ export const ImageDeleteParams = processSchema(
   })
 );
 
-export const InstanceListParams = processSchema(
+export const InstanceListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -1949,22 +2177,16 @@ export const InstanceListParams = processSchema(
   })
 );
 
-export const InstanceCreateParams = processSchema(
+export const InstanceCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const InstanceViewParams = processSchema(
-  z.object({
-    instanceName: Name,
-    orgName: Name,
-    projectName: Name,
-  })
-);
-
-export const InstanceDeleteParams = processSchema(
+export const InstanceViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     orgName: Name,
@@ -1972,18 +2194,8 @@ export const InstanceDeleteParams = processSchema(
   })
 );
 
-export const InstanceDiskListParams = processSchema(
-  z.object({
-    limit: z.number().min(1).max(4294967295).nullable().optional(),
-    pageToken: z.string().nullable().optional(),
-    sortBy: NameSortMode.optional(),
-    instanceName: Name,
-    orgName: Name,
-    projectName: Name,
-  })
-);
-
-export const InstanceDiskAttachParams = processSchema(
+export const InstanceDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     orgName: Name,
@@ -1991,31 +2203,8 @@ export const InstanceDiskAttachParams = processSchema(
   })
 );
 
-export const InstanceDiskDetachParams = processSchema(
-  z.object({
-    instanceName: Name,
-    orgName: Name,
-    projectName: Name,
-  })
-);
-
-export const InstanceExternalIpListParams = processSchema(
-  z.object({
-    instanceName: Name,
-    orgName: Name,
-    projectName: Name,
-  })
-);
-
-export const InstanceMigrateParams = processSchema(
-  z.object({
-    instanceName: Name,
-    orgName: Name,
-    projectName: Name,
-  })
-);
-
-export const InstanceNetworkInterfaceListParams = processSchema(
+export const InstanceDiskListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2026,7 +2215,8 @@ export const InstanceNetworkInterfaceListParams = processSchema(
   })
 );
 
-export const InstanceNetworkInterfaceCreateParams = processSchema(
+export const InstanceDiskAttachParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     orgName: Name,
@@ -2034,7 +2224,56 @@ export const InstanceNetworkInterfaceCreateParams = processSchema(
   })
 );
 
-export const InstanceNetworkInterfaceViewParams = processSchema(
+export const InstanceDiskDetachParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    instanceName: Name,
+    orgName: Name,
+    projectName: Name,
+  })
+);
+
+export const InstanceExternalIpListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    instanceName: Name,
+    orgName: Name,
+    projectName: Name,
+  })
+);
+
+export const InstanceMigrateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    instanceName: Name,
+    orgName: Name,
+    projectName: Name,
+  })
+);
+
+export const InstanceNetworkInterfaceListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    limit: z.number().min(1).max(4294967295).nullable().optional(),
+    pageToken: z.string().nullable().optional(),
+    sortBy: NameSortMode.optional(),
+    instanceName: Name,
+    orgName: Name,
+    projectName: Name,
+  })
+);
+
+export const InstanceNetworkInterfaceCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    instanceName: Name,
+    orgName: Name,
+    projectName: Name,
+  })
+);
+
+export const InstanceNetworkInterfaceViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     interfaceName: Name,
@@ -2043,7 +2282,8 @@ export const InstanceNetworkInterfaceViewParams = processSchema(
   })
 );
 
-export const InstanceNetworkInterfaceUpdateParams = processSchema(
+export const InstanceNetworkInterfaceUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     interfaceName: Name,
@@ -2052,7 +2292,8 @@ export const InstanceNetworkInterfaceUpdateParams = processSchema(
   })
 );
 
-export const InstanceNetworkInterfaceDeleteParams = processSchema(
+export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     interfaceName: Name,
@@ -2061,7 +2302,8 @@ export const InstanceNetworkInterfaceDeleteParams = processSchema(
   })
 );
 
-export const InstanceRebootParams = processSchema(
+export const InstanceRebootParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     orgName: Name,
@@ -2069,7 +2311,8 @@ export const InstanceRebootParams = processSchema(
   })
 );
 
-export const InstanceSerialConsoleParams = processSchema(
+export const InstanceSerialConsoleParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     orgName: Name,
@@ -2080,7 +2323,8 @@ export const InstanceSerialConsoleParams = processSchema(
   })
 );
 
-export const InstanceStartParams = processSchema(
+export const InstanceStartParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     orgName: Name,
@@ -2088,7 +2332,8 @@ export const InstanceStartParams = processSchema(
   })
 );
 
-export const InstanceStopParams = processSchema(
+export const InstanceStopParams = z.preprocess(
+  processResponseBody,
   z.object({
     instanceName: Name,
     orgName: Name,
@@ -2096,21 +2341,24 @@ export const InstanceStopParams = processSchema(
   })
 );
 
-export const ProjectPolicyViewParams = processSchema(
+export const ProjectPolicyViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const ProjectPolicyUpdateParams = processSchema(
+export const ProjectPolicyUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const SnapshotListParams = processSchema(
+export const SnapshotListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2120,14 +2368,16 @@ export const SnapshotListParams = processSchema(
   })
 );
 
-export const SnapshotCreateParams = processSchema(
+export const SnapshotCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const SnapshotViewParams = processSchema(
+export const SnapshotViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2135,7 +2385,8 @@ export const SnapshotViewParams = processSchema(
   })
 );
 
-export const SnapshotDeleteParams = processSchema(
+export const SnapshotDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2143,7 +2394,8 @@ export const SnapshotDeleteParams = processSchema(
   })
 );
 
-export const VpcListParams = processSchema(
+export const VpcListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2153,22 +2405,16 @@ export const VpcListParams = processSchema(
   })
 );
 
-export const VpcCreateParams = processSchema(
+export const VpcCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
   })
 );
 
-export const VpcViewParams = processSchema(
-  z.object({
-    orgName: Name,
-    projectName: Name,
-    vpcName: Name,
-  })
-);
-
-export const VpcUpdateParams = processSchema(
+export const VpcViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2176,7 +2422,8 @@ export const VpcUpdateParams = processSchema(
   })
 );
 
-export const VpcDeleteParams = processSchema(
+export const VpcUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2184,7 +2431,8 @@ export const VpcDeleteParams = processSchema(
   })
 );
 
-export const VpcFirewallRulesViewParams = processSchema(
+export const VpcDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2192,7 +2440,8 @@ export const VpcFirewallRulesViewParams = processSchema(
   })
 );
 
-export const VpcFirewallRulesUpdateParams = processSchema(
+export const VpcFirewallRulesViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2200,7 +2449,17 @@ export const VpcFirewallRulesUpdateParams = processSchema(
   })
 );
 
-export const VpcRouterListParams = processSchema(
+export const VpcFirewallRulesUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    orgName: Name,
+    projectName: Name,
+    vpcName: Name,
+  })
+);
+
+export const VpcRouterListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2211,7 +2470,8 @@ export const VpcRouterListParams = processSchema(
   })
 );
 
-export const VpcRouterCreateParams = processSchema(
+export const VpcRouterCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2219,16 +2479,8 @@ export const VpcRouterCreateParams = processSchema(
   })
 );
 
-export const VpcRouterViewParams = processSchema(
-  z.object({
-    orgName: Name,
-    projectName: Name,
-    routerName: Name,
-    vpcName: Name,
-  })
-);
-
-export const VpcRouterUpdateParams = processSchema(
+export const VpcRouterViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2237,7 +2489,8 @@ export const VpcRouterUpdateParams = processSchema(
   })
 );
 
-export const VpcRouterDeleteParams = processSchema(
+export const VpcRouterUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2246,7 +2499,18 @@ export const VpcRouterDeleteParams = processSchema(
   })
 );
 
-export const VpcRouterRouteListParams = processSchema(
+export const VpcRouterDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    orgName: Name,
+    projectName: Name,
+    routerName: Name,
+    vpcName: Name,
+  })
+);
+
+export const VpcRouterRouteListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2258,7 +2522,8 @@ export const VpcRouterRouteListParams = processSchema(
   })
 );
 
-export const VpcRouterRouteCreateParams = processSchema(
+export const VpcRouterRouteCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2267,7 +2532,8 @@ export const VpcRouterRouteCreateParams = processSchema(
   })
 );
 
-export const VpcRouterRouteViewParams = processSchema(
+export const VpcRouterRouteViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2277,7 +2543,8 @@ export const VpcRouterRouteViewParams = processSchema(
   })
 );
 
-export const VpcRouterRouteUpdateParams = processSchema(
+export const VpcRouterRouteUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2287,7 +2554,8 @@ export const VpcRouterRouteUpdateParams = processSchema(
   })
 );
 
-export const VpcRouterRouteDeleteParams = processSchema(
+export const VpcRouterRouteDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2297,7 +2565,8 @@ export const VpcRouterRouteDeleteParams = processSchema(
   })
 );
 
-export const VpcSubnetListParams = processSchema(
+export const VpcSubnetListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2308,7 +2577,8 @@ export const VpcSubnetListParams = processSchema(
   })
 );
 
-export const VpcSubnetCreateParams = processSchema(
+export const VpcSubnetCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2316,16 +2586,8 @@ export const VpcSubnetCreateParams = processSchema(
   })
 );
 
-export const VpcSubnetViewParams = processSchema(
-  z.object({
-    orgName: Name,
-    projectName: Name,
-    subnetName: Name,
-    vpcName: Name,
-  })
-);
-
-export const VpcSubnetUpdateParams = processSchema(
+export const VpcSubnetViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2334,7 +2596,8 @@ export const VpcSubnetUpdateParams = processSchema(
   })
 );
 
-export const VpcSubnetDeleteParams = processSchema(
+export const VpcSubnetUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     orgName: Name,
     projectName: Name,
@@ -2343,7 +2606,18 @@ export const VpcSubnetDeleteParams = processSchema(
   })
 );
 
-export const VpcSubnetListNetworkInterfacesParams = processSchema(
+export const VpcSubnetDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    orgName: Name,
+    projectName: Name,
+    subnetName: Name,
+    vpcName: Name,
+  })
+);
+
+export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2355,26 +2629,32 @@ export const VpcSubnetListNetworkInterfacesParams = processSchema(
   })
 );
 
-export const PolicyViewParams = processSchema(z.object({}));
+export const PolicyViewParams = z.preprocess(processResponseBody, z.object({}));
 
-export const PolicyUpdateParams = processSchema(z.object({}));
+export const PolicyUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const RoleListParams = processSchema(
+export const RoleListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
   })
 );
 
-export const RoleViewParams = processSchema(
+export const RoleViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     roleName: z.string(),
   })
 );
 
-export const SessionMeParams = processSchema(z.object({}));
+export const SessionMeParams = z.preprocess(processResponseBody, z.object({}));
 
-export const SessionSshkeyListParams = processSchema(
+export const SessionSshkeyListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2382,39 +2662,48 @@ export const SessionSshkeyListParams = processSchema(
   })
 );
 
-export const SessionSshkeyCreateParams = processSchema(z.object({}));
+export const SessionSshkeyCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const SessionSshkeyViewParams = processSchema(
+export const SessionSshkeyViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     sshKeyName: Name,
   })
 );
 
-export const SessionSshkeyDeleteParams = processSchema(
+export const SessionSshkeyDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     sshKeyName: Name,
   })
 );
 
-export const SystemImageViewByIdParams = processSchema(
+export const SystemImageViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const IpPoolViewByIdParams = processSchema(
+export const IpPoolViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const SiloViewByIdParams = processSchema(
+export const SiloViewByIdParams = z.preprocess(
+  processResponseBody,
   z.object({
     id: z.string().uuid(),
   })
 );
 
-export const RackListParams = processSchema(
+export const RackListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2422,13 +2711,15 @@ export const RackListParams = processSchema(
   })
 );
 
-export const RackViewParams = processSchema(
+export const RackViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     rackId: z.string().uuid(),
   })
 );
 
-export const SledListParams = processSchema(
+export const SledListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2436,13 +2727,15 @@ export const SledListParams = processSchema(
   })
 );
 
-export const SledViewParams = processSchema(
+export const SledViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     sledId: z.string().uuid(),
   })
 );
 
-export const SystemImageListParams = processSchema(
+export const SystemImageListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2450,21 +2743,27 @@ export const SystemImageListParams = processSchema(
   })
 );
 
-export const SystemImageCreateParams = processSchema(z.object({}));
+export const SystemImageCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const SystemImageViewParams = processSchema(
+export const SystemImageViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     imageName: Name,
   })
 );
 
-export const SystemImageDeleteParams = processSchema(
+export const SystemImageDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     imageName: Name,
   })
 );
 
-export const IpPoolListParams = processSchema(
+export const IpPoolListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2472,27 +2771,34 @@ export const IpPoolListParams = processSchema(
   })
 );
 
-export const IpPoolCreateParams = processSchema(z.object({}));
+export const IpPoolCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const IpPoolViewParams = processSchema(
+export const IpPoolViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     poolName: Name,
   })
 );
 
-export const IpPoolUpdateParams = processSchema(
+export const IpPoolUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     poolName: Name,
   })
 );
 
-export const IpPoolDeleteParams = processSchema(
+export const IpPoolDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     poolName: Name,
   })
 );
 
-export const IpPoolRangeListParams = processSchema(
+export const IpPoolRangeListParams = z.preprocess(
+  processResponseBody,
   z.object({
     poolName: Name,
     limit: z.number().min(1).max(4294967295).nullable().optional(),
@@ -2500,25 +2806,29 @@ export const IpPoolRangeListParams = processSchema(
   })
 );
 
-export const IpPoolRangeAddParams = processSchema(
+export const IpPoolRangeAddParams = z.preprocess(
+  processResponseBody,
   z.object({
     poolName: Name,
   })
 );
 
-export const IpPoolRangeRemoveParams = processSchema(
+export const IpPoolRangeRemoveParams = z.preprocess(
+  processResponseBody,
   z.object({
     poolName: Name,
   })
 );
 
-export const IpPoolServiceViewParams = processSchema(
+export const IpPoolServiceViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     rackId: z.string().uuid(),
   })
 );
 
-export const IpPoolServiceRangeListParams = processSchema(
+export const IpPoolServiceRangeListParams = z.preprocess(
+  processResponseBody,
   z.object({
     rackId: z.string().uuid(),
     limit: z.number().min(1).max(4294967295).nullable().optional(),
@@ -2526,23 +2836,32 @@ export const IpPoolServiceRangeListParams = processSchema(
   })
 );
 
-export const IpPoolServiceRangeAddParams = processSchema(
+export const IpPoolServiceRangeAddParams = z.preprocess(
+  processResponseBody,
   z.object({
     rackId: z.string().uuid(),
   })
 );
 
-export const IpPoolServiceRangeRemoveParams = processSchema(
+export const IpPoolServiceRangeRemoveParams = z.preprocess(
+  processResponseBody,
   z.object({
     rackId: z.string().uuid(),
   })
 );
 
-export const SystemPolicyViewParams = processSchema(z.object({}));
+export const SystemPolicyViewParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const SystemPolicyUpdateParams = processSchema(z.object({}));
+export const SystemPolicyUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const SagaListParams = processSchema(
+export const SagaListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2550,13 +2869,15 @@ export const SagaListParams = processSchema(
   })
 );
 
-export const SagaViewParams = processSchema(
+export const SagaViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     sagaId: z.string().uuid(),
   })
 );
 
-export const SiloListParams = processSchema(
+export const SiloListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2564,21 +2885,24 @@ export const SiloListParams = processSchema(
   })
 );
 
-export const SiloCreateParams = processSchema(z.object({}));
+export const SiloCreateParams = z.preprocess(processResponseBody, z.object({}));
 
-export const SiloViewParams = processSchema(
+export const SiloViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     siloName: Name,
   })
 );
 
-export const SiloDeleteParams = processSchema(
+export const SiloDeleteParams = z.preprocess(
+  processResponseBody,
   z.object({
     siloName: Name,
   })
 );
 
-export const SiloIdentityProviderListParams = processSchema(
+export const SiloIdentityProviderListParams = z.preprocess(
+  processResponseBody,
   z.object({
     siloName: Name,
     limit: z.number().min(1).max(4294967295).nullable().optional(),
@@ -2587,34 +2911,42 @@ export const SiloIdentityProviderListParams = processSchema(
   })
 );
 
-export const SamlIdentityProviderCreateParams = processSchema(
+export const SamlIdentityProviderCreateParams = z.preprocess(
+  processResponseBody,
   z.object({
     siloName: Name,
   })
 );
 
-export const SamlIdentityProviderViewParams = processSchema(
+export const SamlIdentityProviderViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     providerName: Name,
     siloName: Name,
   })
 );
 
-export const SiloPolicyViewParams = processSchema(
+export const SiloPolicyViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     siloName: Name,
   })
 );
 
-export const SiloPolicyUpdateParams = processSchema(
+export const SiloPolicyUpdateParams = z.preprocess(
+  processResponseBody,
   z.object({
     siloName: Name,
   })
 );
 
-export const UpdatesRefreshParams = processSchema(z.object({}));
+export const UpdatesRefreshParams = z.preprocess(
+  processResponseBody,
+  z.object({})
+);
 
-export const SystemUserListParams = processSchema(
+export const SystemUserListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
@@ -2622,20 +2954,23 @@ export const SystemUserListParams = processSchema(
   })
 );
 
-export const SystemUserViewParams = processSchema(
+export const SystemUserViewParams = z.preprocess(
+  processResponseBody,
   z.object({
     userName: Name,
   })
 );
 
-export const TimeseriesSchemaGetParams = processSchema(
+export const TimeseriesSchemaGetParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
   })
 );
 
-export const UserListParams = processSchema(
+export const UserListParams = z.preprocess(
+  processResponseBody,
   z.object({
     limit: z.number().min(1).max(4294967295).nullable().optional(),
     pageToken: z.string().nullable().optional(),
