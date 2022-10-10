@@ -1,6 +1,7 @@
 /* eslint-disable */
 
 import { z, ZodType } from "zod";
+import { snakeify, processResponseBody } from "./util";
 
 const DateType = z.preprocess((arg) => {
   if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
@@ -16,6 +17,18 @@ type DateType = z.infer<typeof DateType>;
  */
 const IntEnum = <T extends readonly number[]>(values: T) =>
   z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
+
+/**
+ * Normalizes input to make it compatible with validators. This entails converting from snake to camel case and parsing dates.
+ **/
+export const processSchema = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((input) => processResponseBody(input), schema);
+
+/**
+ * Normalizes schema output to make it compatible with the API. This entails converting from camel to snake case.
+ **/
+export const transformSchema = <T extends z.ZodType>(schema: T) =>
+  schema.transform(snakeify);
 
 /**
  * A type storing a range over `T`.

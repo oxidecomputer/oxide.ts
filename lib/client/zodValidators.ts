@@ -14,6 +14,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
 
   w("/* eslint-disable */\n");
   w("import { z, ZodType } from 'zod';");
+  w("import { snakeify, processResponseBody } from './util';");
   w(`
     const DateType = z.preprocess((arg) => {
       if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
@@ -30,6 +31,20 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
    */
   const IntEnum = <T extends readonly number[]>(values: T) => 
       z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
+  `);
+
+  w(`
+  /**
+   * Normalizes input to make it compatible with validators. This entails converting from snake to camel case and parsing dates.
+   **/
+  export const processSchema = <T extends z.ZodType>(schema: T) => z.preprocess((input) => processResponseBody(input), schema);
+  `);
+
+  w(`
+  /**
+   * Normalizes schema output to make it compatible with the API. This entails converting from camel to snake case.
+   **/
+  export const transformSchema = <T extends z.ZodType>(schema: T) => schema.transform(snakeify);
   `);
 
   const schemaNames = getSortedSchemas(spec);
