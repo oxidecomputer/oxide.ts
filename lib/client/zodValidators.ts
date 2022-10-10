@@ -30,11 +30,6 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
    */
   const IntEnum = <T extends readonly number[]>(values: T) => 
       z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
-
-  /**
-   * Normalizes schema output to make it compatible with the API. This entails converting from camel to snake case.
-   **/
-  export const snakeifySchema = <T extends z.ZodType>(schema: T) => schema.transform(snakeify);
   `);
 
   const schemaNames = getSortedSchemas(spec);
