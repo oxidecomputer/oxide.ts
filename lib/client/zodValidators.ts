@@ -12,16 +12,15 @@ const { w, w0, out } = io;
 export function generateZodValidators(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
-  w("/* eslint-disable */\n");
-  w("import { z, ZodType } from 'zod';");
-  w("import { snakeify, processResponseBody } from './util';");
-  w(`
-    const DateType = z.preprocess((arg) => {
-      if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
-    }, z.date());
-    type DateType = z.infer<typeof DateType>;\n`);
+  w(`/* eslint-disable */
+  import { z, ZodType } from 'zod';
+  import { snakeify, processResponseBody } from './util';
 
-  w(`
+  const DateType = z.preprocess((arg) => {
+    if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
+  }, z.date());
+  type DateType = z.infer<typeof DateType>;
+
   /**
    * Zod only supports string enums at the moment. A previous issue was opened
    * and closed as stale but it provided a hint on how to implement it.
@@ -31,16 +30,12 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
    */
   const IntEnum = <T extends readonly number[]>(values: T) => 
       z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
-  `);
 
-  w(`
   /**
    * Normalizes input to make it compatible with validators. This entails converting from snake to camel case and parsing dates.
    **/
   export const processSchema = <T extends z.ZodType>(schema: T) => z.preprocess((input) => processResponseBody(input), schema);
-  `);
 
-  w(`
   /**
    * Normalizes schema output to make it compatible with the API. This entails converting from camel to snake case.
    **/
