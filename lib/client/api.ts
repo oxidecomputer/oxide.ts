@@ -173,6 +173,17 @@ export function generateApi(spec: OpenAPIV3.Document) {
     w(">\n");
   }
 
+  w("export type ApiPaths =");
+  for (const path in spec.paths) {
+    w(
+      `  | '${path.replace(
+        /{(\w+)}/g,
+        (n) => `:${snakeToCamel(n.slice(1, -1)).replace("organization", "org")}`
+      )}'`
+    );
+  }
+  w("\n");
+
   w(`export class Api extends HttpClient {
        methods = {`);
 
