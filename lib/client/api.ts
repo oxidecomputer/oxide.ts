@@ -10,7 +10,13 @@ import {
 } from "../util";
 import { initIO } from "../io";
 import { refToSchemaName, Schema } from "../schema/base";
-import { contentRef, docComment, getSortedSchemas } from "./base";
+import {
+  contentRef,
+  docComment,
+  getSortedSchemas,
+  iterParams,
+  iterPathConfig,
+} from "./base";
 import { schemaToTypes } from "../schema/types";
 
 const io = initIO("Api.ts");
@@ -90,40 +96,77 @@ export function generateApi(spec: OpenAPIV3.Document) {
     w(";\n");
   }
 
-  for (const path in spec.paths) {
-    const handlers = spec.paths[path]!;
-    let method: keyof typeof HttpMethods;
-    for (method in HttpMethods) {
-      const conf = handlers[HttpMethods[method]];
-      if (!conf?.operationId) continue;
+  // To generate separate path and query params
+  // for (const { params, opId } of iterParams(spec.paths)) {
+  //   const opName = snakeToPascal(opId);
+  //   if (params[0].length > 0) {
+  //     w(`export interface ${opName}PathParams {`);
+  //     for (const param of params[0]) {
+  //       if ("description" in param.schema || "title" in param.schema) {
+  //         docComment(
+  //           [param.schema.title, param.schema.description]
+  //             .filter((n) => n)
+  //             .join("\n\n"),
+  //           schemaNames,
+  //           io
+  //         );
+  //       }
+  //       w0(`  ${processParamName(param.name)}:`);
+  //       schemaToTypes(param.schema, io);
+  //       w(",");
+  //     }
+  //     w("}\n");
+  //   }
 
-      const opName = snakeToPascal(conf.operationId);
-      const params = conf.parameters;
-      w(`export interface ${opName}Params {`);
-      for (const param of params || []) {
-        if ("name" in param) {
-          if (param.schema) {
-            const isQuery = param.in === "query";
-            if ("description" in param.schema || "title" in param.schema) {
-              docComment(
-                [param.schema.title, param.schema.description]
-                  .filter((n) => n)
-                  .join("\n\n"),
-                schemaNames,
-                io
-              );
-            }
+  //   if (params[1].length > 0) {
+  //     w(`export interface ${opName}QueryParams {`);
+  //     for (const param of params[1]) {
+  //       if ("description" in param.schema || "title" in param.schema) {
+  //         docComment(
+  //           [param.schema.title, param.schema.description]
+  //             .filter((n) => n)
+  //             .join("\n\n"),
+  //           schemaNames,
+  //           io
+  //         );
+  //       }
 
-            w0(`  ${processParamName(param.name)}`);
-            w0(`${isQuery ? "?" : ""}: `);
-            schemaToTypes(param.schema, io);
-            w(",");
+  //       w0(`  ${processParamName(param.name)}?:`);
+  //       schemaToTypes(param.schema, io);
+  //       w(",");
+  //     }
+  //     w("}\n");
+  //   }
+  // }
+
+  for (const { conf, opId } of iterPathConfig(spec.paths)) {
+    const opName = snakeToPascal(opId);
+    const params = conf.parameters;
+
+    w(`export interface ${opName}Params {`);
+    for (const param of params || []) {
+      if ("name" in param) {
+        if (param.schema) {
+          const isQuery = param.in === "query";
+          if ("description" in param.schema || "title" in param.schema) {
+            docComment(
+              [param.schema.title, param.schema.description]
+                .filter((n) => n)
+                .join("\n\n"),
+              schemaNames,
+              io
+            );
           }
+
+          w0(`  ${processParamName(param.name)}`);
+          w0(`${isQuery ? "?" : ""}: `);
+          schemaToTypes(param.schema, io);
+          w(",");
         }
       }
-      w(`}`);
-      w("");
     }
+    w(`}`);
+    w("");
   }
 
   const operations = Object.values(spec.paths)
@@ -173,86 +216,68 @@ export function generateApi(spec: OpenAPIV3.Document) {
     w(">\n");
   }
 
-  w("export type ApiPaths =");
-  for (const path in spec.paths) {
-    w(
-      `  | '${path.replace(
-        /{(\w+)}/g,
-        (n) => `:${snakeToCamel(n.slice(1, -1)).replace("organization", "org")}`
-      )}'`
-    );
-  }
-  w("\n");
-
   w(`export class Api extends HttpClient {
        methods = {`);
 
-  for (const path in spec.paths) {
-    const handlers = spec.paths[path]!;
-    let method: keyof typeof HttpMethods;
-    for (method in HttpMethods) {
-      const conf = handlers[HttpMethods[method]];
-      if (!conf?.operationId) continue;
-      const methodName = snakeToCamel(conf.operationId);
+  for (const { conf, opId, method, path } of iterPathConfig(spec.paths)) {
+    const methodName = snakeToCamel(opId);
 
-      const paramsType = snakeToPascal(conf.operationId) + "Params";
-      const params = conf.parameters || [];
-      const pathParams = params.filter(
-        (p) => "in" in p && p.in === "path"
-      ) as OpenAPIV3.ParameterObject[];
-      const queryParams = params.filter(
-        (p) => "in" in p && p.in === "query"
-      ) as OpenAPIV3.ParameterObject[];
+    const paramsType = snakeToPascal(opId) + "Params";
+    const params = conf.parameters || [];
+    const pathParams = params.filter(
+      (p) => "in" in p && p.in === "path"
+    ) as OpenAPIV3.ParameterObject[];
+    const queryParams = params.filter(
+      (p) => "in" in p && p.in === "query"
+    ) as OpenAPIV3.ParameterObject[];
 
-      const bodyTypeRef = contentRef(conf.requestBody);
-      const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
+    const bodyTypeRef = contentRef(conf.requestBody);
+    const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
 
-      const successResponse =
-        conf.responses["200"] ||
-        conf.responses["201"] ||
-        conf.responses["202"] ||
-        conf.responses["204"];
+    const successResponse =
+      conf.responses["200"] ||
+      conf.responses["201"] ||
+      conf.responses["202"] ||
+      conf.responses["204"];
 
-      const successTypeRef = contentRef(successResponse);
-      const successType = successTypeRef
-        ? refToSchemaName(successTypeRef)
-        : "void";
+    const successTypeRef = contentRef(successResponse);
+    const successType = successTypeRef
+      ? refToSchemaName(successTypeRef)
+      : "void";
 
-      docComment(conf.summary || conf.description, schemaNames, io);
+    docComment(conf.summary || conf.description, schemaNames, io);
 
-      w(`${methodName}: (`);
-      if (pathParams.length > 0) {
-        w0("{ ");
-        const params = pathParams
-          .map((p) => processParamName(p.name))
-          .join(", ");
-        w0(params);
-        if (queryParams.length > 0) {
-          w0(", ...query");
-        }
-        w(`}: ${paramsType},`);
-      } else {
-        w(`query: ${paramsType},`);
+    w(`${methodName}: (`);
+    if (pathParams.length > 0) {
+      w0("{ ");
+      const params = pathParams.map((p) => processParamName(p.name)).join(", ");
+      w0(params);
+      if (queryParams.length > 0) {
+        w0(", ...query");
       }
-      if (bodyType) {
-        w(`body: ${bodyType},`);
-      }
-      w(`  params: RequestParams = {},
+      w(`}: ${paramsType},`);
+    } else {
+      w(`query: ${paramsType},`);
+    }
+    if (bodyType) {
+      w(`body: ${bodyType},`);
+    }
+    w(`  params: RequestParams = {},
          ) =>
            this.request<${successType}>({
              path: ${pathToTemplateStr(path)},
              method: "${method.toUpperCase()}",`);
-      if (bodyType) {
-        w(`  body,`);
-      }
-      if (queryParams.length > 0) {
-        w("  query,");
-      }
-      w(`    ...params,
+    if (bodyType) {
+      w(`  body,`);
+    }
+    if (queryParams.length > 0) {
+      w("  query,");
+    }
+    w(`    ...params,
            }),
       `);
-    }
   }
+
   w(`  }
      }`);
   out.end();

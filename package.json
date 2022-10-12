@@ -21,6 +21,11 @@
       "require": "./dist/validate.js",
       "import": "./dist/validate.mjs",
       "types": "./dist/validate.d.ts"
+    },
+    "./msw-handlers": {
+      "require": "./dist/msw-handlers.js",
+      "import": "./dist/msw-handlers.mjs",
+      "types": "./dist/msw-handlers.d.ts"
     }
   },
   "files": [
@@ -29,7 +34,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup client/Api.ts client/validate.ts --format cjs,esm --dts --clean",
+    "build": "tsup client/Api.ts client/validate.ts client/msw-handlers.ts --format cjs,esm --dts --clean --no-splitting",
     "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client && npm run build",
     "gen-from": "./tools/gen.sh",
     "postgen": "prettier --parser typescript --write ./client",
@@ -48,6 +53,7 @@
     "@types/node": "^18.7.20",
     "esbuild-register": "^3.3.3",
     "happy-dom": "^6.0.4",
+    "msw": "^0.47.4",
     "openapi-types": "^12.0.2",
     "prettier": "2.7.1",
     "swagger-parser": "^10.0.3",

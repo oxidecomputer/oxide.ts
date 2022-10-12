@@ -1,7 +1,9 @@
 import { OpenAPIV3 } from "openapi-types";
-import { topologicalSort } from "../util";
+import { snakeToPascal, topologicalSort } from "../util";
 import { IO } from "../io";
 import { Schema } from "../schema/base";
+import { OpenAPIV3 as O } from "openapi-types";
+const HttpMethods = O.HttpMethods;
 
 /**
  * Returns a list of schema names sorted by dependency order.
@@ -53,4 +55,49 @@ export function docComment(
     }
     w(" */");
   }
+}
+
+type PathConfig = ReturnType<typeof iterPathConfig>[number];
+export function iterPathConfig(paths: OpenAPIV3.Document["paths"]) {
+  return Object.entries(paths)
+    .flatMap(([path, handlers]) => {
+      return Object.values(HttpMethods).map((method) => {
+        const conf = handlers![method]!;
+
+        return {
+          path,
+          conf,
+          method,
+          opId: conf?.operationId!,
+        };
+      });
+    })
+    .filter(({ conf }) => conf && conf.operationId);
+}
+
+type Param = Omit<OpenAPIV3.ParameterObject, "schema"> &
+  Required<Pick<OpenAPIV3.ParameterObject, "schema">>;
+type ParamGroup = [pathParams: Param[], queryParams: Param[]];
+interface IterParamsResult extends PathConfig {
+  params: ParamGroup;
+}
+
+export function iterParams(paths: OpenAPIV3.Document["paths"]) {
+  const collectedParams: IterParamsResult[] = [];
+  for (const { conf, ...others } of iterPathConfig(paths)) {
+    const params = conf.parameters;
+    const group: ParamGroup = [[], []];
+    for (const param of params || []) {
+      if ("name" in param && param.schema) {
+        if (param.in === "path") {
+          group[0].push(param as Param);
+        }
+        if (param.in === "query") {
+          group[1].push(param as Param);
+        }
+      }
+    }
+    collectedParams.push({ conf, ...others, params: group });
+  }
+  return collectedParams;
 }
