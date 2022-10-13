@@ -105,7 +105,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
         ? "number | ResponseTransformer"
         : `Json<${successType}> | ResponseTransformer<Json<${successType}>>`;
 
-    w(`/** \`${formatPath(path)}\` */`);
+    w(`/** \`${method.toUpperCase()} ${formatPath(path)}\` */`);
     w(`  ${opName}: (${args}) => MaybePromise<${statusResult}>,`);
   }
   w("}");
