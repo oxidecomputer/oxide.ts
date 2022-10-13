@@ -11,23 +11,32 @@ const HttpMethods = O.HttpMethods;
 const io = initIO("msw-handlers.ts");
 const { w, w0, out, copy } = io;
 
+const formatPath = (path: string) =>
+  path.replace(
+    /{(\w+)}/g,
+    (n) => `:${snakeToCamel(n.slice(1, -1)).replace("organization", "org")}`
+  );
+
 export function generateMSWHandlers(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
   w("/* eslint-disable */\n");
 
   w(`
-    import { z, ZodSchema } from "zod";
     import {
-      rest,
       compose,
       context,
-      DefaultBodyType as DBT,
+      ResponseComposition,
+      ResponseTransformer,
+      rest,
+      RestContext,
       RestHandler,
       RestRequest,
-      ResponseTransformer,
     } from "msw";
+    import type { SnakeCasedPropertiesDeep as Snakify } from "type-fest";
+    import { z, ZodSchema } from "zod";
     import type * as Api from "./Api";
+    import { snakeify } from "./util";
     import * as schema from "./validate";
 
     type MaybePromise<T> = T | Promise<T>
@@ -45,10 +54,28 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       const { status = 200, delay = 0 } = options
       return compose(context.status(status), context.json(body), context.delay(delay))
     }
+
+
+    // these are used for turning our nice JS-ified API types back into the original
+    // API JSON types (snake cased and dates as strings) for use in our mock API
+
+    type StringifyDates<T> = T extends Date
+      ? string
+      : {
+          [K in keyof T]: T[K] extends Array<infer U>
+            ? Array<StringifyDates<U>>
+            : StringifyDates<T[K]>
+        }
+
+    /**
+     * Snake case fields and convert dates to strings. Not intended to be a general
+     * purpose JSON type!
+     */
+    export type Json<B> = Snakify<StringifyDates<B>>
   `);
 
   w(`export interface MSWHandlers {`);
-  for (const { conf, method, opId } of iterPathConfig(spec.paths)) {
+  for (const { conf, method, opId, path } of iterPathConfig(spec.paths)) {
     const opName = snakeToCamel(opId);
 
     const successResponse =
@@ -66,7 +93,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
     const body =
       bodyType && (method === "post" || method === "put")
-        ? `body: Api.${bodyType}`
+        ? `body: Json<Api.${bodyType}>`
         : "";
     const params = conf.parameters?.length
       ? `params: Api.${snakeToPascal(opId)}Params`
@@ -75,21 +102,69 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const args = [body, params].filter(Boolean).join(", ");
     const statusResult =
       successType === "void"
-        ? "number"
-        : `${successType} | [result: ${successType}, status: number]`;
+        ? "number | ResponseTransformer"
+        : `Json<${successType}> | ResponseTransformer<Json<${successType}>>`;
 
+    w(`/** \`${formatPath(path)}\` */`);
     w(`  ${opName}: (${args}) => MaybePromise<${statusResult}>,`);
   }
   w("}");
 
   w(`
-    type ValidateBody = <S extends ZodSchema>(schema: S, body: unknown) => { body: z.infer<S>, bodyErr?: undefined } | { body?: undefined, bodyErr: ResponseTransformer }
-    type ValidateParams = <S extends ZodSchema>(schema: S, req: RestRequest) => { params: z.infer<S>, paramsErr?: undefined } | { params?: undefined, paramsErr: ResponseTransformer }
+    function validateBody<S extends ZodSchema>(schema: S, body: unknown) {
+      const result = schema.transform(snakeify).safeParse(body);
+      if (result.success) {
+        return { body: result.data as Json<z.infer<S>> }
+      }
+      return { bodyErr: json(result.error.issues, { status: 400 }) }
+    }
+    function validateParams<S extends ZodSchema>(schema: S, req: RestRequest) {
+      const rawParams = new URLSearchParams(req.url.search)
+      const params: [string, unknown][] = []
+
+      // Ensure numeric params like \`limit\` are parsed as numbers
+      for (const [name, value] of rawParams) {
+        params.push([name, isNaN(Number(value)) ? value : Number(value)])
+      }
+
+      const result = schema.safeParse({
+        ...req.params,
+        ...Object.fromEntries(params),
+      })
+      if (result.success) {
+        return { params: result.data }
+      }
+      return { paramsErr: json(result.error.issues, { status: 400 }) }
+    }
+
+    const handleResult = async (res: ResponseComposition, ctx: RestContext, handler: () => MaybePromise<unknown>) => {
+      try {
+        const result = await handler()
+        if (typeof result === "number") {
+          return res(ctx.status(result))
+        }
+        if (typeof result === "function") {
+          return res(result as ResponseTransformer)
+        }
+        return res(json(result))
+      } catch (thrown) {
+        if (typeof thrown === 'number') {
+          return res(ctx.status(thrown))
+        } 
+        if (typeof thrown === "function") {
+          return res(thrown as ResponseTransformer)
+        }
+        if (typeof thrown === "string") {
+          return res(json({ message: thrown }, { status: 400 }))
+        }
+        console.error('Unexpected mock error', thrown)
+        return res(json({ message: 'Unknown Server Error' }, { status: 500 }))
+      }
+    }
+
 
     export function makeHandlers(
       handlers: MSWHandlers, 
-      validateBody: ValidateBody,
-      validateParams: ValidateParams,
     ): RestHandler[] {
       return [`);
   for (const { path, method, opId, conf } of iterPathConfig(spec.paths)) {
@@ -99,11 +174,8 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const hasBody = bodyType && (method === "post" || method === "put");
     const paramType = snakeToPascal(opId) + "Params";
     const hasParams = !!conf.parameters?.length;
-    const formattedPath = path.replace(
-      /{(\w+)}/g,
-      (n) => `:${snakeToCamel(n.slice(1, -1)).replace("organization", "org")}`
-    );
-    w(`rest.${method}('${formattedPath}', async (req, res, ctx) => {
+
+    w(`rest.${method}('${formatPath(path)}', async (req, res, ctx) => {
       const handler = handlers['${handler}']`);
 
     if (hasParams) {
@@ -120,28 +192,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
         `);
     }
 
-    w(`try {
-        const result = await handler(${[
-          hasBody && "body",
-          hasParams && "params",
-        ]
-          .filter(Boolean)
-          .join(", ")})
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }))
-        } 
-        if (typeof result === "number") {
-          return res(ctx.status(result))
-        }
-        return res(json(result))
-
-      } catch(thrown) {
-        if (typeof thrown === 'number') {
-          return res(ctx.status(thrown))
-        } 
-        return res(thrown as ResponseTransformer)
-      }
+    w(`
+      return handleResult(res, ctx, () => handler(
+        ${[hasBody && "body", hasParams && "params"].filter(Boolean).join(", ")}
+      ))
 
     }),`);
   }

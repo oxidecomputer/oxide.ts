@@ -1,16 +1,19 @@
 /* eslint-disable */
 
-import { z, ZodSchema } from "zod";
 import {
-  rest,
   compose,
   context,
-  DefaultBodyType as DBT,
+  ResponseComposition,
+  ResponseTransformer,
+  rest,
+  RestContext,
   RestHandler,
   RestRequest,
-  ResponseTransformer,
 } from "msw";
+import type { SnakeCasedPropertiesDeep as Snakify } from "type-fest";
+import { z, ZodSchema } from "zod";
 import type * as Api from "./Api";
+import { snakeify } from "./util";
 import * as schema from "./validate";
 
 type MaybePromise<T> = T | Promise<T>;
@@ -33,566 +36,830 @@ export function json<B>(
   );
 }
 
+// these are used for turning our nice JS-ified API types back into the original
+// API JSON types (snake cased and dates as strings) for use in our mock API
+
+type StringifyDates<T> = T extends Date
+  ? string
+  : {
+      [K in keyof T]: T[K] extends Array<infer U>
+        ? Array<StringifyDates<U>>
+        : StringifyDates<T[K]>;
+    };
+
+/**
+ * Snake case fields and convert dates to strings. Not intended to be a general
+ * purpose JSON type!
+ */
+type Json<B> = Snakify<StringifyDates<B>>;
+
 export interface MSWHandlers {
+  /** `/by-id/disks/:id` */
   diskViewById: (
     params: Api.DiskViewByIdParams
-  ) => MaybePromise<Api.Disk | [result: Api.Disk, status: number]>;
+  ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
+  /** `/by-id/images/:id` */
   imageViewById: (
     params: Api.ImageViewByIdParams
-  ) => MaybePromise<Api.Image | [result: Api.Image, status: number]>;
+  ) => MaybePromise<Json<Api.Image> | ResponseTransformer<Json<Api.Image>>>;
+  /** `/by-id/instances/:id` */
   instanceViewById: (
     params: Api.InstanceViewByIdParams
-  ) => MaybePromise<Api.Instance | [result: Api.Instance, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
+  >;
+  /** `/by-id/network-interfaces/:id` */
   instanceNetworkInterfaceViewById: (
     params: Api.InstanceNetworkInterfaceViewByIdParams
   ) => MaybePromise<
-    Api.NetworkInterface | [result: Api.NetworkInterface, status: number]
+    Json<Api.NetworkInterface> | ResponseTransformer<Json<Api.NetworkInterface>>
   >;
+  /** `/by-id/organizations/:id` */
   organizationViewById: (
     params: Api.OrganizationViewByIdParams
   ) => MaybePromise<
-    Api.Organization | [result: Api.Organization, status: number]
+    Json<Api.Organization> | ResponseTransformer<Json<Api.Organization>>
   >;
+  /** `/by-id/projects/:id` */
   projectViewById: (
     params: Api.ProjectViewByIdParams
-  ) => MaybePromise<Api.Project | [result: Api.Project, status: number]>;
+  ) => MaybePromise<Json<Api.Project> | ResponseTransformer<Json<Api.Project>>>;
+  /** `/by-id/snapshots/:id` */
   snapshotViewById: (
     params: Api.SnapshotViewByIdParams
-  ) => MaybePromise<Api.Snapshot | [result: Api.Snapshot, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Snapshot> | ResponseTransformer<Json<Api.Snapshot>>
+  >;
+  /** `/by-id/vpc-router-routes/:id` */
   vpcRouterRouteViewById: (
     params: Api.VpcRouterRouteViewByIdParams
   ) => MaybePromise<
-    Api.RouterRoute | [result: Api.RouterRoute, status: number]
+    Json<Api.RouterRoute> | ResponseTransformer<Json<Api.RouterRoute>>
   >;
+  /** `/by-id/vpc-routers/:id` */
   vpcRouterViewById: (
     params: Api.VpcRouterViewByIdParams
-  ) => MaybePromise<Api.VpcRouter | [result: Api.VpcRouter, status: number]>;
+  ) => MaybePromise<
+    Json<Api.VpcRouter> | ResponseTransformer<Json<Api.VpcRouter>>
+  >;
+  /** `/by-id/vpc-subnets/:id` */
   vpcSubnetViewById: (
     params: Api.VpcSubnetViewByIdParams
-  ) => MaybePromise<Api.VpcSubnet | [result: Api.VpcSubnet, status: number]>;
+  ) => MaybePromise<
+    Json<Api.VpcSubnet> | ResponseTransformer<Json<Api.VpcSubnet>>
+  >;
+  /** `/by-id/vpcs/:id` */
   vpcViewById: (
     params: Api.VpcViewByIdParams
-  ) => MaybePromise<Api.Vpc | [result: Api.Vpc, status: number]>;
-  deviceAuthRequest: () => MaybePromise<number>;
-  deviceAuthConfirm: (body: Api.DeviceAuthVerify) => MaybePromise<number>;
-  deviceAccessToken: () => MaybePromise<number>;
-  loginSpoof: (body: Api.SpoofLoginBody) => MaybePromise<number>;
-  loginSamlBegin: (params: Api.LoginSamlBeginParams) => MaybePromise<number>;
-  loginSaml: (params: Api.LoginSamlParams) => MaybePromise<number>;
-  logout: () => MaybePromise<number>;
+  ) => MaybePromise<Json<Api.Vpc> | ResponseTransformer<Json<Api.Vpc>>>;
+  /** `/device/auth` */
+  deviceAuthRequest: () => MaybePromise<number | ResponseTransformer>;
+  /** `/device/confirm` */
+  deviceAuthConfirm: (
+    body: Json<Api.DeviceAuthVerify>
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/device/token` */
+  deviceAccessToken: () => MaybePromise<number | ResponseTransformer>;
+  /** `/login` */
+  loginSpoof: (
+    body: Json<Api.SpoofLoginBody>
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/login/:siloName/saml/:providerName` */
+  loginSamlBegin: (
+    params: Api.LoginSamlBeginParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/login/:siloName/saml/:providerName` */
+  loginSaml: (
+    params: Api.LoginSamlParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/logout` */
+  logout: () => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations` */
   organizationList: (
     params: Api.OrganizationListParams
   ) => MaybePromise<
-    | Api.OrganizationResultsPage
-    | [result: Api.OrganizationResultsPage, status: number]
+    | Json<Api.OrganizationResultsPage>
+    | ResponseTransformer<Json<Api.OrganizationResultsPage>>
   >;
+  /** `/organizations` */
   organizationCreate: (
-    body: Api.OrganizationCreate
+    body: Json<Api.OrganizationCreate>
   ) => MaybePromise<
-    Api.Organization | [result: Api.Organization, status: number]
+    Json<Api.Organization> | ResponseTransformer<Json<Api.Organization>>
   >;
+  /** `/organizations/:orgName` */
   organizationView: (
     params: Api.OrganizationViewParams
   ) => MaybePromise<
-    Api.Organization | [result: Api.Organization, status: number]
+    Json<Api.Organization> | ResponseTransformer<Json<Api.Organization>>
   >;
+  /** `/organizations/:orgName` */
   organizationUpdate: (
-    body: Api.OrganizationUpdate,
+    body: Json<Api.OrganizationUpdate>,
     params: Api.OrganizationUpdateParams
   ) => MaybePromise<
-    Api.Organization | [result: Api.Organization, status: number]
+    Json<Api.Organization> | ResponseTransformer<Json<Api.Organization>>
   >;
+  /** `/organizations/:orgName` */
   organizationDelete: (
     params: Api.OrganizationDeleteParams
-  ) => MaybePromise<number>;
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/policy` */
   organizationPolicyView: (
     params: Api.OrganizationPolicyViewParams
   ) => MaybePromise<
-    | Api.OrganizationRolePolicy
-    | [result: Api.OrganizationRolePolicy, status: number]
+    | Json<Api.OrganizationRolePolicy>
+    | ResponseTransformer<Json<Api.OrganizationRolePolicy>>
   >;
+  /** `/organizations/:orgName/policy` */
   organizationPolicyUpdate: (
-    body: Api.OrganizationRolePolicy,
+    body: Json<Api.OrganizationRolePolicy>,
     params: Api.OrganizationPolicyUpdateParams
   ) => MaybePromise<
-    | Api.OrganizationRolePolicy
-    | [result: Api.OrganizationRolePolicy, status: number]
+    | Json<Api.OrganizationRolePolicy>
+    | ResponseTransformer<Json<Api.OrganizationRolePolicy>>
   >;
+  /** `/organizations/:orgName/projects` */
   projectList: (
     params: Api.ProjectListParams
   ) => MaybePromise<
-    Api.ProjectResultsPage | [result: Api.ProjectResultsPage, status: number]
+    | Json<Api.ProjectResultsPage>
+    | ResponseTransformer<Json<Api.ProjectResultsPage>>
   >;
+  /** `/organizations/:orgName/projects` */
   projectCreate: (
-    body: Api.ProjectCreate,
+    body: Json<Api.ProjectCreate>,
     params: Api.ProjectCreateParams
-  ) => MaybePromise<Api.Project | [result: Api.Project, status: number]>;
+  ) => MaybePromise<Json<Api.Project> | ResponseTransformer<Json<Api.Project>>>;
+  /** `/organizations/:orgName/projects/:projectName` */
   projectView: (
     params: Api.ProjectViewParams
-  ) => MaybePromise<Api.Project | [result: Api.Project, status: number]>;
+  ) => MaybePromise<Json<Api.Project> | ResponseTransformer<Json<Api.Project>>>;
+  /** `/organizations/:orgName/projects/:projectName` */
   projectUpdate: (
-    body: Api.ProjectUpdate,
+    body: Json<Api.ProjectUpdate>,
     params: Api.ProjectUpdateParams
-  ) => MaybePromise<Api.Project | [result: Api.Project, status: number]>;
-  projectDelete: (params: Api.ProjectDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<Json<Api.Project> | ResponseTransformer<Json<Api.Project>>>;
+  /** `/organizations/:orgName/projects/:projectName` */
+  projectDelete: (
+    params: Api.ProjectDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/disks` */
   diskList: (
     params: Api.DiskListParams
   ) => MaybePromise<
-    Api.DiskResultsPage | [result: Api.DiskResultsPage, status: number]
+    Json<Api.DiskResultsPage> | ResponseTransformer<Json<Api.DiskResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/disks` */
   diskCreate: (
-    body: Api.DiskCreate,
+    body: Json<Api.DiskCreate>,
     params: Api.DiskCreateParams
-  ) => MaybePromise<Api.Disk | [result: Api.Disk, status: number]>;
+  ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
+  /** `/organizations/:orgName/projects/:projectName/disks/:diskName` */
   diskView: (
     params: Api.DiskViewParams
-  ) => MaybePromise<Api.Disk | [result: Api.Disk, status: number]>;
-  diskDelete: (params: Api.DiskDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
+  /** `/organizations/:orgName/projects/:projectName/disks/:diskName` */
+  diskDelete: (
+    params: Api.DiskDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/disks/:diskName/metrics/:metricName` */
   diskMetricsList: (
     params: Api.DiskMetricsListParams
   ) => MaybePromise<
-    | Api.MeasurementResultsPage
-    | [result: Api.MeasurementResultsPage, status: number]
+    | Json<Api.MeasurementResultsPage>
+    | ResponseTransformer<Json<Api.MeasurementResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/images` */
   imageList: (
     params: Api.ImageListParams
   ) => MaybePromise<
-    Api.ImageResultsPage | [result: Api.ImageResultsPage, status: number]
+    Json<Api.ImageResultsPage> | ResponseTransformer<Json<Api.ImageResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/images` */
   imageCreate: (
-    body: Api.ImageCreate,
+    body: Json<Api.ImageCreate>,
     params: Api.ImageCreateParams
-  ) => MaybePromise<Api.Image | [result: Api.Image, status: number]>;
+  ) => MaybePromise<Json<Api.Image> | ResponseTransformer<Json<Api.Image>>>;
+  /** `/organizations/:orgName/projects/:projectName/images/:imageName` */
   imageView: (
     params: Api.ImageViewParams
-  ) => MaybePromise<Api.Image | [result: Api.Image, status: number]>;
-  imageDelete: (params: Api.ImageDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<Json<Api.Image> | ResponseTransformer<Json<Api.Image>>>;
+  /** `/organizations/:orgName/projects/:projectName/images/:imageName` */
+  imageDelete: (
+    params: Api.ImageDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/instances` */
   instanceList: (
     params: Api.InstanceListParams
   ) => MaybePromise<
-    Api.InstanceResultsPage | [result: Api.InstanceResultsPage, status: number]
+    | Json<Api.InstanceResultsPage>
+    | ResponseTransformer<Json<Api.InstanceResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances` */
   instanceCreate: (
-    body: Api.InstanceCreate,
+    body: Json<Api.InstanceCreate>,
     params: Api.InstanceCreateParams
-  ) => MaybePromise<Api.Instance | [result: Api.Instance, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName` */
   instanceView: (
     params: Api.InstanceViewParams
-  ) => MaybePromise<Api.Instance | [result: Api.Instance, status: number]>;
-  instanceDelete: (params: Api.InstanceDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<
+    Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName` */
+  instanceDelete: (
+    params: Api.InstanceDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/disks` */
   instanceDiskList: (
     params: Api.InstanceDiskListParams
   ) => MaybePromise<
-    Api.DiskResultsPage | [result: Api.DiskResultsPage, status: number]
+    Json<Api.DiskResultsPage> | ResponseTransformer<Json<Api.DiskResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/disks/attach` */
   instanceDiskAttach: (
-    body: Api.DiskIdentifier,
+    body: Json<Api.DiskIdentifier>,
     params: Api.InstanceDiskAttachParams
-  ) => MaybePromise<Api.Disk | [result: Api.Disk, status: number]>;
+  ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/disks/detach` */
   instanceDiskDetach: (
-    body: Api.DiskIdentifier,
+    body: Json<Api.DiskIdentifier>,
     params: Api.InstanceDiskDetachParams
-  ) => MaybePromise<Api.Disk | [result: Api.Disk, status: number]>;
+  ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/external-ips` */
   instanceExternalIpList: (
     params: Api.InstanceExternalIpListParams
   ) => MaybePromise<
-    | Api.ExternalIpResultsPage
-    | [result: Api.ExternalIpResultsPage, status: number]
+    | Json<Api.ExternalIpResultsPage>
+    | ResponseTransformer<Json<Api.ExternalIpResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/migrate` */
   instanceMigrate: (
-    body: Api.InstanceMigrate,
+    body: Json<Api.InstanceMigrate>,
     params: Api.InstanceMigrateParams
-  ) => MaybePromise<Api.Instance | [result: Api.Instance, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/network-interfaces` */
   instanceNetworkInterfaceList: (
     params: Api.InstanceNetworkInterfaceListParams
   ) => MaybePromise<
-    | Api.NetworkInterfaceResultsPage
-    | [result: Api.NetworkInterfaceResultsPage, status: number]
+    | Json<Api.NetworkInterfaceResultsPage>
+    | ResponseTransformer<Json<Api.NetworkInterfaceResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/network-interfaces` */
   instanceNetworkInterfaceCreate: (
-    body: Api.NetworkInterfaceCreate,
+    body: Json<Api.NetworkInterfaceCreate>,
     params: Api.InstanceNetworkInterfaceCreateParams
   ) => MaybePromise<
-    Api.NetworkInterface | [result: Api.NetworkInterface, status: number]
+    Json<Api.NetworkInterface> | ResponseTransformer<Json<Api.NetworkInterface>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/network-interfaces/:interfaceName` */
   instanceNetworkInterfaceView: (
     params: Api.InstanceNetworkInterfaceViewParams
   ) => MaybePromise<
-    Api.NetworkInterface | [result: Api.NetworkInterface, status: number]
+    Json<Api.NetworkInterface> | ResponseTransformer<Json<Api.NetworkInterface>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/network-interfaces/:interfaceName` */
   instanceNetworkInterfaceUpdate: (
-    body: Api.NetworkInterfaceUpdate,
+    body: Json<Api.NetworkInterfaceUpdate>,
     params: Api.InstanceNetworkInterfaceUpdateParams
   ) => MaybePromise<
-    Api.NetworkInterface | [result: Api.NetworkInterface, status: number]
+    Json<Api.NetworkInterface> | ResponseTransformer<Json<Api.NetworkInterface>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/network-interfaces/:interfaceName` */
   instanceNetworkInterfaceDelete: (
     params: Api.InstanceNetworkInterfaceDeleteParams
-  ) => MaybePromise<number>;
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/reboot` */
   instanceReboot: (
     params: Api.InstanceRebootParams
-  ) => MaybePromise<Api.Instance | [result: Api.Instance, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/serial-console` */
   instanceSerialConsole: (
     params: Api.InstanceSerialConsoleParams
   ) => MaybePromise<
-    | Api.InstanceSerialConsoleData
-    | [result: Api.InstanceSerialConsoleData, status: number]
+    | Json<Api.InstanceSerialConsoleData>
+    | ResponseTransformer<Json<Api.InstanceSerialConsoleData>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/start` */
   instanceStart: (
     params: Api.InstanceStartParams
-  ) => MaybePromise<Api.Instance | [result: Api.Instance, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/instances/:instanceName/stop` */
   instanceStop: (
     params: Api.InstanceStopParams
-  ) => MaybePromise<Api.Instance | [result: Api.Instance, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/policy` */
   projectPolicyView: (
     params: Api.ProjectPolicyViewParams
   ) => MaybePromise<
-    Api.ProjectRolePolicy | [result: Api.ProjectRolePolicy, status: number]
+    | Json<Api.ProjectRolePolicy>
+    | ResponseTransformer<Json<Api.ProjectRolePolicy>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/policy` */
   projectPolicyUpdate: (
-    body: Api.ProjectRolePolicy,
+    body: Json<Api.ProjectRolePolicy>,
     params: Api.ProjectPolicyUpdateParams
   ) => MaybePromise<
-    Api.ProjectRolePolicy | [result: Api.ProjectRolePolicy, status: number]
+    | Json<Api.ProjectRolePolicy>
+    | ResponseTransformer<Json<Api.ProjectRolePolicy>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/snapshots` */
   snapshotList: (
     params: Api.SnapshotListParams
   ) => MaybePromise<
-    Api.SnapshotResultsPage | [result: Api.SnapshotResultsPage, status: number]
+    | Json<Api.SnapshotResultsPage>
+    | ResponseTransformer<Json<Api.SnapshotResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/snapshots` */
   snapshotCreate: (
-    body: Api.SnapshotCreate,
+    body: Json<Api.SnapshotCreate>,
     params: Api.SnapshotCreateParams
-  ) => MaybePromise<Api.Snapshot | [result: Api.Snapshot, status: number]>;
+  ) => MaybePromise<
+    Json<Api.Snapshot> | ResponseTransformer<Json<Api.Snapshot>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/snapshots/:snapshotName` */
   snapshotView: (
     params: Api.SnapshotViewParams
-  ) => MaybePromise<Api.Snapshot | [result: Api.Snapshot, status: number]>;
-  snapshotDelete: (params: Api.SnapshotDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<
+    Json<Api.Snapshot> | ResponseTransformer<Json<Api.Snapshot>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/snapshots/:snapshotName` */
+  snapshotDelete: (
+    params: Api.SnapshotDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs` */
   vpcList: (
     params: Api.VpcListParams
   ) => MaybePromise<
-    Api.VpcResultsPage | [result: Api.VpcResultsPage, status: number]
+    Json<Api.VpcResultsPage> | ResponseTransformer<Json<Api.VpcResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs` */
   vpcCreate: (
-    body: Api.VpcCreate,
+    body: Json<Api.VpcCreate>,
     params: Api.VpcCreateParams
-  ) => MaybePromise<Api.Vpc | [result: Api.Vpc, status: number]>;
+  ) => MaybePromise<Json<Api.Vpc> | ResponseTransformer<Json<Api.Vpc>>>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName` */
   vpcView: (
     params: Api.VpcViewParams
-  ) => MaybePromise<Api.Vpc | [result: Api.Vpc, status: number]>;
+  ) => MaybePromise<Json<Api.Vpc> | ResponseTransformer<Json<Api.Vpc>>>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName` */
   vpcUpdate: (
-    body: Api.VpcUpdate,
+    body: Json<Api.VpcUpdate>,
     params: Api.VpcUpdateParams
-  ) => MaybePromise<Api.Vpc | [result: Api.Vpc, status: number]>;
-  vpcDelete: (params: Api.VpcDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<Json<Api.Vpc> | ResponseTransformer<Json<Api.Vpc>>>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName` */
+  vpcDelete: (
+    params: Api.VpcDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/firewall/rules` */
   vpcFirewallRulesView: (
     params: Api.VpcFirewallRulesViewParams
   ) => MaybePromise<
-    Api.VpcFirewallRules | [result: Api.VpcFirewallRules, status: number]
+    Json<Api.VpcFirewallRules> | ResponseTransformer<Json<Api.VpcFirewallRules>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/firewall/rules` */
   vpcFirewallRulesUpdate: (
-    body: Api.VpcFirewallRuleUpdateParams,
+    body: Json<Api.VpcFirewallRuleUpdateParams>,
     params: Api.VpcFirewallRulesUpdateParams
   ) => MaybePromise<
-    Api.VpcFirewallRules | [result: Api.VpcFirewallRules, status: number]
+    Json<Api.VpcFirewallRules> | ResponseTransformer<Json<Api.VpcFirewallRules>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers` */
   vpcRouterList: (
     params: Api.VpcRouterListParams
   ) => MaybePromise<
-    | Api.VpcRouterResultsPage
-    | [result: Api.VpcRouterResultsPage, status: number]
+    | Json<Api.VpcRouterResultsPage>
+    | ResponseTransformer<Json<Api.VpcRouterResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers` */
   vpcRouterCreate: (
-    body: Api.VpcRouterCreate,
+    body: Json<Api.VpcRouterCreate>,
     params: Api.VpcRouterCreateParams
-  ) => MaybePromise<Api.VpcRouter | [result: Api.VpcRouter, status: number]>;
+  ) => MaybePromise<
+    Json<Api.VpcRouter> | ResponseTransformer<Json<Api.VpcRouter>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName` */
   vpcRouterView: (
     params: Api.VpcRouterViewParams
-  ) => MaybePromise<Api.VpcRouter | [result: Api.VpcRouter, status: number]>;
+  ) => MaybePromise<
+    Json<Api.VpcRouter> | ResponseTransformer<Json<Api.VpcRouter>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName` */
   vpcRouterUpdate: (
-    body: Api.VpcRouterUpdate,
+    body: Json<Api.VpcRouterUpdate>,
     params: Api.VpcRouterUpdateParams
-  ) => MaybePromise<Api.VpcRouter | [result: Api.VpcRouter, status: number]>;
-  vpcRouterDelete: (params: Api.VpcRouterDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<
+    Json<Api.VpcRouter> | ResponseTransformer<Json<Api.VpcRouter>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName` */
+  vpcRouterDelete: (
+    params: Api.VpcRouterDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName/routes` */
   vpcRouterRouteList: (
     params: Api.VpcRouterRouteListParams
   ) => MaybePromise<
-    | Api.RouterRouteResultsPage
-    | [result: Api.RouterRouteResultsPage, status: number]
+    | Json<Api.RouterRouteResultsPage>
+    | ResponseTransformer<Json<Api.RouterRouteResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName/routes` */
   vpcRouterRouteCreate: (
-    body: Api.RouterRouteCreateParams,
+    body: Json<Api.RouterRouteCreateParams>,
     params: Api.VpcRouterRouteCreateParams
   ) => MaybePromise<
-    Api.RouterRoute | [result: Api.RouterRoute, status: number]
+    Json<Api.RouterRoute> | ResponseTransformer<Json<Api.RouterRoute>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName/routes/:routeName` */
   vpcRouterRouteView: (
     params: Api.VpcRouterRouteViewParams
   ) => MaybePromise<
-    Api.RouterRoute | [result: Api.RouterRoute, status: number]
+    Json<Api.RouterRoute> | ResponseTransformer<Json<Api.RouterRoute>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName/routes/:routeName` */
   vpcRouterRouteUpdate: (
-    body: Api.RouterRouteUpdateParams,
+    body: Json<Api.RouterRouteUpdateParams>,
     params: Api.VpcRouterRouteUpdateParams
   ) => MaybePromise<
-    Api.RouterRoute | [result: Api.RouterRoute, status: number]
+    Json<Api.RouterRoute> | ResponseTransformer<Json<Api.RouterRoute>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName/routes/:routeName` */
   vpcRouterRouteDelete: (
     params: Api.VpcRouterRouteDeleteParams
-  ) => MaybePromise<number>;
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets` */
   vpcSubnetList: (
     params: Api.VpcSubnetListParams
   ) => MaybePromise<
-    | Api.VpcSubnetResultsPage
-    | [result: Api.VpcSubnetResultsPage, status: number]
+    | Json<Api.VpcSubnetResultsPage>
+    | ResponseTransformer<Json<Api.VpcSubnetResultsPage>>
   >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets` */
   vpcSubnetCreate: (
-    body: Api.VpcSubnetCreate,
+    body: Json<Api.VpcSubnetCreate>,
     params: Api.VpcSubnetCreateParams
-  ) => MaybePromise<Api.VpcSubnet | [result: Api.VpcSubnet, status: number]>;
+  ) => MaybePromise<
+    Json<Api.VpcSubnet> | ResponseTransformer<Json<Api.VpcSubnet>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets/:subnetName` */
   vpcSubnetView: (
     params: Api.VpcSubnetViewParams
-  ) => MaybePromise<Api.VpcSubnet | [result: Api.VpcSubnet, status: number]>;
+  ) => MaybePromise<
+    Json<Api.VpcSubnet> | ResponseTransformer<Json<Api.VpcSubnet>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets/:subnetName` */
   vpcSubnetUpdate: (
-    body: Api.VpcSubnetUpdate,
+    body: Json<Api.VpcSubnetUpdate>,
     params: Api.VpcSubnetUpdateParams
-  ) => MaybePromise<Api.VpcSubnet | [result: Api.VpcSubnet, status: number]>;
-  vpcSubnetDelete: (params: Api.VpcSubnetDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<
+    Json<Api.VpcSubnet> | ResponseTransformer<Json<Api.VpcSubnet>>
+  >;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets/:subnetName` */
+  vpcSubnetDelete: (
+    params: Api.VpcSubnetDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets/:subnetName/network-interfaces` */
   vpcSubnetListNetworkInterfaces: (
     params: Api.VpcSubnetListNetworkInterfacesParams
   ) => MaybePromise<
-    | Api.NetworkInterfaceResultsPage
-    | [result: Api.NetworkInterfaceResultsPage, status: number]
+    | Json<Api.NetworkInterfaceResultsPage>
+    | ResponseTransformer<Json<Api.NetworkInterfaceResultsPage>>
   >;
+  /** `/policy` */
   policyView: () => MaybePromise<
-    Api.SiloRolePolicy | [result: Api.SiloRolePolicy, status: number]
+    Json<Api.SiloRolePolicy> | ResponseTransformer<Json<Api.SiloRolePolicy>>
   >;
+  /** `/policy` */
   policyUpdate: (
-    body: Api.SiloRolePolicy
+    body: Json<Api.SiloRolePolicy>
   ) => MaybePromise<
-    Api.SiloRolePolicy | [result: Api.SiloRolePolicy, status: number]
+    Json<Api.SiloRolePolicy> | ResponseTransformer<Json<Api.SiloRolePolicy>>
   >;
+  /** `/roles` */
   roleList: (
     params: Api.RoleListParams
   ) => MaybePromise<
-    Api.RoleResultsPage | [result: Api.RoleResultsPage, status: number]
+    Json<Api.RoleResultsPage> | ResponseTransformer<Json<Api.RoleResultsPage>>
   >;
+  /** `/roles/:roleName` */
   roleView: (
     params: Api.RoleViewParams
-  ) => MaybePromise<Api.Role | [result: Api.Role, status: number]>;
-  sessionMe: () => MaybePromise<Api.User | [result: Api.User, status: number]>;
+  ) => MaybePromise<Json<Api.Role> | ResponseTransformer<Json<Api.Role>>>;
+  /** `/session/me` */
+  sessionMe: () => MaybePromise<
+    Json<Api.User> | ResponseTransformer<Json<Api.User>>
+  >;
+  /** `/session/me/sshkeys` */
   sessionSshkeyList: (
     params: Api.SessionSshkeyListParams
   ) => MaybePromise<
-    Api.SshKeyResultsPage | [result: Api.SshKeyResultsPage, status: number]
+    | Json<Api.SshKeyResultsPage>
+    | ResponseTransformer<Json<Api.SshKeyResultsPage>>
   >;
+  /** `/session/me/sshkeys` */
   sessionSshkeyCreate: (
-    body: Api.SshKeyCreate
-  ) => MaybePromise<Api.SshKey | [result: Api.SshKey, status: number]>;
+    body: Json<Api.SshKeyCreate>
+  ) => MaybePromise<Json<Api.SshKey> | ResponseTransformer<Json<Api.SshKey>>>;
+  /** `/session/me/sshkeys/:sshKeyName` */
   sessionSshkeyView: (
     params: Api.SessionSshkeyViewParams
-  ) => MaybePromise<Api.SshKey | [result: Api.SshKey, status: number]>;
+  ) => MaybePromise<Json<Api.SshKey> | ResponseTransformer<Json<Api.SshKey>>>;
+  /** `/session/me/sshkeys/:sshKeyName` */
   sessionSshkeyDelete: (
     params: Api.SessionSshkeyDeleteParams
-  ) => MaybePromise<number>;
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/system/by-id/images/:id` */
   systemImageViewById: (
     params: Api.SystemImageViewByIdParams
   ) => MaybePromise<
-    Api.GlobalImage | [result: Api.GlobalImage, status: number]
+    Json<Api.GlobalImage> | ResponseTransformer<Json<Api.GlobalImage>>
   >;
+  /** `/system/by-id/ip-pools/:id` */
   ipPoolViewById: (
     params: Api.IpPoolViewByIdParams
-  ) => MaybePromise<Api.IpPool | [result: Api.IpPool, status: number]>;
+  ) => MaybePromise<Json<Api.IpPool> | ResponseTransformer<Json<Api.IpPool>>>;
+  /** `/system/by-id/silos/:id` */
   siloViewById: (
     params: Api.SiloViewByIdParams
-  ) => MaybePromise<Api.Silo | [result: Api.Silo, status: number]>;
+  ) => MaybePromise<Json<Api.Silo> | ResponseTransformer<Json<Api.Silo>>>;
+  /** `/system/hardware/racks` */
   rackList: (
     params: Api.RackListParams
   ) => MaybePromise<
-    Api.RackResultsPage | [result: Api.RackResultsPage, status: number]
+    Json<Api.RackResultsPage> | ResponseTransformer<Json<Api.RackResultsPage>>
   >;
+  /** `/system/hardware/racks/:rackId` */
   rackView: (
     params: Api.RackViewParams
-  ) => MaybePromise<Api.Rack | [result: Api.Rack, status: number]>;
+  ) => MaybePromise<Json<Api.Rack> | ResponseTransformer<Json<Api.Rack>>>;
+  /** `/system/hardware/sleds` */
   sledList: (
     params: Api.SledListParams
   ) => MaybePromise<
-    Api.SledResultsPage | [result: Api.SledResultsPage, status: number]
+    Json<Api.SledResultsPage> | ResponseTransformer<Json<Api.SledResultsPage>>
   >;
+  /** `/system/hardware/sleds/:sledId` */
   sledView: (
     params: Api.SledViewParams
-  ) => MaybePromise<Api.Sled | [result: Api.Sled, status: number]>;
+  ) => MaybePromise<Json<Api.Sled> | ResponseTransformer<Json<Api.Sled>>>;
+  /** `/system/images` */
   systemImageList: (
     params: Api.SystemImageListParams
   ) => MaybePromise<
-    | Api.GlobalImageResultsPage
-    | [result: Api.GlobalImageResultsPage, status: number]
+    | Json<Api.GlobalImageResultsPage>
+    | ResponseTransformer<Json<Api.GlobalImageResultsPage>>
   >;
+  /** `/system/images` */
   systemImageCreate: (
-    body: Api.GlobalImageCreate
+    body: Json<Api.GlobalImageCreate>
   ) => MaybePromise<
-    Api.GlobalImage | [result: Api.GlobalImage, status: number]
+    Json<Api.GlobalImage> | ResponseTransformer<Json<Api.GlobalImage>>
   >;
+  /** `/system/images/:imageName` */
   systemImageView: (
     params: Api.SystemImageViewParams
   ) => MaybePromise<
-    Api.GlobalImage | [result: Api.GlobalImage, status: number]
+    Json<Api.GlobalImage> | ResponseTransformer<Json<Api.GlobalImage>>
   >;
+  /** `/system/images/:imageName` */
   systemImageDelete: (
     params: Api.SystemImageDeleteParams
-  ) => MaybePromise<number>;
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/system/ip-pools` */
   ipPoolList: (
     params: Api.IpPoolListParams
   ) => MaybePromise<
-    Api.IpPoolResultsPage | [result: Api.IpPoolResultsPage, status: number]
+    | Json<Api.IpPoolResultsPage>
+    | ResponseTransformer<Json<Api.IpPoolResultsPage>>
   >;
+  /** `/system/ip-pools` */
   ipPoolCreate: (
-    body: Api.IpPoolCreate
-  ) => MaybePromise<Api.IpPool | [result: Api.IpPool, status: number]>;
+    body: Json<Api.IpPoolCreate>
+  ) => MaybePromise<Json<Api.IpPool> | ResponseTransformer<Json<Api.IpPool>>>;
+  /** `/system/ip-pools/:poolName` */
   ipPoolView: (
     params: Api.IpPoolViewParams
-  ) => MaybePromise<Api.IpPool | [result: Api.IpPool, status: number]>;
+  ) => MaybePromise<Json<Api.IpPool> | ResponseTransformer<Json<Api.IpPool>>>;
+  /** `/system/ip-pools/:poolName` */
   ipPoolUpdate: (
-    body: Api.IpPoolUpdate,
+    body: Json<Api.IpPoolUpdate>,
     params: Api.IpPoolUpdateParams
-  ) => MaybePromise<Api.IpPool | [result: Api.IpPool, status: number]>;
-  ipPoolDelete: (params: Api.IpPoolDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<Json<Api.IpPool> | ResponseTransformer<Json<Api.IpPool>>>;
+  /** `/system/ip-pools/:poolName` */
+  ipPoolDelete: (
+    params: Api.IpPoolDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/system/ip-pools/:poolName/ranges` */
   ipPoolRangeList: (
     params: Api.IpPoolRangeListParams
   ) => MaybePromise<
-    | Api.IpPoolRangeResultsPage
-    | [result: Api.IpPoolRangeResultsPage, status: number]
+    | Json<Api.IpPoolRangeResultsPage>
+    | ResponseTransformer<Json<Api.IpPoolRangeResultsPage>>
   >;
+  /** `/system/ip-pools/:poolName/ranges/add` */
   ipPoolRangeAdd: (
-    body: Api.IpRange,
+    body: Json<Api.IpRange>,
     params: Api.IpPoolRangeAddParams
   ) => MaybePromise<
-    Api.IpPoolRange | [result: Api.IpPoolRange, status: number]
+    Json<Api.IpPoolRange> | ResponseTransformer<Json<Api.IpPoolRange>>
   >;
+  /** `/system/ip-pools/:poolName/ranges/remove` */
   ipPoolRangeRemove: (
-    body: Api.IpRange,
+    body: Json<Api.IpRange>,
     params: Api.IpPoolRangeRemoveParams
-  ) => MaybePromise<number>;
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/system/ip-pools-service/:rackId` */
   ipPoolServiceView: (
     params: Api.IpPoolServiceViewParams
-  ) => MaybePromise<Api.IpPool | [result: Api.IpPool, status: number]>;
+  ) => MaybePromise<Json<Api.IpPool> | ResponseTransformer<Json<Api.IpPool>>>;
+  /** `/system/ip-pools-service/:rackId/ranges` */
   ipPoolServiceRangeList: (
     params: Api.IpPoolServiceRangeListParams
   ) => MaybePromise<
-    | Api.IpPoolRangeResultsPage
-    | [result: Api.IpPoolRangeResultsPage, status: number]
+    | Json<Api.IpPoolRangeResultsPage>
+    | ResponseTransformer<Json<Api.IpPoolRangeResultsPage>>
   >;
+  /** `/system/ip-pools-service/:rackId/ranges/add` */
   ipPoolServiceRangeAdd: (
-    body: Api.IpRange,
+    body: Json<Api.IpRange>,
     params: Api.IpPoolServiceRangeAddParams
   ) => MaybePromise<
-    Api.IpPoolRange | [result: Api.IpPoolRange, status: number]
+    Json<Api.IpPoolRange> | ResponseTransformer<Json<Api.IpPoolRange>>
   >;
+  /** `/system/ip-pools-service/:rackId/ranges/remove` */
   ipPoolServiceRangeRemove: (
-    body: Api.IpRange,
+    body: Json<Api.IpRange>,
     params: Api.IpPoolServiceRangeRemoveParams
-  ) => MaybePromise<number>;
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/system/policy` */
   systemPolicyView: () => MaybePromise<
-    Api.FleetRolePolicy | [result: Api.FleetRolePolicy, status: number]
+    Json<Api.FleetRolePolicy> | ResponseTransformer<Json<Api.FleetRolePolicy>>
   >;
+  /** `/system/policy` */
   systemPolicyUpdate: (
-    body: Api.FleetRolePolicy
+    body: Json<Api.FleetRolePolicy>
   ) => MaybePromise<
-    Api.FleetRolePolicy | [result: Api.FleetRolePolicy, status: number]
+    Json<Api.FleetRolePolicy> | ResponseTransformer<Json<Api.FleetRolePolicy>>
   >;
+  /** `/system/sagas` */
   sagaList: (
     params: Api.SagaListParams
   ) => MaybePromise<
-    Api.SagaResultsPage | [result: Api.SagaResultsPage, status: number]
+    Json<Api.SagaResultsPage> | ResponseTransformer<Json<Api.SagaResultsPage>>
   >;
+  /** `/system/sagas/:sagaId` */
   sagaView: (
     params: Api.SagaViewParams
-  ) => MaybePromise<Api.Saga | [result: Api.Saga, status: number]>;
+  ) => MaybePromise<Json<Api.Saga> | ResponseTransformer<Json<Api.Saga>>>;
+  /** `/system/silos` */
   siloList: (
     params: Api.SiloListParams
   ) => MaybePromise<
-    Api.SiloResultsPage | [result: Api.SiloResultsPage, status: number]
+    Json<Api.SiloResultsPage> | ResponseTransformer<Json<Api.SiloResultsPage>>
   >;
+  /** `/system/silos` */
   siloCreate: (
-    body: Api.SiloCreate
-  ) => MaybePromise<Api.Silo | [result: Api.Silo, status: number]>;
+    body: Json<Api.SiloCreate>
+  ) => MaybePromise<Json<Api.Silo> | ResponseTransformer<Json<Api.Silo>>>;
+  /** `/system/silos/:siloName` */
   siloView: (
     params: Api.SiloViewParams
-  ) => MaybePromise<Api.Silo | [result: Api.Silo, status: number]>;
-  siloDelete: (params: Api.SiloDeleteParams) => MaybePromise<number>;
+  ) => MaybePromise<Json<Api.Silo> | ResponseTransformer<Json<Api.Silo>>>;
+  /** `/system/silos/:siloName` */
+  siloDelete: (
+    params: Api.SiloDeleteParams
+  ) => MaybePromise<number | ResponseTransformer>;
+  /** `/system/silos/:siloName/identity-providers` */
   siloIdentityProviderList: (
     params: Api.SiloIdentityProviderListParams
   ) => MaybePromise<
-    | Api.IdentityProviderResultsPage
-    | [result: Api.IdentityProviderResultsPage, status: number]
+    | Json<Api.IdentityProviderResultsPage>
+    | ResponseTransformer<Json<Api.IdentityProviderResultsPage>>
   >;
+  /** `/system/silos/:siloName/identity-providers/saml` */
   samlIdentityProviderCreate: (
-    body: Api.SamlIdentityProviderCreate,
+    body: Json<Api.SamlIdentityProviderCreate>,
     params: Api.SamlIdentityProviderCreateParams
   ) => MaybePromise<
-    | Api.SamlIdentityProvider
-    | [result: Api.SamlIdentityProvider, status: number]
+    | Json<Api.SamlIdentityProvider>
+    | ResponseTransformer<Json<Api.SamlIdentityProvider>>
   >;
+  /** `/system/silos/:siloName/identity-providers/saml/:providerName` */
   samlIdentityProviderView: (
     params: Api.SamlIdentityProviderViewParams
   ) => MaybePromise<
-    | Api.SamlIdentityProvider
-    | [result: Api.SamlIdentityProvider, status: number]
+    | Json<Api.SamlIdentityProvider>
+    | ResponseTransformer<Json<Api.SamlIdentityProvider>>
   >;
+  /** `/system/silos/:siloName/policy` */
   siloPolicyView: (
     params: Api.SiloPolicyViewParams
   ) => MaybePromise<
-    Api.SiloRolePolicy | [result: Api.SiloRolePolicy, status: number]
+    Json<Api.SiloRolePolicy> | ResponseTransformer<Json<Api.SiloRolePolicy>>
   >;
+  /** `/system/silos/:siloName/policy` */
   siloPolicyUpdate: (
-    body: Api.SiloRolePolicy,
+    body: Json<Api.SiloRolePolicy>,
     params: Api.SiloPolicyUpdateParams
   ) => MaybePromise<
-    Api.SiloRolePolicy | [result: Api.SiloRolePolicy, status: number]
+    Json<Api.SiloRolePolicy> | ResponseTransformer<Json<Api.SiloRolePolicy>>
   >;
-  updatesRefresh: () => MaybePromise<number>;
+  /** `/system/updates/refresh` */
+  updatesRefresh: () => MaybePromise<number | ResponseTransformer>;
+  /** `/system/user` */
   systemUserList: (
     params: Api.SystemUserListParams
   ) => MaybePromise<
-    | Api.UserBuiltinResultsPage
-    | [result: Api.UserBuiltinResultsPage, status: number]
+    | Json<Api.UserBuiltinResultsPage>
+    | ResponseTransformer<Json<Api.UserBuiltinResultsPage>>
   >;
+  /** `/system/user/:userName` */
   systemUserView: (
     params: Api.SystemUserViewParams
   ) => MaybePromise<
-    Api.UserBuiltin | [result: Api.UserBuiltin, status: number]
+    Json<Api.UserBuiltin> | ResponseTransformer<Json<Api.UserBuiltin>>
   >;
+  /** `/timeseries/schema` */
   timeseriesSchemaGet: (
     params: Api.TimeseriesSchemaGetParams
   ) => MaybePromise<
-    | Api.TimeseriesSchemaResultsPage
-    | [result: Api.TimeseriesSchemaResultsPage, status: number]
+    | Json<Api.TimeseriesSchemaResultsPage>
+    | ResponseTransformer<Json<Api.TimeseriesSchemaResultsPage>>
   >;
+  /** `/users` */
   userList: (
     params: Api.UserListParams
   ) => MaybePromise<
-    Api.UserResultsPage | [result: Api.UserResultsPage, status: number]
+    Json<Api.UserResultsPage> | ResponseTransformer<Json<Api.UserResultsPage>>
   >;
 }
 
-type ValidateBody = <S extends ZodSchema>(
-  schema: S,
-  body: unknown
-) =>
-  | { body: z.infer<S>; bodyErr?: undefined }
-  | { body?: undefined; bodyErr: ResponseTransformer };
-type ValidateParams = <S extends ZodSchema>(
-  schema: S,
-  req: RestRequest
-) =>
-  | { params: z.infer<S>; paramsErr?: undefined }
-  | { params?: undefined; paramsErr: ResponseTransformer };
+function validateBody<S extends ZodSchema>(schema: S, body: unknown) {
+  const result = schema.transform(snakeify).safeParse(body);
+  if (result.success) {
+    return { body: result.data as Json<z.infer<S>> };
+  }
+  return { bodyErr: json(result.error.issues, { status: 400 }) };
+}
+function validateParams<S extends ZodSchema>(schema: S, req: RestRequest) {
+  const rawParams = new URLSearchParams(req.url.search);
+  const params: [string, unknown][] = [];
 
-export function makeHandlers(
-  handlers: MSWHandlers,
-  validateBody: ValidateBody,
-  validateParams: ValidateParams
-): RestHandler[] {
+  // Ensure numeric params like `limit` are parsed as numbers
+  for (const [name, value] of rawParams) {
+    params.push([name, isNaN(Number(value)) ? value : Number(value)]);
+  }
+
+  const result = schema.safeParse({
+    ...req.params,
+    ...Object.fromEntries(params),
+  });
+  if (result.success) {
+    return { params: result.data };
+  }
+  return { paramsErr: json(result.error.issues, { status: 400 }) };
+}
+
+const handleResult = async (
+  res: ResponseComposition,
+  ctx: RestContext,
+  handler: () => MaybePromise<unknown>
+) => {
+  try {
+    const result = await handler();
+    if (typeof result === "number") {
+      return res(ctx.status(result));
+    }
+    if (typeof result === "function") {
+      return res(result as ResponseTransformer);
+    }
+    return res(json(result));
+  } catch (thrown) {
+    if (typeof thrown === "number") {
+      return res(ctx.status(thrown));
+    }
+    if (typeof thrown === "function") {
+      return res(thrown as ResponseTransformer);
+    }
+    if (typeof thrown === "string") {
+      return res(json({ message: thrown }, { status: 400 }));
+    }
+    console.error("Unexpected mock error", thrown);
+    return res(json({ message: "Unknown Server Error" }, { status: 500 }));
+  }
+};
+
+export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
   return [
     rest.get("/by-id/disks/:id", async (req, res, ctx) => {
       const handler = handlers["diskViewById"];
@@ -603,22 +870,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/images/:id", async (req, res, ctx) => {
       const handler = handlers["imageViewById"];
@@ -629,22 +881,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/instances/:id", async (req, res, ctx) => {
       const handler = handlers["instanceViewById"];
@@ -655,22 +892,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/network-interfaces/:id", async (req, res, ctx) => {
       const handler = handlers["instanceNetworkInterfaceViewById"];
@@ -681,22 +903,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/organizations/:id", async (req, res, ctx) => {
       const handler = handlers["organizationViewById"];
@@ -707,22 +914,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/projects/:id", async (req, res, ctx) => {
       const handler = handlers["projectViewById"];
@@ -733,22 +925,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/snapshots/:id", async (req, res, ctx) => {
       const handler = handlers["snapshotViewById"];
@@ -759,22 +936,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/vpc-router-routes/:id", async (req, res, ctx) => {
       const handler = handlers["vpcRouterRouteViewById"];
@@ -785,22 +947,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/vpc-routers/:id", async (req, res, ctx) => {
       const handler = handlers["vpcRouterViewById"];
@@ -811,22 +958,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/vpc-subnets/:id", async (req, res, ctx) => {
       const handler = handlers["vpcSubnetViewById"];
@@ -837,22 +969,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/by-id/vpcs/:id", async (req, res, ctx) => {
       const handler = handlers["vpcViewById"];
@@ -863,41 +980,12 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/device/auth", async (req, res, ctx) => {
       const handler = handlers["deviceAuthRequest"];
-      try {
-        const result = await handler();
 
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler());
     }),
     rest.post("/device/confirm", async (req, res, ctx) => {
       const handler = handlers["deviceAuthConfirm"];
@@ -908,41 +996,12 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.post("/device/token", async (req, res, ctx) => {
       const handler = handlers["deviceAccessToken"];
-      try {
-        const result = await handler();
 
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler());
     }),
     rest.post("/login", async (req, res, ctx) => {
       const handler = handlers["loginSpoof"];
@@ -953,22 +1012,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/login/:siloName/saml/:providerName", async (req, res, ctx) => {
       const handler = handlers["loginSamlBegin"];
@@ -979,22 +1023,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/login/:siloName/saml/:providerName", async (req, res, ctx) => {
       const handler = handlers["loginSaml"];
@@ -1002,41 +1031,12 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.LoginSamlParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/logout", async (req, res, ctx) => {
       const handler = handlers["logout"];
-      try {
-        const result = await handler();
 
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler());
     }),
     rest.get("/organizations", async (req, res, ctx) => {
       const handler = handlers["organizationList"];
@@ -1047,22 +1047,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/organizations", async (req, res, ctx) => {
       const handler = handlers["organizationCreate"];
@@ -1073,22 +1058,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/organizations/:orgName", async (req, res, ctx) => {
       const handler = handlers["organizationView"];
@@ -1099,22 +1069,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.put("/organizations/:orgName", async (req, res, ctx) => {
       const handler = handlers["organizationUpdate"];
@@ -1131,22 +1086,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body, params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body, params));
     }),
     rest.delete("/organizations/:orgName", async (req, res, ctx) => {
       const handler = handlers["organizationDelete"];
@@ -1157,22 +1097,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/organizations/:orgName/policy", async (req, res, ctx) => {
       const handler = handlers["organizationPolicyView"];
@@ -1183,22 +1108,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.put("/organizations/:orgName/policy", async (req, res, ctx) => {
       const handler = handlers["organizationPolicyUpdate"];
@@ -1215,22 +1125,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body, params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body, params));
     }),
     rest.get("/organizations/:orgName/projects", async (req, res, ctx) => {
       const handler = handlers["projectList"];
@@ -1241,22 +1136,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/organizations/:orgName/projects", async (req, res, ctx) => {
       const handler = handlers["projectCreate"];
@@ -1273,22 +1153,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body, params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body, params));
     }),
     rest.get(
       "/organizations/:orgName/projects/:projectName",
@@ -1301,22 +1166,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -1336,22 +1186,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.delete(
@@ -1365,22 +1200,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -1394,22 +1214,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -1429,22 +1234,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -1458,22 +1248,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.delete(
@@ -1487,22 +1262,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -1516,22 +1276,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -1545,22 +1290,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -1580,22 +1310,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -1609,22 +1324,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.delete(
@@ -1638,22 +1338,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -1667,22 +1352,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -1702,22 +1372,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -1731,22 +1386,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.delete(
@@ -1760,22 +1400,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -1789,22 +1414,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -1824,22 +1434,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.post(
@@ -1859,22 +1454,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -1888,22 +1468,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -1923,22 +1488,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -1952,22 +1502,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -1987,22 +1522,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -2016,22 +1536,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -2051,22 +1556,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.delete(
@@ -2080,22 +1570,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2109,22 +1584,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -2138,22 +1598,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2167,22 +1612,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2196,22 +1626,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -2225,22 +1640,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -2260,22 +1660,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -2289,22 +1674,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2324,22 +1694,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -2353,22 +1708,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.delete(
@@ -2382,22 +1722,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -2408,22 +1733,7 @@ export function makeHandlers(
         const { params, paramsErr } = validateParams(schema.VpcListParams, req);
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2443,22 +1753,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -2469,22 +1764,7 @@ export function makeHandlers(
         const { params, paramsErr } = validateParams(schema.VpcViewParams, req);
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -2504,22 +1784,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.delete(
@@ -2533,22 +1798,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -2562,22 +1812,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -2597,22 +1832,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -2626,22 +1846,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2661,22 +1866,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -2690,22 +1880,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -2725,22 +1900,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.delete(
@@ -2754,22 +1914,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -2783,22 +1928,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2818,22 +1948,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -2847,22 +1962,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -2882,22 +1982,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.delete(
@@ -2911,22 +1996,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -2940,22 +2010,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -2975,22 +2030,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -3004,22 +2044,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.put(
@@ -3039,22 +2064,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.delete(
@@ -3068,22 +2078,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get(
@@ -3097,42 +2092,13 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get("/policy", async (req, res, ctx) => {
       const handler = handlers["policyView"];
-      try {
-        const result = await handler();
 
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler());
     }),
     rest.put("/policy", async (req, res, ctx) => {
       const handler = handlers["policyUpdate"];
@@ -3143,22 +2109,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/roles", async (req, res, ctx) => {
       const handler = handlers["roleList"];
@@ -3166,22 +2117,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.RoleListParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/roles/:roleName", async (req, res, ctx) => {
       const handler = handlers["roleView"];
@@ -3189,41 +2125,12 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.RoleViewParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/session/me", async (req, res, ctx) => {
       const handler = handlers["sessionMe"];
-      try {
-        const result = await handler();
 
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler());
     }),
     rest.get("/session/me/sshkeys", async (req, res, ctx) => {
       const handler = handlers["sessionSshkeyList"];
@@ -3234,22 +2141,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/session/me/sshkeys", async (req, res, ctx) => {
       const handler = handlers["sessionSshkeyCreate"];
@@ -3260,22 +2152,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/session/me/sshkeys/:sshKeyName", async (req, res, ctx) => {
       const handler = handlers["sessionSshkeyView"];
@@ -3286,22 +2163,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.delete("/session/me/sshkeys/:sshKeyName", async (req, res, ctx) => {
       const handler = handlers["sessionSshkeyDelete"];
@@ -3312,22 +2174,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/by-id/images/:id", async (req, res, ctx) => {
       const handler = handlers["systemImageViewById"];
@@ -3338,22 +2185,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/by-id/ip-pools/:id", async (req, res, ctx) => {
       const handler = handlers["ipPoolViewById"];
@@ -3364,22 +2196,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/by-id/silos/:id", async (req, res, ctx) => {
       const handler = handlers["siloViewById"];
@@ -3390,22 +2207,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/hardware/racks", async (req, res, ctx) => {
       const handler = handlers["rackList"];
@@ -3413,22 +2215,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.RackListParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/hardware/racks/:rackId", async (req, res, ctx) => {
       const handler = handlers["rackView"];
@@ -3436,22 +2223,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.RackViewParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/hardware/sleds", async (req, res, ctx) => {
       const handler = handlers["sledList"];
@@ -3459,22 +2231,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.SledListParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/hardware/sleds/:sledId", async (req, res, ctx) => {
       const handler = handlers["sledView"];
@@ -3482,22 +2239,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.SledViewParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/images", async (req, res, ctx) => {
       const handler = handlers["systemImageList"];
@@ -3508,22 +2250,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/system/images", async (req, res, ctx) => {
       const handler = handlers["systemImageCreate"];
@@ -3534,22 +2261,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/system/images/:imageName", async (req, res, ctx) => {
       const handler = handlers["systemImageView"];
@@ -3560,22 +2272,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.delete("/system/images/:imageName", async (req, res, ctx) => {
       const handler = handlers["systemImageDelete"];
@@ -3586,22 +2283,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/ip-pools", async (req, res, ctx) => {
       const handler = handlers["ipPoolList"];
@@ -3612,22 +2294,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/system/ip-pools", async (req, res, ctx) => {
       const handler = handlers["ipPoolCreate"];
@@ -3638,22 +2305,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/system/ip-pools/:poolName", async (req, res, ctx) => {
       const handler = handlers["ipPoolView"];
@@ -3664,22 +2316,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.put("/system/ip-pools/:poolName", async (req, res, ctx) => {
       const handler = handlers["ipPoolUpdate"];
@@ -3696,22 +2333,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body, params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body, params));
     }),
     rest.delete("/system/ip-pools/:poolName", async (req, res, ctx) => {
       const handler = handlers["ipPoolDelete"];
@@ -3722,22 +2344,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/ip-pools/:poolName/ranges", async (req, res, ctx) => {
       const handler = handlers["ipPoolRangeList"];
@@ -3748,22 +2355,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post(
       "/system/ip-pools/:poolName/ranges/add",
@@ -3782,22 +2374,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.post(
@@ -3817,22 +2394,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get("/system/ip-pools-service/:rackId", async (req, res, ctx) => {
@@ -3844,22 +2406,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get(
       "/system/ip-pools-service/:rackId/ranges",
@@ -3872,22 +2419,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -3907,22 +2439,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.post(
@@ -3942,42 +2459,13 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get("/system/policy", async (req, res, ctx) => {
       const handler = handlers["systemPolicyView"];
-      try {
-        const result = await handler();
 
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler());
     }),
     rest.put("/system/policy", async (req, res, ctx) => {
       const handler = handlers["systemPolicyUpdate"];
@@ -3988,22 +2476,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/system/sagas", async (req, res, ctx) => {
       const handler = handlers["sagaList"];
@@ -4011,22 +2484,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.SagaListParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/sagas/:sagaId", async (req, res, ctx) => {
       const handler = handlers["sagaView"];
@@ -4034,22 +2492,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.SagaViewParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/silos", async (req, res, ctx) => {
       const handler = handlers["siloList"];
@@ -4057,22 +2500,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.SiloListParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.post("/system/silos", async (req, res, ctx) => {
       const handler = handlers["siloCreate"];
@@ -4083,22 +2511,7 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body));
     }),
     rest.get("/system/silos/:siloName", async (req, res, ctx) => {
       const handler = handlers["siloView"];
@@ -4106,22 +2519,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.SiloViewParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.delete("/system/silos/:siloName", async (req, res, ctx) => {
       const handler = handlers["siloDelete"];
@@ -4132,22 +2530,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get(
       "/system/silos/:siloName/identity-providers",
@@ -4160,22 +2543,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.post(
@@ -4195,22 +2563,7 @@ export function makeHandlers(
         );
         if (bodyErr) return res(bodyErr);
 
-        try {
-          const result = await handler(body, params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(body, params));
       }
     ),
     rest.get(
@@ -4224,22 +2577,7 @@ export function makeHandlers(
         );
         if (paramsErr) return res(paramsErr);
 
-        try {
-          const result = await handler(params);
-
-          if (Array.isArray(result)) {
-            return res(json(result[0], { status: result[1] }));
-          }
-          if (typeof result === "number") {
-            return res(ctx.status(result));
-          }
-          return res(json(result));
-        } catch (thrown) {
-          if (typeof thrown === "number") {
-            return res(ctx.status(thrown));
-          }
-          return res(thrown as ResponseTransformer);
-        }
+        return handleResult(res, ctx, () => handler(params));
       }
     ),
     rest.get("/system/silos/:siloName/policy", async (req, res, ctx) => {
@@ -4251,22 +2589,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.put("/system/silos/:siloName/policy", async (req, res, ctx) => {
       const handler = handlers["siloPolicyUpdate"];
@@ -4283,41 +2606,12 @@ export function makeHandlers(
       );
       if (bodyErr) return res(bodyErr);
 
-      try {
-        const result = await handler(body, params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(body, params));
     }),
     rest.post("/system/updates/refresh", async (req, res, ctx) => {
       const handler = handlers["updatesRefresh"];
-      try {
-        const result = await handler();
 
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler());
     }),
     rest.get("/system/user", async (req, res, ctx) => {
       const handler = handlers["systemUserList"];
@@ -4328,22 +2622,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/system/user/:userName", async (req, res, ctx) => {
       const handler = handlers["systemUserView"];
@@ -4354,22 +2633,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/timeseries/schema", async (req, res, ctx) => {
       const handler = handlers["timeseriesSchemaGet"];
@@ -4380,22 +2644,7 @@ export function makeHandlers(
       );
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
     rest.get("/users", async (req, res, ctx) => {
       const handler = handlers["userList"];
@@ -4403,22 +2652,7 @@ export function makeHandlers(
       const { params, paramsErr } = validateParams(schema.UserListParams, req);
       if (paramsErr) return res(paramsErr);
 
-      try {
-        const result = await handler(params);
-
-        if (Array.isArray(result)) {
-          return res(json(result[0], { status: result[1] }));
-        }
-        if (typeof result === "number") {
-          return res(ctx.status(result));
-        }
-        return res(json(result));
-      } catch (thrown) {
-        if (typeof thrown === "number") {
-          return res(ctx.status(thrown));
-        }
-        return res(thrown as ResponseTransformer);
-      }
+      return handleResult(res, ctx, () => handler(params));
     }),
   ];
 }
