@@ -51,7 +51,7 @@ type StringifyDates<T> = T extends Date
  * Snake case fields and convert dates to strings. Not intended to be a general
  * purpose JSON type!
  */
-type Json<B> = Snakify<StringifyDates<B>>;
+export type Json<B> = Snakify<StringifyDates<B>>;
 
 export interface MSWHandlers {
   /** `/by-id/disks/:id` */
