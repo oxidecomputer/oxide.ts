@@ -137,30 +137,40 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       return { paramsErr: json(result.error.issues, { status: 400 }) }
     }
 
-    const handleResult = async (res: ResponseComposition, ctx: RestContext, handler: () => MaybePromise<unknown>) => {
-      try {
-        const result = await handler()
-        if (typeof result === "number") {
-          return res(ctx.status(result))
+    const handler = (handler: MSWHandlers[keyof MSWHandlers], paramSchema: ZodSchema | null, bodySchema: ZodSchema | null) => 
+      async (req: RestRequest, res: ResponseComposition, ctx: RestContext) => {
+        const { params, paramsErr } = paramSchema ? validateParams(paramSchema, req) : { params: undefined, paramsErr: undefined }
+        if (paramsErr) return res(paramsErr)
+
+        const { body, bodyErr } = bodySchema ? validateBody(bodySchema, await req.json()) : { body: undefined, bodyErr: undefined }
+        if (bodyErr) return res(bodyErr)
+
+        try {
+          // TypeScript can't narrow the handler down because there's not an explicit relationship between the schema
+          // being present and the shape of the handler API. The type of this function could be resolved such that the
+          // relevant schema is required if and only if the handler has a type that matches the inferred schema
+          const result = await (handler as any).apply(null, [body, params].filter(Boolean))
+          if (typeof result === "number") {
+            return res(ctx.status(result))
+          }
+          if (typeof result === "function") {
+            return res(result as ResponseTransformer)
+          }
+          return res(json(result))
+        } catch (thrown) {
+          if (typeof thrown === 'number') {
+            return res(ctx.status(thrown))
+          } 
+          if (typeof thrown === "function") {
+            return res(thrown as ResponseTransformer)
+          }
+          if (typeof thrown === "string") {
+            return res(json({ message: thrown }, { status: 400 }))
+          }
+          console.error('Unexpected mock error', thrown)
+          return res(json({ message: 'Unknown Server Error' }, { status: 500 }))
         }
-        if (typeof result === "function") {
-          return res(result as ResponseTransformer)
-        }
-        return res(json(result))
-      } catch (thrown) {
-        if (typeof thrown === 'number') {
-          return res(ctx.status(thrown))
-        } 
-        if (typeof thrown === "function") {
-          return res(thrown as ResponseTransformer)
-        }
-        if (typeof thrown === "string") {
-          return res(json({ message: thrown }, { status: 400 }))
-        }
-        console.error('Unexpected mock error', thrown)
-        return res(json({ message: 'Unknown Server Error' }, { status: 500 }))
       }
-    }
 
 
     export function makeHandlers(
@@ -170,36 +180,19 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
   for (const { path, method, opId, conf } of iterPathConfig(spec.paths)) {
     const handler = snakeToCamel(opId);
     const bodyTypeRef = contentRef(conf.requestBody);
-    const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
-    const hasBody = bodyType && (method === "post" || method === "put");
-    const paramType = snakeToPascal(opId) + "Params";
-    const hasParams = !!conf.parameters?.length;
+    const bodySchema =
+      bodyTypeRef && (method === "post" || method === "put")
+        ? `schema.${refToSchemaName(bodyTypeRef)}`
+        : "null";
+    const paramSchema = !!conf.parameters?.length
+      ? `schema.${snakeToPascal(opId)}Params`
+      : "null";
 
-    w(`rest.${method}('${formatPath(path)}', async (req, res, ctx) => {
-      const handler = handlers['${handler}']`);
-
-    if (hasParams) {
-      w(`
-          const { params, paramsErr } = validateParams(schema.${paramType}, req)
-          if (paramsErr) return res(paramsErr)
-        `);
-    }
-
-    if (hasBody) {
-      w(`
-          const { body, bodyErr } = validateBody(schema.${bodyType}, await req.json())
-          if (bodyErr) return res(bodyErr)
-        `);
-    }
-
-    w(`
-      return handleResult(res, ctx, () => handler(
-        ${[hasBody && "body", hasParams && "params"].filter(Boolean).join(", ")}
-      ))
-
-    }),`);
+    w(
+      `rest.${method}('${formatPath(
+        path
+      )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`
+    );
   }
-  w(` ]
-    }
-  `);
+  w(`]}`);
 }
