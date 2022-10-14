@@ -155,8 +155,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName` */
   organizationUpdate: (
-    body: Json<Api.OrganizationUpdate>,
-    params: Api.OrganizationUpdateParams
+    params: Api.OrganizationUpdateParams,
+    body: Json<Api.OrganizationUpdate>
   ) => MaybePromise<
     Json<Api.Organization> | ResponseTransformer<Json<Api.Organization>>
   >;
@@ -173,8 +173,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName/policy` */
   organizationPolicyUpdate: (
-    body: Json<Api.OrganizationRolePolicy>,
-    params: Api.OrganizationPolicyUpdateParams
+    params: Api.OrganizationPolicyUpdateParams,
+    body: Json<Api.OrganizationRolePolicy>
   ) => MaybePromise<
     | Json<Api.OrganizationRolePolicy>
     | ResponseTransformer<Json<Api.OrganizationRolePolicy>>
@@ -188,8 +188,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects` */
   projectCreate: (
-    body: Json<Api.ProjectCreate>,
-    params: Api.ProjectCreateParams
+    params: Api.ProjectCreateParams,
+    body: Json<Api.ProjectCreate>
   ) => MaybePromise<Json<Api.Project> | ResponseTransformer<Json<Api.Project>>>;
   /** `GET /organizations/:orgName/projects/:projectName` */
   projectView: (
@@ -197,8 +197,8 @@ export interface MSWHandlers {
   ) => MaybePromise<Json<Api.Project> | ResponseTransformer<Json<Api.Project>>>;
   /** `PUT /organizations/:orgName/projects/:projectName` */
   projectUpdate: (
-    body: Json<Api.ProjectUpdate>,
-    params: Api.ProjectUpdateParams
+    params: Api.ProjectUpdateParams,
+    body: Json<Api.ProjectUpdate>
   ) => MaybePromise<Json<Api.Project> | ResponseTransformer<Json<Api.Project>>>;
   /** `DELETE /organizations/:orgName/projects/:projectName` */
   projectDelete: (
@@ -212,8 +212,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/disks` */
   diskCreate: (
-    body: Json<Api.DiskCreate>,
-    params: Api.DiskCreateParams
+    params: Api.DiskCreateParams,
+    body: Json<Api.DiskCreate>
   ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
   /** `GET /organizations/:orgName/projects/:projectName/disks/:diskName` */
   diskView: (
@@ -238,8 +238,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/images` */
   imageCreate: (
-    body: Json<Api.ImageCreate>,
-    params: Api.ImageCreateParams
+    params: Api.ImageCreateParams,
+    body: Json<Api.ImageCreate>
   ) => MaybePromise<Json<Api.Image> | ResponseTransformer<Json<Api.Image>>>;
   /** `GET /organizations/:orgName/projects/:projectName/images/:imageName` */
   imageView: (
@@ -258,8 +258,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/instances` */
   instanceCreate: (
-    body: Json<Api.InstanceCreate>,
-    params: Api.InstanceCreateParams
+    params: Api.InstanceCreateParams,
+    body: Json<Api.InstanceCreate>
   ) => MaybePromise<
     Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
   >;
@@ -281,13 +281,13 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/instances/:instanceName/disks/attach` */
   instanceDiskAttach: (
-    body: Json<Api.DiskIdentifier>,
-    params: Api.InstanceDiskAttachParams
+    params: Api.InstanceDiskAttachParams,
+    body: Json<Api.DiskIdentifier>
   ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
   /** `POST /organizations/:orgName/projects/:projectName/instances/:instanceName/disks/detach` */
   instanceDiskDetach: (
-    body: Json<Api.DiskIdentifier>,
-    params: Api.InstanceDiskDetachParams
+    params: Api.InstanceDiskDetachParams,
+    body: Json<Api.DiskIdentifier>
   ) => MaybePromise<Json<Api.Disk> | ResponseTransformer<Json<Api.Disk>>>;
   /** `GET /organizations/:orgName/projects/:projectName/instances/:instanceName/external-ips` */
   instanceExternalIpList: (
@@ -298,8 +298,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/instances/:instanceName/migrate` */
   instanceMigrate: (
-    body: Json<Api.InstanceMigrate>,
-    params: Api.InstanceMigrateParams
+    params: Api.InstanceMigrateParams,
+    body: Json<Api.InstanceMigrate>
   ) => MaybePromise<
     Json<Api.Instance> | ResponseTransformer<Json<Api.Instance>>
   >;
@@ -312,8 +312,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/instances/:instanceName/network-interfaces` */
   instanceNetworkInterfaceCreate: (
-    body: Json<Api.NetworkInterfaceCreate>,
-    params: Api.InstanceNetworkInterfaceCreateParams
+    params: Api.InstanceNetworkInterfaceCreateParams,
+    body: Json<Api.NetworkInterfaceCreate>
   ) => MaybePromise<
     Json<Api.NetworkInterface> | ResponseTransformer<Json<Api.NetworkInterface>>
   >;
@@ -325,8 +325,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName/projects/:projectName/instances/:instanceName/network-interfaces/:interfaceName` */
   instanceNetworkInterfaceUpdate: (
-    body: Json<Api.NetworkInterfaceUpdate>,
-    params: Api.InstanceNetworkInterfaceUpdateParams
+    params: Api.InstanceNetworkInterfaceUpdateParams,
+    body: Json<Api.NetworkInterfaceUpdate>
   ) => MaybePromise<
     Json<Api.NetworkInterface> | ResponseTransformer<Json<Api.NetworkInterface>>
   >;
@@ -368,8 +368,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName/projects/:projectName/policy` */
   projectPolicyUpdate: (
-    body: Json<Api.ProjectRolePolicy>,
-    params: Api.ProjectPolicyUpdateParams
+    params: Api.ProjectPolicyUpdateParams,
+    body: Json<Api.ProjectRolePolicy>
   ) => MaybePromise<
     | Json<Api.ProjectRolePolicy>
     | ResponseTransformer<Json<Api.ProjectRolePolicy>>
@@ -383,8 +383,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/snapshots` */
   snapshotCreate: (
-    body: Json<Api.SnapshotCreate>,
-    params: Api.SnapshotCreateParams
+    params: Api.SnapshotCreateParams,
+    body: Json<Api.SnapshotCreate>
   ) => MaybePromise<
     Json<Api.Snapshot> | ResponseTransformer<Json<Api.Snapshot>>
   >;
@@ -406,8 +406,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/vpcs` */
   vpcCreate: (
-    body: Json<Api.VpcCreate>,
-    params: Api.VpcCreateParams
+    params: Api.VpcCreateParams,
+    body: Json<Api.VpcCreate>
   ) => MaybePromise<Json<Api.Vpc> | ResponseTransformer<Json<Api.Vpc>>>;
   /** `GET /organizations/:orgName/projects/:projectName/vpcs/:vpcName` */
   vpcView: (
@@ -415,8 +415,8 @@ export interface MSWHandlers {
   ) => MaybePromise<Json<Api.Vpc> | ResponseTransformer<Json<Api.Vpc>>>;
   /** `PUT /organizations/:orgName/projects/:projectName/vpcs/:vpcName` */
   vpcUpdate: (
-    body: Json<Api.VpcUpdate>,
-    params: Api.VpcUpdateParams
+    params: Api.VpcUpdateParams,
+    body: Json<Api.VpcUpdate>
   ) => MaybePromise<Json<Api.Vpc> | ResponseTransformer<Json<Api.Vpc>>>;
   /** `DELETE /organizations/:orgName/projects/:projectName/vpcs/:vpcName` */
   vpcDelete: (
@@ -430,8 +430,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName/projects/:projectName/vpcs/:vpcName/firewall/rules` */
   vpcFirewallRulesUpdate: (
-    body: Json<Api.VpcFirewallRuleUpdateParams>,
-    params: Api.VpcFirewallRulesUpdateParams
+    params: Api.VpcFirewallRulesUpdateParams,
+    body: Json<Api.VpcFirewallRuleUpdateParams>
   ) => MaybePromise<
     Json<Api.VpcFirewallRules> | ResponseTransformer<Json<Api.VpcFirewallRules>>
   >;
@@ -444,8 +444,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers` */
   vpcRouterCreate: (
-    body: Json<Api.VpcRouterCreate>,
-    params: Api.VpcRouterCreateParams
+    params: Api.VpcRouterCreateParams,
+    body: Json<Api.VpcRouterCreate>
   ) => MaybePromise<
     Json<Api.VpcRouter> | ResponseTransformer<Json<Api.VpcRouter>>
   >;
@@ -457,8 +457,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName` */
   vpcRouterUpdate: (
-    body: Json<Api.VpcRouterUpdate>,
-    params: Api.VpcRouterUpdateParams
+    params: Api.VpcRouterUpdateParams,
+    body: Json<Api.VpcRouterUpdate>
   ) => MaybePromise<
     Json<Api.VpcRouter> | ResponseTransformer<Json<Api.VpcRouter>>
   >;
@@ -475,8 +475,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName/routes` */
   vpcRouterRouteCreate: (
-    body: Json<Api.RouterRouteCreateParams>,
-    params: Api.VpcRouterRouteCreateParams
+    params: Api.VpcRouterRouteCreateParams,
+    body: Json<Api.RouterRouteCreateParams>
   ) => MaybePromise<
     Json<Api.RouterRoute> | ResponseTransformer<Json<Api.RouterRoute>>
   >;
@@ -488,8 +488,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName/projects/:projectName/vpcs/:vpcName/routers/:routerName/routes/:routeName` */
   vpcRouterRouteUpdate: (
-    body: Json<Api.RouterRouteUpdateParams>,
-    params: Api.VpcRouterRouteUpdateParams
+    params: Api.VpcRouterRouteUpdateParams,
+    body: Json<Api.RouterRouteUpdateParams>
   ) => MaybePromise<
     Json<Api.RouterRoute> | ResponseTransformer<Json<Api.RouterRoute>>
   >;
@@ -506,8 +506,8 @@ export interface MSWHandlers {
   >;
   /** `POST /organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets` */
   vpcSubnetCreate: (
-    body: Json<Api.VpcSubnetCreate>,
-    params: Api.VpcSubnetCreateParams
+    params: Api.VpcSubnetCreateParams,
+    body: Json<Api.VpcSubnetCreate>
   ) => MaybePromise<
     Json<Api.VpcSubnet> | ResponseTransformer<Json<Api.VpcSubnet>>
   >;
@@ -519,8 +519,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /organizations/:orgName/projects/:projectName/vpcs/:vpcName/subnets/:subnetName` */
   vpcSubnetUpdate: (
-    body: Json<Api.VpcSubnetUpdate>,
-    params: Api.VpcSubnetUpdateParams
+    params: Api.VpcSubnetUpdateParams,
+    body: Json<Api.VpcSubnetUpdate>
   ) => MaybePromise<
     Json<Api.VpcSubnet> | ResponseTransformer<Json<Api.VpcSubnet>>
   >;
@@ -652,8 +652,8 @@ export interface MSWHandlers {
   ) => MaybePromise<Json<Api.IpPool> | ResponseTransformer<Json<Api.IpPool>>>;
   /** `PUT /system/ip-pools/:poolName` */
   ipPoolUpdate: (
-    body: Json<Api.IpPoolUpdate>,
-    params: Api.IpPoolUpdateParams
+    params: Api.IpPoolUpdateParams,
+    body: Json<Api.IpPoolUpdate>
   ) => MaybePromise<Json<Api.IpPool> | ResponseTransformer<Json<Api.IpPool>>>;
   /** `DELETE /system/ip-pools/:poolName` */
   ipPoolDelete: (
@@ -668,15 +668,15 @@ export interface MSWHandlers {
   >;
   /** `POST /system/ip-pools/:poolName/ranges/add` */
   ipPoolRangeAdd: (
-    body: Json<Api.IpRange>,
-    params: Api.IpPoolRangeAddParams
+    params: Api.IpPoolRangeAddParams,
+    body: Json<Api.IpRange>
   ) => MaybePromise<
     Json<Api.IpPoolRange> | ResponseTransformer<Json<Api.IpPoolRange>>
   >;
   /** `POST /system/ip-pools/:poolName/ranges/remove` */
   ipPoolRangeRemove: (
-    body: Json<Api.IpRange>,
-    params: Api.IpPoolRangeRemoveParams
+    params: Api.IpPoolRangeRemoveParams,
+    body: Json<Api.IpRange>
   ) => MaybePromise<number | ResponseTransformer>;
   /** `GET /system/ip-pools-service/:rackId` */
   ipPoolServiceView: (
@@ -691,15 +691,15 @@ export interface MSWHandlers {
   >;
   /** `POST /system/ip-pools-service/:rackId/ranges/add` */
   ipPoolServiceRangeAdd: (
-    body: Json<Api.IpRange>,
-    params: Api.IpPoolServiceRangeAddParams
+    params: Api.IpPoolServiceRangeAddParams,
+    body: Json<Api.IpRange>
   ) => MaybePromise<
     Json<Api.IpPoolRange> | ResponseTransformer<Json<Api.IpPoolRange>>
   >;
   /** `POST /system/ip-pools-service/:rackId/ranges/remove` */
   ipPoolServiceRangeRemove: (
-    body: Json<Api.IpRange>,
-    params: Api.IpPoolServiceRangeRemoveParams
+    params: Api.IpPoolServiceRangeRemoveParams,
+    body: Json<Api.IpRange>
   ) => MaybePromise<number | ResponseTransformer>;
   /** `GET /system/policy` */
   systemPolicyView: () => MaybePromise<
@@ -748,8 +748,8 @@ export interface MSWHandlers {
   >;
   /** `POST /system/silos/:siloName/identity-providers/saml` */
   samlIdentityProviderCreate: (
-    body: Json<Api.SamlIdentityProviderCreate>,
-    params: Api.SamlIdentityProviderCreateParams
+    params: Api.SamlIdentityProviderCreateParams,
+    body: Json<Api.SamlIdentityProviderCreate>
   ) => MaybePromise<
     | Json<Api.SamlIdentityProvider>
     | ResponseTransformer<Json<Api.SamlIdentityProvider>>
@@ -769,8 +769,8 @@ export interface MSWHandlers {
   >;
   /** `PUT /system/silos/:siloName/policy` */
   siloPolicyUpdate: (
-    body: Json<Api.SiloRolePolicy>,
-    params: Api.SiloPolicyUpdateParams
+    params: Api.SiloPolicyUpdateParams,
+    body: Json<Api.SiloRolePolicy>
   ) => MaybePromise<
     Json<Api.SiloRolePolicy> | ResponseTransformer<Json<Api.SiloRolePolicy>>
   >;
@@ -853,7 +853,7 @@ const handler =
       // relevant schema is required if and only if the handler has a type that matches the inferred schema
       const result = await (handler as any).apply(
         null,
-        [body, params].filter(Boolean)
+        [params, body].filter(Boolean)
       );
       if (typeof result === "number") {
         return res(ctx.status(result));
