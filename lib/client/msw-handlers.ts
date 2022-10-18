@@ -36,7 +36,8 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     import { snakeify } from "./util";
     import * as schema from "./validate";
 
-    type MaybePromise<T> = T | Promise<T>
+    type HandlerResult<T> = Json<T> | ResponseTransformer<Json<T>>
+    type StatusCode = number
 
     /**
      * Custom transformer: convenience function for setting response \`status\` and/or
@@ -98,12 +99,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
 
     const args = [params, body].filter(Boolean).join(", ");
     const statusResult =
-      successType === "void"
-        ? "number | ResponseTransformer"
-        : `Json<${successType}> | ResponseTransformer<Json<${successType}>>`;
+      successType === "void" ? "StatusCode" : `HandlerResult<${successType}>`;
 
     w(`/** \`${method.toUpperCase()} ${formatPath(path)}\` */`);
-    w(`  ${opName}: (${args}) => MaybePromise<${statusResult}>,`);
+    w(`  ${opName}: (${args}) => ${statusResult},`);
   }
   w("}");
 
