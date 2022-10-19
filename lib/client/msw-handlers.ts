@@ -91,18 +91,30 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
     const body =
       bodyType && (method === "post" || method === "put")
-        ? `body: Json<Api.${bodyType}>`
+        ? `body: Json<Api.${bodyType}>,`
         : "";
-    const params = conf.parameters?.length
-      ? `params: Api.${snakeToPascal(opId)}Params`
+    const pathParams = conf.parameters?.filter(
+      (param) => "name" in param && param.schema && param.in === "path"
+    );
+    const queryParams = conf.parameters?.filter(
+      (param) => "name" in param && param.schema && param.in === "query"
+    );
+    const pathParamsType = pathParams?.length
+      ? `path: Api.${snakeToPascal(opId)}PathParams,`
       : "";
+    const queryParamsType = queryParams?.length
+      ? `query: Api.${snakeToPascal(opId)}QueryParams,`
+      : "";
+    const params =
+      pathParamsType || queryParamsType || body
+        ? `params: { ${pathParamsType} ${queryParamsType} ${body} }`
+        : "";
 
-    const args = [params, body].filter(Boolean).join(", ");
-    const statusResult =
+    const resultType =
       successType === "void" ? "StatusCode" : `HandlerResult<${successType}>`;
 
     w(`/** \`${method.toUpperCase()} ${formatPath(path)}\` */`);
-    w(`  ${opName}: (${args}) => ${statusResult},`);
+    w(`  ${opName}: (${params}) => ${resultType},`);
   }
   w("}");
 
@@ -124,8 +136,8 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       }
 
       const result = schema.safeParse({
-        ...req.params,
-        ...Object.fromEntries(params),
+        path: req.params,
+        query: Object.fromEntries(params),
       })
       if (result.success) {
         return { params: result.data }
@@ -135,8 +147,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
 
     const handler = (handler: MSWHandlers[keyof MSWHandlers], paramSchema: ZodSchema | null, bodySchema: ZodSchema | null) => 
       async (req: RestRequest, res: ResponseComposition, ctx: RestContext) => {
-        const { params, paramsErr } = paramSchema ? validateParams(paramSchema, req) : { params: undefined, paramsErr: undefined }
+        const { params, paramsErr } = paramSchema ? validateParams(paramSchema, req) : { params: {}, paramsErr: undefined }
         if (paramsErr) return res(paramsErr)
+
+        const { path, query } = params
 
         const { body, bodyErr } = bodySchema ? validateBody(bodySchema, await req.json()) : { body: undefined, bodyErr: undefined }
         if (bodyErr) return res(bodyErr)
@@ -145,7 +159,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
           // TypeScript can't narrow the handler down because there's not an explicit relationship between the schema
           // being present and the shape of the handler API. The type of this function could be resolved such that the
           // relevant schema is required if and only if the handler has a type that matches the inferred schema
-          const result = await (handler as any).apply(null, [params, body].filter(Boolean))
+          const result = await (handler as any).apply(null, [{path, query, body}])
           if (typeof result === "number") {
             return res(ctx.status(result))
           }

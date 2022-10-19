@@ -1,7 +1,7 @@
 import { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { schemaToZod } from "../schema/zod";
-import { processParamName, snakeToPascal } from "../util";
+import { extractDoc, processParamName, snakeToPascal } from "../util";
 import { docComment, getSortedSchemas } from "./base";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
@@ -37,11 +37,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
     const schema = spec.components!.schemas![schemaName];
 
     if ("description" in schema || "title" in schema) {
-      docComment(
-        [schema.title, schema.description].filter((n) => n).join("\n\n"),
-        schemaNames,
-        io
-      );
+      docComment(extractDoc(schema), schemaNames, io);
     }
 
     w0(`export const ${schemaName} = z.preprocess(processResponseBody,`);
@@ -61,28 +57,37 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
       w(
         `export const ${opName}Params = z.preprocess(processResponseBody, z.object({`
       );
-      for (const param of params || []) {
-        if ("name" in param) {
-          if (param.schema) {
-            const isQuery = param.in === "query";
-            if ("description" in param.schema || "title" in param.schema) {
-              docComment(
-                [param.schema.title, param.schema.description]
-                  .filter((n) => n)
-                  .join("\n\n"),
-                schemaNames,
-                io
-              );
-            }
 
-            w0(`  ${processParamName(param.name)}`);
-            w0(": ");
-            schemaToZod(param.schema, io);
-            if (isQuery) w0(".optional()");
-            w(",");
+      w("  path: z.object({");
+      for (const param of params || []) {
+        if ("name" in param && param.schema && param.in === "path") {
+          if ("description" in param.schema || "title" in param.schema) {
+            docComment(extractDoc(param.schema), schemaNames, io);
           }
+
+          w0(`  ${processParamName(param.name)}`);
+          w0(": ");
+          schemaToZod(param.schema, io);
+          w(",");
         }
       }
+      w("  }),");
+
+      w("  query: z.object({");
+      for (const param of params || []) {
+        if ("name" in param && param.schema && param.in === "query") {
+          if ("description" in param.schema || "title" in param.schema) {
+            docComment(extractDoc(param.schema), schemaNames, io);
+          }
+
+          w0(`  ${processParamName(param.name)}`);
+          w0(": ");
+          schemaToZod(param.schema, io);
+          w(".optional(),");
+        }
+      }
+      w("  }),");
+
       w(`}))`);
       w("");
     }

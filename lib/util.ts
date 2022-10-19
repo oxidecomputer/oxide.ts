@@ -1,3 +1,5 @@
+import { OpenAPIV3 } from "openapi-types";
+
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");
 
@@ -48,3 +50,6 @@ export const topologicalSort = (
 
   return result;
 };
+
+export const extractDoc = (schema: OpenAPIV3.SchemaObject): string =>
+  [schema.title, schema.description].filter((n) => n).join("\n\n");
