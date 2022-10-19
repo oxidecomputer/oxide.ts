@@ -1,16 +1,13 @@
 import { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { schemaToZod } from "../schema/zod";
-import { processParamName, snakeToPascal } from "../util";
+import { extractDoc, processParamName, snakeToPascal } from "../util";
 import { docComment, getSortedSchemas } from "./base";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
 
 const io = initIO("validate.ts");
 const { w, w0, out } = io;
-
-const extractDoc = (schema: OpenAPIV3.SchemaObject): string =>
-  [schema.title, schema.description].filter((n) => n).join("\n\n");
 
 export function generateZodValidators(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
@@ -40,11 +37,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
     const schema = spec.components!.schemas![schemaName];
 
     if ("description" in schema || "title" in schema) {
-      docComment(
-        [schema.title, schema.description].filter((n) => n).join("\n\n"),
-        schemaNames,
-        io
-      );
+      docComment(extractDoc(schema), schemaNames, io);
     }
 
     w0(`export const ${schemaName} = z.preprocess(processResponseBody,`);

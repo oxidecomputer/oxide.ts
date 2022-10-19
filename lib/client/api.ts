@@ -3,6 +3,7 @@ import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 import assert from "assert";
 import {
+  extractDoc,
   pathToTemplateStr,
   processParamName,
   snakeToCamel,
@@ -87,11 +88,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
     }
 
     if ("description" in schema || "title" in schema) {
-      docComment(
-        [schema.title, schema.description].filter((n) => n).join("\n\n"),
-        schemaNames,
-        io
-      );
+      docComment(extractDoc(schema), schemaNames, io);
     }
 
     w(`export type ${schemaName} =`);
@@ -107,13 +104,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
       w(`export interface ${pathParamsType(opName)} {`);
       for (const param of pathParams) {
         if ("description" in param.schema || "title" in param.schema) {
-          docComment(
-            [param.schema.title, param.schema.description]
-              .filter((n) => n)
-              .join("\n\n"),
-            schemaNames,
-            io
-          );
+          docComment(extractDoc(param.schema), schemaNames, io);
         }
         w0(`  ${processParamName(param.name)}:`);
         schemaToTypes(param.schema, io);
@@ -126,13 +117,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
       w(`export interface ${queryParamsType(opName)} {`);
       for (const param of queryParams) {
         if ("description" in param.schema || "title" in param.schema) {
-          docComment(
-            [param.schema.title, param.schema.description]
-              .filter((n) => n)
-              .join("\n\n"),
-            schemaNames,
-            io
-          );
+          docComment(extractDoc(param.schema), schemaNames, io);
         }
 
         w0(`  ${processParamName(param.name)}?:`);
