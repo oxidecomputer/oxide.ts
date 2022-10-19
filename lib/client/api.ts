@@ -49,6 +49,9 @@ function checkErrorSchema(schema: Schema) {
   );
 }
 
+const queryParamsType = (opId: string) => `${opId}QueryParams`;
+const pathParamsType = (opId: string) => `${opId}PathParams`;
+
 export function generateApi(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
@@ -70,6 +73,8 @@ export function generateApi(spec: OpenAPIV3.Document) {
     } from './http-client'
     `);
 
+  // TODO: figure out which of these are combined query + path Params types and
+  // don't bother creating them
   const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {
     const schema = spec.components!.schemas![schemaName];
@@ -97,47 +102,48 @@ export function generateApi(spec: OpenAPIV3.Document) {
   }
 
   // To generate separate path and query params
-  // for (const { params, opId } of iterParams(spec.paths)) {
-  //   const opName = snakeToPascal(opId);
-  //   if (params[0].length > 0) {
-  //     w(`export interface ${opName}PathParams {`);
-  //     for (const param of params[0]) {
-  //       if ("description" in param.schema || "title" in param.schema) {
-  //         docComment(
-  //           [param.schema.title, param.schema.description]
-  //             .filter((n) => n)
-  //             .join("\n\n"),
-  //           schemaNames,
-  //           io
-  //         );
-  //       }
-  //       w0(`  ${processParamName(param.name)}:`);
-  //       schemaToTypes(param.schema, io);
-  //       w(",");
-  //     }
-  //     w("}\n");
-  //   }
+  for (const { params, opId } of iterParams(spec.paths)) {
+    const opName = snakeToPascal(opId);
+    const [pathParams, queryParams] = params;
+    if (pathParams.length > 0) {
+      w(`export interface ${pathParamsType(opName)} {`);
+      for (const param of pathParams) {
+        if ("description" in param.schema || "title" in param.schema) {
+          docComment(
+            [param.schema.title, param.schema.description]
+              .filter((n) => n)
+              .join("\n\n"),
+            schemaNames,
+            io
+          );
+        }
+        w0(`  ${processParamName(param.name)}:`);
+        schemaToTypes(param.schema, io);
+        w(",");
+      }
+      w("}\n");
+    }
 
-  //   if (params[1].length > 0) {
-  //     w(`export interface ${opName}QueryParams {`);
-  //     for (const param of params[1]) {
-  //       if ("description" in param.schema || "title" in param.schema) {
-  //         docComment(
-  //           [param.schema.title, param.schema.description]
-  //             .filter((n) => n)
-  //             .join("\n\n"),
-  //           schemaNames,
-  //           io
-  //         );
-  //       }
+    if (queryParams.length > 0) {
+      w(`export interface ${queryParamsType(opName)} {`);
+      for (const param of queryParams) {
+        if ("description" in param.schema || "title" in param.schema) {
+          docComment(
+            [param.schema.title, param.schema.description]
+              .filter((n) => n)
+              .join("\n\n"),
+            schemaNames,
+            io
+          );
+        }
 
-  //       w0(`  ${processParamName(param.name)}?:`);
-  //       schemaToTypes(param.schema, io);
-  //       w(",");
-  //     }
-  //     w("}\n");
-  //   }
-  // }
+        w0(`  ${processParamName(param.name)}?:`);
+        schemaToTypes(param.schema, io);
+        w(",");
+      }
+      w("}\n");
+    }
+  }
 
   for (const { conf, opId } of iterPathConfig(spec.paths)) {
     const opName = snakeToPascal(opId);
@@ -216,11 +222,14 @@ export function generateApi(spec: OpenAPIV3.Document) {
     w(">\n");
   }
 
+  w("type EmptyObj = Record<string, never>;");
+
   w(`export class Api extends HttpClient {
        methods = {`);
 
   for (const { conf, opId, method, path } of iterPathConfig(spec.paths)) {
     const methodName = snakeToCamel(opId);
+    const methodNameType = snakeToPascal(opId);
 
     const paramsType = snakeToPascal(opId) + "Params";
     const params = conf.parameters || [];
@@ -247,24 +256,38 @@ export function generateApi(spec: OpenAPIV3.Document) {
 
     docComment(conf.summary || conf.description, schemaNames, io);
 
-    w(`${methodName}: (`);
-    if (pathParams.length > 0) {
-      w0("{ ");
-      const params = pathParams.map((p) => processParamName(p.name)).join(", ");
-      w0(params);
-      if (queryParams.length > 0) {
-        w0(", ...query");
+    const pathParamNames = pathParams
+      .map((p) => processParamName(p.name))
+      .join(", ");
+
+    w0(`${methodName}: (`);
+
+    if (pathParams.length > 0 || queryParams.length > 0 || bodyType) {
+      w(`{ `);
+      if (pathParams.length > 0) w0("path, ");
+      if (queryParams.length > 0) w0("query, ");
+      if (bodyType) w0("body, ");
+      w0("}: {");
+
+      if (pathParams.length > 0) {
+        w(`path: ${pathParamsType(methodNameType)},`);
       }
-      w(`}: ${paramsType},`);
+
+      if (queryParams.length > 0) {
+        w(`query: ${queryParamsType(methodNameType)},`);
+      }
+      if (bodyType) w(`body: ${bodyType},`);
+      w("},");
     } else {
-      w(`query: ${paramsType},`);
+      w("_: EmptyObj,");
     }
-    if (bodyType) {
-      w(`body: ${bodyType},`);
+
+    w(` params: RequestParams = {},
+         ) => {`);
+    if (pathParams.length > 0) {
+      w(`const { ${pathParamNames} } = path`);
     }
-    w(`  params: RequestParams = {},
-         ) =>
-           this.request<${successType}>({
+    w(`  return this.request<${successType}>({
              path: ${pathToTemplateStr(path)},
              method: "${method.toUpperCase()}",`);
     if (bodyType) {
@@ -274,8 +297,8 @@ export function generateApi(spec: OpenAPIV3.Document) {
       w("  query,");
     }
     w(`    ...params,
-           }),
-      `);
+           })
+      },`);
   }
 
   w(`  }
