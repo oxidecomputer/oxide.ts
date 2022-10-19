@@ -107,9 +107,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       : "";
     const params =
       pathParamsType || queryParamsType
-        ? `{ ${pathParamsType ? "path," : ""} ${
-            queryParamsType ? "query" : ""
-          } }: { ${pathParamsType} ${queryParamsType} }`
+        ? `params: { ${pathParamsType} ${queryParamsType} }`
         : "";
 
     const args = [params, body].filter(Boolean).join(", ");
