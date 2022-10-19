@@ -816,8 +816,8 @@ function validateParams<S extends ZodSchema>(schema: S, req: RestRequest) {
   }
 
   const result = schema.safeParse({
-    ...req.params,
-    ...Object.fromEntries(params),
+    path: req.params,
+    query: Object.fromEntries(params),
   });
   if (result.success) {
     return { params: result.data };
@@ -834,8 +834,10 @@ const handler =
   async (req: RestRequest, res: ResponseComposition, ctx: RestContext) => {
     const { params, paramsErr } = paramSchema
       ? validateParams(paramSchema, req)
-      : { params: undefined, paramsErr: undefined };
+      : { params: {}, paramsErr: undefined };
     if (paramsErr) return res(paramsErr);
+
+    const { path, query } = params;
 
     const { body, bodyErr } = bodySchema
       ? validateBody(bodySchema, await req.json())
@@ -846,10 +848,9 @@ const handler =
       // TypeScript can't narrow the handler down because there's not an explicit relationship between the schema
       // being present and the shape of the handler API. The type of this function could be resolved such that the
       // relevant schema is required if and only if the handler has a type that matches the inferred schema
-      const result = await (handler as any).apply(
-        null,
-        [params, body].filter(Boolean)
-      );
+      const result = await (handler as any).apply(null, [
+        { path, query, body },
+      ]);
       if (typeof result === "number") {
         return res(ctx.status(result));
       }

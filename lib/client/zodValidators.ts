@@ -9,6 +9,9 @@ const HttpMethods = OpenAPIV3.HttpMethods;
 const io = initIO("validate.ts");
 const { w, w0, out } = io;
 
+const extractDoc = (schema: OpenAPIV3.SchemaObject): string =>
+  [schema.title, schema.description].filter((n) => n).join("\n\n");
+
 export function generateZodValidators(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
@@ -61,28 +64,37 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
       w(
         `export const ${opName}Params = z.preprocess(processResponseBody, z.object({`
       );
-      for (const param of params || []) {
-        if ("name" in param) {
-          if (param.schema) {
-            const isQuery = param.in === "query";
-            if ("description" in param.schema || "title" in param.schema) {
-              docComment(
-                [param.schema.title, param.schema.description]
-                  .filter((n) => n)
-                  .join("\n\n"),
-                schemaNames,
-                io
-              );
-            }
 
-            w0(`  ${processParamName(param.name)}`);
-            w0(": ");
-            schemaToZod(param.schema, io);
-            if (isQuery) w0(".optional()");
-            w(",");
+      w("  path: z.object({");
+      for (const param of params || []) {
+        if ("name" in param && param.schema && param.in === "path") {
+          if ("description" in param.schema || "title" in param.schema) {
+            docComment(extractDoc(param.schema), schemaNames, io);
           }
+
+          w0(`  ${processParamName(param.name)}`);
+          w0(": ");
+          schemaToZod(param.schema, io);
+          w(",");
         }
       }
+      w("  }),");
+
+      w("  query: z.object({");
+      for (const param of params || []) {
+        if ("name" in param && param.schema && param.in === "query") {
+          if ("description" in param.schema || "title" in param.schema) {
+            docComment(extractDoc(param.schema), schemaNames, io);
+          }
+
+          w0(`  ${processParamName(param.name)}`);
+          w0(": ");
+          schemaToZod(param.schema, io);
+          w(".optional(),");
+        }
+      }
+      w("  }),");
+
       w(`}))`);
       w("");
     }
