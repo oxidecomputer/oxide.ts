@@ -73,8 +73,6 @@ export function generateApi(spec: OpenAPIV3.Document) {
     } from './http-client'
     `);
 
-  // TODO: figure out which of these are combined query + path Params types and
-  // don't bother creating them
   const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {
     const schema = spec.components!.schemas![schemaName];
