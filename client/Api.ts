@@ -3447,7 +3447,7 @@ export class Api extends HttpClient {
      * List organizations
      */
     organizationList: (
-      { query }: { query: OrganizationListQueryParams },
+      { query = {} }: { query?: OrganizationListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<OrganizationResultsPage>({
@@ -3558,8 +3558,8 @@ export class Api extends HttpClient {
     projectList: (
       {
         path,
-        query,
-      }: { path: ProjectListPathParams; query: ProjectListQueryParams },
+        query = {},
+      }: { path: ProjectListPathParams; query?: ProjectListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName } = path;
@@ -3632,7 +3632,10 @@ export class Api extends HttpClient {
      * List disks
      */
     diskList: (
-      { path, query }: { path: DiskListPathParams; query: DiskListQueryParams },
+      {
+        path,
+        query = {},
+      }: { path: DiskListPathParams; query?: DiskListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName, projectName } = path;
@@ -3692,8 +3695,11 @@ export class Api extends HttpClient {
     diskMetricsList: (
       {
         path,
-        query,
-      }: { path: DiskMetricsListPathParams; query: DiskMetricsListQueryParams },
+        query = {},
+      }: {
+        path: DiskMetricsListPathParams;
+        query?: DiskMetricsListQueryParams;
+      },
       params: RequestParams = {}
     ) => {
       const { diskName, metricName, orgName, projectName } = path;
@@ -3710,8 +3716,8 @@ export class Api extends HttpClient {
     imageList: (
       {
         path,
-        query,
-      }: { path: ImageListPathParams; query: ImageListQueryParams },
+        query = {},
+      }: { path: ImageListPathParams; query?: ImageListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName, projectName } = path;
@@ -3771,8 +3777,8 @@ export class Api extends HttpClient {
     instanceList: (
       {
         path,
-        query,
-      }: { path: InstanceListPathParams; query: InstanceListQueryParams },
+        query = {},
+      }: { path: InstanceListPathParams; query?: InstanceListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName, projectName } = path;
@@ -3832,10 +3838,10 @@ export class Api extends HttpClient {
     instanceDiskList: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: InstanceDiskListPathParams;
-        query: InstanceDiskListQueryParams;
+        query?: InstanceDiskListQueryParams;
       },
       params: RequestParams = {}
     ) => {
@@ -3921,10 +3927,10 @@ export class Api extends HttpClient {
     instanceNetworkInterfaceList: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: InstanceNetworkInterfaceListPathParams;
-        query: InstanceNetworkInterfaceListQueryParams;
+        query?: InstanceNetworkInterfaceListQueryParams;
       },
       params: RequestParams = {}
     ) => {
@@ -4026,10 +4032,10 @@ export class Api extends HttpClient {
     instanceSerialConsole: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: InstanceSerialConsolePathParams;
-        query: InstanceSerialConsoleQueryParams;
+        query?: InstanceSerialConsoleQueryParams;
       },
       params: RequestParams = {}
     ) => {
@@ -4107,8 +4113,8 @@ export class Api extends HttpClient {
     snapshotList: (
       {
         path,
-        query,
-      }: { path: SnapshotListPathParams; query: SnapshotListQueryParams },
+        query = {},
+      }: { path: SnapshotListPathParams; query?: SnapshotListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName, projectName } = path;
@@ -4166,7 +4172,10 @@ export class Api extends HttpClient {
      * List VPCs
      */
     vpcList: (
-      { path, query }: { path: VpcListPathParams; query: VpcListQueryParams },
+      {
+        path,
+        query = {},
+      }: { path: VpcListPathParams; query?: VpcListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName, projectName } = path;
@@ -4276,8 +4285,8 @@ export class Api extends HttpClient {
     vpcRouterList: (
       {
         path,
-        query,
-      }: { path: VpcRouterListPathParams; query: VpcRouterListQueryParams },
+        query = {},
+      }: { path: VpcRouterListPathParams; query?: VpcRouterListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName, projectName, vpcName } = path;
@@ -4358,10 +4367,10 @@ export class Api extends HttpClient {
     vpcRouterRouteList: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: VpcRouterRouteListPathParams;
-        query: VpcRouterRouteListQueryParams;
+        query?: VpcRouterRouteListQueryParams;
       },
       params: RequestParams = {}
     ) => {
@@ -4449,8 +4458,8 @@ export class Api extends HttpClient {
     vpcSubnetList: (
       {
         path,
-        query,
-      }: { path: VpcSubnetListPathParams; query: VpcSubnetListQueryParams },
+        query = {},
+      }: { path: VpcSubnetListPathParams; query?: VpcSubnetListQueryParams },
       params: RequestParams = {}
     ) => {
       const { orgName, projectName, vpcName } = path;
@@ -4531,10 +4540,10 @@ export class Api extends HttpClient {
     vpcSubnetListNetworkInterfaces: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: VpcSubnetListNetworkInterfacesPathParams;
-        query: VpcSubnetListNetworkInterfacesQueryParams;
+        query?: VpcSubnetListNetworkInterfacesQueryParams;
       },
       params: RequestParams = {}
     ) => {
@@ -4574,7 +4583,7 @@ export class Api extends HttpClient {
      * List built-in roles
      */
     roleList: (
-      { query }: { query: RoleListQueryParams },
+      { query = {} }: { query?: RoleListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<RoleResultsPage>({
@@ -4612,7 +4621,7 @@ export class Api extends HttpClient {
      * List SSH public keys
      */
     sessionSshkeyList: (
-      { query }: { query: SessionSshkeyListQueryParams },
+      { query = {} }: { query?: SessionSshkeyListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<SshKeyResultsPage>({
@@ -4710,7 +4719,7 @@ export class Api extends HttpClient {
      * List racks
      */
     rackList: (
-      { query }: { query: RackListQueryParams },
+      { query = {} }: { query?: RackListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<RackResultsPage>({
@@ -4738,7 +4747,7 @@ export class Api extends HttpClient {
      * List sleds
      */
     sledList: (
-      { query }: { query: SledListQueryParams },
+      { query = {} }: { query?: SledListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<SledResultsPage>({
@@ -4766,7 +4775,7 @@ export class Api extends HttpClient {
      * List system-wide images
      */
     systemImageList: (
-      { query }: { query: SystemImageListQueryParams },
+      { query = {} }: { query?: SystemImageListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<GlobalImageResultsPage>({
@@ -4822,7 +4831,7 @@ export class Api extends HttpClient {
      * List IP pools
      */
     ipPoolList: (
-      { query }: { query: IpPoolListQueryParams },
+      { query = {} }: { query?: IpPoolListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<IpPoolResultsPage>({
@@ -4895,8 +4904,11 @@ export class Api extends HttpClient {
     ipPoolRangeList: (
       {
         path,
-        query,
-      }: { path: IpPoolRangeListPathParams; query: IpPoolRangeListQueryParams },
+        query = {},
+      }: {
+        path: IpPoolRangeListPathParams;
+        query?: IpPoolRangeListQueryParams;
+      },
       params: RequestParams = {}
     ) => {
       const { poolName } = path;
@@ -4957,10 +4969,10 @@ export class Api extends HttpClient {
     ipPoolServiceRangeList: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: IpPoolServiceRangeListPathParams;
-        query: IpPoolServiceRangeListQueryParams;
+        query?: IpPoolServiceRangeListQueryParams;
       },
       params: RequestParams = {}
     ) => {
@@ -5033,7 +5045,7 @@ export class Api extends HttpClient {
      * List sagas
      */
     sagaList: (
-      { query }: { query: SagaListQueryParams },
+      { query = {} }: { query?: SagaListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<SagaResultsPage>({
@@ -5061,7 +5073,7 @@ export class Api extends HttpClient {
      * List silos
      */
     siloList: (
-      { query }: { query: SiloListQueryParams },
+      { query = {} }: { query?: SiloListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<SiloResultsPage>({
@@ -5119,10 +5131,10 @@ export class Api extends HttpClient {
     siloIdentityProviderList: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: SiloIdentityProviderListPathParams;
-        query: SiloIdentityProviderListQueryParams;
+        query?: SiloIdentityProviderListQueryParams;
       },
       params: RequestParams = {}
     ) => {
@@ -5215,7 +5227,7 @@ export class Api extends HttpClient {
      * List built-in users
      */
     systemUserList: (
-      { query }: { query: SystemUserListQueryParams },
+      { query = {} }: { query?: SystemUserListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<UserBuiltinResultsPage>({
@@ -5243,7 +5255,7 @@ export class Api extends HttpClient {
      * List timeseries schema
      */
     timeseriesSchemaGet: (
-      { query }: { query: TimeseriesSchemaGetQueryParams },
+      { query = {} }: { query?: TimeseriesSchemaGetQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<TimeseriesSchemaResultsPage>({
@@ -5257,7 +5269,7 @@ export class Api extends HttpClient {
      * List users
      */
     userList: (
-      { query }: { query: UserListQueryParams },
+      { query = {} }: { query?: UserListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<UserResultsPage>({

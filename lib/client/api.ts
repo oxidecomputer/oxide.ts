@@ -265,7 +265,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
     if (pathParams.length > 0 || queryParams.length > 0 || bodyType) {
       w(`{ `);
       if (pathParams.length > 0) w0("path, ");
-      if (queryParams.length > 0) w0("query, ");
+      if (queryParams.length > 0) w0("query = {}, ");
       if (bodyType) w0("body, ");
       w0("}: {");
 
@@ -274,7 +274,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
       }
 
       if (queryParams.length > 0) {
-        w(`query: ${queryParamsType(methodNameType)},`);
+        w(`query?: ${queryParamsType(methodNameType)},`);
       }
       if (bodyType) w(`body: ${bodyType},`);
       w("},");
