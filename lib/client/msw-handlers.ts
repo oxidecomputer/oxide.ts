@@ -96,9 +96,21 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const pathParams = conf.parameters?.filter(
       (param) => "name" in param && param.schema && param.in === "path"
     );
-    const params = pathParams?.length
-      ? `params: Api.${snakeToPascal(opId)}PathParams`
+    const queryParams = conf.parameters?.filter(
+      (param) => "name" in param && param.schema && param.in === "query"
+    );
+    const pathParamsType = pathParams?.length
+      ? `path: Api.${snakeToPascal(opId)}PathParams,`
       : "";
+    const queryParamsType = queryParams?.length
+      ? `query: Api.${snakeToPascal(opId)}QueryParams,`
+      : "";
+    const params =
+      pathParamsType || queryParamsType
+        ? `{ ${pathParamsType ? "path," : ""} ${
+            queryParamsType ? "query" : ""
+          } }: { ${pathParamsType} ${queryParamsType} }`
+        : "";
 
     const args = [params, body].filter(Boolean).join(", ");
     const statusResult =
