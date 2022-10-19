@@ -145,36 +145,6 @@ export function generateApi(spec: OpenAPIV3.Document) {
     }
   }
 
-  for (const { conf, opId } of iterPathConfig(spec.paths)) {
-    const opName = snakeToPascal(opId);
-    const params = conf.parameters;
-
-    w(`export interface ${opName}Params {`);
-    for (const param of params || []) {
-      if ("name" in param) {
-        if (param.schema) {
-          const isQuery = param.in === "query";
-          if ("description" in param.schema || "title" in param.schema) {
-            docComment(
-              [param.schema.title, param.schema.description]
-                .filter((n) => n)
-                .join("\n\n"),
-              schemaNames,
-              io
-            );
-          }
-
-          w0(`  ${processParamName(param.name)}`);
-          w0(`${isQuery ? "?" : ""}: `);
-          schemaToTypes(param.schema, io);
-          w(",");
-        }
-      }
-    }
-    w(`}`);
-    w("");
-  }
-
   const operations = Object.values(spec.paths)
     .map((handlers) =>
       Object.entries(handlers!)

@@ -93,8 +93,11 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       bodyType && (method === "post" || method === "put")
         ? `body: Json<Api.${bodyType}>`
         : "";
-    const params = conf.parameters?.length
-      ? `params: Api.${snakeToPascal(opId)}Params`
+    const pathParams = conf.parameters?.filter(
+      (param) => "name" in param && param.schema && param.in === "path"
+    );
+    const params = pathParams?.length
+      ? `params: Api.${snakeToPascal(opId)}PathParams`
       : "";
 
     const args = [params, body].filter(Boolean).join(", ");
