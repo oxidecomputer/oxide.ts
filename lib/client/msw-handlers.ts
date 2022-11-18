@@ -139,10 +139,16 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
         path: req.params,
         query: Object.fromEntries(params),
       })
+
       if (result.success) {
         return { params: result.data }
       }
-      return { paramsErr: json(result.error.issues, { status: 400 }) }
+
+      // if any of the errors come from path params, just 404 — the resource cannot
+      // exist if there's no valid name
+      const { issues } = result.error
+      const status = issues.some(e => e.path[0] === 'path') ? 404 : 400
+      return { paramsErr: json(issues, { status }) }
     }
 
     const handler = (handler: MSWHandlers[keyof MSWHandlers], paramSchema: ZodSchema | null, bodySchema: ZodSchema | null) => 
