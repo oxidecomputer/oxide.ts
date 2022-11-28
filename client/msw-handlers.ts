@@ -107,8 +107,17 @@ export interface MSWHandlers {
   }) => StatusCode;
   /** `POST /device/token` */
   deviceAccessToken: () => StatusCode;
+  /** `GET /groups` */
+  groupList: (params: {
+    query: Api.GroupListQueryParams;
+  }) => HandlerResult<Api.GroupResultsPage>;
   /** `POST /login` */
   loginSpoof: (params: { body: Json<Api.SpoofLoginBody> }) => StatusCode;
+  /** `POST /login/:siloName/local` */
+  loginLocal: (params: {
+    path: Api.LoginLocalPathParams;
+    body: Json<Api.UsernamePasswordCredentials>;
+  }) => StatusCode;
   /** `GET /login/:siloName/saml/:providerName` */
   loginSamlBegin: (params: {
     path: Api.LoginSamlBeginPathParams;
@@ -279,6 +288,10 @@ export interface MSWHandlers {
     path: Api.InstanceSerialConsolePathParams;
     query: Api.InstanceSerialConsoleQueryParams;
   }) => HandlerResult<Api.InstanceSerialConsoleData>;
+  /** `GET /organizations/:orgName/projects/:projectName/instances/:instanceName/serial-console/stream` */
+  instanceSerialConsoleStream: (params: {
+    path: Api.InstanceSerialConsoleStreamPathParams;
+  }) => StatusCode;
   /** `POST /organizations/:orgName/projects/:projectName/instances/:instanceName/start` */
   instanceStart: (params: {
     path: Api.InstanceStartPathParams;
@@ -432,6 +445,10 @@ export interface MSWHandlers {
   }) => HandlerResult<Api.Role>;
   /** `GET /session/me` */
   sessionMe: () => HandlerResult<Api.User>;
+  /** `GET /session/me/groups` */
+  sessionMeGroups: (params: {
+    query: Api.SessionMeGroupsQueryParams;
+  }) => HandlerResult<Api.GroupResultsPage>;
   /** `GET /session/me/sshkeys` */
   sessionSshkeyList: (params: {
     query: Api.SessionSshkeyListQueryParams;
@@ -578,6 +595,20 @@ export interface MSWHandlers {
     path: Api.SiloIdentityProviderListPathParams;
     query: Api.SiloIdentityProviderListQueryParams;
   }) => HandlerResult<Api.IdentityProviderResultsPage>;
+  /** `POST /system/silos/:siloName/identity-providers/local/users` */
+  localIdpUserCreate: (params: {
+    path: Api.LocalIdpUserCreatePathParams;
+    body: Json<Api.UserCreate>;
+  }) => HandlerResult<Api.User>;
+  /** `DELETE /system/silos/:siloName/identity-providers/local/users/:userId` */
+  localIdpUserDelete: (params: {
+    path: Api.LocalIdpUserDeletePathParams;
+  }) => StatusCode;
+  /** `POST /system/silos/:siloName/identity-providers/local/users/:userId/set-password` */
+  localIdpUserSetPassword: (params: {
+    path: Api.LocalIdpUserSetPasswordPathParams;
+    body: Json<Api.UserPassword>;
+  }) => StatusCode;
   /** `POST /system/silos/:siloName/identity-providers/saml` */
   samlIdentityProviderCreate: (params: {
     path: Api.SamlIdentityProviderCreatePathParams;
@@ -596,6 +627,15 @@ export interface MSWHandlers {
     path: Api.SiloPolicyUpdatePathParams;
     body: Json<Api.SiloRolePolicy>;
   }) => HandlerResult<Api.SiloRolePolicy>;
+  /** `GET /system/silos/:siloName/users/all` */
+  siloUsersList: (params: {
+    path: Api.SiloUsersListPathParams;
+    query: Api.SiloUsersListQueryParams;
+  }) => HandlerResult<Api.UserResultsPage>;
+  /** `GET /system/silos/:siloName/users/id/:userId` */
+  siloUserView: (params: {
+    path: Api.SiloUserViewPathParams;
+  }) => HandlerResult<Api.User>;
   /** `POST /system/updates/refresh` */
   updatesRefresh: () => StatusCode;
   /** `GET /system/user` */
@@ -774,9 +814,21 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       "/device/token",
       handler(handlers["deviceAccessToken"], null, null)
     ),
+    rest.get(
+      "/groups",
+      handler(handlers["groupList"], schema.GroupListParams, null)
+    ),
     rest.post(
       "/login",
       handler(handlers["loginSpoof"], null, schema.SpoofLoginBody)
+    ),
+    rest.post(
+      "/login/:siloName/local",
+      handler(
+        handlers["loginLocal"],
+        schema.LoginLocalParams,
+        schema.UsernamePasswordCredentials
+      )
     ),
     rest.get(
       "/login/:siloName/saml/:providerName",
@@ -1011,6 +1063,14 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
+    rest.get(
+      "/organizations/:orgName/projects/:projectName/instances/:instanceName/serial-console/stream",
+      handler(
+        handlers["instanceSerialConsoleStream"],
+        schema.InstanceSerialConsoleStreamParams,
+        null
+      )
+    ),
     rest.post(
       "/organizations/:orgName/projects/:projectName/instances/:instanceName/start",
       handler(handlers["instanceStart"], schema.InstanceStartParams, null)
@@ -1210,6 +1270,10 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
     ),
     rest.get("/session/me", handler(handlers["sessionMe"], null, null)),
     rest.get(
+      "/session/me/groups",
+      handler(handlers["sessionMeGroups"], schema.SessionMeGroupsParams, null)
+    ),
+    rest.get(
       "/session/me/sshkeys",
       handler(
         handlers["sessionSshkeyList"],
@@ -1406,6 +1470,30 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       )
     ),
     rest.post(
+      "/system/silos/:siloName/identity-providers/local/users",
+      handler(
+        handlers["localIdpUserCreate"],
+        schema.LocalIdpUserCreateParams,
+        schema.UserCreate
+      )
+    ),
+    rest.delete(
+      "/system/silos/:siloName/identity-providers/local/users/:userId",
+      handler(
+        handlers["localIdpUserDelete"],
+        schema.LocalIdpUserDeleteParams,
+        null
+      )
+    ),
+    rest.post(
+      "/system/silos/:siloName/identity-providers/local/users/:userId/set-password",
+      handler(
+        handlers["localIdpUserSetPassword"],
+        schema.LocalIdpUserSetPasswordParams,
+        schema.UserPassword
+      )
+    ),
+    rest.post(
       "/system/silos/:siloName/identity-providers/saml",
       handler(
         handlers["samlIdentityProviderCreate"],
@@ -1432,6 +1520,14 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.SiloPolicyUpdateParams,
         schema.SiloRolePolicy
       )
+    ),
+    rest.get(
+      "/system/silos/:siloName/users/all",
+      handler(handlers["siloUsersList"], schema.SiloUsersListParams, null)
+    ),
+    rest.get(
+      "/system/silos/:siloName/users/id/:userId",
+      handler(handlers["siloUserView"], schema.SiloUserViewParams, null)
     ),
     rest.post(
       "/system/updates/refresh",

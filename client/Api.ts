@@ -409,6 +409,27 @@ export type GlobalImageResultsPage = {
   nextPage?: string;
 };
 
+/**
+ * Client view of a {@link Group}
+ */
+export type Group = {
+  /** Human-readable name that can identify the group */
+  displayName: string;
+  id: string;
+  /** Uuid of the silo to which this group belongs */
+  siloId: string;
+};
+
+/**
+ * A single page of results
+ */
+export type GroupResultsPage = {
+  /** list of items on this page of results */
+  items: Group[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
 export type IdentityProviderType = "saml";
 
 /**
@@ -883,6 +904,13 @@ export type OrganizationRolePolicy = {
  * Updateable properties of an {@link Organization}
  */
 export type OrganizationUpdate = { description?: string; name?: Name };
+
+/**
+ * A password used to authenticate a user
+ *
+ * Passwords may be subject to additional constraints.
+ */
+export type Password = string;
 
 /**
  * Client view of a {@link Project}
@@ -1388,6 +1416,8 @@ export type User = {
   /** Human-readable name that can identify the user */
   displayName: string;
   id: string;
+  /** Uuid of the silo to which this user belongs */
+  siloId: string;
 };
 
 /**
@@ -1417,6 +1447,32 @@ export type UserBuiltinResultsPage = {
 };
 
 /**
+ * A name unique within the parent collection
+ *
+ * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
+ */
+export type UserId = string;
+
+/**
+ * Parameters for setting a user's password
+ */
+export type UserPassword =
+  /** Sets the user's password to the provided value */
+  | { details: Password; userPasswordValue: "password" }
+  /** Invalidates any current password (disabling password authentication) */
+  | { userPasswordValue: "invalid_password" };
+
+/**
+ * Create-time parameters for a {@link User}
+ */
+export type UserCreate = {
+  /** username used to log in */
+  externalId: UserId;
+  /** password used to log in */
+  password: UserPassword;
+};
+
+/**
  * A single page of results
  */
 export type UserResultsPage = {
@@ -1424,6 +1480,14 @@ export type UserResultsPage = {
   items: User[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
+};
+
+/**
+ * Credentials for local user login
+ */
+export type UsernamePasswordCredentials = {
+  password: Password;
+  username: UserId;
 };
 
 /**
@@ -1688,6 +1752,13 @@ export type VpcSubnetUpdate = { description?: string; name?: Name };
 export type VpcUpdate = { description?: string; dnsName?: Name; name?: Name };
 
 /**
+ * Supported set of sort modes for scanning by id only.
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export type IdSortMode = "id_ascending";
+
+/**
  * Supported set of sort modes for scanning by name or id
  */
 export type NameOrIdSortMode =
@@ -1712,13 +1783,6 @@ export type DiskMetricName =
   | "read_bytes"
   | "write"
   | "write_bytes";
-
-/**
- * Supported set of sort modes for scanning by id only.
- *
- * Currently, we only support scanning in ascending order.
- */
-export type IdSortMode = "id_ascending";
 
 export interface DiskViewByIdPathParams {
   id: string;
@@ -1762,6 +1826,16 @@ export interface VpcSubnetViewByIdPathParams {
 
 export interface VpcViewByIdPathParams {
   id: string;
+}
+
+export interface GroupListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface LoginLocalPathParams {
+  siloName: Name;
 }
 
 export interface LoginSamlBeginPathParams {
@@ -2020,6 +2094,12 @@ export interface InstanceSerialConsoleQueryParams {
   mostRecent?: number;
 }
 
+export interface InstanceSerialConsoleStreamPathParams {
+  instanceName: Name;
+  orgName: Name;
+  projectName: Name;
+}
+
 export interface InstanceStartPathParams {
   instanceName: Name;
   orgName: Name;
@@ -2260,6 +2340,12 @@ export interface RoleViewPathParams {
   roleName: string;
 }
 
+export interface SessionMeGroupsQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
 export interface SessionSshkeyListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -2410,6 +2496,20 @@ export interface SiloIdentityProviderListQueryParams {
   sortBy?: NameSortMode;
 }
 
+export interface LocalIdpUserCreatePathParams {
+  siloName: Name;
+}
+
+export interface LocalIdpUserDeletePathParams {
+  siloName: Name;
+  userId: string;
+}
+
+export interface LocalIdpUserSetPasswordPathParams {
+  siloName: Name;
+  userId: string;
+}
+
 export interface SamlIdentityProviderCreatePathParams {
   siloName: Name;
 }
@@ -2425,6 +2525,21 @@ export interface SiloPolicyViewPathParams {
 
 export interface SiloPolicyUpdatePathParams {
   siloName: Name;
+}
+
+export interface SiloUsersListPathParams {
+  siloName: Name;
+}
+
+export interface SiloUsersListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface SiloUserViewPathParams {
+  siloName: Name;
+  userId: string;
 }
 
 export interface SystemUserListQueryParams {
@@ -2468,6 +2583,7 @@ export type ApiViewByIdMethods = Pick<
 
 export type ApiListMethods = Pick<
   InstanceType<typeof Api>["methods"],
+  | "groupList"
   | "organizationList"
   | "projectList"
   | "diskList"
@@ -2493,6 +2609,7 @@ export type ApiListMethods = Pick<
   | "sagaList"
   | "siloList"
   | "siloIdentityProviderList"
+  | "siloUsersList"
   | "systemUserList"
   | "userList"
 >;
@@ -2688,12 +2805,44 @@ export class Api extends HttpClient {
         ...params,
       });
     },
+    /**
+     * List groups
+     */
+    groupList: (
+      { query = {} }: { query?: GroupListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<GroupResultsPage>({
+        path: `/groups`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
     loginSpoof: (
       { body }: { body: SpoofLoginBody },
       params: RequestParams = {}
     ) => {
       return this.request<void>({
         path: `/login`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Authenticate a user (i.e., log in) via username and password
+     */
+    loginLocal: (
+      {
+        path,
+        body,
+      }: { path: LoginLocalPathParams; body: UsernamePasswordCredentials },
+      params: RequestParams = {}
+    ) => {
+      const { siloName } = path;
+      return this.request<void>({
+        path: `/login/${siloName}/local`,
         method: "POST",
         body,
         ...params,
@@ -2714,7 +2863,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Authenticate a user
+     * Authenticate a user (i.e., log in) via SAML
      */
     loginSaml: (
       { path }: { path: LoginSamlPathParams },
@@ -3339,6 +3488,20 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Connect to an instance's serial console
+     */
+    instanceSerialConsoleStream: (
+      { path }: { path: InstanceSerialConsoleStreamPathParams },
+      params: RequestParams = {}
+    ) => {
+      const { instanceName, orgName, projectName } = path;
+      return this.request<void>({
+        path: `/organizations/${orgName}/projects/${projectName}/instances/${instanceName}/serial-console/stream`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
      * Boot an instance
      */
     instanceStart: (
@@ -3909,6 +4072,20 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Fetch the silo groups the current user belongs to
+     */
+    sessionMeGroups: (
+      { query = {} }: { query?: SessionMeGroupsQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<GroupResultsPage>({
+        path: `/session/me/groups`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List SSH public keys
      */
     sessionSshkeyList: (
@@ -4438,6 +4615,50 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Create a user
+     */
+    localIdpUserCreate: (
+      { path, body }: { path: LocalIdpUserCreatePathParams; body: UserCreate },
+      params: RequestParams = {}
+    ) => {
+      const { siloName } = path;
+      return this.request<User>({
+        path: `/system/silos/${siloName}/identity-providers/local/users`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    localIdpUserDelete: (
+      { path }: { path: LocalIdpUserDeletePathParams },
+      params: RequestParams = {}
+    ) => {
+      const { siloName, userId } = path;
+      return this.request<void>({
+        path: `/system/silos/${siloName}/identity-providers/local/users/${userId}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * Set or invalidate a user's password
+     */
+    localIdpUserSetPassword: (
+      {
+        path,
+        body,
+      }: { path: LocalIdpUserSetPasswordPathParams; body: UserPassword },
+      params: RequestParams = {}
+    ) => {
+      const { siloName, userId } = path;
+      return this.request<void>({
+        path: `/system/silos/${siloName}/identity-providers/local/users/${userId}/set-password`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
      * Create a SAML IDP
      */
     samlIdentityProviderCreate: (
@@ -4501,6 +4722,35 @@ export class Api extends HttpClient {
         path: `/system/silos/${siloName}/policy`,
         method: "PUT",
         body,
+        ...params,
+      });
+    },
+    /**
+     * List users in a specific Silo
+     */
+    siloUsersList: (
+      {
+        path,
+        query = {},
+      }: { path: SiloUsersListPathParams; query?: SiloUsersListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      const { siloName } = path;
+      return this.request<UserResultsPage>({
+        path: `/system/silos/${siloName}/users/all`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    siloUserView: (
+      { path }: { path: SiloUserViewPathParams },
+      params: RequestParams = {}
+    ) => {
+      const { siloName, userId } = path;
+      return this.request<User>({
+        path: `/system/silos/${siloName}/users/id/${userId}`,
+        method: "GET",
         ...params,
       });
     },

@@ -51,6 +51,8 @@ assert<Equals<A.GlobalImageCreate, z.infer<typeof V.GlobalImageCreate>>>();
 assert<
   Equals<A.GlobalImageResultsPage, z.infer<typeof V.GlobalImageResultsPage>>
 >();
+assert<Equals<A.Group, z.infer<typeof V.Group>>>();
+assert<Equals<A.GroupResultsPage, z.infer<typeof V.GroupResultsPage>>>();
 assert<
   Equals<A.IdentityProviderType, z.infer<typeof V.IdentityProviderType>>
 >();
@@ -136,6 +138,7 @@ assert<
   Equals<A.OrganizationRolePolicy, z.infer<typeof V.OrganizationRolePolicy>>
 >();
 assert<Equals<A.OrganizationUpdate, z.infer<typeof V.OrganizationUpdate>>>();
+assert<Equals<A.Password, z.infer<typeof V.Password>>>();
 assert<Equals<A.Project, z.infer<typeof V.Project>>>();
 assert<Equals<A.ProjectCreate, z.infer<typeof V.ProjectCreate>>>();
 assert<Equals<A.ProjectResultsPage, z.infer<typeof V.ProjectResultsPage>>>();
@@ -211,7 +214,16 @@ assert<Equals<A.UserBuiltin, z.infer<typeof V.UserBuiltin>>>();
 assert<
   Equals<A.UserBuiltinResultsPage, z.infer<typeof V.UserBuiltinResultsPage>>
 >();
+assert<Equals<A.UserId, z.infer<typeof V.UserId>>>();
+assert<Equals<A.UserPassword, z.infer<typeof V.UserPassword>>>();
+assert<Equals<A.UserCreate, z.infer<typeof V.UserCreate>>>();
 assert<Equals<A.UserResultsPage, z.infer<typeof V.UserResultsPage>>>();
+assert<
+  Equals<
+    A.UsernamePasswordCredentials,
+    z.infer<typeof V.UsernamePasswordCredentials>
+  >
+>();
 assert<Equals<A.Vpc, z.infer<typeof V.Vpc>>>();
 assert<Equals<A.VpcCreate, z.infer<typeof V.VpcCreate>>>();
 assert<
@@ -264,7 +276,7 @@ assert<
 >();
 assert<Equals<A.VpcSubnetUpdate, z.infer<typeof V.VpcSubnetUpdate>>>();
 assert<Equals<A.VpcUpdate, z.infer<typeof V.VpcUpdate>>>();
+assert<Equals<A.IdSortMode, z.infer<typeof V.IdSortMode>>>();
 assert<Equals<A.NameOrIdSortMode, z.infer<typeof V.NameOrIdSortMode>>>();
 assert<Equals<A.NameSortMode, z.infer<typeof V.NameSortMode>>>();
 assert<Equals<A.DiskMetricName, z.infer<typeof V.DiskMetricName>>>();
-assert<Equals<A.IdSortMode, z.infer<typeof V.IdSortMode>>>();
