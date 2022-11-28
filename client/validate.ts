@@ -478,6 +478,26 @@ export const GlobalImageResultsPage = z.preprocess(
   z.object({ items: GlobalImage.array(), nextPage: z.string().optional() })
 );
 
+/**
+ * Client view of a {@link Group}
+ */
+export const Group = z.preprocess(
+  processResponseBody,
+  z.object({
+    displayName: z.string(),
+    id: z.string().uuid(),
+    siloId: z.string().uuid(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const GroupResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: Group.array(), nextPage: z.string().optional() })
+);
+
 export const IdentityProviderType = z.preprocess(
   processResponseBody,
   z.enum(["saml"])
@@ -708,7 +728,7 @@ export const Ipv4Net = z.preprocess(
   z
     .string()
     .regex(
-      /^(10\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/([8-9]|1[0-9]|2[0-9]|3[0-2])|172\.(1[6-9]|2[0-9]|3[0-1])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/(1[2-9]|2[0-9]|3[0-2])|192\.168\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/(1[6-9]|2[0-9]|3[0-2]))$/
+      /^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/([8-9]|1[0-9]|2[0-9]|3[0-2])$/
     )
 );
 
@@ -974,6 +994,13 @@ export const OrganizationUpdate = z.preprocess(
   processResponseBody,
   z.object({ description: z.string().optional(), name: Name.optional() })
 );
+
+/**
+ * A password used to authenticate a user
+ *
+ * Passwords may be subject to additional constraints.
+ */
+export const Password = z.preprocess(processResponseBody, z.string().max(512));
 
 /**
  * Client view of a {@link Project}
@@ -1476,7 +1503,11 @@ export const TimeseriesSchemaResultsPage = z.preprocess(
  */
 export const User = z.preprocess(
   processResponseBody,
-  z.object({ displayName: z.string(), id: z.string().uuid() })
+  z.object({
+    displayName: z.string(),
+    id: z.string().uuid(),
+    siloId: z.string().uuid(),
+  })
 );
 
 /**
@@ -1502,11 +1533,53 @@ export const UserBuiltinResultsPage = z.preprocess(
 );
 
 /**
+ * A name unique within the parent collection
+ *
+ * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
+ */
+export const UserId = z.preprocess(
+  processResponseBody,
+  z
+    .string()
+    .max(63)
+    .regex(
+      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z][a-z0-9-]*[a-zA-Z0-9]$/
+    )
+);
+
+/**
+ * Parameters for setting a user's password
+ */
+export const UserPassword = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({ details: Password, userPasswordValue: z.enum(["password"]) }),
+    z.object({ userPasswordValue: z.enum(["invalid_password"]) }),
+  ])
+);
+
+/**
+ * Create-time parameters for a {@link User}
+ */
+export const UserCreate = z.preprocess(
+  processResponseBody,
+  z.object({ externalId: UserId, password: UserPassword })
+);
+
+/**
  * A single page of results
  */
 export const UserResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: User.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * Credentials for local user login
+ */
+export const UsernamePasswordCredentials = z.preprocess(
+  processResponseBody,
+  z.object({ password: Password, username: UserId })
 );
 
 /**
@@ -1769,6 +1842,16 @@ export const VpcUpdate = z.preprocess(
 );
 
 /**
+ * Supported set of sort modes for scanning by id only.
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export const IdSortMode = z.preprocess(
+  processResponseBody,
+  z.enum(["id_ascending"])
+);
+
+/**
  * Supported set of sort modes for scanning by name or id
  */
 export const NameOrIdSortMode = z.preprocess(
@@ -1789,16 +1872,6 @@ export const NameSortMode = z.preprocess(
 export const DiskMetricName = z.preprocess(
   processResponseBody,
   z.enum(["activated", "flush", "read", "read_bytes", "write", "write_bytes"])
-);
-
-/**
- * Supported set of sort modes for scanning by id only.
- *
- * Currently, we only support scanning in ascending order.
- */
-export const IdSortMode = z.preprocess(
-  processResponseBody,
-  z.enum(["id_ascending"])
 );
 
 export const DiskViewByIdParams = z.preprocess(
@@ -1935,10 +2008,32 @@ export const DeviceAccessTokenParams = z.preprocess(
   })
 );
 
+export const GroupListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
 export const LoginSpoofParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const LoginLocalParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      siloName: Name,
+    }),
     query: z.object({}),
   })
 );
@@ -2427,6 +2522,18 @@ export const InstanceSerialConsoleParams = z.preprocess(
   })
 );
 
+export const InstanceSerialConsoleStreamParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      instanceName: Name,
+      orgName: Name,
+      projectName: Name,
+    }),
+    query: z.object({}),
+  })
+);
+
 export const InstanceStartParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -2877,6 +2984,18 @@ export const SessionMeParams = z.preprocess(
   })
 );
 
+export const SessionMeGroupsParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
 export const SessionSshkeyListParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3249,6 +3368,38 @@ export const SiloIdentityProviderListParams = z.preprocess(
   })
 );
 
+export const LocalIdpUserCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      siloName: Name,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const LocalIdpUserDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      siloName: Name,
+      userId: z.string().uuid(),
+    }),
+    query: z.object({}),
+  })
+);
+
+export const LocalIdpUserSetPasswordParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      siloName: Name,
+      userId: z.string().uuid(),
+    }),
+    query: z.object({}),
+  })
+);
+
 export const SamlIdentityProviderCreateParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3285,6 +3436,31 @@ export const SiloPolicyUpdateParams = z.preprocess(
   z.object({
     path: z.object({
       siloName: Name,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const SiloUsersListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      siloName: Name,
+    }),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
+export const SiloUserViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      siloName: Name,
+      userId: z.string().uuid(),
     }),
     query: z.object({}),
   })
