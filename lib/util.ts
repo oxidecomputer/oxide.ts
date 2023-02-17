@@ -15,9 +15,15 @@ export const pascalToCamel = (s: string) =>
 // "organization" is really long. Luckily it is only ever used as an
 // interpolated variable in request paths, so renaming it is fine as long
 // as we do it everywhere.
-const toOrgName = (s: string) => s.replace("organization_name", "org_name");
 
-export const processParamName = (s: string) => snakeToCamel(toOrgName(s));
+const renameMap: Record<string, string> = {
+  organization_name: "org_name",
+  interface: "iface",
+};
+
+const renameParam = (s: string) => renameMap[s] || s;
+
+export const processParamName = (s: string) => snakeToCamel(renameParam(s));
 
 /** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
 const segmentToInterpolation = (s: string) =>
