@@ -235,14 +235,10 @@ export function generateApi(spec: OpenAPIV3.Document) {
       w("_: EmptyObj,");
     }
 
-    w(` params: RequestParams = {},
-         ) => {`);
-    if (pathParams.length > 0) {
-      w(`const { ${pathParamNames} } = path`);
-    }
-    w(`  return this.request<${successType}>({
-             path: ${pathToTemplateStr(path)},
-             method: "${method.toUpperCase()}",`);
+    w(`params: RequestParams = {}) => {
+         return this.request<${successType}>({
+           path: ${pathToTemplateStr(path)},
+           method: "${method.toUpperCase()}",`);
     if (bodyType) {
       w(`  body,`);
     }
