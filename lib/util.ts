@@ -11,14 +11,8 @@ export const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
 export const pascalToCamel = (s: string) =>
   s ? s[0].toLowerCase() + s.slice(1) : s;
 
-// HACK: we will probably do this rename in Nexus at some point because
-// "organization" is really long. Luckily it is only ever used as an
-// interpolated variable in request paths, so renaming it is fine as long
-// as we do it everywhere.
-
 const renameMap: Record<string, string> = {
   organization_name: "org_name",
-  interface: "iface",
 };
 
 const renameParam = (s: string) => renameMap[s] || s;
@@ -27,7 +21,7 @@ export const processParamName = (s: string) => snakeToCamel(renameParam(s));
 
 /** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
 const segmentToInterpolation = (s: string) =>
-  s.startsWith("{") ? `\$\{${processParamName(s.slice(1, -1))}\}` : s;
+  s.startsWith("{") ? `\$\{path.${processParamName(s.slice(1, -1))}\}` : s;
 
 export const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";

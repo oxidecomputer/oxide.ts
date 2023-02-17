@@ -13,7 +13,7 @@ test("pathToTemplateStr", () => {
       "/organizations/{organization_name}/projects/{project_name}/disks/{disk_name}"
     )
   ).toEqual(
-    "`/organizations/${orgName}/projects/${projectName}/disks/${diskName}`"
+    "`/organizations/${path.orgName}/projects/${path.projectName}/disks/${path.diskName}`"
   );
 });
 
