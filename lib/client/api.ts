@@ -162,7 +162,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
     w(">\n");
   }
 
-  const listRoutes = ops.filter((op) => op.operationId?.endsWith("_list"));
+  const listRoutes = ops.filter((op) => op.operationId?.match(/_list(_v1)?$/));
   if (listRoutes.length > 0) {
     w(
       "export type ApiListMethods = Pick<InstanceType<typeof Api>['methods'], "
