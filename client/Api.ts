@@ -12,6 +12,11 @@ export type {
 } from "./http-client";
 
 /**
+ * Describes properties that should uniquely identify a Gimlet.
+ */
+export type Baseboard = { part: string; revision: number; serial: string };
+
+/**
  * A type storing a range over `T`.
  *
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
@@ -68,6 +73,99 @@ export type BlockSize = 512 | 2048 | 4096;
  * The maximum supported byte count is `i64::MAX`.  This makes it somewhat inconvenient to define constructors: a u32 constructor can be infallible, but an i64 constructor can fail (if the value is negative) and a u64 constructor can fail (if the value is larger than i64::MAX).  We provide all of these for consumers' convenience.
  */
 export type ByteCount = number;
+
+/**
+ * A name unique within the parent collection
+ *
+ * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
+ */
+export type Name = string;
+
+/**
+ * The service intended to use this certificate.
+ */
+export type ServiceUsingCertificate = "external_api";
+
+/**
+ * Client view of a {@link Certificate}
+ */
+export type Certificate = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  service: ServiceUsingCertificate;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create-time parameters for a {@link Certificate}
+ */
+export type CertificateCreate = {
+  /** PEM file containing public certificate chain */
+  cert: number[];
+  description: string;
+  /** PEM file containing private key */
+  key: number[];
+  name: Name;
+  /** The service using this certificate */
+  service: ServiceUsingCertificate;
+};
+
+/**
+ * A single page of results
+ */
+export type CertificateResultsPage = {
+  /** list of items on this page of results */
+  items: Certificate[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+export type UpdateableComponentType =
+  | "bootloader_for_rot"
+  | "bootloader_for_sp"
+  | "bootloader_for_host_proc"
+  | "hubris_for_psc_rot"
+  | "hubris_for_psc_sp"
+  | "hubris_for_sidecar_rot"
+  | "hubris_for_sidecar_sp"
+  | "hubris_for_gimlet_rot"
+  | "hubris_for_gimlet_sp"
+  | "helios_host_phase1"
+  | "helios_host_phase2"
+  | "host_omicron";
+
+export type SemverVersion = string;
+
+/**
+ * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
+ */
+export type ComponentUpdate = {
+  componentType: UpdateableComponentType;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  version: SemverVersion;
+};
+
+/**
+ * A single page of results
+ */
+export type ComponentUpdateResultsPage = {
+  /** list of items on this page of results */
+  items: ComponentUpdate[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
 
 /**
  * A cumulative or counter data type.
@@ -181,13 +279,6 @@ export type DeviceAuthVerify = { userCode: string };
 export type Digest = { type: "sha256"; value: string };
 
 /**
- * A name unique within the parent collection
- *
- * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
- */
-export type Name = string;
-
-/**
  * State of a Disk (primarily: attached or not)
  */
 export type DiskState =
@@ -195,6 +286,8 @@ export type DiskState =
   | { state: "creating" }
   /** Disk is ready but detached from any Instance */
   | { state: "detached" }
+  /** Disk is undergoing maintenance */
+  | { state: "maintenance" }
   /** Disk is being attached to the given Instance */
   | { instance: string; state: "attaching" }
   /** Disk is attached to the given Instance */
@@ -259,9 +352,13 @@ export type DiskCreate = {
 };
 
 /**
- * Parameters for the {@link Disk} to be attached or detached to an instance
+ * TODO-v1: Delete this Parameters for the {@link Disk} to be attached or detached to an instance
  */
 export type DiskIdentifier = { name: Name };
+
+export type NameOrId = string | Name;
+
+export type DiskPath = { disk: NameOrId };
 
 /**
  * A single page of results
@@ -694,7 +791,6 @@ export type IpPool = {
   id: string;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
-  projectId?: string;
   /** timestamp when this resource was created */
   timeCreated: Date;
   /** timestamp when this resource was last modified */
@@ -706,12 +802,7 @@ export type IpPool = {
  *
  * See {@link IpPool}
  */
-export type IpPoolCreate = {
-  description: string;
-  name: Name;
-  organization?: Name;
-  project?: Name;
-};
+export type IpPoolCreate = { description: string; name: Name };
 
 /**
  * A non-decreasing IPv4 address range, inclusive of both ends.
@@ -912,6 +1003,36 @@ export type OrganizationUpdate = { description?: string; name?: Name };
  */
 export type Password = string;
 
+export type PhysicalDiskType = "internal" | "external";
+
+/**
+ * Client view of a {@link PhysicalDisk}
+ */
+export type PhysicalDisk = {
+  diskType: PhysicalDiskType;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  model: string;
+  serial: string;
+  /** The sled to which this disk is attached, if any. */
+  sledId?: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  vendor: string;
+};
+
+/**
+ * A single page of results
+ */
+export type PhysicalDiskResultsPage = {
+  /** list of items on this page of results */
+  items: PhysicalDisk[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
 /**
  * Client view of a {@link Project}
  */
@@ -1092,9 +1213,9 @@ export type RouterRoute = {
 };
 
 /**
- * Create-time parameters for a {@link RouterRoute}
+ * Create-time parameters for a `omicron_common::api::external::RouterRoute`
  */
-export type RouterRouteCreateParams = {
+export type RouterRouteCreate = {
   description: string;
   destination: RouteDestination;
   name: Name;
@@ -1112,9 +1233,9 @@ export type RouterRouteResultsPage = {
 };
 
 /**
- * Updateable properties of a {@link RouterRoute}
+ * Updateable properties of a `omicron_common::api::external::RouterRoute`
  */
-export type RouterRouteUpdateParams = {
+export type RouterRouteUpdate = {
   description?: string;
   destination: RouteDestination;
   name?: Name;
@@ -1274,11 +1395,13 @@ export type SiloRolePolicy = {
 };
 
 /**
- * Client view of an {@link Sled}
+ * Client view of a {@link Sled}
  */
 export type Sled = {
+  baseboard: Baseboard;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
+  rackId: string;
   serviceAddress: string;
   /** timestamp when this resource was created */
   timeCreated: Date;
@@ -1381,6 +1504,40 @@ export type SshKeyResultsPage = {
 };
 
 /**
+ * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
+ */
+export type SystemUpdate = {
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  version: SemverVersion;
+};
+
+/**
+ * A single page of results
+ */
+export type SystemUpdateResultsPage = {
+  /** list of items on this page of results */
+  items: SystemUpdate[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+export type SystemUpdateStart = { version: SemverVersion };
+
+export type UpdateStatus = { status: "updating" } | { status: "steady" };
+
+export type VersionRange = { high: SemverVersion; low: SemverVersion };
+
+export type SystemVersion = {
+  status: UpdateStatus;
+  versionRange: VersionRange;
+};
+
+/**
  * The name of a timeseries
  *
  * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
@@ -1405,6 +1562,57 @@ export type TimeseriesSchema = {
 export type TimeseriesSchemaResultsPage = {
   /** list of items on this page of results */
   items: TimeseriesSchema[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
+ */
+export type UpdateDeployment = {
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  status: UpdateStatus;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  version: SemverVersion;
+};
+
+/**
+ * A single page of results
+ */
+export type UpdateDeploymentResultsPage = {
+  /** list of items on this page of results */
+  items: UpdateDeployment[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
+ */
+export type UpdateableComponent = {
+  componentType: UpdateableComponentType;
+  deviceId: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  status: UpdateStatus;
+  systemVersion: SemverVersion;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  version: SemverVersion;
+};
+
+/**
+ * A single page of results
+ */
+export type UpdateableComponentResultsPage = {
+  /** list of items on this page of results */
+  items: UpdateableComponent[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1783,6 +1991,11 @@ export type DiskMetricName =
   | "read_bytes"
   | "write"
   | "write_bytes";
+
+export type SystemMetricName =
+  | "virtual_disk_space_provisioned"
+  | "cpus_provisioned"
+  | "ram_provisioned";
 
 export interface DiskViewByIdPathParams {
   id: string;
@@ -2372,6 +2585,26 @@ export interface SiloViewByIdPathParams {
   id: string;
 }
 
+export interface CertificateListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface CertificateViewPathParams {
+  certificate: NameOrId;
+}
+
+export interface CertificateDeletePathParams {
+  certificate: NameOrId;
+}
+
+export interface PhysicalDiskListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
 export interface RackListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -2390,6 +2623,16 @@ export interface SledListQueryParams {
 
 export interface SledViewPathParams {
   sledId: string;
+}
+
+export interface SledPhysicalDiskListPathParams {
+  sledId: string;
+}
+
+export interface SledPhysicalDiskListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
 }
 
 export interface SystemImageListQueryParams {
@@ -2441,25 +2684,21 @@ export interface IpPoolRangeRemovePathParams {
   poolName: Name;
 }
 
-export interface IpPoolServiceViewPathParams {
-  rackId: string;
-}
-
-export interface IpPoolServiceRangeListPathParams {
-  rackId: string;
-}
-
 export interface IpPoolServiceRangeListQueryParams {
   limit?: number;
   pageToken?: string;
 }
 
-export interface IpPoolServiceRangeAddPathParams {
-  rackId: string;
+export interface SystemMetricPathParams {
+  metricName: SystemMetricName;
 }
 
-export interface IpPoolServiceRangeRemovePathParams {
-  rackId: string;
+export interface SystemMetricQueryParams {
+  endTime?: Date;
+  id?: string;
+  limit?: number;
+  pageToken?: string;
+  startTime?: Date;
 }
 
 export interface SagaListQueryParams {
@@ -2563,6 +2802,578 @@ export interface UserListQueryParams {
   sortBy?: IdSortMode;
 }
 
+export interface DiskListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface DiskCreateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface DiskViewV1PathParams {
+  disk: NameOrId;
+}
+
+export interface DiskViewV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface DiskDeleteV1PathParams {
+  disk: NameOrId;
+}
+
+export interface DiskDeleteV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface InstanceCreateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceViewV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceViewV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceDeleteV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceDeleteV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceDiskListV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceDiskListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface InstanceDiskAttachV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceDiskAttachV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceDiskDetachV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceDiskDetachV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceMigrateV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceMigrateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceRebootV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceRebootV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceSerialConsoleV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceSerialConsoleV1QueryParams {
+  fromStart?: number;
+  maxBytes?: number;
+  mostRecent?: number;
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceSerialConsoleStreamV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceSerialConsoleStreamV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceStartV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceStartV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceStopV1PathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceStopV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceNetworkInterfaceListV1QueryParams {
+  instance?: NameOrId;
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface InstanceNetworkInterfaceCreateV1QueryParams {
+  instance?: NameOrId;
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceNetworkInterfaceViewV1PathParams {
+  interface: NameOrId;
+}
+
+export interface InstanceNetworkInterfaceViewV1QueryParams {
+  instance?: NameOrId;
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceNetworkInterfaceUpdateV1PathParams {
+  interface: NameOrId;
+}
+
+export interface InstanceNetworkInterfaceUpdateV1QueryParams {
+  instance?: NameOrId;
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface InstanceNetworkInterfaceDeleteV1PathParams {
+  interface: NameOrId;
+}
+
+export interface InstanceNetworkInterfaceDeleteV1QueryParams {
+  instance?: NameOrId;
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface OrganizationListV1QueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface OrganizationViewV1PathParams {
+  organization: NameOrId;
+}
+
+export interface OrganizationUpdateV1PathParams {
+  organization: NameOrId;
+}
+
+export interface OrganizationDeleteV1PathParams {
+  organization: NameOrId;
+}
+
+export interface OrganizationPolicyViewV1PathParams {
+  organization: NameOrId;
+}
+
+export interface OrganizationPolicyUpdateV1PathParams {
+  organization: NameOrId;
+}
+
+export interface ProjectListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface ProjectCreateV1QueryParams {
+  organization?: NameOrId;
+}
+
+export interface ProjectViewV1PathParams {
+  project: NameOrId;
+}
+
+export interface ProjectViewV1QueryParams {
+  organization?: NameOrId;
+}
+
+export interface ProjectUpdateV1PathParams {
+  project: NameOrId;
+}
+
+export interface ProjectUpdateV1QueryParams {
+  organization?: NameOrId;
+}
+
+export interface ProjectDeleteV1PathParams {
+  project: NameOrId;
+}
+
+export interface ProjectDeleteV1QueryParams {
+  organization?: NameOrId;
+}
+
+export interface ProjectPolicyViewV1PathParams {
+  project: NameOrId;
+}
+
+export interface ProjectPolicyViewV1QueryParams {
+  organization?: NameOrId;
+}
+
+export interface ProjectPolicyUpdateV1PathParams {
+  project: NameOrId;
+}
+
+export interface ProjectPolicyUpdateV1QueryParams {
+  organization?: NameOrId;
+}
+
+export interface SnapshotListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface SnapshotCreateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface SnapshotViewV1PathParams {
+  snapshot: NameOrId;
+}
+
+export interface SnapshotViewV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface SnapshotDeleteV1PathParams {
+  snapshot: NameOrId;
+}
+
+export interface SnapshotDeleteV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface CertificateListV1QueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface CertificateViewV1PathParams {
+  certificate: NameOrId;
+}
+
+export interface CertificateDeleteV1PathParams {
+  certificate: NameOrId;
+}
+
+export interface PhysicalDiskListV1QueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface RackListV1QueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface RackViewV1PathParams {
+  rackId: string;
+}
+
+export interface SledListV1QueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface SledViewV1PathParams {
+  sledId: string;
+}
+
+export interface SledPhysicalDiskListV1PathParams {
+  sledId: string;
+}
+
+export interface SledPhysicalDiskListV1QueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface SagaListV1QueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface SagaViewV1PathParams {
+  sagaId: string;
+}
+
+export interface SystemComponentVersionListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface UpdateDeploymentsListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface UpdateDeploymentViewPathParams {
+  id: string;
+}
+
+export interface SystemUpdateListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface SystemUpdateViewPathParams {
+  version: SemverVersion;
+}
+
+export interface SystemUpdateComponentsListPathParams {
+  version: SemverVersion;
+}
+
+export interface VpcRouterRouteListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  router?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterRouteCreateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  router?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterRouteViewV1PathParams {
+  route: NameOrId;
+}
+
+export interface VpcRouterRouteViewV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  router?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterRouteUpdateV1PathParams {
+  route: NameOrId;
+}
+
+export interface VpcRouterRouteUpdateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  router?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterRouteDeleteV1PathParams {
+  route: NameOrId;
+}
+
+export interface VpcRouterRouteDeleteV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  router?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterCreateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterViewV1PathParams {
+  router: NameOrId;
+}
+
+export interface VpcRouterViewV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterUpdateV1PathParams {
+  router: NameOrId;
+}
+
+export interface VpcRouterUpdateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcRouterDeleteV1PathParams {
+  router: NameOrId;
+}
+
+export interface VpcRouterDeleteV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcSubnetListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+  vpc?: NameOrId;
+}
+
+export interface VpcSubnetCreateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcSubnetViewV1PathParams {
+  subnet: NameOrId;
+}
+
+export interface VpcSubnetViewV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcSubnetUpdateV1PathParams {
+  subnet: NameOrId;
+}
+
+export interface VpcSubnetUpdateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcSubnetDeleteV1PathParams {
+  subnet: NameOrId;
+}
+
+export interface VpcSubnetDeleteV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface VpcListV1QueryParams {
+  limit?: number;
+  organization?: NameOrId;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface VpcCreateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface VpcViewV1PathParams {
+  vpc: NameOrId;
+}
+
+export interface VpcViewV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface VpcUpdateV1PathParams {
+  vpc: NameOrId;
+}
+
+export interface VpcUpdateV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
+export interface VpcDeleteV1PathParams {
+  vpc: NameOrId;
+}
+
+export interface VpcDeleteV1QueryParams {
+  organization?: NameOrId;
+  project?: NameOrId;
+}
+
 export type ApiViewByIdMethods = Pick<
   InstanceType<typeof Api>["methods"],
   | "diskViewById"
@@ -2600,8 +3411,11 @@ export type ApiListMethods = Pick<
   | "vpcSubnetList"
   | "roleList"
   | "sessionSshkeyList"
+  | "certificateList"
+  | "physicalDiskList"
   | "rackList"
   | "sledList"
+  | "sledPhysicalDiskList"
   | "systemImageList"
   | "ipPoolList"
   | "ipPoolRangeList"
@@ -2612,6 +3426,10 @@ export type ApiListMethods = Pick<
   | "siloUsersList"
   | "systemUserList"
   | "userList"
+  | "systemComponentVersionList"
+  | "updateDeploymentsList"
+  | "systemUpdateList"
+  | "systemUpdateComponentsList"
 >;
 
 type EmptyObj = Record<string, never>;
@@ -3062,7 +3880,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Create a disk
+     * Use `POST /v1/disks` instead
      */
     diskCreate: (
       { path, body }: { path: DiskCreatePathParams; body: DiskCreate },
@@ -3089,7 +3907,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Delete a disk
+     * Use `DELETE /v1/disks/{disk}` instead
      */
     diskDelete: (
       { path }: { path: DiskDeletePathParams },
@@ -3772,10 +4590,7 @@ export class Api extends HttpClient {
       {
         path,
         body,
-      }: {
-        path: VpcRouterRouteCreatePathParams;
-        body: RouterRouteCreateParams;
-      },
+      }: { path: VpcRouterRouteCreatePathParams; body: RouterRouteCreate },
       params: RequestParams = {}
     ) => {
       return this.request<RouterRoute>({
@@ -3805,10 +4620,7 @@ export class Api extends HttpClient {
       {
         path,
         body,
-      }: {
-        path: VpcRouterRouteUpdatePathParams;
-        body: RouterRouteUpdateParams;
-      },
+      }: { path: VpcRouterRouteUpdatePathParams; body: RouterRouteUpdate },
       params: RequestParams = {}
     ) => {
       return this.request<RouterRoute>({
@@ -4097,6 +4909,74 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * List system-wide certificates
+     */
+    certificateList: (
+      { query = {} }: { query?: CertificateListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<CertificateResultsPage>({
+        path: `/system/certificates`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a new system-wide x.509 certificate.
+     */
+    certificateCreate: (
+      { body }: { body: CertificateCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Certificate>({
+        path: `/system/certificates`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a certificate
+     */
+    certificateView: (
+      { path }: { path: CertificateViewPathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Certificate>({
+        path: `/system/certificates/${path.certificate}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Delete a certificate
+     */
+    certificateDelete: (
+      { path }: { path: CertificateDeletePathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/system/certificates/${path.certificate}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * List physical disks
+     */
+    physicalDiskList: (
+      { query = {} }: { query?: PhysicalDiskListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<PhysicalDiskResultsPage>({
+        path: `/system/hardware/disks`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List racks
      */
     rackList: (
@@ -4147,6 +5027,26 @@ export class Api extends HttpClient {
       return this.request<Sled>({
         path: `/system/hardware/sleds/${path.sledId}`,
         method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * List physical disks attached to sleds
+     */
+    sledPhysicalDiskList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: SledPhysicalDiskListPathParams;
+        query?: SledPhysicalDiskListQueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<PhysicalDiskResultsPage>({
+        path: `/system/hardware/sleds/${path.sledId}/disks`,
+        method: "GET",
+        query,
         ...params,
       });
     },
@@ -4321,33 +5221,24 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Fetch an IP pool used for Oxide services.
+     * Fetch the IP pool used for Oxide services.
      */
-    ipPoolServiceView: (
-      { path }: { path: IpPoolServiceViewPathParams },
-      params: RequestParams = {}
-    ) => {
+    ipPoolServiceView: (_: EmptyObj, params: RequestParams = {}) => {
       return this.request<IpPool>({
-        path: `/system/ip-pools-service/${path.rackId}`,
+        path: `/system/ip-pools-service`,
         method: "GET",
         ...params,
       });
     },
     /**
-     * List ranges for an IP pool used for Oxide services.
+     * List ranges for the IP pool used for Oxide services.
      */
     ipPoolServiceRangeList: (
-      {
-        path,
-        query = {},
-      }: {
-        path: IpPoolServiceRangeListPathParams;
-        query?: IpPoolServiceRangeListQueryParams;
-      },
+      { query = {} }: { query?: IpPoolServiceRangeListQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<IpPoolRangeResultsPage>({
-        path: `/system/ip-pools-service/${path.rackId}/ranges`,
+        path: `/system/ip-pools-service/ranges`,
         method: "GET",
         query,
         ...params,
@@ -4357,11 +5248,11 @@ export class Api extends HttpClient {
      * Add a range to an IP pool used for Oxide services.
      */
     ipPoolServiceRangeAdd: (
-      { path, body }: { path: IpPoolServiceRangeAddPathParams; body: IpRange },
+      { body }: { body: IpRange },
       params: RequestParams = {}
     ) => {
       return this.request<IpPoolRange>({
-        path: `/system/ip-pools-service/${path.rackId}/ranges/add`,
+        path: `/system/ip-pools-service/ranges/add`,
         method: "POST",
         body,
         ...params,
@@ -4371,16 +5262,30 @@ export class Api extends HttpClient {
      * Remove a range from an IP pool used for Oxide services.
      */
     ipPoolServiceRangeRemove: (
-      {
-        path,
-        body,
-      }: { path: IpPoolServiceRangeRemovePathParams; body: IpRange },
+      { body }: { body: IpRange },
       params: RequestParams = {}
     ) => {
       return this.request<void>({
-        path: `/system/ip-pools-service/${path.rackId}/ranges/remove`,
+        path: `/system/ip-pools-service/ranges/remove`,
         method: "POST",
         body,
+        ...params,
+      });
+    },
+    /**
+     * Access metrics data
+     */
+    systemMetric: (
+      {
+        path,
+        query = {},
+      }: { path: SystemMetricPathParams; query?: SystemMetricQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<MeasurementResultsPage>({
+        path: `/system/metrics/${path.metricName}`,
+        method: "GET",
+        query,
         ...params,
       });
     },
@@ -4523,6 +5428,9 @@ export class Api extends HttpClient {
         ...params,
       });
     },
+    /**
+     * Delete a user
+     */
     localIdpUserDelete: (
       { path }: { path: LocalIdpUserDeletePathParams },
       params: RequestParams = {}
@@ -4614,7 +5522,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List users in a specific Silo
+     * List users in a silo
      */
     siloUsersList: (
       {
@@ -4630,6 +5538,9 @@ export class Api extends HttpClient {
         ...params,
       });
     },
+    /**
+     * Fetch a user
+     */
     siloUserView: (
       { path }: { path: SiloUserViewPathParams },
       params: RequestParams = {}
@@ -4637,16 +5548,6 @@ export class Api extends HttpClient {
       return this.request<User>({
         path: `/system/silos/${path.siloName}/users/id/${path.userId}`,
         method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * Refresh update data
-     */
-    updatesRefresh: (_: EmptyObj, params: RequestParams = {}) => {
-      return this.request<void>({
-        path: `/system/updates/refresh`,
-        method: "POST",
         ...params,
       });
     },
@@ -4701,6 +5602,1446 @@ export class Api extends HttpClient {
       return this.request<UserResultsPage>({
         path: `/users`,
         method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List disks
+     */
+    diskListV1: (
+      { query = {} }: { query?: DiskListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<DiskResultsPage>({
+        path: `/v1/disks`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a disk
+     */
+    diskCreateV1: (
+      {
+        query = {},
+        body,
+      }: { query?: DiskCreateV1QueryParams; body: DiskCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Disk>({
+        path: `/v1/disks`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a disk
+     */
+    diskViewV1: (
+      {
+        path,
+        query = {},
+      }: { path: DiskViewV1PathParams; query?: DiskViewV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Disk>({
+        path: `/v1/disks/${path.disk}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a disk
+     */
+    diskDeleteV1: (
+      {
+        path,
+        query = {},
+      }: { path: DiskDeleteV1PathParams; query?: DiskDeleteV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/disks/${path.disk}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List instances
+     */
+    instanceListV1: (
+      { query = {} }: { query?: InstanceListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<InstanceResultsPage>({
+        path: `/v1/instances`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create an instance
+     */
+    instanceCreateV1: (
+      {
+        query = {},
+        body,
+      }: { query?: InstanceCreateV1QueryParams; body: InstanceCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Instance>({
+        path: `/v1/instances`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch an instance
+     */
+    instanceViewV1: (
+      {
+        path,
+        query = {},
+      }: { path: InstanceViewV1PathParams; query?: InstanceViewV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Instance>({
+        path: `/v1/instances/${path.instance}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete an instance
+     */
+    instanceDeleteV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceDeleteV1PathParams;
+        query?: InstanceDeleteV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/instances/${path.instance}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List an instance's disks
+     */
+    instanceDiskListV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceDiskListV1PathParams;
+        query?: InstanceDiskListV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<DiskResultsPage>({
+        path: `/v1/instances/${path.instance}/disks`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Attach a disk to an instance
+     */
+    instanceDiskAttachV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: InstanceDiskAttachV1PathParams;
+        query?: InstanceDiskAttachV1QueryParams;
+        body: DiskPath;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Disk>({
+        path: `/v1/instances/${path.instance}/disks/attach`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Detach a disk from an instance
+     */
+    instanceDiskDetachV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: InstanceDiskDetachV1PathParams;
+        query?: InstanceDiskDetachV1QueryParams;
+        body: DiskPath;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Disk>({
+        path: `/v1/instances/${path.instance}/disks/detach`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Migrate an instance
+     */
+    instanceMigrateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: InstanceMigrateV1PathParams;
+        query?: InstanceMigrateV1QueryParams;
+        body: InstanceMigrate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Instance>({
+        path: `/v1/instances/${path.instance}/migrate`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Reboot an instance
+     */
+    instanceRebootV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceRebootV1PathParams;
+        query?: InstanceRebootV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Instance>({
+        path: `/v1/instances/${path.instance}/reboot`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch an instance's serial console
+     */
+    instanceSerialConsoleV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceSerialConsoleV1PathParams;
+        query?: InstanceSerialConsoleV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<InstanceSerialConsoleData>({
+        path: `/v1/instances/${path.instance}/serial-console`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Stream an instance's serial console
+     */
+    instanceSerialConsoleStreamV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceSerialConsoleStreamV1PathParams;
+        query?: InstanceSerialConsoleStreamV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/instances/${path.instance}/serial-console/stream`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Boot an instance
+     */
+    instanceStartV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceStartV1PathParams;
+        query?: InstanceStartV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Instance>({
+        path: `/v1/instances/${path.instance}/start`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Stop an instance
+     */
+    instanceStopV1: (
+      {
+        path,
+        query = {},
+      }: { path: InstanceStopV1PathParams; query?: InstanceStopV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Instance>({
+        path: `/v1/instances/${path.instance}/stop`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List network interfaces
+     */
+    instanceNetworkInterfaceListV1: (
+      { query = {} }: { query?: InstanceNetworkInterfaceListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<NetworkInterfaceResultsPage>({
+        path: `/v1/network-interfaces`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a network interface
+     */
+    instanceNetworkInterfaceCreateV1: (
+      {
+        query = {},
+        body,
+      }: {
+        query?: InstanceNetworkInterfaceCreateV1QueryParams;
+        body: NetworkInterfaceCreate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<NetworkInterface>({
+        path: `/v1/network-interfaces`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a network interface
+     */
+    instanceNetworkInterfaceViewV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceNetworkInterfaceViewV1PathParams;
+        query?: InstanceNetworkInterfaceViewV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<NetworkInterface>({
+        path: `/v1/network-interfaces/${path.interface}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update a network interface
+     */
+    instanceNetworkInterfaceUpdateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: InstanceNetworkInterfaceUpdateV1PathParams;
+        query?: InstanceNetworkInterfaceUpdateV1QueryParams;
+        body: NetworkInterfaceUpdate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<NetworkInterface>({
+        path: `/v1/network-interfaces/${path.interface}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a network interface
+     */
+    instanceNetworkInterfaceDeleteV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceNetworkInterfaceDeleteV1PathParams;
+        query?: InstanceNetworkInterfaceDeleteV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/network-interfaces/${path.interface}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List organizations
+     */
+    organizationListV1: (
+      { query = {} }: { query?: OrganizationListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<OrganizationResultsPage>({
+        path: `/v1/organizations`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create an organization
+     */
+    organizationCreateV1: (
+      { body }: { body: OrganizationCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Organization>({
+        path: `/v1/organizations`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Fetch an organization
+     */
+    organizationViewV1: (
+      { path }: { path: OrganizationViewV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Organization>({
+        path: `/v1/organizations/${path.organization}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Update an organization
+     */
+    organizationUpdateV1: (
+      {
+        path,
+        body,
+      }: { path: OrganizationUpdateV1PathParams; body: OrganizationUpdate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Organization>({
+        path: `/v1/organizations/${path.organization}`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Delete an organization
+     */
+    organizationDeleteV1: (
+      { path }: { path: OrganizationDeleteV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/organizations/${path.organization}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * Fetch an organization's IAM policy
+     */
+    organizationPolicyViewV1: (
+      { path }: { path: OrganizationPolicyViewV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<OrganizationRolePolicy>({
+        path: `/v1/organizations/${path.organization}/policy`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Update an organization's IAM policy
+     */
+    organizationPolicyUpdateV1: (
+      {
+        path,
+        body,
+      }: {
+        path: OrganizationPolicyUpdateV1PathParams;
+        body: OrganizationRolePolicy;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<OrganizationRolePolicy>({
+        path: `/v1/organizations/${path.organization}/policy`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Fetch the current silo's IAM policy
+     */
+    policyViewV1: (_: EmptyObj, params: RequestParams = {}) => {
+      return this.request<SiloRolePolicy>({
+        path: `/v1/policy`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Update the current silo's IAM policy
+     */
+    policyUpdateV1: (
+      { body }: { body: SiloRolePolicy },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SiloRolePolicy>({
+        path: `/v1/policy`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * List projects
+     */
+    projectListV1: (
+      { query = {} }: { query?: ProjectListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<ProjectResultsPage>({
+        path: `/v1/projects`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a project
+     */
+    projectCreateV1: (
+      {
+        query = {},
+        body,
+      }: { query?: ProjectCreateV1QueryParams; body: ProjectCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Project>({
+        path: `/v1/projects`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a project
+     */
+    projectViewV1: (
+      {
+        path,
+        query = {},
+      }: { path: ProjectViewV1PathParams; query?: ProjectViewV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Project>({
+        path: `/v1/projects/${path.project}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update a project
+     */
+    projectUpdateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: ProjectUpdateV1PathParams;
+        query?: ProjectUpdateV1QueryParams;
+        body: ProjectUpdate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Project>({
+        path: `/v1/projects/${path.project}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a project
+     */
+    projectDeleteV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: ProjectDeleteV1PathParams;
+        query?: ProjectDeleteV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/projects/${path.project}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a project's IAM policy
+     */
+    projectPolicyViewV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: ProjectPolicyViewV1PathParams;
+        query?: ProjectPolicyViewV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<ProjectRolePolicy>({
+        path: `/v1/projects/${path.project}/policy`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update a project's IAM policy
+     */
+    projectPolicyUpdateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: ProjectPolicyUpdateV1PathParams;
+        query?: ProjectPolicyUpdateV1QueryParams;
+        body: ProjectRolePolicy;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<ProjectRolePolicy>({
+        path: `/v1/projects/${path.project}/policy`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List snapshots
+     */
+    snapshotListV1: (
+      { query = {} }: { query?: SnapshotListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SnapshotResultsPage>({
+        path: `/v1/snapshots`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a snapshot
+     */
+    snapshotCreateV1: (
+      {
+        query = {},
+        body,
+      }: { query?: SnapshotCreateV1QueryParams; body: SnapshotCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Snapshot>({
+        path: `/v1/snapshots`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a snapshot
+     */
+    snapshotViewV1: (
+      {
+        path,
+        query = {},
+      }: { path: SnapshotViewV1PathParams; query?: SnapshotViewV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Snapshot>({
+        path: `/v1/snapshots/${path.snapshot}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a snapshot
+     */
+    snapshotDeleteV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: SnapshotDeleteV1PathParams;
+        query?: SnapshotDeleteV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/snapshots/${path.snapshot}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List system-wide certificates
+     */
+    certificateListV1: (
+      { query = {} }: { query?: CertificateListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<CertificateResultsPage>({
+        path: `/v1/system/certificates`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a new system-wide x.509 certificate.
+     */
+    certificateCreateV1: (
+      { body }: { body: CertificateCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Certificate>({
+        path: `/v1/system/certificates`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a certificate
+     */
+    certificateViewV1: (
+      { path }: { path: CertificateViewV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Certificate>({
+        path: `/v1/system/certificates/${path.certificate}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Delete a certificate
+     */
+    certificateDeleteV1: (
+      { path }: { path: CertificateDeleteV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/certificates/${path.certificate}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * List physical disks
+     */
+    physicalDiskListV1: (
+      { query = {} }: { query?: PhysicalDiskListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<PhysicalDiskResultsPage>({
+        path: `/v1/system/hardware/disks`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List racks
+     */
+    rackListV1: (
+      { query = {} }: { query?: RackListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<RackResultsPage>({
+        path: `/v1/system/hardware/racks`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a rack
+     */
+    rackViewV1: (
+      { path }: { path: RackViewV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Rack>({
+        path: `/v1/system/hardware/racks/${path.rackId}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * List sleds
+     */
+    sledListV1: (
+      { query = {} }: { query?: SledListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SledResultsPage>({
+        path: `/v1/system/hardware/sleds`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a sled
+     */
+    sledViewV1: (
+      { path }: { path: SledViewV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Sled>({
+        path: `/v1/system/hardware/sleds/${path.sledId}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * List physical disks attached to sleds
+     */
+    sledPhysicalDiskListV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: SledPhysicalDiskListV1PathParams;
+        query?: SledPhysicalDiskListV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<PhysicalDiskResultsPage>({
+        path: `/v1/system/hardware/sleds/${path.sledId}/disks`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch the top-level IAM policy
+     */
+    systemPolicyViewV1: (_: EmptyObj, params: RequestParams = {}) => {
+      return this.request<FleetRolePolicy>({
+        path: `/v1/system/policy`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Update the top-level IAM policy
+     */
+    systemPolicyUpdateV1: (
+      { body }: { body: FleetRolePolicy },
+      params: RequestParams = {}
+    ) => {
+      return this.request<FleetRolePolicy>({
+        path: `/v1/system/policy`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * List sagas
+     */
+    sagaListV1: (
+      { query = {} }: { query?: SagaListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SagaResultsPage>({
+        path: `/v1/system/sagas`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a saga
+     */
+    sagaViewV1: (
+      { path }: { path: SagaViewV1PathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Saga>({
+        path: `/v1/system/sagas/${path.sagaId}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * View version and update status of component tree
+     */
+    systemComponentVersionList: (
+      { query = {} }: { query?: SystemComponentVersionListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<UpdateableComponentResultsPage>({
+        path: `/v1/system/update/components`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List all update deployments
+     */
+    updateDeploymentsList: (
+      { query = {} }: { query?: UpdateDeploymentsListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<UpdateDeploymentResultsPage>({
+        path: `/v1/system/update/deployments`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a system update deployment
+     */
+    updateDeploymentView: (
+      { path }: { path: UpdateDeploymentViewPathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<UpdateDeployment>({
+        path: `/v1/system/update/deployments/${path.id}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Refresh update data
+     */
+    systemUpdateRefresh: (_: EmptyObj, params: RequestParams = {}) => {
+      return this.request<void>({
+        path: `/v1/system/update/refresh`,
+        method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * Start system update
+     */
+    systemUpdateStart: (
+      { body }: { body: SystemUpdateStart },
+      params: RequestParams = {}
+    ) => {
+      return this.request<UpdateDeployment>({
+        path: `/v1/system/update/start`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Stop system update
+     */
+    systemUpdateStop: (_: EmptyObj, params: RequestParams = {}) => {
+      return this.request<void>({
+        path: `/v1/system/update/stop`,
+        method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * List all updates
+     */
+    systemUpdateList: (
+      { query = {} }: { query?: SystemUpdateListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SystemUpdateResultsPage>({
+        path: `/v1/system/update/updates`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * View system update
+     */
+    systemUpdateView: (
+      { path }: { path: SystemUpdateViewPathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SystemUpdate>({
+        path: `/v1/system/update/updates/${path.version}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * View system update component tree
+     */
+    systemUpdateComponentsList: (
+      { path }: { path: SystemUpdateComponentsListPathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<ComponentUpdateResultsPage>({
+        path: `/v1/system/update/updates/${path.version}/components`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * View system version and update status
+     */
+    systemVersion: (_: EmptyObj, params: RequestParams = {}) => {
+      return this.request<SystemVersion>({
+        path: `/v1/system/update/version`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * List the routes associated with a router in a particular VPC.
+     */
+    vpcRouterRouteListV1: (
+      { query = {} }: { query?: VpcRouterRouteListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<RouterRouteResultsPage>({
+        path: `/v1/vpc-router-routes`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a router
+     */
+    vpcRouterRouteCreateV1: (
+      {
+        query = {},
+        body,
+      }: { query?: VpcRouterRouteCreateV1QueryParams; body: RouterRouteCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<RouterRoute>({
+        path: `/v1/vpc-router-routes`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a route
+     */
+    vpcRouterRouteViewV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: VpcRouterRouteViewV1PathParams;
+        query?: VpcRouterRouteViewV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<RouterRoute>({
+        path: `/v1/vpc-router-routes/${path.route}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update a route
+     */
+    vpcRouterRouteUpdateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: VpcRouterRouteUpdateV1PathParams;
+        query?: VpcRouterRouteUpdateV1QueryParams;
+        body: RouterRouteUpdate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<RouterRoute>({
+        path: `/v1/vpc-router-routes/${path.route}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a route
+     */
+    vpcRouterRouteDeleteV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: VpcRouterRouteDeleteV1PathParams;
+        query?: VpcRouterRouteDeleteV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/vpc-router-routes/${path.route}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List routers
+     */
+    vpcRouterListV1: (
+      { query = {} }: { query?: VpcRouterListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcRouterResultsPage>({
+        path: `/v1/vpc-routers`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a VPC router
+     */
+    vpcRouterCreateV1: (
+      {
+        query = {},
+        body,
+      }: { query?: VpcRouterCreateV1QueryParams; body: VpcRouterCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcRouter>({
+        path: `/v1/vpc-routers`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get a router
+     */
+    vpcRouterViewV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: VpcRouterViewV1PathParams;
+        query?: VpcRouterViewV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcRouter>({
+        path: `/v1/vpc-routers/${path.router}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update a router
+     */
+    vpcRouterUpdateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: VpcRouterUpdateV1PathParams;
+        query?: VpcRouterUpdateV1QueryParams;
+        body: VpcRouterUpdate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcRouter>({
+        path: `/v1/vpc-routers/${path.router}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a router
+     */
+    vpcRouterDeleteV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: VpcRouterDeleteV1PathParams;
+        query?: VpcRouterDeleteV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/vpc-routers/${path.router}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a subnet
+     */
+    vpcSubnetListV1: (
+      { query = {} }: { query?: VpcSubnetListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcSubnetResultsPage>({
+        path: `/v1/vpc-subnets`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a subnet
+     */
+    vpcSubnetCreateV1: (
+      {
+        query = {},
+        body,
+      }: { query?: VpcSubnetCreateV1QueryParams; body: VpcSubnetCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcSubnet>({
+        path: `/v1/vpc-subnets`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a subnet
+     */
+    vpcSubnetViewV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: VpcSubnetViewV1PathParams;
+        query?: VpcSubnetViewV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcSubnet>({
+        path: `/v1/vpc-subnets/${path.subnet}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update a subnet
+     */
+    vpcSubnetUpdateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: VpcSubnetUpdateV1PathParams;
+        query?: VpcSubnetUpdateV1QueryParams;
+        body: VpcSubnetUpdate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcSubnet>({
+        path: `/v1/vpc-subnets/${path.subnet}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a subnet
+     */
+    vpcSubnetDeleteV1: (
+      {
+        path,
+        query = {},
+      }: {
+        path: VpcSubnetDeleteV1PathParams;
+        query?: VpcSubnetDeleteV1QueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/vpc-subnets/${path.subnet}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List VPCs
+     */
+    vpcListV1: (
+      { query = {} }: { query?: VpcListV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<VpcResultsPage>({
+        path: `/v1/vpcs`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a VPC
+     */
+    vpcCreateV1: (
+      { query = {}, body }: { query?: VpcCreateV1QueryParams; body: VpcCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Vpc>({
+        path: `/v1/vpcs`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a VPC
+     */
+    vpcViewV1: (
+      {
+        path,
+        query = {},
+      }: { path: VpcViewV1PathParams; query?: VpcViewV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Vpc>({
+        path: `/v1/vpcs/${path.vpc}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update a VPC
+     */
+    vpcUpdateV1: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: VpcUpdateV1PathParams;
+        query?: VpcUpdateV1QueryParams;
+        body: VpcUpdate;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Vpc>({
+        path: `/v1/vpcs/${path.vpc}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete a VPC
+     */
+    vpcDeleteV1: (
+      {
+        path,
+        query = {},
+      }: { path: VpcDeleteV1PathParams; query?: VpcDeleteV1QueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/vpcs/${path.vpc}`,
+        method: "DELETE",
         query,
         ...params,
       });
