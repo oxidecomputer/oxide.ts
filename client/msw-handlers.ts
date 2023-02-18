@@ -794,24 +794,24 @@ export interface MSWHandlers {
   organizationCreateV1: (params: {
     body: Json<Api.OrganizationCreate>;
   }) => HandlerResult<Api.Organization>;
-  /** `GET /v1/organizations/:org` */
+  /** `GET /v1/organizations/:organization` */
   organizationViewV1: (params: {
     path: Api.OrganizationViewV1PathParams;
   }) => HandlerResult<Api.Organization>;
-  /** `PUT /v1/organizations/:org` */
+  /** `PUT /v1/organizations/:organization` */
   organizationUpdateV1: (params: {
     path: Api.OrganizationUpdateV1PathParams;
     body: Json<Api.OrganizationUpdate>;
   }) => HandlerResult<Api.Organization>;
-  /** `DELETE /v1/organizations/:org` */
+  /** `DELETE /v1/organizations/:organization` */
   organizationDeleteV1: (params: {
     path: Api.OrganizationDeleteV1PathParams;
   }) => StatusCode;
-  /** `GET /v1/organizations/:org/policy` */
+  /** `GET /v1/organizations/:organization/policy` */
   organizationPolicyViewV1: (params: {
     path: Api.OrganizationPolicyViewV1PathParams;
   }) => HandlerResult<Api.OrganizationRolePolicy>;
-  /** `PUT /v1/organizations/:org/policy` */
+  /** `PUT /v1/organizations/:organization/policy` */
   organizationPolicyUpdateV1: (params: {
     path: Api.OrganizationPolicyUpdateV1PathParams;
     body: Json<Api.OrganizationRolePolicy>;
@@ -2138,7 +2138,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       handler(handlers["organizationCreateV1"], null, schema.OrganizationCreate)
     ),
     rest.get(
-      "/v1/organizations/:org",
+      "/v1/organizations/:organization",
       handler(
         handlers["organizationViewV1"],
         schema.OrganizationViewV1Params,
@@ -2146,7 +2146,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       )
     ),
     rest.put(
-      "/v1/organizations/:org",
+      "/v1/organizations/:organization",
       handler(
         handlers["organizationUpdateV1"],
         schema.OrganizationUpdateV1Params,
@@ -2154,7 +2154,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       )
     ),
     rest.delete(
-      "/v1/organizations/:org",
+      "/v1/organizations/:organization",
       handler(
         handlers["organizationDeleteV1"],
         schema.OrganizationDeleteV1Params,
@@ -2162,7 +2162,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       )
     ),
     rest.get(
-      "/v1/organizations/:org/policy",
+      "/v1/organizations/:organization/policy",
       handler(
         handlers["organizationPolicyViewV1"],
         schema.OrganizationPolicyViewV1Params,
@@ -2170,7 +2170,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       )
     ),
     rest.put(
-      "/v1/organizations/:org/policy",
+      "/v1/organizations/:organization/policy",
       handler(
         handlers["organizationPolicyUpdateV1"],
         schema.OrganizationPolicyUpdateV1Params,

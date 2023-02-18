@@ -11,7 +11,7 @@ const { w } = io;
 const formatPath = (path: string) =>
   path.replace(
     /{(\w+)}/g,
-    (n) => `:${snakeToCamel(n.slice(1, -1)).replace("organization", "org")}`
+    (n) => `:${snakeToCamel(n.slice(1, -1)).replace("organizationName", "orgName")}`
   );
 
 export function generateMSWHandlers(spec: OpenAPIV3.Document) {
