@@ -80,7 +80,7 @@ function encodeQueryParam(key: string, value: unknown) {
 }
 
 // params with null value are filtered out
-const toQueryString = (rawQuery?: QueryParamsType): string =>
+export const toQueryString = (rawQuery?: QueryParamsType): string =>
   Object.entries(rawQuery || {})
     .filter(([_key, value]) => isNotNull(value))
     .map(([key, value]) =>

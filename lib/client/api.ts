@@ -62,7 +62,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
   copy("./static/http-client.ts");
 
   w(`import type { RequestParams } from './http-client'
-    import { HttpClient } from './http-client'`);
+    import { HttpClient, toQueryString } from './http-client'`);
 
   w(`export type {
       ApiConfig, 
@@ -184,7 +184,6 @@ export function generateApi(spec: OpenAPIV3.Document) {
     const methodName = snakeToCamel(opId);
     const methodNameType = snakeToPascal(opId);
 
-    const paramsType = snakeToPascal(opId) + "Params";
     const params = conf.parameters || [];
     const pathParams = params.filter(
       (p) => "in" in p && p.in === "path"
@@ -209,12 +208,11 @@ export function generateApi(spec: OpenAPIV3.Document) {
 
     docComment(conf.summary || conf.description, schemaNames, io);
 
-    const pathParamNames = pathParams
-      .map((p) => processParamName(p.name))
-      .join(", ");
-
     w0(`${methodName}: (`);
 
+    const isWebsocket = "x-dropshot-websocket" in conf;
+
+    if (isWebsocket) w("host: string,");
     if (pathParams.length > 0 || queryParams.length > 0 || bodyType) {
       w(`{ `);
       if (pathParams.length > 0) w0("path, ");
@@ -235,19 +233,33 @@ export function generateApi(spec: OpenAPIV3.Document) {
       w("_: EmptyObj,");
     }
 
-    w(`params: RequestParams = {}) => {
+    // websocket endpoints can't use normal fetch so we return a WebSocket
+    if (isWebsocket) {
+      w(`) => {
+          let route = ${pathToTemplateStr(path)}`);
+      if (queryParams.length > 0) {
+        w(`const queryString = toQueryString(query)
+           if (queryString) {
+             route += "?" + queryString;
+           }`);
+      }
+      w(`return new WebSocket('ws://' + host + route)
+       },`);
+    } else {
+      w(`params: RequestParams = {}) => {
          return this.request<${successType}>({
            path: ${pathToTemplateStr(path)},
            method: "${method.toUpperCase()}",`);
-    if (bodyType) {
-      w(`  body,`);
-    }
-    if (queryParams.length > 0) {
-      w("  query,");
-    }
-    w(`    ...params,
+      if (bodyType) {
+        w(`  body,`);
+      }
+      if (queryParams.length > 0) {
+        w("  query,");
+      }
+      w(`    ...params,
            })
       },`);
+    }
   }
 
   w(`  }

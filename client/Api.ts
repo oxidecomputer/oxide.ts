@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import type { RequestParams } from "./http-client";
-import { HttpClient } from "./http-client";
+import { HttpClient, toQueryString } from "./http-client";
 export type {
   ApiConfig,
   ApiError,
@@ -4527,14 +4527,11 @@ export class Api extends HttpClient {
      * Connect to an instance's serial console
      */
     instanceSerialConsoleStream: (
-      { path }: { path: InstanceSerialConsoleStreamPathParams },
-      params: RequestParams = {}
+      host: string,
+      { path }: { path: InstanceSerialConsoleStreamPathParams }
     ) => {
-      return this.request<void>({
-        path: `/organizations/${path.orgName}/projects/${path.projectName}/instances/${path.instanceName}/serial-console/stream`,
-        method: "GET",
-        ...params,
-      });
+      let route = `/organizations/${path.orgName}/projects/${path.projectName}/instances/${path.instanceName}/serial-console/stream`;
+      return new WebSocket("ws://" + host + route);
     },
     /**
      * Boot an instance
@@ -6274,21 +6271,21 @@ export class Api extends HttpClient {
      * Stream an instance's serial console
      */
     instanceSerialConsoleStreamV1: (
+      host: string,
       {
         path,
         query = {},
       }: {
         path: InstanceSerialConsoleStreamV1PathParams;
         query?: InstanceSerialConsoleStreamV1QueryParams;
-      },
-      params: RequestParams = {}
+      }
     ) => {
-      return this.request<void>({
-        path: `/v1/instances/${path.instance}/serial-console/stream`,
-        method: "GET",
-        query,
-        ...params,
-      });
+      let route = `/v1/instances/${path.instance}/serial-console/stream`;
+      const queryString = toQueryString(query);
+      if (queryString) {
+        route += "?" + queryString;
+      }
+      return new WebSocket("ws://" + host + route);
     },
     /**
      * Boot an instance
