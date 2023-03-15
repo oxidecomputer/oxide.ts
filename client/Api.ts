@@ -4524,16 +4524,6 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Connect to an instance's serial console
-     */
-    instanceSerialConsoleStream: (
-      host: string,
-      { path }: { path: InstanceSerialConsoleStreamPathParams }
-    ) => {
-      let route = `/organizations/${path.orgName}/projects/${path.projectName}/instances/${path.instanceName}/serial-console/stream`;
-      return new WebSocket("ws://" + host + route);
-    },
-    /**
      * Boot an instance
      */
     instanceStart: (
@@ -6268,26 +6258,6 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Stream an instance's serial console
-     */
-    instanceSerialConsoleStreamV1: (
-      host: string,
-      {
-        path,
-        query = {},
-      }: {
-        path: InstanceSerialConsoleStreamV1PathParams;
-        query?: InstanceSerialConsoleStreamV1QueryParams;
-      }
-    ) => {
-      let route = `/v1/instances/${path.instance}/serial-console/stream`;
-      const queryString = toQueryString(query);
-      if (queryString) {
-        route += "?" + queryString;
-      }
-      return new WebSocket("ws://" + host + route);
-    },
-    /**
      * Boot an instance
      */
     instanceStartV1: (
@@ -7988,6 +7958,38 @@ export class Api extends HttpClient {
         query,
         ...params,
       });
+    },
+  };
+  ws = {
+    /**
+     * Connect to an instance's serial console
+     */
+    instanceSerialConsoleStream: (
+      host: string,
+      { path }: { path: InstanceSerialConsoleStreamPathParams }
+    ) => {
+      let route = `/organizations/${path.orgName}/projects/${path.projectName}/instances/${path.instanceName}/serial-console/stream`;
+      return new WebSocket("ws://" + host + route);
+    },
+    /**
+     * Stream an instance's serial console
+     */
+    instanceSerialConsoleStreamV1: (
+      host: string,
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceSerialConsoleStreamV1PathParams;
+        query?: InstanceSerialConsoleStreamV1QueryParams;
+      }
+    ) => {
+      let route = `/v1/instances/${path.instance}/serial-console/stream`;
+      const queryString = toQueryString(query);
+      if (queryString) {
+        route += "?" + queryString;
+      }
+      return new WebSocket("ws://" + host + route);
     },
   };
 }

@@ -181,6 +181,9 @@ export function generateApi(spec: OpenAPIV3.Document) {
        methods = {`);
 
   for (const { conf, opId, method, path } of iterPathConfig(spec.paths)) {
+    // websockets handled in the next loop
+    if ("x-dropshot-websocket" in conf) continue;
+
     const methodName = snakeToCamel(opId);
     const methodNameType = snakeToPascal(opId);
 
@@ -210,9 +213,6 @@ export function generateApi(spec: OpenAPIV3.Document) {
 
     w0(`${methodName}: (`);
 
-    const isWebsocket = "x-dropshot-websocket" in conf;
-
-    if (isWebsocket) w("host: string,");
     if (pathParams.length > 0 || queryParams.length > 0 || bodyType) {
       w(`{ `);
       if (pathParams.length > 0) w0("path, ");
@@ -233,33 +233,74 @@ export function generateApi(spec: OpenAPIV3.Document) {
       w("_: EmptyObj,");
     }
 
-    // websocket endpoints can't use normal fetch so we return a WebSocket
-    if (isWebsocket) {
-      w(`) => {
-          let route = ${pathToTemplateStr(path)}`);
-      if (queryParams.length > 0) {
-        w(`const queryString = toQueryString(query)
-           if (queryString) {
-             route += "?" + queryString;
-           }`);
-      }
-      w(`return new WebSocket('ws://' + host + route)
-       },`);
-    } else {
-      w(`params: RequestParams = {}) => {
+    w(`params: RequestParams = {}) => {
          return this.request<${successType}>({
            path: ${pathToTemplateStr(path)},
            method: "${method.toUpperCase()}",`);
-      if (bodyType) {
-        w(`  body,`);
-      }
-      if (queryParams.length > 0) {
-        w("  query,");
-      }
-      w(`    ...params,
-           })
-      },`);
+    if (bodyType) {
+      w(`  body,`);
     }
+    if (queryParams.length > 0) {
+      w("  query,");
+    }
+    w(`  ...params,
+         })
+      },`);
+  }
+
+  w(`}
+     ws = {`);
+
+  // handle websockets endpoints separately so api.methods keep consistent
+  // return types
+  for (const { conf, opId, path } of iterPathConfig(spec.paths)) {
+    if (!("x-dropshot-websocket" in conf)) continue;
+
+    const methodName = snakeToCamel(opId);
+    const methodNameType = snakeToPascal(opId);
+
+    const params = conf.parameters || [];
+    const pathParams = params.filter(
+      (p) => "in" in p && p.in === "path"
+    ) as OpenAPIV3.ParameterObject[];
+    const queryParams = params.filter(
+      (p) => "in" in p && p.in === "query"
+    ) as OpenAPIV3.ParameterObject[];
+
+    docComment(conf.summary || conf.description, schemaNames, io);
+
+    w0(`${methodName}: (`);
+
+    w("host: string,");
+    if (pathParams.length > 0 || queryParams.length > 0) {
+      w(`{ `);
+      if (pathParams.length > 0) w0("path, ");
+      if (queryParams.length > 0) w0("query = {}, ");
+      w0("}: {");
+
+      if (pathParams.length > 0) {
+        w(`path: ${pathParamsType(methodNameType)},`);
+      }
+
+      if (queryParams.length > 0) {
+        w(`query?: ${queryParamsType(methodNameType)},`);
+      }
+      w("},");
+    } else {
+      w("_: EmptyObj,");
+    }
+
+    // websocket endpoints can't use normal fetch so we return a WebSocket
+    w(`) => {
+        let route = ${pathToTemplateStr(path)}`);
+    if (queryParams.length > 0) {
+      w(`const queryString = toQueryString(query)
+         if (queryString) {
+           route += "?" + queryString;
+         }`);
+    }
+    w(`return new WebSocket('ws://' + host + route);
+     },`);
   }
 
   w(`  }
