@@ -293,13 +293,9 @@ export function generateApi(spec: OpenAPIV3.Document) {
     // websocket endpoints can't use normal fetch so we return a WebSocket
     w(`) => {
         let route = ${pathToTemplateStr(path)}`);
-    if (queryParams.length > 0) {
-      w(`const queryString = toQueryString(query)
-         if (queryString) {
-           route += "?" + queryString;
-         }`);
-    }
-    w(`return new WebSocket('ws://' + host + route);
+    w0(`return new WebSocket('ws://' + host + route`);
+    if (queryParams.length > 0) w0(`+ toQueryString(query)`);
+    w(`);
      },`);
   }
 

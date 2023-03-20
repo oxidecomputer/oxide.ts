@@ -7985,11 +7985,7 @@ export class Api extends HttpClient {
       }
     ) => {
       let route = `/v1/instances/${path.instance}/serial-console/stream`;
-      const queryString = toQueryString(query);
-      if (queryString) {
-        route += "?" + queryString;
-      }
-      return new WebSocket("ws://" + host + route);
+      return new WebSocket("ws://" + host + route + toQueryString(query));
     },
   };
 }
