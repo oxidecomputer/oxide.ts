@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import type { RequestParams } from "./http-client";
-import { HttpClient } from "./http-client";
+import { HttpClient, toQueryString } from "./http-client";
 export type {
   ApiConfig,
   ApiError,
@@ -4524,19 +4524,6 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Connect to an instance's serial console
-     */
-    instanceSerialConsoleStream: (
-      { path }: { path: InstanceSerialConsoleStreamPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/organizations/${path.orgName}/projects/${path.projectName}/instances/${path.instanceName}/serial-console/stream`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
      * Boot an instance
      */
     instanceStart: (
@@ -6271,26 +6258,6 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Stream an instance's serial console
-     */
-    instanceSerialConsoleStreamV1: (
-      {
-        path,
-        query = {},
-      }: {
-        path: InstanceSerialConsoleStreamV1PathParams;
-        query?: InstanceSerialConsoleStreamV1QueryParams;
-      },
-      params: RequestParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/v1/instances/${path.instance}/serial-console/stream`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
      * Boot an instance
      */
     instanceStartV1: (
@@ -7991,6 +7958,34 @@ export class Api extends HttpClient {
         query,
         ...params,
       });
+    },
+  };
+  ws = {
+    /**
+     * Connect to an instance's serial console
+     */
+    instanceSerialConsoleStream: (
+      host: string,
+      { path }: { path: InstanceSerialConsoleStreamPathParams }
+    ) => {
+      let route = `/organizations/${path.orgName}/projects/${path.projectName}/instances/${path.instanceName}/serial-console/stream`;
+      return new WebSocket("ws://" + host + route);
+    },
+    /**
+     * Stream an instance's serial console
+     */
+    instanceSerialConsoleStreamV1: (
+      host: string,
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceSerialConsoleStreamV1PathParams;
+        query?: InstanceSerialConsoleStreamV1QueryParams;
+      }
+    ) => {
+      let route = `/v1/instances/${path.instance}/serial-console/stream`;
+      return new WebSocket("ws://" + host + route + toQueryString(query));
     },
   };
 }

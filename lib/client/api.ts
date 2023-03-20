@@ -62,7 +62,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
   copy("./static/http-client.ts");
 
   w(`import type { RequestParams } from './http-client'
-    import { HttpClient } from './http-client'`);
+    import { HttpClient, toQueryString } from './http-client'`);
 
   w(`export type {
       ApiConfig, 
@@ -181,10 +181,12 @@ export function generateApi(spec: OpenAPIV3.Document) {
        methods = {`);
 
   for (const { conf, opId, method, path } of iterPathConfig(spec.paths)) {
+    // websockets handled in the next loop
+    if ("x-dropshot-websocket" in conf) continue;
+
     const methodName = snakeToCamel(opId);
     const methodNameType = snakeToPascal(opId);
 
-    const paramsType = snakeToPascal(opId) + "Params";
     const params = conf.parameters || [];
     const pathParams = params.filter(
       (p) => "in" in p && p.in === "path"
@@ -208,10 +210,6 @@ export function generateApi(spec: OpenAPIV3.Document) {
       : "void";
 
     docComment(conf.summary || conf.description, schemaNames, io);
-
-    const pathParamNames = pathParams
-      .map((p) => processParamName(p.name))
-      .join(", ");
 
     w0(`${methodName}: (`);
 
@@ -245,9 +243,60 @@ export function generateApi(spec: OpenAPIV3.Document) {
     if (queryParams.length > 0) {
       w("  query,");
     }
-    w(`    ...params,
-           })
+    w(`  ...params,
+         })
       },`);
+  }
+
+  w(`}
+     ws = {`);
+
+  // handle websockets endpoints separately so api.methods keep consistent
+  // return types
+  for (const { conf, opId, path } of iterPathConfig(spec.paths)) {
+    if (!("x-dropshot-websocket" in conf)) continue;
+
+    const methodName = snakeToCamel(opId);
+    const methodNameType = snakeToPascal(opId);
+
+    const params = conf.parameters || [];
+    const pathParams = params.filter(
+      (p) => "in" in p && p.in === "path"
+    ) as OpenAPIV3.ParameterObject[];
+    const queryParams = params.filter(
+      (p) => "in" in p && p.in === "query"
+    ) as OpenAPIV3.ParameterObject[];
+
+    docComment(conf.summary || conf.description, schemaNames, io);
+
+    w0(`${methodName}: (`);
+
+    w("host: string,");
+    if (pathParams.length > 0 || queryParams.length > 0) {
+      w(`{ `);
+      if (pathParams.length > 0) w0("path, ");
+      if (queryParams.length > 0) w0("query = {}, ");
+      w0("}: {");
+
+      if (pathParams.length > 0) {
+        w(`path: ${pathParamsType(methodNameType)},`);
+      }
+
+      if (queryParams.length > 0) {
+        w(`query?: ${queryParamsType(methodNameType)},`);
+      }
+      w("},");
+    } else {
+      w("_: EmptyObj,");
+    }
+
+    // websocket endpoints can't use normal fetch so we return a WebSocket
+    w(`) => {
+        let route = ${pathToTemplateStr(path)}`);
+    w0(`return new WebSocket('ws://' + host + route`);
+    if (queryParams.length > 0) w0(`+ toQueryString(query)`);
+    w(`);
+     },`);
   }
 
   w(`  }
