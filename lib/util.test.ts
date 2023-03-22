@@ -9,12 +9,8 @@ import { expect, test } from "vitest";
 
 test("pathToTemplateStr", () => {
   expect(
-    pathToTemplateStr(
-      "/organizations/{organization_name}/projects/{project_name}/disks/{disk_name}"
-    )
-  ).toEqual(
-    "`/organizations/${path.orgName}/projects/${path.projectName}/disks/${path.diskName}`"
-  );
+    pathToTemplateStr("/projects/{project_name}/disks/{disk_name}")
+  ).toEqual("`/projects/${path.projectName}/disks/${path.diskName}`");
 });
 
 test("snakeToCamel", () => {

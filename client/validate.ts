@@ -18,7 +18,7 @@ const IntEnum = <T extends readonly number[]>(values: T) =>
   z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
 
 /**
- * Describes properties that should uniquely identify a Gimlet.
+ * Properties that should uniquely identify a Sled.
  */
 export const Baseboard = z.preprocess(
   processResponseBody,
@@ -291,24 +291,6 @@ export const Datum = z.preprocess(
   ])
 );
 
-/**
- * The type of an individual datum of a metric.
- */
-export const DatumType = z.preprocess(
-  processResponseBody,
-  z.enum([
-    "bool",
-    "i64",
-    "f64",
-    "string",
-    "bytes",
-    "cumulative_i64",
-    "cumulative_f64",
-    "histogram_i64",
-    "histogram_f64",
-  ])
-);
-
 export const DerEncodedKeyPair = z.preprocess(
   processResponseBody,
   z.object({ privateKey: z.string(), publicCert: z.string() })
@@ -402,14 +384,6 @@ export const DiskCreate = z.preprocess(
   })
 );
 
-/**
- * TODO-v1: Delete this Parameters for the {@link Disk} to be attached or detached to an instance
- */
-export const DiskIdentifier = z.preprocess(
-  processResponseBody,
-  z.object({ name: Name })
-);
-
 export const NameOrId = z.preprocess(
   processResponseBody,
   z.union([z.string().uuid(), Name])
@@ -475,30 +449,6 @@ export const ExternalIpCreate = z.preprocess(
 export const ExternalIpResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: ExternalIp.array(), nextPage: z.string().optional() })
-);
-
-/**
- * The source from which a field is derived, the target or metric.
- */
-export const FieldSource = z.preprocess(
-  processResponseBody,
-  z.enum(["target", "metric"])
-);
-
-/**
- * The `FieldType` identifies the data type of a target or metric field.
- */
-export const FieldType = z.preprocess(
-  processResponseBody,
-  z.enum(["string", "i64", "ip_addr", "uuid", "bool"])
-);
-
-/**
- * The name and type information for a field of a timeseries schema.
- */
-export const FieldSchema = z.preprocess(
-  processResponseBody,
-  z.object({ name: z.string(), source: FieldSource, ty: FieldType })
 );
 
 export const FleetRole = z.preprocess(
@@ -969,9 +919,9 @@ export const MacAddr = z.preprocess(
   processResponseBody,
   z
     .string()
-    .min(17)
+    .min(5)
     .max(17)
-    .regex(/^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$/)
+    .regex(/^([0-9a-fA-F]{0,2}:){5}[0-9a-fA-F]{0,2}$/)
 );
 
 /**
@@ -1040,73 +990,6 @@ export const NetworkInterfaceUpdate = z.preprocess(
 export const NodeName = z.preprocess(processResponseBody, z.string());
 
 /**
- * Client view of an {@link Organization}
- */
-export const Organization = z.preprocess(
-  processResponseBody,
-  z.object({
-    description: z.string(),
-    id: z.string().uuid(),
-    name: Name,
-    timeCreated: DateType,
-    timeModified: DateType,
-  })
-);
-
-/**
- * Create-time parameters for an {@link Organization}
- */
-export const OrganizationCreate = z.preprocess(
-  processResponseBody,
-  z.object({ description: z.string(), name: Name })
-);
-
-/**
- * A single page of results
- */
-export const OrganizationResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({ items: Organization.array(), nextPage: z.string().optional() })
-);
-
-export const OrganizationRole = z.preprocess(
-  processResponseBody,
-  z.enum(["admin", "collaborator", "viewer"])
-);
-
-/**
- * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
- *
- * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
- */
-export const OrganizationRoleRoleAssignment = z.preprocess(
-  processResponseBody,
-  z.object({
-    identityId: z.string().uuid(),
-    identityType: IdentityType,
-    roleName: OrganizationRole,
-  })
-);
-
-/**
- * Client view of a `Policy`, which describes how this resource may be accessed
- *
- * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
- */
-export const OrganizationRolePolicy = z.preprocess(
-  processResponseBody,
-  z.object({ roleAssignments: OrganizationRoleRoleAssignment.array() })
-);
-
-/**
- * Updateable properties of an {@link Organization}
- */
-export const OrganizationUpdate = z.preprocess(
-  processResponseBody,
-  z.object({ description: z.string().optional(), name: Name.optional() })
-);
-
-/**
  * A password used to authenticate a user
  *
  * Passwords may be subject to additional constraints.
@@ -1152,7 +1035,6 @@ export const Project = z.preprocess(
     description: z.string(),
     id: z.string().uuid(),
     name: Name,
-    organizationId: z.string().uuid(),
     timeCreated: DateType,
     timeModified: DateType,
   })
@@ -1506,7 +1388,7 @@ export const SiloRolePolicy = z.preprocess(
 );
 
 /**
- * Client view of a {@link Sled}
+ * An operator's view of a Sled.
  */
 export const Sled = z.preprocess(
   processResponseBody,
@@ -1514,9 +1396,10 @@ export const Sled = z.preprocess(
     baseboard: Baseboard,
     id: z.string().uuid(),
     rackId: z.string().uuid(),
-    serviceAddress: z.string(),
     timeCreated: DateType,
     timeModified: DateType,
+    usableHardwareThreads: z.number().min(0).max(4294967295),
+    usablePhysicalRam: ByteCount,
   })
 );
 
@@ -1646,43 +1529,6 @@ export const VersionRange = z.preprocess(
 export const SystemVersion = z.preprocess(
   processResponseBody,
   z.object({ status: UpdateStatus, versionRange: VersionRange })
-);
-
-/**
- * The name of a timeseries
- *
- * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
- */
-export const TimeseriesName = z.preprocess(
-  processResponseBody,
-  z
-    .string()
-    .regex(
-      /(([a-z]+[a-z0-9]*)(_([a-z0-9]+))*):(([a-z]+[a-z0-9]*)(_([a-z0-9]+))*)/
-    )
-);
-
-/**
- * The schema for a timeseries.
- *
- * This includes the name of the timeseries, as well as the datum type of its metric and the schema for each field.
- */
-export const TimeseriesSchema = z.preprocess(
-  processResponseBody,
-  z.object({
-    created: DateType,
-    datumType: DatumType,
-    fieldSchema: FieldSchema.array(),
-    timeseriesName: TimeseriesName,
-  })
-);
-
-/**
- * A single page of results
- */
-export const TimeseriesSchemaResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({ items: TimeseriesSchema.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -2080,13 +1926,13 @@ export const VpcUpdate = z.preprocess(
 );
 
 /**
- * Supported set of sort modes for scanning by id only.
+ * Supported set of sort modes for scanning by name only
  *
  * Currently, we only support scanning in ascending order.
  */
-export const IdSortMode = z.preprocess(
+export const NameSortMode = z.preprocess(
   processResponseBody,
-  z.enum(["id_ascending"])
+  z.enum(["name_ascending"])
 );
 
 /**
@@ -2097,19 +1943,19 @@ export const NameOrIdSortMode = z.preprocess(
   z.enum(["name_ascending", "name_descending", "id_ascending"])
 );
 
-/**
- * Supported set of sort modes for scanning by name only
- *
- * Currently, we only support scanning in ascending order.
- */
-export const NameSortMode = z.preprocess(
-  processResponseBody,
-  z.enum(["name_ascending"])
-);
-
 export const DiskMetricName = z.preprocess(
   processResponseBody,
   z.enum(["activated", "flush", "read", "read_bytes", "write", "write_bytes"])
+);
+
+/**
+ * Supported set of sort modes for scanning by id only.
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export const IdSortMode = z.preprocess(
+  processResponseBody,
+  z.enum(["id_ascending"])
 );
 
 export const SystemMetricName = z.preprocess(
@@ -2119,116 +1965,6 @@ export const SystemMetricName = z.preprocess(
     "cpus_provisioned",
     "ram_provisioned",
   ])
-);
-
-export const DiskViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ImageViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const InstanceViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const InstanceNetworkInterfaceViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ProjectViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SnapshotViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterRouteViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcSubnetViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
 );
 
 export const DeviceAuthRequestParams = z.preprocess(
@@ -2252,18 +1988,6 @@ export const DeviceAccessTokenParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
-);
-
-export const GroupListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
   })
 );
 
@@ -2315,19 +2039,29 @@ export const LogoutParams = z.preprocess(
   })
 );
 
-export const OrganizationListParams = z.preprocess(
+export const SystemImageViewByIdParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      id: z.string().uuid(),
+    }),
+    query: z.object({}),
+  })
+);
+
+export const SystemImageListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
+      sortBy: NameSortMode.optional(),
     }),
   })
 );
 
-export const OrganizationCreateParams = z.preprocess(
+export const SystemImageCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
@@ -2335,108 +2069,21 @@ export const OrganizationCreateParams = z.preprocess(
   })
 );
 
-export const OrganizationViewParams = z.preprocess(
+export const SystemImageViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      orgName: Name,
+      imageName: Name,
     }),
     query: z.object({}),
   })
 );
 
-export const OrganizationUpdateParams = z.preprocess(
+export const SystemImageDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      orgName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationPolicyViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationPolicyUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ProjectListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const ProjectCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ProjectViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ProjectUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ProjectDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
+      imageName: Name,
     }),
     query: z.object({}),
   })
@@ -2445,14 +2092,12 @@ export const ProjectDeleteParams = z.preprocess(
 export const DiskListParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
+    path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
     }),
   })
 );
@@ -2460,11 +2105,10 @@ export const DiskListParams = z.preprocess(
 export const DiskCreateParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
+    path: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
     }),
-    query: z.object({}),
   })
 );
 
@@ -2472,11 +2116,11 @@ export const DiskViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      diskName: Name,
-      orgName: Name,
-      projectName: Name,
+      disk: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2484,11 +2128,11 @@ export const DiskDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      diskName: Name,
-      orgName: Name,
-      projectName: Name,
+      disk: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2496,31 +2140,50 @@ export const DiskMetricsListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      diskName: Name,
-      metricName: DiskMetricName,
-      orgName: Name,
-      projectName: Name,
+      disk: NameOrId,
+      metric: DiskMetricName,
     }),
     query: z.object({
       endTime: DateType.optional(),
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
       startTime: DateType.optional(),
+      project: NameOrId.optional(),
     }),
+  })
+);
+
+export const GroupListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
+export const GroupViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      group: z.string().uuid(),
+    }),
+    query: z.object({}),
   })
 );
 
 export const ImageListParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
+    path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
     }),
   })
 );
@@ -2528,11 +2191,10 @@ export const ImageListParams = z.preprocess(
 export const ImageCreateParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
+    path: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
     }),
-    query: z.object({}),
   })
 );
 
@@ -2540,11 +2202,11 @@ export const ImageViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      imageName: Name,
-      orgName: Name,
-      projectName: Name,
+      image: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2552,25 +2214,23 @@ export const ImageDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      imageName: Name,
-      orgName: Name,
-      projectName: Name,
+      image: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
 export const InstanceListParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
+    path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
     }),
   })
 );
@@ -2578,11 +2238,10 @@ export const InstanceListParams = z.preprocess(
 export const InstanceCreateParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
+    path: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
     }),
-    query: z.object({}),
   })
 );
 
@@ -2590,11 +2249,11 @@ export const InstanceViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2602,11 +2261,11 @@ export const InstanceDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2614,14 +2273,13 @@ export const InstanceDiskListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
     }),
   })
 );
@@ -2630,11 +2288,11 @@ export const InstanceDiskAttachParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2642,11 +2300,11 @@ export const InstanceDiskDetachParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2654,11 +2312,11 @@ export const InstanceExternalIpListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2666,78 +2324,11 @@ export const InstanceMigrateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const InstanceNetworkInterfaceListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
     query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      project: NameOrId.optional(),
     }),
-  })
-);
-
-export const InstanceNetworkInterfaceCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const InstanceNetworkInterfaceViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instanceName: Name,
-      interfaceName: Name,
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const InstanceNetworkInterfaceUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instanceName: Name,
-      interfaceName: Name,
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instanceName: Name,
-      interfaceName: Name,
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
   })
 );
 
@@ -2745,11 +2336,11 @@ export const InstanceRebootParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2757,14 +2348,13 @@ export const InstanceSerialConsoleParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
     query: z.object({
       fromStart: z.number().min(0).optional(),
       maxBytes: z.number().min(0).optional(),
       mostRecent: z.number().min(0).optional(),
+      project: NameOrId.optional(),
     }),
   })
 );
@@ -2773,11 +2363,11 @@ export const InstanceSerialConsoleStreamParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2785,11 +2375,11 @@ export const InstanceStartParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -2797,391 +2387,134 @@ export const InstanceStopParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      instanceName: Name,
-      orgName: Name,
-      projectName: Name,
+      instance: NameOrId,
     }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const CurrentUserViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
     query: z.object({}),
   })
 );
 
-export const ProjectPolicyViewParams = z.preprocess(
+export const CurrentUserGroupsParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ProjectPolicyUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SnapshotListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
+    path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      sortBy: IdSortMode.optional(),
     }),
   })
 );
 
-export const SnapshotCreateParams = z.preprocess(
+export const CurrentUserSshKeyListParams = z.preprocess(
   processResponseBody,
   z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SnapshotViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      snapshotName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SnapshotDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      snapshotName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
-    }),
-  })
-);
-
-export const VpcCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcFirewallRulesViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcFirewallRulesUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
-    }),
-  })
-);
-
-export const VpcRouterCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterRouteListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
-    }),
-  })
-);
-
-export const VpcRouterRouteCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterRouteViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routeName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterRouteUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routeName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcRouterRouteDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      routeName: Name,
-      routerName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcSubnetListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
-    }),
-  })
-);
-
-export const VpcSubnetCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcSubnetViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      subnetName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcSubnetUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      subnetName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcSubnetDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      subnetName: Name,
-      vpcName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      orgName: Name,
-      projectName: Name,
-      subnetName: Name,
-      vpcName: Name,
-    }),
+    path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const CurrentUserSshKeyCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const CurrentUserSshKeyViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      sshKey: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const CurrentUserSshKeyDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      sshKey: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const InstanceNetworkInterfaceListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      instance: NameOrId.optional(),
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const InstanceNetworkInterfaceCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      instance: NameOrId.optional(),
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const InstanceNetworkInterfaceViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      interface: NameOrId,
+    }),
+    query: z.object({
+      instance: NameOrId.optional(),
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const InstanceNetworkInterfaceUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      interface: NameOrId,
+    }),
+    query: z.object({
+      instance: NameOrId.optional(),
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      interface: NameOrId,
+    }),
+    query: z.object({
+      instance: NameOrId.optional(),
+      project: NameOrId.optional(),
     }),
   })
 );
@@ -3202,28 +2535,19 @@ export const PolicyUpdateParams = z.preprocess(
   })
 );
 
-export const RoleListParams = z.preprocess(
+export const ProjectListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
+      sortBy: NameOrIdSortMode.optional(),
     }),
   })
 );
 
-export const RoleViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      roleName: z.string(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SessionMeParams = z.preprocess(
+export const ProjectCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
@@ -3231,85 +2555,100 @@ export const SessionMeParams = z.preprocess(
   })
 );
 
-export const SessionMeGroupsParams = z.preprocess(
+export const ProjectViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      project: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const ProjectUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      project: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const ProjectDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      project: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const ProjectPolicyViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      project: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const ProjectPolicyUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      project: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const SnapshotListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
     }),
   })
 );
 
-export const SessionSshkeyListParams = z.preprocess(
+export const SnapshotCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      project: NameOrId.optional(),
     }),
   })
 );
 
-export const SessionSshkeyCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SessionSshkeyViewParams = z.preprocess(
+export const SnapshotViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      sshKeyName: Name,
+      snapshot: NameOrId,
     }),
-    query: z.object({}),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
   })
 );
 
-export const SessionSshkeyDeleteParams = z.preprocess(
+export const SnapshotDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      sshKeyName: Name,
+      snapshot: NameOrId,
     }),
-    query: z.object({}),
-  })
-);
-
-export const SystemImageViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
+    query: z.object({
+      project: NameOrId.optional(),
     }),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SiloViewByIdParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
   })
 );
 
@@ -3423,43 +2762,72 @@ export const SledPhysicalDiskListParams = z.preprocess(
   })
 );
 
-export const SystemImageListParams = z.preprocess(
+export const SiloIdentityProviderListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
+      silo: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
     }),
   })
 );
 
-export const SystemImageCreateParams = z.preprocess(
+export const LocalIdpUserCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
-    query: z.object({}),
+    query: z.object({
+      silo: NameOrId.optional(),
+    }),
   })
 );
 
-export const SystemImageViewParams = z.preprocess(
+export const LocalIdpUserDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      imageName: Name,
+      userId: z.string().uuid(),
     }),
-    query: z.object({}),
+    query: z.object({
+      silo: NameOrId.optional(),
+    }),
   })
 );
 
-export const SystemImageDeleteParams = z.preprocess(
+export const LocalIdpUserSetPasswordParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      imageName: Name,
+      userId: z.string().uuid(),
     }),
-    query: z.object({}),
+    query: z.object({
+      silo: NameOrId.optional(),
+    }),
+  })
+);
+
+export const SamlIdentityProviderCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      silo: NameOrId.optional(),
+    }),
+  })
+);
+
+export const SamlIdentityProviderViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      provider: NameOrId,
+    }),
+    query: z.object({
+      silo: NameOrId.optional(),
+    }),
   })
 );
 
@@ -3487,7 +2855,7 @@ export const IpPoolViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      poolName: Name,
+      pool: NameOrId,
     }),
     query: z.object({}),
   })
@@ -3497,7 +2865,7 @@ export const IpPoolUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      poolName: Name,
+      pool: NameOrId,
     }),
     query: z.object({}),
   })
@@ -3507,7 +2875,7 @@ export const IpPoolDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      poolName: Name,
+      pool: NameOrId,
     }),
     query: z.object({}),
   })
@@ -3517,7 +2885,7 @@ export const IpPoolRangeListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      poolName: Name,
+      pool: NameOrId,
     }),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
@@ -3530,7 +2898,7 @@ export const IpPoolRangeAddParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      poolName: Name,
+      pool: NameOrId,
     }),
     query: z.object({}),
   })
@@ -3540,7 +2908,7 @@ export const IpPoolRangeRemoveParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      poolName: Name,
+      pool: NameOrId,
     }),
     query: z.object({}),
   })
@@ -3613,6 +2981,27 @@ export const SystemPolicyUpdateParams = z.preprocess(
   })
 );
 
+export const RoleListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+    }),
+  })
+);
+
+export const RoleViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      roleName: z.string(),
+    }),
+    query: z.object({}),
+  })
+);
+
 export const SagaListParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3659,7 +3048,7 @@ export const SiloViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      siloName: Name,
+      silo: NameOrId,
     }),
     query: z.object({}),
   })
@@ -3669,74 +3058,7 @@ export const SiloDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      siloName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SiloIdentityProviderListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
-    }),
-  })
-);
-
-export const LocalIdpUserCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const LocalIdpUserDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-      userId: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const LocalIdpUserSetPasswordParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-      userId: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SamlIdentityProviderCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SamlIdentityProviderViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      providerName: Name,
-      siloName: Name,
+      silo: NameOrId,
     }),
     query: z.object({}),
   })
@@ -3746,1156 +3068,13 @@ export const SiloPolicyViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      siloName: Name,
+      silo: NameOrId,
     }),
     query: z.object({}),
   })
 );
 
 export const SiloPolicyUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SiloUsersListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const SiloUserViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-      userId: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SystemUserListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameSortMode.optional(),
-    }),
-  })
-);
-
-export const SystemUserViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      userName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const TimeseriesSchemaGetParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-    }),
-  })
-);
-
-export const UserListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const DiskListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const DiskCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const DiskViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      disk: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const DiskDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      disk: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const DiskMetricsListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      disk: NameOrId,
-      metric: DiskMetricName,
-    }),
-    query: z.object({
-      endTime: DateType.optional(),
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      startTime: DateType.optional(),
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const GroupListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const GroupViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      group: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const ImageListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const ImageCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const ImageViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      image: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const ImageDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      image: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const InstanceCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceDiskListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const InstanceDiskAttachV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceDiskDetachV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceExternalIpListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceMigrateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceRebootV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceSerialConsoleV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      fromStart: z.number().min(0).optional(),
-      maxBytes: z.number().min(0).optional(),
-      mostRecent: z.number().min(0).optional(),
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceSerialConsoleStreamV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceStartV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceStopV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      instance: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const CurrentUserViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const CurrentUserGroupsV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const CurrentUserSshKeyListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const CurrentUserSshKeyCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const CurrentUserSshKeyViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      sshKey: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const CurrentUserSshKeyDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      sshKey: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const InstanceNetworkInterfaceListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      instance: NameOrId.optional(),
-      limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const InstanceNetworkInterfaceCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      instance: NameOrId.optional(),
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceNetworkInterfaceViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      interface: NameOrId,
-    }),
-    query: z.object({
-      instance: NameOrId.optional(),
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceNetworkInterfaceUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      interface: NameOrId,
-    }),
-    query: z.object({
-      instance: NameOrId.optional(),
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const InstanceNetworkInterfaceDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      interface: NameOrId,
-    }),
-    query: z.object({
-      instance: NameOrId.optional(),
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const OrganizationListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const OrganizationCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      organization: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      organization: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      organization: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationPolicyViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      organization: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const OrganizationPolicyUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      organization: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const PolicyViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const PolicyUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const ProjectListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const ProjectCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      organization: NameOrId.optional(),
-    }),
-  })
-);
-
-export const ProjectViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      project: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-    }),
-  })
-);
-
-export const ProjectUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      project: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-    }),
-  })
-);
-
-export const ProjectDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      project: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-    }),
-  })
-);
-
-export const ProjectPolicyViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      project: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-    }),
-  })
-);
-
-export const ProjectPolicyUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      project: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-    }),
-  })
-);
-
-export const SnapshotListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const SnapshotCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const SnapshotViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      snapshot: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const SnapshotDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      snapshot: NameOrId,
-    }),
-    query: z.object({
-      organization: NameOrId.optional(),
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
-export const CertificateListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const CertificateCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const CertificateViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      certificate: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const CertificateDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      certificate: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const PhysicalDiskListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const RackListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const RackViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      rackId: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SledListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const SledViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      sledId: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SledPhysicalDiskListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      sledId: z.string().uuid(),
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const SiloIdentityProviderListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      silo: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const LocalIdpUserCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      silo: NameOrId.optional(),
-    }),
-  })
-);
-
-export const LocalIdpUserDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      userId: z.string().uuid(),
-    }),
-    query: z.object({
-      silo: NameOrId.optional(),
-    }),
-  })
-);
-
-export const LocalIdpUserSetPasswordV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      userId: z.string().uuid(),
-    }),
-    query: z.object({
-      silo: NameOrId.optional(),
-    }),
-  })
-);
-
-export const SamlIdentityProviderCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      silo: NameOrId.optional(),
-    }),
-  })
-);
-
-export const SamlIdentityProviderViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      provider: NameOrId,
-    }),
-    query: z.object({
-      silo: NameOrId.optional(),
-    }),
-  })
-);
-
-export const IpPoolListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const IpPoolCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      pool: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      pool: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      pool: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolRangeListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      pool: NameOrId,
-    }),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-    }),
-  })
-);
-
-export const IpPoolRangeAddV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      pool: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolRangeRemoveV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      pool: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolServiceViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolServiceRangeListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-    }),
-  })
-);
-
-export const IpPoolServiceRangeAddV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const IpPoolServiceRangeRemoveV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SystemPolicyViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SystemPolicyUpdateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SagaListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const SagaViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      sagaId: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SiloListV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const SiloCreateV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SiloViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      silo: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SiloDeleteV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      silo: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SiloPolicyViewV1Params = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      silo: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SiloPolicyUpdateV1Params = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
@@ -5003,7 +3182,7 @@ export const SystemVersionParams = z.preprocess(
   })
 );
 
-export const SiloUserListV1Params = z.preprocess(
+export const SiloUserListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
@@ -5016,7 +3195,7 @@ export const SiloUserListV1Params = z.preprocess(
   })
 );
 
-export const SiloUserViewV1Params = z.preprocess(
+export const SiloUserViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
@@ -5028,7 +3207,29 @@ export const SiloUserViewV1Params = z.preprocess(
   })
 );
 
-export const UserListV1Params = z.preprocess(
+export const UserBuiltinListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: NameSortMode.optional(),
+    }),
+  })
+);
+
+export const UserBuiltinViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      user: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const UserListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
@@ -5041,37 +3242,34 @@ export const UserListV1Params = z.preprocess(
   })
 );
 
-export const VpcFirewallRulesViewV1Params = z.preprocess(
+export const VpcFirewallRulesViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcFirewallRulesUpdateV1Params = z.preprocess(
+export const VpcFirewallRulesUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcRouterRouteListV1Params = z.preprocess(
+export const VpcRouterRouteListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
       pageToken: z.string().optional(),
       project: NameOrId.optional(),
       router: NameOrId.optional(),
@@ -5081,12 +3279,11 @@ export const VpcRouterRouteListV1Params = z.preprocess(
   })
 );
 
-export const VpcRouterRouteCreateV1Params = z.preprocess(
+export const VpcRouterRouteCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       router: NameOrId.optional(),
       vpc: NameOrId.optional(),
@@ -5094,14 +3291,13 @@ export const VpcRouterRouteCreateV1Params = z.preprocess(
   })
 );
 
-export const VpcRouterRouteViewV1Params = z.preprocess(
+export const VpcRouterRouteViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       route: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       router: NameOrId.optional(),
       vpc: NameOrId.optional(),
@@ -5109,14 +3305,13 @@ export const VpcRouterRouteViewV1Params = z.preprocess(
   })
 );
 
-export const VpcRouterRouteUpdateV1Params = z.preprocess(
+export const VpcRouterRouteUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       route: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       router: NameOrId.optional(),
       vpc: NameOrId.optional(),
@@ -5124,14 +3319,13 @@ export const VpcRouterRouteUpdateV1Params = z.preprocess(
   })
 );
 
-export const VpcRouterRouteDeleteV1Params = z.preprocess(
+export const VpcRouterRouteDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       route: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       router: NameOrId.optional(),
       vpc: NameOrId.optional(),
@@ -5139,13 +3333,12 @@ export const VpcRouterRouteDeleteV1Params = z.preprocess(
   })
 );
 
-export const VpcRouterListV1Params = z.preprocess(
+export const VpcRouterListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
       pageToken: z.string().optional(),
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
@@ -5154,67 +3347,62 @@ export const VpcRouterListV1Params = z.preprocess(
   })
 );
 
-export const VpcRouterCreateV1Params = z.preprocess(
+export const VpcRouterCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcRouterViewV1Params = z.preprocess(
+export const VpcRouterViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       router: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcRouterUpdateV1Params = z.preprocess(
+export const VpcRouterUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       router: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcRouterDeleteV1Params = z.preprocess(
+export const VpcRouterDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       router: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcSubnetListV1Params = z.preprocess(
+export const VpcSubnetListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
       pageToken: z.string().optional(),
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
@@ -5223,61 +3411,57 @@ export const VpcSubnetListV1Params = z.preprocess(
   })
 );
 
-export const VpcSubnetCreateV1Params = z.preprocess(
+export const VpcSubnetCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcSubnetViewV1Params = z.preprocess(
+export const VpcSubnetViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       subnet: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcSubnetUpdateV1Params = z.preprocess(
+export const VpcSubnetUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       subnet: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcSubnetDeleteV1Params = z.preprocess(
+export const VpcSubnetDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       subnet: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcSubnetListNetworkInterfacesV1Params = z.preprocess(
+export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
@@ -5285,7 +3469,6 @@ export const VpcSubnetListNetworkInterfacesV1Params = z.preprocess(
     }),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
       pageToken: z.string().optional(),
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
@@ -5294,13 +3477,12 @@ export const VpcSubnetListNetworkInterfacesV1Params = z.preprocess(
   })
 );
 
-export const VpcListV1Params = z.preprocess(
+export const VpcListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
-      organization: NameOrId.optional(),
       pageToken: z.string().optional(),
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
@@ -5308,51 +3490,47 @@ export const VpcListV1Params = z.preprocess(
   })
 );
 
-export const VpcCreateV1Params = z.preprocess(
+export const VpcCreateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcViewV1Params = z.preprocess(
+export const VpcViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       vpc: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcUpdateV1Params = z.preprocess(
+export const VpcUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       vpc: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
     }),
   })
 );
 
-export const VpcDeleteV1Params = z.preprocess(
+export const VpcDeleteParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
       vpc: NameOrId,
     }),
     query: z.object({
-      organization: NameOrId.optional(),
       project: NameOrId.optional(),
     }),
   })

@@ -35,7 +35,6 @@ assert<Equals<A.Cumulativeint64, z.infer<typeof V.Cumulativeint64>>>();
 assert<Equals<A.Histogramint64, z.infer<typeof V.Histogramint64>>>();
 assert<Equals<A.Histogramdouble, z.infer<typeof V.Histogramdouble>>>();
 assert<Equals<A.Datum, z.infer<typeof V.Datum>>>();
-assert<Equals<A.DatumType, z.infer<typeof V.DatumType>>>();
 assert<Equals<A.DerEncodedKeyPair, z.infer<typeof V.DerEncodedKeyPair>>>();
 assert<
   Equals<A.DeviceAccessTokenRequest, z.infer<typeof V.DeviceAccessTokenRequest>>
@@ -47,7 +46,6 @@ assert<Equals<A.DiskState, z.infer<typeof V.DiskState>>>();
 assert<Equals<A.Disk, z.infer<typeof V.Disk>>>();
 assert<Equals<A.DiskSource, z.infer<typeof V.DiskSource>>>();
 assert<Equals<A.DiskCreate, z.infer<typeof V.DiskCreate>>>();
-assert<Equals<A.DiskIdentifier, z.infer<typeof V.DiskIdentifier>>>();
 assert<Equals<A.NameOrId, z.infer<typeof V.NameOrId>>>();
 assert<Equals<A.DiskPath, z.infer<typeof V.DiskPath>>>();
 assert<Equals<A.DiskResultsPage, z.infer<typeof V.DiskResultsPage>>>();
@@ -58,9 +56,6 @@ assert<Equals<A.ExternalIpCreate, z.infer<typeof V.ExternalIpCreate>>>();
 assert<
   Equals<A.ExternalIpResultsPage, z.infer<typeof V.ExternalIpResultsPage>>
 >();
-assert<Equals<A.FieldSource, z.infer<typeof V.FieldSource>>>();
-assert<Equals<A.FieldType, z.infer<typeof V.FieldType>>>();
-assert<Equals<A.FieldSchema, z.infer<typeof V.FieldSchema>>>();
 assert<Equals<A.FleetRole, z.infer<typeof V.FleetRole>>>();
 assert<Equals<A.IdentityType, z.infer<typeof V.IdentityType>>>();
 assert<
@@ -144,22 +139,6 @@ assert<
   Equals<A.NetworkInterfaceUpdate, z.infer<typeof V.NetworkInterfaceUpdate>>
 >();
 assert<Equals<A.NodeName, z.infer<typeof V.NodeName>>>();
-assert<Equals<A.Organization, z.infer<typeof V.Organization>>>();
-assert<Equals<A.OrganizationCreate, z.infer<typeof V.OrganizationCreate>>>();
-assert<
-  Equals<A.OrganizationResultsPage, z.infer<typeof V.OrganizationResultsPage>>
->();
-assert<Equals<A.OrganizationRole, z.infer<typeof V.OrganizationRole>>>();
-assert<
-  Equals<
-    A.OrganizationRoleRoleAssignment,
-    z.infer<typeof V.OrganizationRoleRoleAssignment>
-  >
->();
-assert<
-  Equals<A.OrganizationRolePolicy, z.infer<typeof V.OrganizationRolePolicy>>
->();
-assert<Equals<A.OrganizationUpdate, z.infer<typeof V.OrganizationUpdate>>>();
 assert<Equals<A.Password, z.infer<typeof V.Password>>>();
 assert<Equals<A.PhysicalDiskType, z.infer<typeof V.PhysicalDiskType>>>();
 assert<Equals<A.PhysicalDisk, z.infer<typeof V.PhysicalDisk>>>();
@@ -232,14 +211,6 @@ assert<Equals<A.SystemUpdateStart, z.infer<typeof V.SystemUpdateStart>>>();
 assert<Equals<A.UpdateStatus, z.infer<typeof V.UpdateStatus>>>();
 assert<Equals<A.VersionRange, z.infer<typeof V.VersionRange>>>();
 assert<Equals<A.SystemVersion, z.infer<typeof V.SystemVersion>>>();
-assert<Equals<A.TimeseriesName, z.infer<typeof V.TimeseriesName>>>();
-assert<Equals<A.TimeseriesSchema, z.infer<typeof V.TimeseriesSchema>>>();
-assert<
-  Equals<
-    A.TimeseriesSchemaResultsPage,
-    z.infer<typeof V.TimeseriesSchemaResultsPage>
-  >
->();
 assert<Equals<A.UpdateDeployment, z.infer<typeof V.UpdateDeployment>>>();
 assert<
   Equals<
@@ -321,8 +292,8 @@ assert<
 >();
 assert<Equals<A.VpcSubnetUpdate, z.infer<typeof V.VpcSubnetUpdate>>>();
 assert<Equals<A.VpcUpdate, z.infer<typeof V.VpcUpdate>>>();
-assert<Equals<A.IdSortMode, z.infer<typeof V.IdSortMode>>>();
-assert<Equals<A.NameOrIdSortMode, z.infer<typeof V.NameOrIdSortMode>>>();
 assert<Equals<A.NameSortMode, z.infer<typeof V.NameSortMode>>>();
+assert<Equals<A.NameOrIdSortMode, z.infer<typeof V.NameOrIdSortMode>>>();
 assert<Equals<A.DiskMetricName, z.infer<typeof V.DiskMetricName>>>();
+assert<Equals<A.IdSortMode, z.infer<typeof V.IdSortMode>>>();
 assert<Equals<A.SystemMetricName, z.infer<typeof V.SystemMetricName>>>();
