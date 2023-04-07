@@ -4867,18 +4867,22 @@ export class Api extends HttpClient {
     /**
      * Stream an instance's serial console
      */
-    instanceSerialConsoleStream: (
-      host: string,
-      {
-        path,
-        query = {},
-      }: {
-        path: InstanceSerialConsoleStreamPathParams;
-        query?: InstanceSerialConsoleStreamQueryParams;
-      }
-    ) => {
-      let route = `/v1/instances/${path.instance}/serial-console/stream`;
-      return new WebSocket("ws://" + host + route + toQueryString(query));
+    instanceSerialConsoleStream: ({
+      host,
+      secure = true,
+      path,
+      query = {},
+    }: {
+      host: string;
+      secure?: boolean;
+      path: InstanceSerialConsoleStreamPathParams;
+      query?: InstanceSerialConsoleStreamQueryParams;
+    }) => {
+      const route = `/v1/instances/${path.instance}/serial-console/stream`;
+      const protocol = secure ? "ws:" : "wss:";
+      return new WebSocket(
+        protocol + "//" + host + route + toQueryString(query)
+      );
     },
   };
 }

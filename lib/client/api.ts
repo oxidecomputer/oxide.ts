@@ -271,29 +271,27 @@ export function generateApi(spec: OpenAPIV3.Document) {
 
     w0(`${methodName}: (`);
 
-    w("host: string,");
-    if (pathParams.length > 0 || queryParams.length > 0) {
-      w(`{ `);
-      if (pathParams.length > 0) w0("path, ");
-      if (queryParams.length > 0) w0("query = {}, ");
-      w0("}: {");
+    w(`{ `);
+    w(" host, secure = true,");
+    if (pathParams.length > 0) w0("path, ");
+    if (queryParams.length > 0) w0("query = {}, ");
+    w0("}: {");
+    w("  host: string, secure?: boolean,");
 
-      if (pathParams.length > 0) {
-        w(`path: ${pathParamsType(methodNameType)},`);
-      }
-
-      if (queryParams.length > 0) {
-        w(`query?: ${queryParamsType(methodNameType)},`);
-      }
-      w("},");
-    } else {
-      w("_: EmptyObj,");
+    if (pathParams.length > 0) {
+      w(`path: ${pathParamsType(methodNameType)},`);
     }
+
+    if (queryParams.length > 0) {
+      w(`query?: ${queryParamsType(methodNameType)},`);
+    }
+    w("},");
 
     // websocket endpoints can't use normal fetch so we return a WebSocket
     w(`) => {
-        let route = ${pathToTemplateStr(path)}`);
-    w0(`return new WebSocket('ws://' + host + route`);
+        const route = ${pathToTemplateStr(path)}
+        const protocol = secure ? 'ws:' : 'wss:'`);
+    w0(`return new WebSocket(protocol + '//' + host + route`);
     if (queryParams.length > 0) w0(`+ toQueryString(query)`);
     w(`);
      },`);
