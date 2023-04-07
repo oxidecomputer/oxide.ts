@@ -290,7 +290,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
     // websocket endpoints can't use normal fetch so we return a WebSocket
     w(`) => {
         const route = ${pathToTemplateStr(path)}
-        const protocol = secure ? 'ws:' : 'wss:'`);
+        const protocol = secure ? 'wss:' : 'ws:'`);
     w0(`return new WebSocket(protocol + '//' + host + route`);
     if (queryParams.length > 0) w0(`+ toQueryString(query)`);
     w(`);
