@@ -48,6 +48,7 @@ exports[`Known properties > Type number should contain only known properties 1`]
 
 exports[`Known properties > Type object should contain only known properties 1`] = `
 [
+  "additionalProperties",
   "description",
   "properties",
   "required",

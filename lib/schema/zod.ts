@@ -11,7 +11,7 @@ export const schemaToZod = makeSchemaGenerator({
   },
 
   boolean(schema, { w0 }) {
-    w0(`z.boolean()`);
+    w0(`SafeBoolean`);
     if ("default" in schema) {
       w0(`.default(${schema.default})`);
     }
@@ -48,7 +48,7 @@ export const schemaToZod = makeSchemaGenerator({
   },
 
   date(_, { w0 }) {
-    w0("DateType");
+    w0("z.coerce.date()");
   },
 
   number(_, { w0 }) {

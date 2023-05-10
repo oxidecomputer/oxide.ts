@@ -11,12 +11,12 @@ beforeEach(() => {
 
 test("boolean", () => {
   schemaToZod({ type: "boolean" }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.boolean()"');
+  expect(out.value()).toMatchInlineSnapshot('"SafeBoolean"');
 });
 
 test("boolean with default", () => {
   schemaToZod({ type: "boolean", default: false }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.boolean().default(false)"');
+  expect(out.value()).toMatchInlineSnapshot('"SafeBoolean.default(false)"');
 });
 
 test("string", () => {
