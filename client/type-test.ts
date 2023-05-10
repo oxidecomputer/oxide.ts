@@ -32,6 +32,7 @@ assert<
 >();
 assert<Equals<A.Cumulativedouble, z.infer<typeof V.Cumulativedouble>>>();
 assert<Equals<A.Cumulativeint64, z.infer<typeof V.Cumulativeint64>>>();
+assert<Equals<A.CurrentUser, z.infer<typeof V.CurrentUser>>>();
 assert<Equals<A.Histogramint64, z.infer<typeof V.Histogramint64>>>();
 assert<Equals<A.Histogramdouble, z.infer<typeof V.Histogramdouble>>>();
 assert<Equals<A.Datum, z.infer<typeof V.Datum>>>();
@@ -49,25 +50,20 @@ assert<Equals<A.DiskCreate, z.infer<typeof V.DiskCreate>>>();
 assert<Equals<A.NameOrId, z.infer<typeof V.NameOrId>>>();
 assert<Equals<A.DiskPath, z.infer<typeof V.DiskPath>>>();
 assert<Equals<A.DiskResultsPage, z.infer<typeof V.DiskResultsPage>>>();
-assert<Equals<A.Distribution, z.infer<typeof V.Distribution>>>();
+assert<Equals<A.ExpectedDigest, z.infer<typeof V.ExpectedDigest>>>();
 assert<Equals<A.IpKind, z.infer<typeof V.IpKind>>>();
 assert<Equals<A.ExternalIp, z.infer<typeof V.ExternalIp>>>();
 assert<Equals<A.ExternalIpCreate, z.infer<typeof V.ExternalIpCreate>>>();
 assert<
   Equals<A.ExternalIpResultsPage, z.infer<typeof V.ExternalIpResultsPage>>
 >();
+assert<Equals<A.FinalizeDisk, z.infer<typeof V.FinalizeDisk>>>();
 assert<Equals<A.FleetRole, z.infer<typeof V.FleetRole>>>();
 assert<Equals<A.IdentityType, z.infer<typeof V.IdentityType>>>();
 assert<
   Equals<A.FleetRoleRoleAssignment, z.infer<typeof V.FleetRoleRoleAssignment>>
 >();
 assert<Equals<A.FleetRolePolicy, z.infer<typeof V.FleetRolePolicy>>>();
-assert<Equals<A.GlobalImage, z.infer<typeof V.GlobalImage>>>();
-assert<Equals<A.ImageSource, z.infer<typeof V.ImageSource>>>();
-assert<Equals<A.GlobalImageCreate, z.infer<typeof V.GlobalImageCreate>>>();
-assert<
-  Equals<A.GlobalImageResultsPage, z.infer<typeof V.GlobalImageResultsPage>>
->();
 assert<Equals<A.Group, z.infer<typeof V.Group>>>();
 assert<Equals<A.GroupResultsPage, z.infer<typeof V.GroupResultsPage>>>();
 assert<
@@ -82,8 +78,13 @@ assert<
 >();
 assert<Equals<A.IdpMetadataSource, z.infer<typeof V.IdpMetadataSource>>>();
 assert<Equals<A.Image, z.infer<typeof V.Image>>>();
+assert<Equals<A.ImageSource, z.infer<typeof V.ImageSource>>>();
 assert<Equals<A.ImageCreate, z.infer<typeof V.ImageCreate>>>();
 assert<Equals<A.ImageResultsPage, z.infer<typeof V.ImageResultsPage>>>();
+assert<
+  Equals<A.ImportBlocksBulkWrite, z.infer<typeof V.ImportBlocksBulkWrite>>
+>();
+assert<Equals<A.ImportBlocksFromUrl, z.infer<typeof V.ImportBlocksFromUrl>>>();
 assert<Equals<A.InstanceCpuCount, z.infer<typeof V.InstanceCpuCount>>>();
 assert<Equals<A.InstanceState, z.infer<typeof V.InstanceState>>>();
 assert<Equals<A.Instance, z.infer<typeof V.Instance>>>();
@@ -91,7 +92,10 @@ assert<
   Equals<A.InstanceDiskAttachment, z.infer<typeof V.InstanceDiskAttachment>>
 >();
 assert<
-  Equals<A.NetworkInterfaceCreate, z.infer<typeof V.NetworkInterfaceCreate>>
+  Equals<
+    A.InstanceNetworkInterfaceCreate,
+    z.infer<typeof V.InstanceNetworkInterfaceCreate>
+  >
 >();
 assert<
   Equals<
@@ -101,6 +105,22 @@ assert<
 >();
 assert<Equals<A.InstanceCreate, z.infer<typeof V.InstanceCreate>>>();
 assert<Equals<A.InstanceMigrate, z.infer<typeof V.InstanceMigrate>>>();
+assert<Equals<A.MacAddr, z.infer<typeof V.MacAddr>>>();
+assert<
+  Equals<A.InstanceNetworkInterface, z.infer<typeof V.InstanceNetworkInterface>>
+>();
+assert<
+  Equals<
+    A.InstanceNetworkInterfaceResultsPage,
+    z.infer<typeof V.InstanceNetworkInterfaceResultsPage>
+  >
+>();
+assert<
+  Equals<
+    A.InstanceNetworkInterfaceUpdate,
+    z.infer<typeof V.InstanceNetworkInterfaceUpdate>
+  >
+>();
 assert<Equals<A.InstanceResultsPage, z.infer<typeof V.InstanceResultsPage>>>();
 assert<
   Equals<
@@ -123,22 +143,10 @@ assert<
 assert<Equals<A.IpPoolResultsPage, z.infer<typeof V.IpPoolResultsPage>>>();
 assert<Equals<A.IpPoolUpdate, z.infer<typeof V.IpPoolUpdate>>>();
 assert<Equals<A.L4PortRange, z.infer<typeof V.L4PortRange>>>();
-assert<Equals<A.MacAddr, z.infer<typeof V.MacAddr>>>();
 assert<Equals<A.Measurement, z.infer<typeof V.Measurement>>>();
 assert<
   Equals<A.MeasurementResultsPage, z.infer<typeof V.MeasurementResultsPage>>
 >();
-assert<Equals<A.NetworkInterface, z.infer<typeof V.NetworkInterface>>>();
-assert<
-  Equals<
-    A.NetworkInterfaceResultsPage,
-    z.infer<typeof V.NetworkInterfaceResultsPage>
-  >
->();
-assert<
-  Equals<A.NetworkInterfaceUpdate, z.infer<typeof V.NetworkInterfaceUpdate>>
->();
-assert<Equals<A.NodeName, z.infer<typeof V.NodeName>>>();
 assert<Equals<A.Password, z.infer<typeof V.Password>>>();
 assert<Equals<A.PhysicalDiskType, z.infer<typeof V.PhysicalDiskType>>>();
 assert<Equals<A.PhysicalDisk, z.infer<typeof V.PhysicalDisk>>>();
@@ -171,10 +179,6 @@ assert<
   Equals<A.RouterRouteResultsPage, z.infer<typeof V.RouterRouteResultsPage>>
 >();
 assert<Equals<A.RouterRouteUpdate, z.infer<typeof V.RouterRouteUpdate>>>();
-assert<Equals<A.SagaErrorInfo, z.infer<typeof V.SagaErrorInfo>>>();
-assert<Equals<A.SagaState, z.infer<typeof V.SagaState>>>();
-assert<Equals<A.Saga, z.infer<typeof V.Saga>>>();
-assert<Equals<A.SagaResultsPage, z.infer<typeof V.SagaResultsPage>>>();
 assert<
   Equals<A.SamlIdentityProvider, z.infer<typeof V.SamlIdentityProvider>>
 >();
@@ -292,8 +296,8 @@ assert<
 >();
 assert<Equals<A.VpcSubnetUpdate, z.infer<typeof V.VpcSubnetUpdate>>>();
 assert<Equals<A.VpcUpdate, z.infer<typeof V.VpcUpdate>>>();
-assert<Equals<A.NameSortMode, z.infer<typeof V.NameSortMode>>>();
 assert<Equals<A.NameOrIdSortMode, z.infer<typeof V.NameOrIdSortMode>>>();
 assert<Equals<A.DiskMetricName, z.infer<typeof V.DiskMetricName>>>();
 assert<Equals<A.IdSortMode, z.infer<typeof V.IdSortMode>>>();
 assert<Equals<A.SystemMetricName, z.infer<typeof V.SystemMetricName>>>();
+assert<Equals<A.NameSortMode, z.infer<typeof V.NameSortMode>>>();

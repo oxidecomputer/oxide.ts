@@ -16,11 +16,6 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
   import { z, ZodType } from 'zod';
   import { snakeify, processResponseBody } from './util';
 
-  const DateType = z.preprocess((arg) => {
-    if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
-  }, z.date());
-  type DateType = z.infer<typeof DateType>;
-
   /**
    * Zod only supports string enums at the moment. A previous issue was opened
    * and closed as stale but it provided a hint on how to implement it.
@@ -30,6 +25,9 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
    */
   const IntEnum = <T extends readonly number[]>(values: T) => 
       z.number().refine((v) => values.includes(v)) as ZodType<T[number]>;
+
+  /** Helper to ensure booleans provided as strings end up with the correct value */
+  const SafeBoolean = z.preprocess(v => v === "false" ? false : v, z.coerce.boolean())
   `);
 
   const schemaNames = getSortedSchemas(spec);

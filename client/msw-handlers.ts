@@ -78,26 +78,6 @@ export interface MSWHandlers {
   loginSaml: (params: { path: Api.LoginSamlPathParams }) => StatusCode;
   /** `POST /logout` */
   logout: () => StatusCode;
-  /** `GET /system/by-id/images/:id` */
-  systemImageViewById: (params: {
-    path: Api.SystemImageViewByIdPathParams;
-  }) => HandlerResult<Api.GlobalImage>;
-  /** `GET /system/images` */
-  systemImageList: (params: {
-    query: Api.SystemImageListQueryParams;
-  }) => HandlerResult<Api.GlobalImageResultsPage>;
-  /** `POST /system/images` */
-  systemImageCreate: (params: {
-    body: Json<Api.GlobalImageCreate>;
-  }) => HandlerResult<Api.GlobalImage>;
-  /** `GET /system/images/:imageName` */
-  systemImageView: (params: {
-    path: Api.SystemImageViewPathParams;
-  }) => HandlerResult<Api.GlobalImage>;
-  /** `DELETE /system/images/:imageName` */
-  systemImageDelete: (params: {
-    path: Api.SystemImageDeletePathParams;
-  }) => StatusCode;
   /** `GET /v1/disks` */
   diskList: (params: {
     query: Api.DiskListQueryParams;
@@ -116,6 +96,34 @@ export interface MSWHandlers {
   diskDelete: (params: {
     path: Api.DiskDeletePathParams;
     query: Api.DiskDeleteQueryParams;
+  }) => StatusCode;
+  /** `POST /v1/disks/:disk/bulk-write` */
+  diskBulkWriteImport: (params: {
+    path: Api.DiskBulkWriteImportPathParams;
+    query: Api.DiskBulkWriteImportQueryParams;
+    body: Json<Api.ImportBlocksBulkWrite>;
+  }) => StatusCode;
+  /** `POST /v1/disks/:disk/bulk-write-start` */
+  diskBulkWriteImportStart: (params: {
+    path: Api.DiskBulkWriteImportStartPathParams;
+    query: Api.DiskBulkWriteImportStartQueryParams;
+  }) => StatusCode;
+  /** `POST /v1/disks/:disk/bulk-write-stop` */
+  diskBulkWriteImportStop: (params: {
+    path: Api.DiskBulkWriteImportStopPathParams;
+    query: Api.DiskBulkWriteImportStopQueryParams;
+  }) => StatusCode;
+  /** `POST /v1/disks/:disk/finalize` */
+  diskFinalizeImport: (params: {
+    path: Api.DiskFinalizeImportPathParams;
+    query: Api.DiskFinalizeImportQueryParams;
+    body: Json<Api.FinalizeDisk>;
+  }) => StatusCode;
+  /** `POST /v1/disks/:disk/import` */
+  diskImportBlocksFromUrl: (params: {
+    path: Api.DiskImportBlocksFromUrlPathParams;
+    query: Api.DiskImportBlocksFromUrlQueryParams;
+    body: Json<Api.ImportBlocksFromUrl>;
   }) => StatusCode;
   /** `GET /v1/disks/:disk/metrics/:metric` */
   diskMetricsList: (params: {
@@ -149,6 +157,11 @@ export interface MSWHandlers {
     path: Api.ImageDeletePathParams;
     query: Api.ImageDeleteQueryParams;
   }) => StatusCode;
+  /** `POST /v1/images/:image/promote` */
+  imagePromote: (params: {
+    path: Api.ImagePromotePathParams;
+    query: Api.ImagePromoteQueryParams;
+  }) => HandlerResult<Api.Image>;
   /** `GET /v1/instances` */
   instanceList: (params: {
     query: Api.InstanceListQueryParams;
@@ -222,7 +235,7 @@ export interface MSWHandlers {
     query: Api.InstanceStopQueryParams;
   }) => HandlerResult<Api.Instance>;
   /** `GET /v1/me` */
-  currentUserView: () => HandlerResult<Api.User>;
+  currentUserView: () => HandlerResult<Api.CurrentUser>;
   /** `GET /v1/me/groups` */
   currentUserGroups: (params: {
     query: Api.CurrentUserGroupsQueryParams;
@@ -246,23 +259,23 @@ export interface MSWHandlers {
   /** `GET /v1/network-interfaces` */
   instanceNetworkInterfaceList: (params: {
     query: Api.InstanceNetworkInterfaceListQueryParams;
-  }) => HandlerResult<Api.NetworkInterfaceResultsPage>;
+  }) => HandlerResult<Api.InstanceNetworkInterfaceResultsPage>;
   /** `POST /v1/network-interfaces` */
   instanceNetworkInterfaceCreate: (params: {
     query: Api.InstanceNetworkInterfaceCreateQueryParams;
-    body: Json<Api.NetworkInterfaceCreate>;
-  }) => HandlerResult<Api.NetworkInterface>;
+    body: Json<Api.InstanceNetworkInterfaceCreate>;
+  }) => HandlerResult<Api.InstanceNetworkInterface>;
   /** `GET /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceView: (params: {
     path: Api.InstanceNetworkInterfaceViewPathParams;
     query: Api.InstanceNetworkInterfaceViewQueryParams;
-  }) => HandlerResult<Api.NetworkInterface>;
+  }) => HandlerResult<Api.InstanceNetworkInterface>;
   /** `PUT /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceUpdate: (params: {
     path: Api.InstanceNetworkInterfaceUpdatePathParams;
     query: Api.InstanceNetworkInterfaceUpdateQueryParams;
-    body: Json<Api.NetworkInterfaceUpdate>;
-  }) => HandlerResult<Api.NetworkInterface>;
+    body: Json<Api.InstanceNetworkInterfaceUpdate>;
+  }) => HandlerResult<Api.InstanceNetworkInterface>;
   /** `DELETE /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceDelete: (params: {
     path: Api.InstanceNetworkInterfaceDeletePathParams;
@@ -457,14 +470,6 @@ export interface MSWHandlers {
   roleView: (params: {
     path: Api.RoleViewPathParams;
   }) => HandlerResult<Api.Role>;
-  /** `GET /v1/system/sagas` */
-  sagaList: (params: {
-    query: Api.SagaListQueryParams;
-  }) => HandlerResult<Api.SagaResultsPage>;
-  /** `GET /v1/system/sagas/:sagaId` */
-  sagaView: (params: {
-    path: Api.SagaViewPathParams;
-  }) => HandlerResult<Api.Saga>;
   /** `GET /v1/system/silos` */
   siloList: (params: {
     query: Api.SiloListQueryParams;
@@ -631,7 +636,7 @@ export interface MSWHandlers {
   vpcSubnetListNetworkInterfaces: (params: {
     path: Api.VpcSubnetListNetworkInterfacesPathParams;
     query: Api.VpcSubnetListNetworkInterfacesQueryParams;
-  }) => HandlerResult<Api.NetworkInterfaceResultsPage>;
+  }) => HandlerResult<Api.InstanceNetworkInterfaceResultsPage>;
   /** `GET /v1/vpcs` */
   vpcList: (params: {
     query: Api.VpcListQueryParams;
@@ -775,34 +780,6 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
     ),
     rest.post("/logout", handler(handlers["logout"], null, null)),
     rest.get(
-      "/system/by-id/images/:id",
-      handler(
-        handlers["systemImageViewById"],
-        schema.SystemImageViewByIdParams,
-        null
-      )
-    ),
-    rest.get(
-      "/system/images",
-      handler(handlers["systemImageList"], schema.SystemImageListParams, null)
-    ),
-    rest.post(
-      "/system/images",
-      handler(handlers["systemImageCreate"], null, schema.GlobalImageCreate)
-    ),
-    rest.get(
-      "/system/images/:imageName",
-      handler(handlers["systemImageView"], schema.SystemImageViewParams, null)
-    ),
-    rest.delete(
-      "/system/images/:imageName",
-      handler(
-        handlers["systemImageDelete"],
-        schema.SystemImageDeleteParams,
-        null
-      )
-    ),
-    rest.get(
       "/v1/disks",
       handler(handlers["diskList"], schema.DiskListParams, null)
     ),
@@ -821,6 +798,46 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
     rest.delete(
       "/v1/disks/:disk",
       handler(handlers["diskDelete"], schema.DiskDeleteParams, null)
+    ),
+    rest.post(
+      "/v1/disks/:disk/bulk-write",
+      handler(
+        handlers["diskBulkWriteImport"],
+        schema.DiskBulkWriteImportParams,
+        schema.ImportBlocksBulkWrite
+      )
+    ),
+    rest.post(
+      "/v1/disks/:disk/bulk-write-start",
+      handler(
+        handlers["diskBulkWriteImportStart"],
+        schema.DiskBulkWriteImportStartParams,
+        null
+      )
+    ),
+    rest.post(
+      "/v1/disks/:disk/bulk-write-stop",
+      handler(
+        handlers["diskBulkWriteImportStop"],
+        schema.DiskBulkWriteImportStopParams,
+        null
+      )
+    ),
+    rest.post(
+      "/v1/disks/:disk/finalize",
+      handler(
+        handlers["diskFinalizeImport"],
+        schema.DiskFinalizeImportParams,
+        schema.FinalizeDisk
+      )
+    ),
+    rest.post(
+      "/v1/disks/:disk/import",
+      handler(
+        handlers["diskImportBlocksFromUrl"],
+        schema.DiskImportBlocksFromUrlParams,
+        schema.ImportBlocksFromUrl
+      )
     ),
     rest.get(
       "/v1/disks/:disk/metrics/:metric",
@@ -853,6 +870,10 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
     rest.delete(
       "/v1/images/:image",
       handler(handlers["imageDelete"], schema.ImageDeleteParams, null)
+    ),
+    rest.post(
+      "/v1/images/:image/promote",
+      handler(handlers["imagePromote"], schema.ImagePromoteParams, null)
     ),
     rest.get(
       "/v1/instances",
@@ -988,7 +1009,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       handler(
         handlers["instanceNetworkInterfaceCreate"],
         schema.InstanceNetworkInterfaceCreateParams,
-        schema.NetworkInterfaceCreate
+        schema.InstanceNetworkInterfaceCreate
       )
     ),
     rest.get(
@@ -1004,7 +1025,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       handler(
         handlers["instanceNetworkInterfaceUpdate"],
         schema.InstanceNetworkInterfaceUpdateParams,
-        schema.NetworkInterfaceUpdate
+        schema.InstanceNetworkInterfaceUpdate
       )
     ),
     rest.delete(
@@ -1259,14 +1280,6 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
     rest.get(
       "/v1/system/roles/:roleName",
       handler(handlers["roleView"], schema.RoleViewParams, null)
-    ),
-    rest.get(
-      "/v1/system/sagas",
-      handler(handlers["sagaList"], schema.SagaListParams, null)
-    ),
-    rest.get(
-      "/v1/system/sagas/:sagaId",
-      handler(handlers["sagaView"], schema.SagaViewParams, null)
     ),
     rest.get(
       "/v1/system/silos",

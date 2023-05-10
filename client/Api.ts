@@ -68,9 +68,7 @@ export type Binint64 = {
 export type BlockSize = 512 | 2048 | 4096;
 
 /**
- * A count of bytes, typically used either for memory or storage capacity
- *
- * The maximum supported byte count is `i64::MAX`.  This makes it somewhat inconvenient to define constructors: a u32 constructor can be infallible, but an i64 constructor can fail (if the value is negative) and a u64 constructor can fail (if the value is larger than i64::MAX).  We provide all of these for consumers' convenience.
+ * Byte count to express memory or storage capacity.
  */
 export type ByteCount = number;
 
@@ -87,7 +85,7 @@ export type Name = string;
 export type ServiceUsingCertificate = "external_api";
 
 /**
- * Client view of a {@link Certificate}
+ * View of a Certificate
  */
 export type Certificate = {
   /** human-readable free-form text about a resource */
@@ -104,7 +102,7 @@ export type Certificate = {
 };
 
 /**
- * Create-time parameters for a {@link Certificate}
+ * Create-time parameters for a `Certificate`
  */
 export type CertificateCreate = {
   /** PEM file containing public certificate chain */
@@ -178,25 +176,24 @@ export type Cumulativedouble = { startTime: Date; value: number };
 export type Cumulativeint64 = { startTime: Date; value: number };
 
 /**
- * A simple type for managing a histogram metric.
+ * Info about the current user
+ */
+export type CurrentUser = {
+  /** Human-readable name that can identify the user */
+  displayName: string;
+  id: string;
+  /** Uuid of the silo to which this user belongs */
+  siloId: string;
+  /** Name of the silo to which this user belongs. */
+  siloName: Name;
+};
+
+/**
+ * Histogram metric
  *
  * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
  *
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- *
- * Example ------- ```rust use oximeter::histogram::{BinRange, Histogram};
- *
- * let edges = [0i64, 10, 20]; let mut hist = Histogram::new(&edges).unwrap(); assert_eq!(hist.n_bins(), 4); // One additional bin for the range (20..) assert_eq!(hist.n_samples(), 0); hist.sample(4); hist.sample(100); assert_eq!(hist.n_samples(), 2);
- *
- * let data = hist.iter().collect::<Vec<_>>(); assert_eq!(data[0].range, BinRange::range(i64::MIN, 0)); // An additional bin for `..0` assert_eq!(data[0].count, 0); // Nothing is in this bin
- *
- * assert_eq!(data[1].range, BinRange::range(0, 10)); // The range `0..10` assert_eq!(data[1].count, 1); // 4 is sampled into this bin ```
- *
- * Notes -----
- *
- * Histograms may be constructed either from their left bin edges, or from a sequence of ranges. In either case, the left-most bin may be converted upon construction. In particular, if the left-most value is not equal to the minimum of the support, a new bin will be added from the minimum to that provided value. If the left-most value _is_ the support's minimum, because the provided bin was unbounded below, such as `(..0)`, then that bin will be converted into one bounded below, `(MIN..0)` in this case.
- *
- * The short of this is that, most of the time, it shouldn't matter. If one specifies the extremes of the support as their bins, be aware that the left-most may be converted from a `BinRange::RangeTo` into a `BinRange::Range`. In other words, the first bin of a histogram is _always_ a `Bin::Range` or a `Bin::RangeFrom` after construction. In fact, every bin is one of those variants, the `BinRange::RangeTo` is only provided as a convenience during construction.
  */
 export type Histogramint64 = {
   bins: Binint64[];
@@ -205,25 +202,11 @@ export type Histogramint64 = {
 };
 
 /**
- * A simple type for managing a histogram metric.
+ * Histogram metric
  *
  * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
  *
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- *
- * Example ------- ```rust use oximeter::histogram::{BinRange, Histogram};
- *
- * let edges = [0i64, 10, 20]; let mut hist = Histogram::new(&edges).unwrap(); assert_eq!(hist.n_bins(), 4); // One additional bin for the range (20..) assert_eq!(hist.n_samples(), 0); hist.sample(4); hist.sample(100); assert_eq!(hist.n_samples(), 2);
- *
- * let data = hist.iter().collect::<Vec<_>>(); assert_eq!(data[0].range, BinRange::range(i64::MIN, 0)); // An additional bin for `..0` assert_eq!(data[0].count, 0); // Nothing is in this bin
- *
- * assert_eq!(data[1].range, BinRange::range(0, 10)); // The range `0..10` assert_eq!(data[1].count, 1); // 4 is sampled into this bin ```
- *
- * Notes -----
- *
- * Histograms may be constructed either from their left bin edges, or from a sequence of ranges. In either case, the left-most bin may be converted upon construction. In particular, if the left-most value is not equal to the minimum of the support, a new bin will be added from the minimum to that provided value. If the left-most value _is_ the support's minimum, because the provided bin was unbounded below, such as `(..0)`, then that bin will be converted into one bounded below, `(MIN..0)` in this case.
- *
- * The short of this is that, most of the time, it shouldn't matter. If one specifies the extremes of the support as their bins, be aware that the left-most may be converted from a `BinRange::RangeTo` into a `BinRange::Range`. In other words, the first bin of a histogram is _always_ a `Bin::Range` or a `Bin::RangeFrom` after construction. In fact, every bin is one of those variants, the `BinRange::RangeTo` is only provided as a convenience during construction.
  */
 export type Histogramdouble = {
   bins: Bindouble[];
@@ -265,13 +248,21 @@ export type DeviceAuthVerify = { userCode: string };
 export type Digest = { type: "sha256"; value: string };
 
 /**
- * State of a Disk (primarily: attached or not)
+ * State of a Disk
  */
 export type DiskState =
   /** Disk is being initialized */
   | { state: "creating" }
   /** Disk is ready but detached from any Instance */
   | { state: "detached" }
+  /** Disk is ready to receive blocks from an external source */
+  | { state: "import_ready" }
+  /** Disk is importing blocks from a URL */
+  | { state: "importing_from_url" }
+  /** Disk is importing blocks from bulk writes */
+  | { state: "importing_from_bulk_writes" }
+  /** Disk is being finalized to state Detached */
+  | { state: "finalizing" }
   /** Disk is undergoing maintenance */
   | { state: "maintenance" }
   /** Disk is being attached to the given Instance */
@@ -286,7 +277,7 @@ export type DiskState =
   | { state: "faulted" };
 
 /**
- * Client view of a {@link Disk}
+ * View of a Disk
  */
 export type Disk = {
   blockSize: ByteCount;
@@ -320,13 +311,13 @@ export type DiskSource =
     }
   /** Create a disk from a disk snapshot */
   | { snapshotId: string; type: "snapshot" }
-  /** Create a disk from a project image */
+  /** Create a disk from an image */
   | { imageId: string; type: "image" }
-  /** Create a disk from a global image */
-  | { imageId: string; type: "global_image" };
+  /** Create a blank disk that will accept bulk writes or pull blocks from an external source. */
+  | { blockSize: BlockSize; type: "importing_blocks" };
 
 /**
- * Create-time parameters for a {@link Disk}
+ * Create-time parameters for a `Disk`
  */
 export type DiskCreate = {
   description: string;
@@ -339,7 +330,10 @@ export type DiskCreate = {
 
 export type NameOrId = string | Name;
 
-export type DiskPath = { disk: NameOrId };
+export type DiskPath = {
+  /** Name or ID of the disk */
+  disk: NameOrId;
+};
 
 /**
  * A single page of results
@@ -351,15 +345,7 @@ export type DiskResultsPage = {
   nextPage?: string;
 };
 
-/**
- * OS image distribution
- */
-export type Distribution = {
-  /** The name of the distribution (e.g. "alpine" or "ubuntu") */
-  name: Name;
-  /** The version of the distribution (e.g. "3.10" or "18.04") */
-  version: string;
-};
+export type ExpectedDigest = { sha256: string };
 
 /**
  * The kind of an external IP address for an instance
@@ -383,6 +369,14 @@ export type ExternalIpResultsPage = {
   nextPage?: string;
 };
 
+/**
+ * Parameters for finalizing a disk
+ */
+export type FinalizeDisk = {
+  /** If specified a snapshot of the disk will be created with the given name during finalization. If not specified, a snapshot for the disk will _not_ be created. A snapshot can be manually created once the disk transitions into the `Detached` state. */
+  snapshotName?: Name;
+};
+
 export type FleetRole = "admin" | "collaborator" | "viewer";
 
 /**
@@ -402,7 +396,7 @@ export type FleetRoleRoleAssignment = {
 };
 
 /**
- * Client view of a `Policy`, which describes how this resource may be accessed
+ * Policy for a particular resource
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
@@ -412,68 +406,7 @@ export type FleetRolePolicy = {
 };
 
 /**
- * Client view of global Images
- */
-export type GlobalImage = {
-  /** size of blocks in bytes */
-  blockSize: ByteCount;
-  /** human-readable free-form text about a resource */
-  description: string;
-  /** Hash of the image contents, if applicable */
-  digest?: Digest;
-  /** Image distribution */
-  distribution: string;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  /** unique, mutable, user-controlled identifier for each resource */
-  name: Name;
-  /** total size in bytes */
-  size: ByteCount;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  /** URL source of this image, if any */
-  url?: string;
-  /** Image version */
-  version: string;
-};
-
-/**
- * The source of the underlying image.
- */
-export type ImageSource =
-  | { type: "url"; url: string }
-  | { id: string; type: "snapshot" }
-  /** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
-  | { type: "you_can_boot_anything_as_long_as_its_alpine" };
-
-/**
- * Create-time parameters for an {@link GlobalImage}
- */
-export type GlobalImageCreate = {
-  /** block size in bytes */
-  blockSize: BlockSize;
-  description: string;
-  /** OS image distribution */
-  distribution: Distribution;
-  name: Name;
-  /** The source of the image's contents. */
-  source: ImageSource;
-};
-
-/**
- * A single page of results
- */
-export type GlobalImageResultsPage = {
-  /** list of items on this page of results */
-  items: GlobalImage[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
-/**
- * Client view of a {@link Group}
+ * View of a Group
  */
 export type Group = {
   /** Human-readable name that can identify the group */
@@ -496,7 +429,7 @@ export type GroupResultsPage = {
 export type IdentityProviderType = "saml";
 
 /**
- * Client view of an {@link IdentityProvider}
+ * View of an Identity Provider
  */
 export type IdentityProvider = {
   /** human-readable free-form text about a resource */
@@ -528,7 +461,7 @@ export type IdpMetadataSource =
   | { data: string; type: "base64_encoded_xml" };
 
 /**
- * Client view of project Images
+ * Client view of images
  */
 export type Image = {
   /** size of blocks in bytes */
@@ -543,8 +476,8 @@ export type Image = {
   name: Name;
   /** The family of the operating system like Debian, Ubuntu, etc. */
   os: string;
-  /** The project the image belongs to */
-  projectId: string;
+  /** ID of the parent project if the image is a project image */
+  projectId?: string;
   /** total size in bytes */
   size: ByteCount;
   /** timestamp when this resource was created */
@@ -558,7 +491,16 @@ export type Image = {
 };
 
 /**
- * Create-time parameters for an {@link Image}
+ * The source of the underlying image.
+ */
+export type ImageSource =
+  | { type: "url"; url: string }
+  | { id: string; type: "snapshot" }
+  /** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
+  | { type: "you_can_boot_anything_as_long_as_its_alpine" };
+
+/**
+ * Create-time parameters for an `Image`
  */
 export type ImageCreate = {
   /** block size in bytes */
@@ -581,6 +523,24 @@ export type ImageResultsPage = {
   items: Image[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
+};
+
+/**
+ * Parameters for importing blocks with a bulk write
+ */
+export type ImportBlocksBulkWrite = {
+  base64EncodedData: string;
+  offset: number;
+};
+
+/**
+ * Parameters for importing blocks from a URL to a disk
+ */
+export type ImportBlocksFromUrl = {
+  /** Expected digest of all blocks when importing from a URL */
+  expectedDigest?: ExpectedDigest;
+  /** the source to pull blocks from */
+  url: string;
 };
 
 /**
@@ -616,7 +576,7 @@ export type InstanceState =
   | "destroyed";
 
 /**
- * Client view of an {@link Instance}
+ * View of an Instance
  */
 export type Instance = {
   /** human-readable free-form text about a resource */
@@ -663,9 +623,9 @@ export type InstanceDiskAttachment =
     };
 
 /**
- * Create-time parameters for a {@link NetworkInterface}
+ * Create-time parameters for an `InstanceNetworkInterface`
  */
-export type NetworkInterfaceCreate = {
+export type InstanceNetworkInterfaceCreate = {
   description: string;
   /** The IP address for the interface. One will be auto-assigned if not provided. */
   ip?: string;
@@ -677,20 +637,20 @@ export type NetworkInterfaceCreate = {
 };
 
 /**
- * Describes an attachment of a `NetworkInterface` to an `Instance`, at the time the instance is created.
+ * Describes an attachment of an `InstanceNetworkInterface` to an `Instance`, at the time the instance is created.
  */
 export type InstanceNetworkInterfaceAttachment =
-  /** Create one or more `NetworkInterface`s for the `Instance`.
+  /** Create one or more `InstanceNetworkInterface`s for the `Instance`.
 
 If more than one interface is provided, then the first will be designated the primary interface for the instance. */
-  | { params: NetworkInterfaceCreate[]; type: "create" }
+  | { params: InstanceNetworkInterfaceCreate[]; type: "create" }
   /** The default networking configuration for an instance is to create a single primary interface with an automatically-assigned IP address. The IP will be pulled from the Project's default VPC / VPC Subnet. */
   | { type: "default" }
   /** No network interfaces at all will be created for the instance. */
   | { type: "none" };
 
 /**
- * Create-time parameters for an {@link Instance}
+ * Create-time parameters for an `Instance`
  */
 export type InstanceCreate = {
   description: string;
@@ -713,9 +673,70 @@ By default, all instances have outbound connectivity, but no inbound connectivit
 };
 
 /**
- * Migration parameters for an {@link Instance}
+ * Migration parameters for an `Instance`
  */
 export type InstanceMigrate = { dstSledId: string };
+
+/**
+ * A MAC address
+ *
+ * A Media Access Control address, in EUI-48 format
+ */
+export type MacAddr = string;
+
+/**
+ * An `InstanceNetworkInterface` represents a virtual network interface device attached to an instance.
+ */
+export type InstanceNetworkInterface = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** The Instance to which the interface belongs. */
+  instanceId: string;
+  /** The IP address assigned to this interface. */
+  ip: string;
+  /** The MAC address assigned to this interface. */
+  mac: MacAddr;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** True if this interface is the primary for the instance to which it's attached. */
+  primary: boolean;
+  /** The subnet to which the interface belongs. */
+  subnetId: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  /** The VPC to which the interface belongs. */
+  vpcId: string;
+};
+
+/**
+ * A single page of results
+ */
+export type InstanceNetworkInterfaceResultsPage = {
+  /** list of items on this page of results */
+  items: InstanceNetworkInterface[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Parameters for updating an `InstanceNetworkInterface`
+ *
+ * Note that modifying IP addresses for an interface is not yet supported, a new interface must be created instead.
+ */
+export type InstanceNetworkInterfaceUpdate = {
+  description?: string;
+  name?: Name;
+  /** Make a secondary interface the instance's primary interface.
+
+If applied to a secondary interface, that interface will become the primary on the next reboot of the instance. Note that this may have implications for routing between instances, as the new primary interface will be on a distinct subnet from the previous primary interface.
+
+Note that this can only be used to select a new primary interface for an instance. Requests to change the primary interface into a secondary will return an error. */
+  primary?: boolean;
+};
 
 /**
  * A single page of results
@@ -770,9 +791,7 @@ export type IpPool = {
 };
 
 /**
- * Create-time parameters for an IP Pool.
- *
- * See {@link IpPool}
+ * Create-time parameters for an `IpPool`
  */
 export type IpPoolCreate = { description: string; name: Name };
 
@@ -827,13 +846,6 @@ export type IpPoolUpdate = { description?: string; name?: Name };
 export type L4PortRange = string;
 
 /**
- * A MAC address
- *
- * A Media Access Control address, in EUI-48 format
- */
-export type MacAddr = string;
-
-/**
  * A `Measurement` is a timestamped datum from a single metric
  */
 export type Measurement = { datum: Datum; timestamp: Date };
@@ -849,67 +861,6 @@ export type MeasurementResultsPage = {
 };
 
 /**
- * A `NetworkInterface` represents a virtual network interface device.
- */
-export type NetworkInterface = {
-  /** human-readable free-form text about a resource */
-  description: string;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  /** The Instance to which the interface belongs. */
-  instanceId: string;
-  /** The IP address assigned to this interface. */
-  ip: string;
-  /** The MAC address assigned to this interface. */
-  mac: MacAddr;
-  /** unique, mutable, user-controlled identifier for each resource */
-  name: Name;
-  /** True if this interface is the primary for the instance to which it's attached. */
-  primary: boolean;
-  /** The subnet to which the interface belongs. */
-  subnetId: string;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  /** The VPC to which the interface belongs. */
-  vpcId: string;
-};
-
-/**
- * A single page of results
- */
-export type NetworkInterfaceResultsPage = {
-  /** list of items on this page of results */
-  items: NetworkInterface[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
-/**
- * Parameters for updating a {@link NetworkInterface}.
- *
- * Note that modifying IP addresses for an interface is not yet supported, a new interface must be created instead.
- */
-export type NetworkInterfaceUpdate = {
-  description?: string;
-  name?: Name;
-  /** Make a secondary interface the instance's primary interface.
-
-If applied to a secondary interface, that interface will become the primary on the next reboot of the instance. Note that this may have implications for routing between instances, as the new primary interface will be on a distinct subnet from the previous primary interface.
-
-Note that this can only be used to select a new primary interface for an instance. Requests to change the primary interface into a secondary will return an error. */
-  primary?: boolean;
-};
-
-/**
- * Unique name for a saga `Node`
- *
- * Each node requires a string name that's unique within its DAG.  The name is used to identify its output.  Nodes that depend on a given node (either directly or indirectly) can access the node's output using its name.
- */
-export type NodeName = string;
-
-/**
  * A password used to authenticate a user
  *
  * Passwords may be subject to additional constraints.
@@ -919,7 +870,9 @@ export type Password = string;
 export type PhysicalDiskType = "internal" | "external";
 
 /**
- * Client view of a {@link PhysicalDisk}
+ * View of a Physical Disk
+ *
+ * Physical disks reside in a particular sled and are used to store both Instance Disk data as well as internal metadata.
  */
 export type PhysicalDisk = {
   diskType: PhysicalDiskType;
@@ -947,7 +900,7 @@ export type PhysicalDiskResultsPage = {
 };
 
 /**
- * Client view of a {@link Project}
+ * View of a Project
  */
 export type Project = {
   /** human-readable free-form text about a resource */
@@ -963,7 +916,7 @@ export type Project = {
 };
 
 /**
- * Create-time parameters for a {@link Project}
+ * Create-time parameters for a `Project`
  */
 export type ProjectCreate = { description: string; name: Name };
 
@@ -991,7 +944,7 @@ export type ProjectRoleRoleAssignment = {
 };
 
 /**
- * Client view of a `Policy`, which describes how this resource may be accessed
+ * Policy for a particular resource
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
@@ -1001,12 +954,12 @@ export type ProjectRolePolicy = {
 };
 
 /**
- * Updateable properties of a {@link Project}
+ * Updateable properties of a `Project`
  */
 export type ProjectUpdate = { description?: string; name?: Name };
 
 /**
- * Client view of an {@link Rack}
+ * View of an Rack
  */
 export type Rack = {
   /** unique, immutable, system-controlled identifier for each resource */
@@ -1035,7 +988,7 @@ export type RackResultsPage = {
 export type RoleName = string;
 
 /**
- * Client view of a {@link Role}
+ * View of a Role
  */
 export type Role = { description: string; name: RoleName };
 
@@ -1052,7 +1005,7 @@ export type RoleResultsPage = {
 /**
  * A `RouteDestination` is used to match traffic with a routing rule, on the destination of that traffic.
  *
- * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding {@link RouterRoute} applies, and traffic will be forward to the {@link RouteTarget} for that rule.
+ * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
  */
 export type RouteDestination =
   /** Route applies to traffic destined for a specific IP address */
@@ -1080,9 +1033,9 @@ export type RouteTarget =
   | { type: "internet_gateway"; value: Name };
 
 /**
- * The classification of a {@link RouterRoute} as defined by the system. The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
+ * The kind of a `RouterRoute`
  *
- * See [RFD-21](https://rfd.shared.oxide.computer/rfd/0021#concept-router) for more context
+ * The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
  */
 export type RouterRouteKind =
   /** Determines the default destination of traffic, such as whether it goes to the internet or not.
@@ -1097,7 +1050,7 @@ export type RouterRouteKind =
 
 `Destination: A different VPC` `Modifiable: false` */
   | "vpc_peering"
-  /** Created by a user See [`RouteTarget`]
+  /** Created by a user; see `RouteTarget`
 
 `Destination: User defined` `Modifiable: true` */
   | "custom";
@@ -1120,12 +1073,12 @@ export type RouterRoute = {
   timeCreated: Date;
   /** timestamp when this resource was last modified */
   timeModified: Date;
-  /** The VPC Router to which the route belongs. */
+  /** The ID of the VPC Router to which the route belongs */
   vpcRouterId: string;
 };
 
 /**
- * Create-time parameters for a `omicron_common::api::external::RouterRoute`
+ * Create-time parameters for a `RouterRoute`
  */
 export type RouterRouteCreate = {
   description: string;
@@ -1145,37 +1098,13 @@ export type RouterRouteResultsPage = {
 };
 
 /**
- * Updateable properties of a `omicron_common::api::external::RouterRoute`
+ * Updateable properties of a `RouterRoute`
  */
 export type RouterRouteUpdate = {
   description?: string;
   destination: RouteDestination;
   name?: Name;
   target: RouteTarget;
-};
-
-export type SagaErrorInfo =
-  | { error: "action_failed"; sourceError: Record<string, unknown> }
-  | { error: "deserialize_failed"; message: string }
-  | { error: "injected_error" }
-  | { error: "serialize_failed"; message: string }
-  | { error: "subsaga_create_failed"; message: string };
-
-export type SagaState =
-  | { state: "running" }
-  | { state: "succeeded" }
-  | { errorInfo: SagaErrorInfo; errorNodeName: NodeName; state: "failed" };
-
-export type Saga = { id: string; state: SagaState };
-
-/**
- * A single page of results
- */
-export type SagaResultsPage = {
-  /** list of items on this page of results */
-  items: Saga[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
 };
 
 /**
@@ -1220,7 +1149,7 @@ export type SamlIdentityProviderCreate = {
   /** the source of an identity provider metadata descriptor */
   idpMetadataSource: IdpMetadataSource;
   name: Name;
-  /** optional request signing key pair */
+  /** request signing key pair */
   signingKeypair?: DerEncodedKeyPair;
   /** service provider endpoint where the idp should send log out requests */
   sloUrl: string;
@@ -1240,7 +1169,9 @@ export type SiloIdentityMode =
   | "local_only";
 
 /**
- * Client view of a ['Silo']
+ * View of a Silo
+ *
+ * A Silo is the highest level unit of isolation.
  */
 export type Silo = {
   /** human-readable free-form text about a resource */
@@ -1260,12 +1191,12 @@ export type Silo = {
 };
 
 /**
- * Create-time parameters for a {@link Silo}
+ * Create-time parameters for a `Silo`
  */
 export type SiloCreate = {
   /** If set, this group will be created during Silo creation and granted the "Silo Admin" role. Identity providers can assert that users belong to this group and those users can log in and further initialize the Silo.
 
-Note that if configuring a SAML based identity provider, group_attribute_name must be set for users to be considered part of a group. See [`SamlIdentityProviderCreate`] for more information. */
+Note that if configuring a SAML based identity provider, group_attribute_name must be set for users to be considered part of a group. See `SamlIdentityProviderCreate` for more information. */
   adminGroupName?: string;
   description: string;
   discoverable: boolean;
@@ -1297,7 +1228,7 @@ export type SiloRoleRoleAssignment = {
 };
 
 /**
- * Client view of a `Policy`, which describes how this resource may be accessed
+ * Policy for a particular resource
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
@@ -1338,7 +1269,7 @@ export type SledResultsPage = {
 export type SnapshotState = "creating" | "ready" | "faulted" | "destroyed";
 
 /**
- * Client view of a Snapshot
+ * View of a Snapshot
  */
 export type Snapshot = {
   /** human-readable free-form text about a resource */
@@ -1358,7 +1289,7 @@ export type Snapshot = {
 };
 
 /**
- * Create-time parameters for a {@link Snapshot}
+ * Create-time parameters for a `Snapshot`
  */
 export type SnapshotCreate = {
   description: string;
@@ -1380,7 +1311,7 @@ export type SnapshotResultsPage = {
 export type SpoofLoginBody = { username: string };
 
 /**
- * Client view of a {@link SshKey}
+ * View of an SSH Key
  */
 export type SshKey = {
   /** human-readable free-form text about a resource */
@@ -1400,7 +1331,7 @@ export type SshKey = {
 };
 
 /**
- * Create-time parameters for an {@link SshKey}
+ * Create-time parameters for an `SshKey`
  */
 export type SshKeyCreate = {
   description: string;
@@ -1505,7 +1436,7 @@ export type UpdateableComponentResultsPage = {
 };
 
 /**
- * Client view of a {@link User}
+ * View of a User
  */
 export type User = {
   /** Human-readable name that can identify the user */
@@ -1516,7 +1447,9 @@ export type User = {
 };
 
 /**
- * Client view of a {@link UserBuiltin}
+ * View of a Built-in User
+ *
+ * A Built-in User is explicitly created as opposed to being derived from an Identify Provider.
  */
 export type UserBuiltin = {
   /** human-readable free-form text about a resource */
@@ -1558,7 +1491,7 @@ export type UserPassword =
   | { userPasswordValue: "invalid_password" };
 
 /**
- * Create-time parameters for a {@link User}
+ * Create-time parameters for a `User`
  */
 export type UserCreate = {
   /** username used to log in */
@@ -1586,7 +1519,7 @@ export type UsernamePasswordCredentials = {
 };
 
 /**
- * Client view of a {@link Vpc}
+ * View of a VPC
  */
 export type Vpc = {
   /** human-readable free-form text about a resource */
@@ -1610,14 +1543,14 @@ export type Vpc = {
 };
 
 /**
- * Create-time parameters for a {@link Vpc}
+ * Create-time parameters for a `Vpc`
  */
 export type VpcCreate = {
   description: string;
   dnsName: Name;
-  /** The IPv6 prefix for this VPC.
+  /** The IPv6 prefix for this VPC
 
-All IPv6 subnets created from this VPC must be taken from this range, which sould be a Unique Local Address in the range `fd00::/48`. The default VPC Subnet will have the first `/64` range from this prefix. */
+All IPv6 subnets created from this VPC must be taken from this range, which should be a Unique Local Address in the range `fd00::/48`. The default VPC Subnet will have the first `/64` range from this prefix. */
   ipv6Prefix?: Ipv6Net;
   name: Name;
 };
@@ -1661,7 +1594,7 @@ export type VpcFirewallRuleFilter = {
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
 
 /**
- * A `VpcFirewallRuleTarget` is used to specify the set of {@link Instance}s to which a firewall rule applies.
+ * A `VpcFirewallRuleTarget` is used to specify the set of `Instance`s to which a firewall rule applies.
  */
 export type VpcFirewallRuleTarget =
   /** The rule applies to all instances in the VPC */
@@ -1769,7 +1702,7 @@ export type VpcRouter = {
 };
 
 /**
- * Create-time parameters for a {@link VpcRouter}
+ * Create-time parameters for a `VpcRouter`
  */
 export type VpcRouterCreate = { description: string; name: Name };
 
@@ -1784,7 +1717,7 @@ export type VpcRouterResultsPage = {
 };
 
 /**
- * Updateable properties of a {@link VpcRouter}
+ * Updateable properties of a `VpcRouter`
  */
 export type VpcRouterUpdate = { description?: string; name?: Name };
 
@@ -1811,7 +1744,7 @@ export type VpcSubnet = {
 };
 
 /**
- * Create-time parameters for a {@link VpcSubnet}
+ * Create-time parameters for a `VpcSubnet`
  */
 export type VpcSubnetCreate = {
   description: string;
@@ -1837,21 +1770,14 @@ export type VpcSubnetResultsPage = {
 };
 
 /**
- * Updateable properties of a {@link VpcSubnet}
+ * Updateable properties of a `VpcSubnet`
  */
 export type VpcSubnetUpdate = { description?: string; name?: Name };
 
 /**
- * Updateable properties of a {@link Vpc}
+ * Updateable properties of a `Vpc`
  */
 export type VpcUpdate = { description?: string; dnsName?: Name; name?: Name };
-
-/**
- * Supported set of sort modes for scanning by name only
- *
- * Currently, we only support scanning in ascending order.
- */
-export type NameSortMode = "name_ascending";
 
 /**
  * Supported set of sort modes for scanning by name or id
@@ -1884,6 +1810,13 @@ export type SystemMetricName =
   | "cpus_provisioned"
   | "ram_provisioned";
 
+/**
+ * Supported set of sort modes for scanning by name only
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export type NameSortMode = "name_ascending";
+
 export interface LoginLocalPathParams {
   siloName: Name;
 }
@@ -1896,24 +1829,6 @@ export interface LoginSamlBeginPathParams {
 export interface LoginSamlPathParams {
   providerName: Name;
   siloName: Name;
-}
-
-export interface SystemImageViewByIdPathParams {
-  id: string;
-}
-
-export interface SystemImageListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  sortBy?: NameSortMode;
-}
-
-export interface SystemImageViewPathParams {
-  imageName: Name;
-}
-
-export interface SystemImageDeletePathParams {
-  imageName: Name;
 }
 
 export interface DiskListQueryParams {
@@ -1943,6 +1858,46 @@ export interface DiskDeleteQueryParams {
   project?: NameOrId;
 }
 
+export interface DiskBulkWriteImportPathParams {
+  disk: NameOrId;
+}
+
+export interface DiskBulkWriteImportQueryParams {
+  project?: NameOrId;
+}
+
+export interface DiskBulkWriteImportStartPathParams {
+  disk: NameOrId;
+}
+
+export interface DiskBulkWriteImportStartQueryParams {
+  project?: NameOrId;
+}
+
+export interface DiskBulkWriteImportStopPathParams {
+  disk: NameOrId;
+}
+
+export interface DiskBulkWriteImportStopQueryParams {
+  project?: NameOrId;
+}
+
+export interface DiskFinalizeImportPathParams {
+  disk: NameOrId;
+}
+
+export interface DiskFinalizeImportQueryParams {
+  project?: NameOrId;
+}
+
+export interface DiskImportBlocksFromUrlPathParams {
+  disk: NameOrId;
+}
+
+export interface DiskImportBlocksFromUrlQueryParams {
+  project?: NameOrId;
+}
+
 export interface DiskMetricsListPathParams {
   disk: NameOrId;
   metric: DiskMetricName;
@@ -1967,6 +1922,7 @@ export interface GroupViewPathParams {
 }
 
 export interface ImageListQueryParams {
+  includeSiloImages?: boolean;
   limit?: number;
   pageToken?: string;
   project?: NameOrId;
@@ -1990,6 +1946,14 @@ export interface ImageDeletePathParams {
 }
 
 export interface ImageDeleteQueryParams {
+  project?: NameOrId;
+}
+
+export interface ImagePromotePathParams {
+  image: NameOrId;
+}
+
+export interface ImagePromoteQueryParams {
   project?: NameOrId;
 }
 
@@ -2087,6 +2051,9 @@ export interface InstanceSerialConsoleStreamPathParams {
 }
 
 export interface InstanceSerialConsoleStreamQueryParams {
+  fromStart?: number;
+  maxBytes?: number;
+  mostRecent?: number;
   project?: NameOrId;
 }
 
@@ -2369,16 +2336,6 @@ export interface RoleViewPathParams {
   roleName: string;
 }
 
-export interface SagaListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  sortBy?: IdSortMode;
-}
-
-export interface SagaViewPathParams {
-  sagaId: string;
-}
-
 export interface SiloListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -2645,14 +2602,8 @@ export interface VpcDeleteQueryParams {
   project?: NameOrId;
 }
 
-export type ApiViewByIdMethods = Pick<
-  InstanceType<typeof Api>["methods"],
-  "systemImageViewById"
->;
-
 export type ApiListMethods = Pick<
   InstanceType<typeof Api>["methods"],
-  | "systemImageList"
   | "diskList"
   | "diskMetricsList"
   | "groupList"
@@ -2674,7 +2625,6 @@ export type ApiListMethods = Pick<
   | "ipPoolRangeList"
   | "ipPoolServiceRangeList"
   | "roleList"
-  | "sagaList"
   | "siloList"
   | "systemComponentVersionList"
   | "updateDeploymentsList"
@@ -2738,7 +2688,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Authenticate a user (i.e., log in) via username and password
+     * Authenticate a user via username and password
      */
     loginLocal: (
       {
@@ -2768,7 +2718,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Authenticate a user (i.e., log in) via SAML
+     * Authenticate a user via SAML
      */
     loginSaml: (
       { path }: { path: LoginSamlPathParams },
@@ -2784,73 +2734,6 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/logout`,
         method: "POST",
-        ...params,
-      });
-    },
-    /**
-     * Fetch a system-wide image by id
-     */
-    systemImageViewById: (
-      { path }: { path: SystemImageViewByIdPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<GlobalImage>({
-        path: `/system/by-id/images/${path.id}`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * List system-wide images
-     */
-    systemImageList: (
-      { query = {} }: { query?: SystemImageListQueryParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<GlobalImageResultsPage>({
-        path: `/system/images`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Create a system-wide image
-     */
-    systemImageCreate: (
-      { body }: { body: GlobalImageCreate },
-      params: RequestParams = {}
-    ) => {
-      return this.request<GlobalImage>({
-        path: `/system/images`,
-        method: "POST",
-        body,
-        ...params,
-      });
-    },
-    /**
-     * Fetch a system-wide image
-     */
-    systemImageView: (
-      { path }: { path: SystemImageViewPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<GlobalImage>({
-        path: `/system/images/${path.imageName}`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * Delete a system-wide image
-     */
-    systemImageDelete: (
-      { path }: { path: SystemImageDeletePathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/system/images/${path.imageName}`,
-        method: "DELETE",
         ...params,
       });
     },
@@ -2913,6 +2796,115 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/v1/disks/${path.disk}`,
         method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Import blocks into a disk
+     */
+    diskBulkWriteImport: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: DiskBulkWriteImportPathParams;
+        query?: DiskBulkWriteImportQueryParams;
+        body: ImportBlocksBulkWrite;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/disks/${path.disk}/bulk-write`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Start importing blocks into a disk
+     */
+    diskBulkWriteImportStart: (
+      {
+        path,
+        query = {},
+      }: {
+        path: DiskBulkWriteImportStartPathParams;
+        query?: DiskBulkWriteImportStartQueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/disks/${path.disk}/bulk-write-start`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Stop importing blocks into a disk
+     */
+    diskBulkWriteImportStop: (
+      {
+        path,
+        query = {},
+      }: {
+        path: DiskBulkWriteImportStopPathParams;
+        query?: DiskBulkWriteImportStopQueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/disks/${path.disk}/bulk-write-stop`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Confirm disk block import completion
+     */
+    diskFinalizeImport: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: DiskFinalizeImportPathParams;
+        query?: DiskFinalizeImportQueryParams;
+        body: FinalizeDisk;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/disks/${path.disk}/finalize`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Request to import blocks from URL
+     */
+    diskImportBlocksFromUrl: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: DiskImportBlocksFromUrlPathParams;
+        query?: DiskImportBlocksFromUrlQueryParams;
+        body: ImportBlocksFromUrl;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/disks/${path.disk}/import`,
+        method: "POST",
+        body,
         query,
         ...params,
       });
@@ -3026,6 +3018,23 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/v1/images/${path.image}`,
         method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Promote a project image
+     */
+    imagePromote: (
+      {
+        path,
+        query = {},
+      }: { path: ImagePromotePathParams; query?: ImagePromoteQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Image>({
+        path: `/v1/images/${path.image}/promote`,
+        method: "POST",
         query,
         ...params,
       });
@@ -3280,7 +3289,7 @@ export class Api extends HttpClient {
      * Fetch the user associated with the current session
      */
     currentUserView: (_: EmptyObj, params: RequestParams = {}) => {
-      return this.request<User>({
+      return this.request<CurrentUser>({
         path: `/v1/me`,
         method: "GET",
         ...params,
@@ -3361,7 +3370,7 @@ export class Api extends HttpClient {
       { query = {} }: { query?: InstanceNetworkInterfaceListQueryParams },
       params: RequestParams = {}
     ) => {
-      return this.request<NetworkInterfaceResultsPage>({
+      return this.request<InstanceNetworkInterfaceResultsPage>({
         path: `/v1/network-interfaces`,
         method: "GET",
         query,
@@ -3377,11 +3386,11 @@ export class Api extends HttpClient {
         body,
       }: {
         query?: InstanceNetworkInterfaceCreateQueryParams;
-        body: NetworkInterfaceCreate;
+        body: InstanceNetworkInterfaceCreate;
       },
       params: RequestParams = {}
     ) => {
-      return this.request<NetworkInterface>({
+      return this.request<InstanceNetworkInterface>({
         path: `/v1/network-interfaces`,
         method: "POST",
         body,
@@ -3402,7 +3411,7 @@ export class Api extends HttpClient {
       },
       params: RequestParams = {}
     ) => {
-      return this.request<NetworkInterface>({
+      return this.request<InstanceNetworkInterface>({
         path: `/v1/network-interfaces/${path.interface}`,
         method: "GET",
         query,
@@ -3420,11 +3429,11 @@ export class Api extends HttpClient {
       }: {
         path: InstanceNetworkInterfaceUpdatePathParams;
         query?: InstanceNetworkInterfaceUpdateQueryParams;
-        body: NetworkInterfaceUpdate;
+        body: InstanceNetworkInterfaceUpdate;
       },
       params: RequestParams = {}
     ) => {
-      return this.request<NetworkInterface>({
+      return this.request<InstanceNetworkInterface>({
         path: `/v1/network-interfaces/${path.interface}`,
         method: "PUT",
         body,
@@ -3655,7 +3664,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Create a new system-wide x.509 certificate.
+     * Create a new system-wide x.509 certificate
      */
     certificateCreate: (
       { body }: { body: CertificateCreate },
@@ -3783,7 +3792,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List a silo's IDPs_name
+     * List a silo's IdP's name
      */
     siloIdentityProviderList: (
       { query = {} }: { query?: SiloIdentityProviderListQueryParams },
@@ -3858,7 +3867,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Create a SAML IDP
+     * Create a SAML IdP
      */
     samlIdentityProviderCreate: (
       {
@@ -3879,7 +3888,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Fetch a SAML IDP
+     * Fetch a SAML IdP
      */
     samlIdentityProviderView: (
       {
@@ -4015,7 +4024,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Fetch the IP pool used for Oxide services.
+     * Fetch the IP pool used for Oxide services
      */
     ipPoolServiceView: (_: EmptyObj, params: RequestParams = {}) => {
       return this.request<IpPool>({
@@ -4025,7 +4034,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List ranges for the IP pool used for Oxide services.
+     * List ranges for the IP pool used for Oxide services
      */
     ipPoolServiceRangeList: (
       { query = {} }: { query?: IpPoolServiceRangeListQueryParams },
@@ -4039,7 +4048,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Add a range to an IP pool used for Oxide services.
+     * Add a range to an IP pool used for Oxide services
      */
     ipPoolServiceRangeAdd: (
       { body }: { body: IpRange },
@@ -4053,7 +4062,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Remove a range from an IP pool used for Oxide services.
+     * Remove a range from an IP pool used for Oxide services
      */
     ipPoolServiceRangeRemove: (
       { body }: { body: IpRange },
@@ -4130,33 +4139,6 @@ export class Api extends HttpClient {
     ) => {
       return this.request<Role>({
         path: `/v1/system/roles/${path.roleName}`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * List sagas
-     */
-    sagaList: (
-      { query = {} }: { query?: SagaListQueryParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<SagaResultsPage>({
-        path: `/v1/system/sagas`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Fetch a saga
-     */
-    sagaView: (
-      { path }: { path: SagaViewPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<Saga>({
-        path: `/v1/system/sagas/${path.sagaId}`,
         method: "GET",
         ...params,
       });
@@ -4605,7 +4587,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Get a router
+     * Fetch a router
      */
     vpcRouterView: (
       {
@@ -4665,7 +4647,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Fetch a subnet
+     * List subnets
      */
     vpcSubnetList: (
       { query = {} }: { query?: VpcSubnetListQueryParams },
@@ -4769,7 +4751,7 @@ export class Api extends HttpClient {
       },
       params: RequestParams = {}
     ) => {
-      return this.request<NetworkInterfaceResultsPage>({
+      return this.request<InstanceNetworkInterfaceResultsPage>({
         path: `/v1/vpc-subnets/${path.subnet}/network-interfaces`,
         method: "GET",
         query,
