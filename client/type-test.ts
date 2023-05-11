@@ -136,12 +136,8 @@ assert<Equals<A.IpPoolCreate, z.infer<typeof V.IpPoolCreate>>>();
 assert<Equals<A.Ipv4Range, z.infer<typeof V.Ipv4Range>>>();
 assert<Equals<A.Ipv6Range, z.infer<typeof V.Ipv6Range>>>();
 assert<Equals<A.IpRange, z.infer<typeof V.IpRange>>>();
+assert<Equals<A.IpPoolRange, z.infer<typeof V.IpPoolRange>>>();
 assert<
-  // @ts-expect-error
-  Equals<A.IpPoolRange, z.infer<typeof V.IpPoolRange>>
->();
-assert<
-  // @ts-expect-error
   Equals<A.IpPoolRangeResultsPage, z.infer<typeof V.IpPoolRangeResultsPage>>
 >();
 assert<Equals<A.IpPoolResultsPage, z.infer<typeof V.IpPoolResultsPage>>>();

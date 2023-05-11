@@ -21,17 +21,6 @@ export function generateTypeTests(spec: OpenAPIV3.Document) {
     const schema = spec.components!.schemas![name];
     if (!schema) continue;
 
-    // TODO: these two types are failing to pass type asserts but they
-    // seem to be correct in shape. Follow up on why the type tests
-    // are failing
-    if (["IpPoolRange", "IpPoolRangeResultsPage"].includes(name)) {
-      w(`assert<
-        // @ts-expect-error
-        Equals<A.${name}, z.infer<typeof V.${name}>>
-      >();`);
-      continue;
-    }
-
     w(`assert<Equals<A.${name}, z.infer<typeof V.${name}>>>();`);
   }
 }
