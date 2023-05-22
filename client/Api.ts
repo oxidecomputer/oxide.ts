@@ -4,9 +4,7 @@ import type { RequestParams } from "./http-client";
 import { HttpClient, toQueryString } from "./http-client";
 export type {
   ApiConfig,
-  ApiError,
   ApiResult,
-  ClientError,
   ErrorBody,
   ErrorResult,
 } from "./http-client";

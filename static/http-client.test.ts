@@ -22,7 +22,7 @@ describe("handleResponse", () => {
   it('API error returns type "error"', async () => {
     const result = await handleResponse(json({ bad_stuff: "hi" }, 400));
     expect(result).toMatchObject({
-      error: { badStuff: "hi" },
+      data: { badStuff: "hi" },
       statusCode: 400,
       type: "error",
     });
