@@ -66,9 +66,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
 
   w(`export type {
       ApiConfig, 
-      ApiError, 
       ApiResult,
-      ClientError, 
       ErrorBody,
       ErrorResult,
     } from './http-client'
