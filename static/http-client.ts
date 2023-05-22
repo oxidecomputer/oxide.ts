@@ -43,7 +43,7 @@ export type ErrorResult =
       type: "error";
       statusCode: number;
       headers: Headers;
-      error: ErrorBody;
+      data: ErrorBody;
     }
   // JSON parsing or processing errors within the client. Includes raised Error
   // and response body as a string for debugging.
@@ -114,7 +114,7 @@ export async function handleResponse<Data>(
   if (!response.ok) {
     return {
       type: "error",
-      error: respJson as ErrorBody,
+      data: respJson as ErrorBody,
       ...common,
     };
   }
