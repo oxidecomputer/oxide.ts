@@ -1837,7 +1837,7 @@ export interface DiskListQueryParams {
 }
 
 export interface DiskCreateQueryParams {
-  project?: NameOrId;
+  project: NameOrId;
 }
 
 export interface DiskViewPathParams {
@@ -1963,7 +1963,7 @@ export interface InstanceListQueryParams {
 }
 
 export interface InstanceCreateQueryParams {
-  project?: NameOrId;
+  project: NameOrId;
 }
 
 export interface InstanceViewPathParams {
@@ -2100,7 +2100,7 @@ export interface InstanceNetworkInterfaceListQueryParams {
 }
 
 export interface InstanceNetworkInterfaceCreateQueryParams {
-  instance?: NameOrId;
+  instance: NameOrId;
   project?: NameOrId;
 }
 
@@ -2165,7 +2165,7 @@ export interface SnapshotListQueryParams {
 }
 
 export interface SnapshotCreateQueryParams {
-  project?: NameOrId;
+  project: NameOrId;
 }
 
 export interface SnapshotViewPathParams {
@@ -2242,7 +2242,7 @@ export interface SiloIdentityProviderListQueryParams {
 }
 
 export interface LocalIdpUserCreateQueryParams {
-  silo?: NameOrId;
+  silo: NameOrId;
 }
 
 export interface LocalIdpUserDeletePathParams {
@@ -2250,7 +2250,7 @@ export interface LocalIdpUserDeletePathParams {
 }
 
 export interface LocalIdpUserDeleteQueryParams {
-  silo?: NameOrId;
+  silo: NameOrId;
 }
 
 export interface LocalIdpUserSetPasswordPathParams {
@@ -2258,11 +2258,11 @@ export interface LocalIdpUserSetPasswordPathParams {
 }
 
 export interface LocalIdpUserSetPasswordQueryParams {
-  silo?: NameOrId;
+  silo: NameOrId;
 }
 
 export interface SamlIdentityProviderCreateQueryParams {
-  silo?: NameOrId;
+  silo: NameOrId;
 }
 
 export interface SamlIdentityProviderViewPathParams {
@@ -2270,7 +2270,7 @@ export interface SamlIdentityProviderViewPathParams {
 }
 
 export interface SamlIdentityProviderViewQueryParams {
-  silo?: NameOrId;
+  silo: NameOrId;
 }
 
 export interface IpPoolListQueryParams {
@@ -2319,7 +2319,7 @@ export interface SystemMetricPathParams {
 
 export interface SystemMetricQueryParams {
   endTime?: Date;
-  id?: string;
+  id: string;
   limit?: number;
   pageToken?: string;
   startTime?: Date;
@@ -2398,7 +2398,7 @@ export interface SiloUserViewPathParams {
 }
 
 export interface SiloUserViewQueryParams {
-  silo?: NameOrId;
+  silo: NameOrId;
 }
 
 export interface UserBuiltinListQueryParams {
@@ -2420,12 +2420,12 @@ export interface UserListQueryParams {
 
 export interface VpcFirewallRulesViewQueryParams {
   project?: NameOrId;
-  vpc?: NameOrId;
+  vpc: NameOrId;
 }
 
 export interface VpcFirewallRulesUpdateQueryParams {
   project?: NameOrId;
-  vpc?: NameOrId;
+  vpc: NameOrId;
 }
 
 export interface VpcRouterRouteListQueryParams {
@@ -2439,7 +2439,7 @@ export interface VpcRouterRouteListQueryParams {
 
 export interface VpcRouterRouteCreateQueryParams {
   project?: NameOrId;
-  router?: NameOrId;
+  router: NameOrId;
   vpc?: NameOrId;
 }
 
@@ -2449,7 +2449,7 @@ export interface VpcRouterRouteViewPathParams {
 
 export interface VpcRouterRouteViewQueryParams {
   project?: NameOrId;
-  router?: NameOrId;
+  router: NameOrId;
   vpc?: NameOrId;
 }
 
@@ -2483,7 +2483,7 @@ export interface VpcRouterListQueryParams {
 
 export interface VpcRouterCreateQueryParams {
   project?: NameOrId;
-  vpc?: NameOrId;
+  vpc: NameOrId;
 }
 
 export interface VpcRouterViewPathParams {
@@ -2523,7 +2523,7 @@ export interface VpcSubnetListQueryParams {
 
 export interface VpcSubnetCreateQueryParams {
   project?: NameOrId;
-  vpc?: NameOrId;
+  vpc: NameOrId;
 }
 
 export interface VpcSubnetViewPathParams {
@@ -2573,7 +2573,7 @@ export interface VpcListQueryParams {
 }
 
 export interface VpcCreateQueryParams {
-  project?: NameOrId;
+  project: NameOrId;
 }
 
 export interface VpcViewPathParams {
@@ -2753,7 +2753,7 @@ export class Api extends HttpClient {
      * Create a disk
      */
     diskCreate: (
-      { query = {}, body }: { query?: DiskCreateQueryParams; body: DiskCreate },
+      { query, body }: { query?: DiskCreateQueryParams; body: DiskCreate },
       params: RequestParams = {}
     ) => {
       return this.request<Disk>({
@@ -3056,7 +3056,7 @@ export class Api extends HttpClient {
      */
     instanceCreate: (
       {
-        query = {},
+        query,
         body,
       }: { query?: InstanceCreateQueryParams; body: InstanceCreate },
       params: RequestParams = {}
@@ -3380,7 +3380,7 @@ export class Api extends HttpClient {
      */
     instanceNetworkInterfaceCreate: (
       {
-        query = {},
+        query,
         body,
       }: {
         query?: InstanceNetworkInterfaceCreateQueryParams;
@@ -3600,7 +3600,7 @@ export class Api extends HttpClient {
      */
     snapshotCreate: (
       {
-        query = {},
+        query,
         body,
       }: { query?: SnapshotCreateQueryParams; body: SnapshotCreate },
       params: RequestParams = {}
@@ -3808,7 +3808,7 @@ export class Api extends HttpClient {
      */
     localIdpUserCreate: (
       {
-        query = {},
+        query,
         body,
       }: { query?: LocalIdpUserCreateQueryParams; body: UserCreate },
       params: RequestParams = {}
@@ -3827,7 +3827,7 @@ export class Api extends HttpClient {
     localIdpUserDelete: (
       {
         path,
-        query = {},
+        query,
       }: {
         path: LocalIdpUserDeletePathParams;
         query?: LocalIdpUserDeleteQueryParams;
@@ -3847,7 +3847,7 @@ export class Api extends HttpClient {
     localIdpUserSetPassword: (
       {
         path,
-        query = {},
+        query,
         body,
       }: {
         path: LocalIdpUserSetPasswordPathParams;
@@ -3869,7 +3869,7 @@ export class Api extends HttpClient {
      */
     samlIdentityProviderCreate: (
       {
-        query = {},
+        query,
         body,
       }: {
         query?: SamlIdentityProviderCreateQueryParams;
@@ -3891,7 +3891,7 @@ export class Api extends HttpClient {
     samlIdentityProviderView: (
       {
         path,
-        query = {},
+        query,
       }: {
         path: SamlIdentityProviderViewPathParams;
         query?: SamlIdentityProviderViewQueryParams;
@@ -4079,7 +4079,7 @@ export class Api extends HttpClient {
     systemMetric: (
       {
         path,
-        query = {},
+        query,
       }: { path: SystemMetricPathParams; query?: SystemMetricQueryParams },
       params: RequestParams = {}
     ) => {
@@ -4370,7 +4370,7 @@ export class Api extends HttpClient {
     siloUserView: (
       {
         path,
-        query = {},
+        query,
       }: { path: SiloUserViewPathParams; query?: SiloUserViewQueryParams },
       params: RequestParams = {}
     ) => {
@@ -4426,7 +4426,7 @@ export class Api extends HttpClient {
      * List firewall rules
      */
     vpcFirewallRulesView: (
-      { query = {} }: { query?: VpcFirewallRulesViewQueryParams },
+      { query }: { query?: VpcFirewallRulesViewQueryParams },
       params: RequestParams = {}
     ) => {
       return this.request<VpcFirewallRules>({
@@ -4441,7 +4441,7 @@ export class Api extends HttpClient {
      */
     vpcFirewallRulesUpdate: (
       {
-        query = {},
+        query,
         body,
       }: {
         query?: VpcFirewallRulesUpdateQueryParams;
@@ -4476,7 +4476,7 @@ export class Api extends HttpClient {
      */
     vpcRouterRouteCreate: (
       {
-        query = {},
+        query,
         body,
       }: { query?: VpcRouterRouteCreateQueryParams; body: RouterRouteCreate },
       params: RequestParams = {}
@@ -4495,7 +4495,7 @@ export class Api extends HttpClient {
     vpcRouterRouteView: (
       {
         path,
-        query = {},
+        query,
       }: {
         path: VpcRouterRouteViewPathParams;
         query?: VpcRouterRouteViewQueryParams;
@@ -4571,7 +4571,7 @@ export class Api extends HttpClient {
      */
     vpcRouterCreate: (
       {
-        query = {},
+        query,
         body,
       }: { query?: VpcRouterCreateQueryParams; body: VpcRouterCreate },
       params: RequestParams = {}
@@ -4663,7 +4663,7 @@ export class Api extends HttpClient {
      */
     vpcSubnetCreate: (
       {
-        query = {},
+        query,
         body,
       }: { query?: VpcSubnetCreateQueryParams; body: VpcSubnetCreate },
       params: RequestParams = {}
@@ -4774,7 +4774,7 @@ export class Api extends HttpClient {
      * Create a VPC
      */
     vpcCreate: (
-      { query = {}, body }: { query?: VpcCreateQueryParams; body: VpcCreate },
+      { query, body }: { query?: VpcCreateQueryParams; body: VpcCreate },
       params: RequestParams = {}
     ) => {
       return this.request<Vpc>({

@@ -118,7 +118,9 @@ export function generateApi(spec: OpenAPIV3.Document) {
           docComment(extractDoc(param.schema), schemaNames, io);
         }
 
-        w0(`  ${processParamName(param.name)}?:`);
+        w0(`  ${processParamName(param.name)}`);
+        if (!param.required) w0("?");
+        w0(": ");
         schemaToTypes(param.schema, io);
         w(",");
       }
@@ -214,7 +216,12 @@ export function generateApi(spec: OpenAPIV3.Document) {
     if (pathParams.length > 0 || queryParams.length > 0 || bodyType) {
       w(`{ `);
       if (pathParams.length > 0) w0("path, ");
-      if (queryParams.length > 0) w0("query = {}, ");
+      if (queryParams.length > 0) {
+        w0("query");
+        // we can only default to empty object if there are no required params
+        if (!queryParams.some((p) => p.required)) w0(" = {}");
+        w0(", ");
+      }
       if (bodyType) w0("body, ");
       w0("}: {");
 
