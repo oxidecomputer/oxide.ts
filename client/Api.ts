@@ -10,9 +10,157 @@ export type {
 } from "./http-client";
 
 /**
- * Properties that should uniquely identify a Sled.
+ * An IPv4 subnet
+ *
+ * An IPv4 subnet, including prefix and subnet mask
+ */
+export type Ipv4Net = string;
+
+/**
+ * An IPv6 subnet
+ *
+ * An IPv6 subnet, including prefix and subnet mask
+ */
+export type Ipv6Net = string;
+
+export type IpNet = Ipv4Net | Ipv6Net;
+
+/**
+ * A name unique within the parent collection
+ *
+ * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
+ */
+export type Name = string;
+
+export type NameOrId = string | Name;
+
+/**
+ * An address tied to an address lot.
+ */
+export type Address = {
+  /** The address and prefix length of this address. */
+  address: IpNet;
+  /** The address lot this address is drawn from. */
+  addressLot: NameOrId;
+};
+
+/**
+ * A set of addresses associated with a port configuration.
+ */
+export type AddressConfig = {
+  /** The set of addresses assigned to the port configuration. */
+  addresses: Address[];
+};
+
+/**
+ * The kind associated with an address lot.
+ */
+export type AddressLotKind =
+  /** Infrastructure address lots are used for network infrastructure like addresses assigned to rack switches. */
+  | "infra"
+  /** Pool address lots are used by IP pools. */
+  | "pool";
+
+/**
+ * Represents an address lot object, containing the id of the lot that can be used in other API calls.
+ */
+export type AddressLot = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** Desired use of `AddressLot` */
+  kind: AddressLotKind;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * An address lot block is a part of an address lot and contains a range of addresses. The range is inclusive.
+ */
+export type AddressLotBlock = {
+  /** The first address of the block (inclusive). */
+  firstAddress: string;
+  /** The id of the address lot block. */
+  id: string;
+  /** The last address of the block (inclusive). */
+  lastAddress: string;
+};
+
+/**
+ * Parameters for creating an address lot block. Fist and last addresses are inclusive.
+ */
+export type AddressLotBlockCreate = {
+  /** The first address in the lot (inclusive). */
+  firstAddress: string;
+  /** The last address in the lot (inclusive). */
+  lastAddress: string;
+};
+
+/**
+ * A single page of results
+ */
+export type AddressLotBlockResultsPage = {
+  /** list of items on this page of results */
+  items: AddressLotBlock[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Parameters for creating an address lot.
+ */
+export type AddressLotCreate = {
+  /** The blocks to add along with the new address lot. */
+  blocks: AddressLotBlockCreate[];
+  description: string;
+  /** The kind of address lot to create. */
+  kind: AddressLotKind;
+  name: Name;
+};
+
+/**
+ * An address lot and associated blocks resulting from creating an address lot.
+ */
+export type AddressLotCreateResponse = {
+  /** The address lot blocks that were created. */
+  blocks: AddressLotBlock[];
+  /** The address lot that was created. */
+  lot: AddressLot;
+};
+
+/**
+ * A single page of results
+ */
+export type AddressLotResultsPage = {
+  /** list of items on this page of results */
+  items: AddressLot[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Properties that uniquely identify an Oxide hardware component
  */
 export type Baseboard = { part: string; revision: number; serial: string };
+
+/**
+ * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
+ */
+export type BgpPeerConfig = {
+  /** The address of the host to peer with. */
+  addr: string;
+  /** The set of announcements advertised by the peer. */
+  bgpAnnounceSet: NameOrId;
+  /** The global BGP configuration used for establishing a session with this peer. */
+  bgpConfig: NameOrId;
+  /** The name of interface to peer on. This is relative to the port configuration this BGP peer configuration is a part of. For example this value could be phy0 to refer to a primary physical interface. Or it could be vlan47 to refer to a VLAN interface. */
+  interfaceName: string;
+};
 
 /**
  * A type storing a range over `T`.
@@ -69,13 +217,6 @@ export type BlockSize = 512 | 2048 | 4096;
  * Byte count to express memory or storage capacity.
  */
 export type ByteCount = number;
-
-/**
- * A name unique within the parent collection
- *
- * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
- */
-export type Name = string;
 
 /**
  * The service intended to use this certificate.
@@ -326,8 +467,6 @@ export type DiskCreate = {
   size: ByteCount;
 };
 
-export type NameOrId = string | Name;
-
 export type DiskPath = {
   /** Name or ID of the disk */
   disk: NameOrId;
@@ -459,7 +598,9 @@ export type IdpMetadataSource =
   | { data: string; type: "base64_encoded_xml" };
 
 /**
- * Client view of images
+ * View of an image
+ *
+ * If `project_id` is present then the image is only visible inside that project. If it's not present then the image is visible to all projects in the silo.
  */
 export type Image = {
   /** size of blocks in bytes */
@@ -757,22 +898,6 @@ export type InstanceSerialConsoleData = {
 };
 
 /**
- * An IPv4 subnet
- *
- * An IPv4 subnet, including prefix and subnet mask
- */
-export type Ipv4Net = string;
-
-/**
- * An IPv6 subnet
- *
- * An IPv6 subnet, including prefix and subnet mask
- */
-export type Ipv6Net = string;
-
-export type IpNet = Ipv4Net | Ipv6Net;
-
-/**
  * Identity-related metadata that's included in nearly all public API objects
  */
 export type IpPool = {
@@ -842,6 +967,68 @@ export type IpPoolUpdate = { description?: string; name?: Name };
  * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
  */
 export type L4PortRange = string;
+
+/**
+ * The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
+ */
+export type LldpServiceConfig = {
+  /** Whether or not LLDP is enabled. */
+  enabled: boolean;
+  /** A reference to the LLDP configuration used. Must not be `None` when `enabled` is `true`. */
+  lldpConfig?: NameOrId;
+};
+
+/**
+ * Switch link configuration.
+ */
+export type LinkConfig = {
+  /** The link-layer discovery protocol (LLDP) configuration for the link. */
+  lldp: LldpServiceConfig;
+  /** Maximum transmission unit for the link. */
+  mtu: number;
+};
+
+/**
+ * A loopback address is an address that is assigned to a rack switch but is not associated with any particular port.
+ */
+export type LoopbackAddress = {
+  /** The loopback IP address and prefix length. */
+  address: IpNet;
+  /** The address lot block this address came from. */
+  addressLotBlockId: string;
+  /** The id of the loopback address. */
+  id: string;
+  /** The id of the rack where this loopback address is assigned. */
+  rackId: string;
+  /** Switch location where this loopback address is assigned. */
+  switchLocation: string;
+};
+
+/**
+ * Parameters for creating a loopback address on a particular rack switch.
+ */
+export type LoopbackAddressCreate = {
+  /** The address to create. */
+  address: string;
+  /** The name or id of the address lot this loopback address will pull an address from. */
+  addressLot: NameOrId;
+  /** The subnet mask to use for the address. */
+  mask: number;
+  /** The containing the switch this loopback address will be configured on. */
+  rackId: string;
+  /** The location of the switch within the rack this loopback address will be configured on. */
+  switchLocation: Name;
+};
+
+/**
+ * A single page of results
+ */
+export type LoopbackAddressResultsPage = {
+  /** list of items on this page of results */
+  items: LoopbackAddress[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
 
 /**
  * A `Measurement` is a timestamped datum from a single metric
@@ -1001,6 +1188,24 @@ export type RoleResultsPage = {
 };
 
 /**
+ * A route to a destination network through a gateway address.
+ */
+export type Route = {
+  /** The route destination. */
+  dst: IpNet;
+  /** The route gateway. */
+  gw: string;
+};
+
+/**
+ * Route configuration data associated with a switch port configuration.
+ */
+export type RouteConfig = {
+  /** The set of routes assigned to a switch port. */
+  routes: Route[];
+};
+
+/**
  * A `RouteDestination` is used to match traffic with a routing rule, on the destination of that traffic.
  *
  * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
@@ -1109,23 +1314,25 @@ export type RouterRouteUpdate = {
  * Identity-related metadata that's included in nearly all public API objects
  */
 export type SamlIdentityProvider = {
-  /** service provider endpoint where the response will be sent */
+  /** Service provider endpoint where the response will be sent */
   acsUrl: string;
   /** human-readable free-form text about a resource */
   description: string;
+  /** If set, attributes with this name will be considered to denote a user's group membership, where the values will be the group names. */
+  groupAttributeName?: string;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
-  /** idp's entity id */
+  /** IdP's entity id */
   idpEntityId: string;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
-  /** optional request signing public certificate (base64 encoded der file) */
+  /** Optional request signing public certificate (base64 encoded der file) */
   publicCert?: string;
-  /** service provider endpoint where the idp should send log out requests */
+  /** Service provider endpoint where the idp should send log out requests */
   sloUrl: string;
-  /** sp's client id */
+  /** SP's client id */
   spClientId: string;
-  /** customer's technical contact for saml configuration */
+  /** Customer's technical contact for saml configuration */
   technicalContactEmail: string;
   /** timestamp when this resource was created */
   timeCreated: Date;
@@ -1200,6 +1407,8 @@ Note that if configuring a SAML based identity provider, group_attribute_name mu
   discoverable: boolean;
   identityMode: SiloIdentityMode;
   name: Name;
+  /** Initial TLS certificates to be used for the new Silo's console and API endpoints.  These should be valid for the Silo's DNS name(s). */
+  tlsCertificates: CertificateCreate[];
 };
 
 /**
@@ -1255,6 +1464,36 @@ export type Sled = {
 };
 
 /**
+ * An operator's view of an instance running on a given sled
+ */
+export type SledInstance = {
+  activeSledId: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  memory: number;
+  migrationId?: string;
+  name: Name;
+  ncpus: number;
+  projectName: Name;
+  siloName: Name;
+  state: InstanceState;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * A single page of results
+ */
+export type SledInstanceResultsPage = {
+  /** list of items on this page of results */
+  items: SledInstance[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
  * A single page of results
  */
 export type SledResultsPage = {
@@ -1306,8 +1545,6 @@ export type SnapshotResultsPage = {
   nextPage?: string;
 };
 
-export type SpoofLoginBody = { username: string };
-
 /**
  * View of an SSH Key
  */
@@ -1344,6 +1581,259 @@ export type SshKeyCreate = {
 export type SshKeyResultsPage = {
   /** list of items on this page of results */
   items: SshKey[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * An operator's view of a Switch.
+ */
+export type Switch = {
+  baseboard: Baseboard;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** The rack to which this Switch is currently attached */
+  rackId: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Indicates the kind for a switch interface.
+ */
+export type SwitchInterfaceKind =
+  /** Primary interfaces are associated with physical links. There is exactly one primary interface per physical link. */
+  | { type: "primary" }
+  /** VLAN interfaces allow physical interfaces to be multiplexed onto multiple logical links, each distinguished by a 12-bit 802.1Q Ethernet tag. */
+  | {
+      type: "vlan";
+      /** The virtual network id (VID) that distinguishes this interface and is used for producing and consuming 802.1Q Ethernet tags. This field has a maximum value of 4095 as 802.1Q tags are twelve bits. */
+      vid: number;
+    }
+  /** Loopback interfaces are anchors for IP addresses that are not specific to any particular port. */
+  | { type: "loopback" };
+
+/**
+ * A layer-3 switch interface configuration. When IPv6 is enabled, a link local address will be created for the interface.
+ */
+export type SwitchInterfaceConfig = {
+  /** What kind of switch interface this configuration represents. */
+  kind: SwitchInterfaceKind;
+  /** Whether or not IPv6 is enabled. */
+  v6Enabled: boolean;
+};
+
+/**
+ * A switch port represents a physical external port on a rack switch.
+ */
+export type SwitchPort = {
+  /** The id of the switch port. */
+  id: string;
+  /** The name of this switch port. */
+  portName: string;
+  /** The primary settings group of this switch port. Will be `None` until this switch port is configured. */
+  portSettingsId?: string;
+  /** The rack this switch port belongs to. */
+  rackId: string;
+  /** The switch location of this switch port. */
+  switchLocation: string;
+};
+
+/**
+ * An IP address configuration for a port settings object.
+ */
+export type SwitchPortAddressConfig = {
+  /** The IP address and prefix. */
+  address: IpNet;
+  /** The id of the address lot block this address is drawn from. */
+  addressLotBlockId: string;
+  /** The interface name this address belongs to. */
+  interfaceName: string;
+  /** The port settings object this address configuration belongs to. */
+  portSettingsId: string;
+};
+
+/**
+ * Parameters for applying settings to switch ports.
+ */
+export type SwitchPortApplySettings = {
+  /** A name or id to use when applying switch port settings. */
+  portSettings: NameOrId;
+};
+
+/**
+ * A BGP peer configuration for a port settings object.
+ */
+export type SwitchPortBgpPeerConfig = {
+  /** The address of the peer. */
+  addr: string;
+  /** The id for the set of prefixes announced in this peer configuration. */
+  bgpAnnounceSetId: string;
+  /** The id of the global BGP configuration referenced by this peer configuration. */
+  bgpConfigId: string;
+  /** The interface name used to establish a peer session. */
+  interfaceName: string;
+  /** The port settings object this BGP configuration belongs to. */
+  portSettingsId: string;
+};
+
+/**
+ * The link geometry associated with a switch port.
+ */
+export type SwitchPortGeometry =
+  /** The port contains a single QSFP28 link with four lanes. */
+  | "qsfp28x1"
+  /** The port contains two QSFP28 links each with two lanes. */
+  | "qsfp28x2"
+  /** The port contains four SFP28 links each with one lane. */
+  | "sfp28x4";
+
+/**
+ * Physical switch port configuration.
+ */
+export type SwitchPortConfig = {
+  /** Link geometry for the switch port. */
+  geometry: SwitchPortGeometry;
+};
+
+/**
+ * A link configuration for a port settings object.
+ */
+export type SwitchPortLinkConfig = {
+  /** The name of this link. */
+  linkName: string;
+  /** The link-layer discovery protocol service configuration id for this link. */
+  lldpServiceConfigId: string;
+  /** The maximum transmission unit for this link. */
+  mtu: number;
+  /** The port settings this link configuration belongs to. */
+  portSettingsId: string;
+};
+
+/**
+ * A single page of results
+ */
+export type SwitchPortResultsPage = {
+  /** list of items on this page of results */
+  items: SwitchPort[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * A route configuration for a port settings object.
+ */
+export type SwitchPortRouteConfig = {
+  /** The route's destination network. */
+  dst: IpNet;
+  /** The route's gateway address. */
+  gw: IpNet;
+  /** The interface name this route configuration is assigned to. */
+  interfaceName: string;
+  /** The port settings object this route configuration belongs to. */
+  portSettingsId: string;
+};
+
+/**
+ * A switch port settings identity whose id may be used to view additional details.
+ */
+export type SwitchPortSettings = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Parameters for creating switch port settings. Switch port settings are the central data structure for setting up external networking. Switch port settings include link, interface, route, address and dynamic network protocol configuration.
+ */
+export type SwitchPortSettingsCreate = {
+  /** Addresses indexed by interface name. */
+  addresses: {};
+  /** BGP peers indexed by interface name. */
+  bgpPeers: {};
+  description: string;
+  groups: NameOrId[];
+  /** Interfaces indexed by link name. */
+  interfaces: {};
+  /** Links indexed by phy name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+  links: {};
+  name: Name;
+  portConfig: SwitchPortConfig;
+  /** Routes indexed by interface name. */
+  routes: {};
+};
+
+/**
+ * This structure maps a port settings object to a port settings groups. Port settings objects may inherit settings from groups. This mapping defines the relationship between settings objects and the groups they reference.
+ */
+export type SwitchPortSettingsGroups = {
+  /** The id of a port settings group being referenced by a port settings object. */
+  portSettingsGroupId: string;
+  /** The id of a port settings object referencing a port settings group. */
+  portSettingsId: string;
+};
+
+/**
+ * A single page of results
+ */
+export type SwitchPortSettingsResultsPage = {
+  /** list of items on this page of results */
+  items: SwitchPortSettings[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * A switch port VLAN interface configuration for a port settings object.
+ */
+export type SwitchVlanInterfaceConfig = {
+  /** The switch interface configuration this VLAN interface configuration belongs to. */
+  interfaceConfigId: string;
+  /** The virtual network id (VID) that distinguishes this interface and is used for producing and consuming 802.1Q Ethernet tags. This field has a maximum value of 4095 as 802.1Q tags are twelve bits. */
+  vid: number;
+};
+
+/**
+ * This structure contains all port settings information in one place. It's a convenience data structure for getting a complete view of a particular port's settings.
+ */
+export type SwitchPortSettingsView = {
+  /** Layer 3 IP address settings. */
+  addresses: SwitchPortAddressConfig[];
+  /** BGP peer settings. */
+  bgpPeers: SwitchPortBgpPeerConfig[];
+  /** Switch port settings included from other switch port settings groups. */
+  groups: SwitchPortSettingsGroups[];
+  /** Layer 3 interface settings. */
+  interfaces: SwitchInterfaceConfig[];
+  /** Link-layer discovery protocol (LLDP) settings. */
+  linkLldp: LldpServiceConfig[];
+  /** Layer 2 link settings. */
+  links: SwitchPortLinkConfig[];
+  /** Layer 1 physical port settings. */
+  port: SwitchPortConfig;
+  /** IP route settings. */
+  routes: SwitchPortRouteConfig[];
+  /** The primary switch port settings handle. */
+  settings: SwitchPortSettings;
+  /** Vlan interface settings. */
+  vlanInterfaces: SwitchVlanInterfaceConfig[];
+};
+
+/**
+ * A single page of results
+ */
+export type SwitchResultsPage = {
+  /** list of items on this page of results */
+  items: Switch[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1797,6 +2287,11 @@ export type DiskMetricName =
   | "write_bytes";
 
 /**
+ * The order in which the client wants to page through the requested collection
+ */
+export type PaginationOrder = "ascending" | "descending";
+
+/**
  * Supported set of sort modes for scanning by id only.
  *
  * Currently, we only support scanning in ascending order.
@@ -1815,18 +2310,23 @@ export type SystemMetricName =
  */
 export type NameSortMode = "name_ascending";
 
-export interface LoginLocalPathParams {
-  siloName: Name;
-}
-
-export interface LoginSamlBeginPathParams {
-  providerName: Name;
-  siloName: Name;
-}
-
 export interface LoginSamlPathParams {
   providerName: Name;
   siloName: Name;
+}
+
+export interface CertificateListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface CertificateViewPathParams {
+  certificate: NameOrId;
+}
+
+export interface CertificateDeletePathParams {
+  certificate: NameOrId;
 }
 
 export interface DiskListQueryParams {
@@ -1904,6 +2404,7 @@ export interface DiskMetricsListPathParams {
 export interface DiskMetricsListQueryParams {
   endTime?: Date;
   limit?: number;
+  order?: PaginationOrder;
   pageToken?: string;
   startTime?: Date;
   project?: NameOrId;
@@ -1916,7 +2417,7 @@ export interface GroupListQueryParams {
 }
 
 export interface GroupViewPathParams {
-  group: string;
+  groupId: string;
 }
 
 export interface ImageListQueryParams {
@@ -1945,6 +2446,14 @@ export interface ImageDeletePathParams {
 
 export interface ImageDeleteQueryParams {
   project?: NameOrId;
+}
+
+export interface ImageDemotePathParams {
+  image: NameOrId;
+}
+
+export interface ImageDemoteQueryParams {
+  project: NameOrId;
 }
 
 export interface ImagePromotePathParams {
@@ -2049,8 +2558,6 @@ export interface InstanceSerialConsoleStreamPathParams {
 }
 
 export interface InstanceSerialConsoleStreamQueryParams {
-  fromStart?: number;
-  maxBytes?: number;
   mostRecent?: number;
   project?: NameOrId;
 }
@@ -2069,6 +2576,25 @@ export interface InstanceStopPathParams {
 
 export interface InstanceStopQueryParams {
   project?: NameOrId;
+}
+
+export interface ProjectIpPoolListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface ProjectIpPoolViewPathParams {
+  pool: NameOrId;
+}
+
+export interface ProjectIpPoolViewQueryParams {
+  project?: NameOrId;
+}
+
+export interface LoginLocalPathParams {
+  siloName: Name;
 }
 
 export interface CurrentUserGroupsQueryParams {
@@ -2184,20 +2710,6 @@ export interface SnapshotDeleteQueryParams {
   project?: NameOrId;
 }
 
-export interface CertificateListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  sortBy?: NameOrIdSortMode;
-}
-
-export interface CertificateViewPathParams {
-  certificate: NameOrId;
-}
-
-export interface CertificateDeletePathParams {
-  certificate: NameOrId;
-}
-
 export interface PhysicalDiskListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -2232,6 +2744,51 @@ export interface SledPhysicalDiskListQueryParams {
   limit?: number;
   pageToken?: string;
   sortBy?: IdSortMode;
+}
+
+export interface SledInstanceListPathParams {
+  sledId: string;
+}
+
+export interface SledInstanceListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface NetworkingSwitchPortListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+  switchPortId?: string;
+}
+
+export interface NetworkingSwitchPortApplySettingsPathParams {
+  port: Name;
+}
+
+export interface NetworkingSwitchPortApplySettingsQueryParams {
+  rackId: string;
+  switchLocation: Name;
+}
+
+export interface NetworkingSwitchPortClearSettingsPathParams {
+  port: Name;
+}
+
+export interface NetworkingSwitchPortClearSettingsQueryParams {
+  rackId: string;
+  switchLocation: Name;
+}
+
+export interface SwitchListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface SwitchViewPathParams {
+  switchId: string;
 }
 
 export interface SiloIdentityProviderListQueryParams {
@@ -2319,10 +2876,59 @@ export interface SystemMetricPathParams {
 
 export interface SystemMetricQueryParams {
   endTime?: Date;
-  id: string;
   limit?: number;
+  order?: PaginationOrder;
   pageToken?: string;
   startTime?: Date;
+  id: string;
+}
+
+export interface NetworkingAddressLotListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface NetworkingAddressLotDeletePathParams {
+  addressLot: NameOrId;
+}
+
+export interface NetworkingAddressLotBlockListPathParams {
+  addressLot: NameOrId;
+}
+
+export interface NetworkingAddressLotBlockListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface NetworkingLoopbackAddressListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface NetworkingLoopbackAddressDeletePathParams {
+  address: string;
+  rackId: string;
+  subnetMask: number;
+  switchLocation: Name;
+}
+
+export interface NetworkingSwitchPortSettingsListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  portSettings?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface NetworkingSwitchPortSettingsDeleteQueryParams {
+  portSettings?: NameOrId;
+}
+
+export interface NetworkingSwitchPortSettingsViewPathParams {
+  port: NameOrId;
 }
 
 export interface RoleListQueryParams {
@@ -2602,6 +3208,7 @@ export interface VpcDeleteQueryParams {
 
 export type ApiListMethods = Pick<
   InstanceType<typeof Api>["methods"],
+  | "certificateList"
   | "diskList"
   | "diskMetricsList"
   | "groupList"
@@ -2609,19 +3216,26 @@ export type ApiListMethods = Pick<
   | "instanceList"
   | "instanceDiskList"
   | "instanceExternalIpList"
+  | "projectIpPoolList"
   | "currentUserSshKeyList"
   | "instanceNetworkInterfaceList"
   | "projectList"
   | "snapshotList"
-  | "certificateList"
   | "physicalDiskList"
   | "rackList"
   | "sledList"
   | "sledPhysicalDiskList"
+  | "sledInstanceList"
+  | "networkingSwitchPortList"
+  | "switchList"
   | "siloIdentityProviderList"
   | "ipPoolList"
   | "ipPoolRangeList"
   | "ipPoolServiceRangeList"
+  | "networkingAddressLotList"
+  | "networkingAddressLotBlockList"
+  | "networkingLoopbackAddressList"
+  | "networkingSwitchPortSettingsList"
   | "roleList"
   | "siloList"
   | "systemComponentVersionList"
@@ -2674,47 +3288,6 @@ export class Api extends HttpClient {
         ...params,
       });
     },
-    loginSpoof: (
-      { body }: { body: SpoofLoginBody },
-      params: RequestParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/login`,
-        method: "POST",
-        body,
-        ...params,
-      });
-    },
-    /**
-     * Authenticate a user via username and password
-     */
-    loginLocal: (
-      {
-        path,
-        body,
-      }: { path: LoginLocalPathParams; body: UsernamePasswordCredentials },
-      params: RequestParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/login/${path.siloName}/local`,
-        method: "POST",
-        body,
-        ...params,
-      });
-    },
-    /**
-     * Prompt user login
-     */
-    loginSamlBegin: (
-      { path }: { path: LoginSamlBeginPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/login/${path.siloName}/saml/${path.providerName}`,
-        method: "GET",
-        ...params,
-      });
-    },
     /**
      * Authenticate a user via SAML
      */
@@ -2728,10 +3301,57 @@ export class Api extends HttpClient {
         ...params,
       });
     },
-    logout: (_: EmptyObj, params: RequestParams = {}) => {
-      return this.request<void>({
-        path: `/logout`,
+    /**
+     * List certificates for external endpoints
+     */
+    certificateList: (
+      { query = {} }: { query?: CertificateListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<CertificateResultsPage>({
+        path: `/v1/certificates`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a new system-wide x.509 certificate
+     */
+    certificateCreate: (
+      { body }: { body: CertificateCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Certificate>({
+        path: `/v1/certificates`,
         method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a certificate
+     */
+    certificateView: (
+      { path }: { path: CertificateViewPathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Certificate>({
+        path: `/v1/certificates/${path.certificate}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Delete a certificate
+     */
+    certificateDelete: (
+      { path }: { path: CertificateDeletePathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/certificates/${path.certificate}`,
+        method: "DELETE",
         ...params,
       });
     },
@@ -2949,7 +3569,7 @@ export class Api extends HttpClient {
       params: RequestParams = {}
     ) => {
       return this.request<Group>({
-        path: `/v1/groups/${path.group}`,
+        path: `/v1/groups/${path.groupId}`,
         method: "GET",
         ...params,
       });
@@ -3016,6 +3636,23 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/v1/images/${path.image}`,
         method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Demote a silo image
+     */
+    imageDemote: (
+      {
+        path,
+        query,
+      }: { path: ImageDemotePathParams; query?: ImageDemoteQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Image>({
+        path: `/v1/images/${path.image}/demote`,
+        method: "POST",
         query,
         ...params,
       });
@@ -3280,6 +3917,67 @@ export class Api extends HttpClient {
         path: `/v1/instances/${path.instance}/stop`,
         method: "POST",
         query,
+        ...params,
+      });
+    },
+    /**
+     * List all IP Pools that can be used by a given project.
+     */
+    projectIpPoolList: (
+      { query = {} }: { query?: ProjectIpPoolListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<IpPoolResultsPage>({
+        path: `/v1/ip-pools`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch an IP pool
+     */
+    projectIpPoolView: (
+      {
+        path,
+        query = {},
+      }: {
+        path: ProjectIpPoolViewPathParams;
+        query?: ProjectIpPoolViewQueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<IpPool>({
+        path: `/v1/ip-pools/${path.pool}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Authenticate a user via username and password
+     */
+    loginLocal: (
+      {
+        path,
+        body,
+      }: { path: LoginLocalPathParams; body: UsernamePasswordCredentials },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/login/${path.siloName}/local`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Log user out of web console by deleting session on client and server
+     */
+    logout: (_: EmptyObj, params: RequestParams = {}) => {
+      return this.request<void>({
+        path: `/v1/logout`,
+        method: "POST",
         ...params,
       });
     },
@@ -3648,60 +4346,6 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List system-wide certificates
-     */
-    certificateList: (
-      { query = {} }: { query?: CertificateListQueryParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<CertificateResultsPage>({
-        path: `/v1/system/certificates`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Create a new system-wide x.509 certificate
-     */
-    certificateCreate: (
-      { body }: { body: CertificateCreate },
-      params: RequestParams = {}
-    ) => {
-      return this.request<Certificate>({
-        path: `/v1/system/certificates`,
-        method: "POST",
-        body,
-        ...params,
-      });
-    },
-    /**
-     * Fetch a certificate
-     */
-    certificateView: (
-      { path }: { path: CertificateViewPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<Certificate>({
-        path: `/v1/system/certificates/${path.certificate}`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * Delete a certificate
-     */
-    certificateDelete: (
-      { path }: { path: CertificateDeletePathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/v1/system/certificates/${path.certificate}`,
-        method: "DELETE",
-        ...params,
-      });
-    },
-    /**
      * List physical disks
      */
     physicalDiskList: (
@@ -3786,6 +4430,110 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/sleds/${path.sledId}/disks`,
         method: "GET",
         query,
+        ...params,
+      });
+    },
+    /**
+     * List instances running on a given sled
+     */
+    sledInstanceList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: SledInstanceListPathParams;
+        query?: SledInstanceListQueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SledInstanceResultsPage>({
+        path: `/v1/system/hardware/sleds/${path.sledId}/instances`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List switch ports
+     */
+    networkingSwitchPortList: (
+      { query = {} }: { query?: NetworkingSwitchPortListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SwitchPortResultsPage>({
+        path: `/v1/system/hardware/switch-port`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Apply switch port settings
+     */
+    networkingSwitchPortApplySettings: (
+      {
+        path,
+        query,
+        body,
+      }: {
+        path: NetworkingSwitchPortApplySettingsPathParams;
+        query?: NetworkingSwitchPortApplySettingsQueryParams;
+        body: SwitchPortApplySettings;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/hardware/switch-port/${path.port}/settings`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Clear switch port settings
+     */
+    networkingSwitchPortClearSettings: (
+      {
+        path,
+        query,
+      }: {
+        path: NetworkingSwitchPortClearSettingsPathParams;
+        query?: NetworkingSwitchPortClearSettingsQueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/hardware/switch-port/${path.port}/settings`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List switches
+     */
+    switchList: (
+      { query = {} }: { query?: SwitchListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SwitchResultsPage>({
+        path: `/v1/system/hardware/switches`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch a switch
+     */
+    switchView: (
+      { path }: { path: SwitchViewPathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<Switch>({
+        path: `/v1/system/hardware/switches/${path.switchId}`,
+        method: "GET",
         ...params,
       });
     },
@@ -4091,6 +4839,163 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * List address lots
+     */
+    networkingAddressLotList: (
+      { query = {} }: { query?: NetworkingAddressLotListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<AddressLotResultsPage>({
+        path: `/v1/system/networking/address-lot`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create an address lot
+     */
+    networkingAddressLotCreate: (
+      { body }: { body: AddressLotCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<AddressLotCreateResponse>({
+        path: `/v1/system/networking/address-lot`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Delete an address lot
+     */
+    networkingAddressLotDelete: (
+      { path }: { path: NetworkingAddressLotDeletePathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/address-lot/${path.addressLot}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * List the blocks in an address lot
+     */
+    networkingAddressLotBlockList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: NetworkingAddressLotBlockListPathParams;
+        query?: NetworkingAddressLotBlockListQueryParams;
+      },
+      params: RequestParams = {}
+    ) => {
+      return this.request<AddressLotBlockResultsPage>({
+        path: `/v1/system/networking/address-lot/${path.addressLot}/blocks`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get loopback addresses, optionally filtering by id
+     */
+    networkingLoopbackAddressList: (
+      { query = {} }: { query?: NetworkingLoopbackAddressListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<LoopbackAddressResultsPage>({
+        path: `/v1/system/networking/loopback-address`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a loopback address
+     */
+    networkingLoopbackAddressCreate: (
+      { body }: { body: LoopbackAddressCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<LoopbackAddress>({
+        path: `/v1/system/networking/loopback-address`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Delete a loopback address
+     */
+    networkingLoopbackAddressDelete: (
+      { path }: { path: NetworkingLoopbackAddressDeletePathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/loopback-address/${path.rackId}/${path.switchLocation}/${path.address}/${path.subnetMask}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * List switch port settings
+     */
+    networkingSwitchPortSettingsList: (
+      { query = {} }: { query?: NetworkingSwitchPortSettingsListQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SwitchPortSettingsResultsPage>({
+        path: `/v1/system/networking/switch-port-settings`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create switch port settings
+     */
+    networkingSwitchPortSettingsCreate: (
+      { body }: { body: SwitchPortSettingsCreate },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SwitchPortSettingsView>({
+        path: `/v1/system/networking/switch-port-settings`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Delete switch port settings
+     */
+    networkingSwitchPortSettingsDelete: (
+      { query = {} }: { query?: NetworkingSwitchPortSettingsDeleteQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/switch-port-settings`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get information about a switch port
+     */
+    networkingSwitchPortSettingsView: (
+      { path }: { path: NetworkingSwitchPortSettingsViewPathParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<SwitchPortSettingsView>({
+        path: `/v1/system/networking/switch-port-settings/${path.port}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
      * Fetch the top-level IAM policy
      */
     systemPolicyView: (_: EmptyObj, params: RequestParams = {}) => {
@@ -4351,7 +5256,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List users in a silo
+     * List built-in (system) users in a silo
      */
     siloUserList: (
       { query = {} }: { query?: SiloUserListQueryParams },
@@ -4365,7 +5270,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Fetch a user
+     * Fetch a built-in (system) user
      */
     siloUserView: (
       {

@@ -19,11 +19,174 @@ const SafeBoolean = z.preprocess(
 );
 
 /**
- * Properties that should uniquely identify a Sled.
+ * An IPv4 subnet
+ *
+ * An IPv4 subnet, including prefix and subnet mask
+ */
+export const Ipv4Net = z.preprocess(
+  processResponseBody,
+  z
+    .string()
+    .regex(
+      /^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/([0-9]|1[0-9]|2[0-9]|3[0-2])$/
+    )
+);
+
+/**
+ * An IPv6 subnet
+ *
+ * An IPv6 subnet, including prefix and subnet mask
+ */
+export const Ipv6Net = z.preprocess(
+  processResponseBody,
+  z
+    .string()
+    .regex(
+      /^([fF][dD])[0-9a-fA-F]{2}:(([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,6}:)([0-9a-fA-F]{1,4})?\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$/
+    )
+);
+
+export const IpNet = z.preprocess(
+  processResponseBody,
+  z.union([Ipv4Net, Ipv6Net])
+);
+
+/**
+ * A name unique within the parent collection
+ *
+ * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
+ */
+export const Name = z.preprocess(
+  processResponseBody,
+  z
+    .string()
+    .min(1)
+    .max(63)
+    .regex(
+      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z][a-z0-9-]*[a-zA-Z0-9]*$/
+    )
+);
+
+export const NameOrId = z.preprocess(
+  processResponseBody,
+  z.union([z.string().uuid(), Name])
+);
+
+/**
+ * An address tied to an address lot.
+ */
+export const Address = z.preprocess(
+  processResponseBody,
+  z.object({ address: IpNet, addressLot: NameOrId })
+);
+
+/**
+ * A set of addresses associated with a port configuration.
+ */
+export const AddressConfig = z.preprocess(
+  processResponseBody,
+  z.object({ addresses: Address.array() })
+);
+
+/**
+ * The kind associated with an address lot.
+ */
+export const AddressLotKind = z.preprocess(
+  processResponseBody,
+  z.enum(["infra", "pool"])
+);
+
+/**
+ * Represents an address lot object, containing the id of the lot that can be used in other API calls.
+ */
+export const AddressLot = z.preprocess(
+  processResponseBody,
+  z.object({
+    description: z.string(),
+    id: z.string().uuid(),
+    kind: AddressLotKind,
+    name: Name,
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * An address lot block is a part of an address lot and contains a range of addresses. The range is inclusive.
+ */
+export const AddressLotBlock = z.preprocess(
+  processResponseBody,
+  z.object({
+    firstAddress: z.string(),
+    id: z.string().uuid(),
+    lastAddress: z.string(),
+  })
+);
+
+/**
+ * Parameters for creating an address lot block. Fist and last addresses are inclusive.
+ */
+export const AddressLotBlockCreate = z.preprocess(
+  processResponseBody,
+  z.object({ firstAddress: z.string(), lastAddress: z.string() })
+);
+
+/**
+ * A single page of results
+ */
+export const AddressLotBlockResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: AddressLotBlock.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * Parameters for creating an address lot.
+ */
+export const AddressLotCreate = z.preprocess(
+  processResponseBody,
+  z.object({
+    blocks: AddressLotBlockCreate.array(),
+    description: z.string(),
+    kind: AddressLotKind,
+    name: Name,
+  })
+);
+
+/**
+ * An address lot and associated blocks resulting from creating an address lot.
+ */
+export const AddressLotCreateResponse = z.preprocess(
+  processResponseBody,
+  z.object({ blocks: AddressLotBlock.array(), lot: AddressLot })
+);
+
+/**
+ * A single page of results
+ */
+export const AddressLotResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: AddressLot.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * Properties that uniquely identify an Oxide hardware component
  */
 export const Baseboard = z.preprocess(
   processResponseBody,
   z.object({ part: z.string(), revision: z.number(), serial: z.string() })
+);
+
+/**
+ * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
+ */
+export const BgpPeerConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    addr: z.string(),
+    bgpAnnounceSet: NameOrId,
+    bgpConfig: NameOrId,
+    interfaceName: z.string(),
+  })
 );
 
 /**
@@ -82,22 +245,6 @@ export const BlockSize = z.preprocess(
  * Byte count to express memory or storage capacity.
  */
 export const ByteCount = z.preprocess(processResponseBody, z.number().min(0));
-
-/**
- * A name unique within the parent collection
- *
- * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
- */
-export const Name = z.preprocess(
-  processResponseBody,
-  z
-    .string()
-    .min(1)
-    .max(63)
-    .regex(
-      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z][a-z0-9-]*[a-zA-Z0-9]*$/
-    )
-);
 
 /**
  * The service intended to use this certificate.
@@ -372,11 +519,6 @@ export const DiskCreate = z.preprocess(
   })
 );
 
-export const NameOrId = z.preprocess(
-  processResponseBody,
-  z.union([z.string().uuid(), Name])
-);
-
 export const DiskPath = z.preprocess(
   processResponseBody,
   z.object({ disk: NameOrId })
@@ -538,7 +680,9 @@ export const IdpMetadataSource = z.preprocess(
 );
 
 /**
- * Client view of images
+ * View of an image
+ *
+ * If `project_id` is present then the image is only visible inside that project. If it's not present then the image is visible to all projects in the silo.
  */
 export const Image = z.preprocess(
   processResponseBody,
@@ -812,39 +956,6 @@ export const InstanceSerialConsoleData = z.preprocess(
 );
 
 /**
- * An IPv4 subnet
- *
- * An IPv4 subnet, including prefix and subnet mask
- */
-export const Ipv4Net = z.preprocess(
-  processResponseBody,
-  z
-    .string()
-    .regex(
-      /^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/([8-9]|1[0-9]|2[0-9]|3[0-2])$/
-    )
-);
-
-/**
- * An IPv6 subnet
- *
- * An IPv6 subnet, including prefix and subnet mask
- */
-export const Ipv6Net = z.preprocess(
-  processResponseBody,
-  z
-    .string()
-    .regex(
-      /^([fF][dD])[0-9a-fA-F]{2}:(([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,6}:)\/([1-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$/
-    )
-);
-
-export const IpNet = z.preprocess(
-  processResponseBody,
-  z.union([Ipv4Net, Ipv6Net])
-);
-
-/**
  * Identity-related metadata that's included in nearly all public API objects
  */
 export const IpPool = z.preprocess(
@@ -936,6 +1047,58 @@ export const L4PortRange = z.preprocess(
     .min(1)
     .max(11)
     .regex(/^[0-9]{1,5}(-[0-9]{1,5})?$/)
+);
+
+/**
+ * The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
+ */
+export const LldpServiceConfig = z.preprocess(
+  processResponseBody,
+  z.object({ enabled: SafeBoolean, lldpConfig: NameOrId.optional() })
+);
+
+/**
+ * Switch link configuration.
+ */
+export const LinkConfig = z.preprocess(
+  processResponseBody,
+  z.object({ lldp: LldpServiceConfig, mtu: z.number().min(0).max(65535) })
+);
+
+/**
+ * A loopback address is an address that is assigned to a rack switch but is not associated with any particular port.
+ */
+export const LoopbackAddress = z.preprocess(
+  processResponseBody,
+  z.object({
+    address: IpNet,
+    addressLotBlockId: z.string().uuid(),
+    id: z.string().uuid(),
+    rackId: z.string().uuid(),
+    switchLocation: z.string(),
+  })
+);
+
+/**
+ * Parameters for creating a loopback address on a particular rack switch.
+ */
+export const LoopbackAddressCreate = z.preprocess(
+  processResponseBody,
+  z.object({
+    address: z.string(),
+    addressLot: NameOrId,
+    mask: z.number().min(0).max(255),
+    rackId: z.string().uuid(),
+    switchLocation: Name,
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const LoopbackAddressResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: LoopbackAddress.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1110,6 +1273,22 @@ export const RoleResultsPage = z.preprocess(
 );
 
 /**
+ * A route to a destination network through a gateway address.
+ */
+export const Route = z.preprocess(
+  processResponseBody,
+  z.object({ dst: IpNet, gw: z.string() })
+);
+
+/**
+ * Route configuration data associated with a switch port configuration.
+ */
+export const RouteConfig = z.preprocess(
+  processResponseBody,
+  z.object({ routes: Route.array() })
+);
+
+/**
  * A `RouteDestination` is used to match traffic with a routing rule, on the destination of that traffic.
  *
  * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
@@ -1208,6 +1387,7 @@ export const SamlIdentityProvider = z.preprocess(
   z.object({
     acsUrl: z.string(),
     description: z.string(),
+    groupAttributeName: z.string().optional(),
     id: z.string().uuid(),
     idpEntityId: z.string(),
     name: Name,
@@ -1276,6 +1456,7 @@ export const SiloCreate = z.preprocess(
     discoverable: SafeBoolean,
     identityMode: SiloIdentityMode,
     name: Name,
+    tlsCertificates: CertificateCreate.array(),
   })
 );
 
@@ -1333,6 +1514,34 @@ export const Sled = z.preprocess(
 );
 
 /**
+ * An operator's view of an instance running on a given sled
+ */
+export const SledInstance = z.preprocess(
+  processResponseBody,
+  z.object({
+    activeSledId: z.string().uuid(),
+    id: z.string().uuid(),
+    memory: z.number(),
+    migrationId: z.string().uuid().optional(),
+    name: Name,
+    ncpus: z.number(),
+    projectName: Name,
+    siloName: Name,
+    state: InstanceState,
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const SledInstanceResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: SledInstance.array(), nextPage: z.string().optional() })
+);
+
+/**
  * A single page of results
  */
 export const SledResultsPage = z.preprocess(
@@ -1379,11 +1588,6 @@ export const SnapshotResultsPage = z.preprocess(
   z.object({ items: Snapshot.array(), nextPage: z.string().optional() })
 );
 
-export const SpoofLoginBody = z.preprocess(
-  processResponseBody,
-  z.object({ username: z.string() })
-);
-
 /**
  * View of an SSH Key
  */
@@ -1414,6 +1618,231 @@ export const SshKeyCreate = z.preprocess(
 export const SshKeyResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: SshKey.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * An operator's view of a Switch.
+ */
+export const Switch = z.preprocess(
+  processResponseBody,
+  z.object({
+    baseboard: Baseboard,
+    id: z.string().uuid(),
+    rackId: z.string().uuid(),
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * Indicates the kind for a switch interface.
+ */
+export const SwitchInterfaceKind = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({ type: z.enum(["primary"]) }),
+    z.object({ type: z.enum(["vlan"]), vid: z.number().min(0).max(65535) }),
+    z.object({ type: z.enum(["loopback"]) }),
+  ])
+);
+
+/**
+ * A layer-3 switch interface configuration. When IPv6 is enabled, a link local address will be created for the interface.
+ */
+export const SwitchInterfaceConfig = z.preprocess(
+  processResponseBody,
+  z.object({ kind: SwitchInterfaceKind, v6Enabled: SafeBoolean })
+);
+
+/**
+ * A switch port represents a physical external port on a rack switch.
+ */
+export const SwitchPort = z.preprocess(
+  processResponseBody,
+  z.object({
+    id: z.string().uuid(),
+    portName: z.string(),
+    portSettingsId: z.string().uuid().optional(),
+    rackId: z.string().uuid(),
+    switchLocation: z.string(),
+  })
+);
+
+/**
+ * An IP address configuration for a port settings object.
+ */
+export const SwitchPortAddressConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    address: IpNet,
+    addressLotBlockId: z.string().uuid(),
+    interfaceName: z.string(),
+    portSettingsId: z.string().uuid(),
+  })
+);
+
+/**
+ * Parameters for applying settings to switch ports.
+ */
+export const SwitchPortApplySettings = z.preprocess(
+  processResponseBody,
+  z.object({ portSettings: NameOrId })
+);
+
+/**
+ * A BGP peer configuration for a port settings object.
+ */
+export const SwitchPortBgpPeerConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    addr: z.string(),
+    bgpAnnounceSetId: z.string().uuid(),
+    bgpConfigId: z.string().uuid(),
+    interfaceName: z.string(),
+    portSettingsId: z.string().uuid(),
+  })
+);
+
+/**
+ * The link geometry associated with a switch port.
+ */
+export const SwitchPortGeometry = z.preprocess(
+  processResponseBody,
+  z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
+);
+
+/**
+ * Physical switch port configuration.
+ */
+export const SwitchPortConfig = z.preprocess(
+  processResponseBody,
+  z.object({ geometry: SwitchPortGeometry })
+);
+
+/**
+ * A link configuration for a port settings object.
+ */
+export const SwitchPortLinkConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    linkName: z.string(),
+    lldpServiceConfigId: z.string().uuid(),
+    mtu: z.number().min(0).max(65535),
+    portSettingsId: z.string().uuid(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const SwitchPortResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: SwitchPort.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * A route configuration for a port settings object.
+ */
+export const SwitchPortRouteConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    dst: IpNet,
+    gw: IpNet,
+    interfaceName: z.string(),
+    portSettingsId: z.string().uuid(),
+  })
+);
+
+/**
+ * A switch port settings identity whose id may be used to view additional details.
+ */
+export const SwitchPortSettings = z.preprocess(
+  processResponseBody,
+  z.object({
+    description: z.string(),
+    id: z.string().uuid(),
+    name: Name,
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * Parameters for creating switch port settings. Switch port settings are the central data structure for setting up external networking. Switch port settings include link, interface, route, address and dynamic network protocol configuration.
+ */
+export const SwitchPortSettingsCreate = z.preprocess(
+  processResponseBody,
+  z.object({
+    addresses: z.object({}),
+    bgpPeers: z.object({}),
+    description: z.string(),
+    groups: NameOrId.array(),
+    interfaces: z.object({}),
+    links: z.object({}),
+    name: Name,
+    portConfig: SwitchPortConfig,
+    routes: z.object({}),
+  })
+);
+
+/**
+ * This structure maps a port settings object to a port settings groups. Port settings objects may inherit settings from groups. This mapping defines the relationship between settings objects and the groups they reference.
+ */
+export const SwitchPortSettingsGroups = z.preprocess(
+  processResponseBody,
+  z.object({
+    portSettingsGroupId: z.string().uuid(),
+    portSettingsId: z.string().uuid(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const SwitchPortSettingsResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({
+    items: SwitchPortSettings.array(),
+    nextPage: z.string().optional(),
+  })
+);
+
+/**
+ * A switch port VLAN interface configuration for a port settings object.
+ */
+export const SwitchVlanInterfaceConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    interfaceConfigId: z.string().uuid(),
+    vid: z.number().min(0).max(65535),
+  })
+);
+
+/**
+ * This structure contains all port settings information in one place. It's a convenience data structure for getting a complete view of a particular port's settings.
+ */
+export const SwitchPortSettingsView = z.preprocess(
+  processResponseBody,
+  z.object({
+    addresses: SwitchPortAddressConfig.array(),
+    bgpPeers: SwitchPortBgpPeerConfig.array(),
+    groups: SwitchPortSettingsGroups.array(),
+    interfaces: SwitchInterfaceConfig.array(),
+    linkLldp: LldpServiceConfig.array(),
+    links: SwitchPortLinkConfig.array(),
+    port: SwitchPortConfig,
+    routes: SwitchPortRouteConfig.array(),
+    settings: SwitchPortSettings,
+    vlanInterfaces: SwitchVlanInterfaceConfig.array(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const SwitchResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: Switch.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -1870,6 +2299,14 @@ export const DiskMetricName = z.preprocess(
 );
 
 /**
+ * The order in which the client wants to page through the requested collection
+ */
+export const PaginationOrder = z.preprocess(
+  processResponseBody,
+  z.enum(["ascending", "descending"])
+);
+
+/**
  * Supported set of sort modes for scanning by id only.
  *
  * Currently, we only support scanning in ascending order.
@@ -1922,35 +2359,6 @@ export const DeviceAccessTokenParams = z.preprocess(
   })
 );
 
-export const LoginSpoofParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const LoginLocalParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      siloName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const LoginSamlBeginParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      providerName: Name,
-      siloName: Name,
-    }),
-    query: z.object({}),
-  })
-);
-
 export const LoginSamlParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -1962,10 +2370,42 @@ export const LoginSamlParams = z.preprocess(
   })
 );
 
-export const LogoutParams = z.preprocess(
+export const CertificateListParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const CertificateCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const CertificateViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      certificate: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const CertificateDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      certificate: NameOrId,
+    }),
     query: z.object({}),
   })
 );
@@ -2087,6 +2527,7 @@ export const DiskMetricsListParams = z.preprocess(
     query: z.object({
       endTime: z.coerce.date().optional(),
       limit: z.number().min(1).max(4294967295).optional(),
+      order: PaginationOrder.optional(),
       pageToken: z.string().optional(),
       startTime: z.coerce.date().optional(),
       project: NameOrId.optional(),
@@ -2110,7 +2551,7 @@ export const GroupViewParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
-      group: z.string().uuid(),
+      groupId: z.string().uuid(),
     }),
     query: z.object({}),
   })
@@ -2160,6 +2601,18 @@ export const ImageDeleteParams = z.preprocess(
     }),
     query: z.object({
       project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const ImageDemoteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      image: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId,
     }),
   })
 );
@@ -2320,8 +2773,6 @@ export const InstanceSerialConsoleStreamParams = z.preprocess(
       instance: NameOrId,
     }),
     query: z.object({
-      fromStart: z.number().min(0).optional(),
-      maxBytes: z.number().min(0).optional(),
       mostRecent: z.number().min(0).optional(),
       project: NameOrId.optional(),
     }),
@@ -2349,6 +2800,49 @@ export const InstanceStopParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
+  })
+);
+
+export const ProjectIpPoolListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const ProjectIpPoolViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      pool: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const LoginLocalParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      siloName: Name,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const LogoutParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
   })
 );
 
@@ -2609,46 +3103,6 @@ export const SnapshotDeleteParams = z.preprocess(
   })
 );
 
-export const CertificateListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: NameOrIdSortMode.optional(),
-    }),
-  })
-);
-
-export const CertificateCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const CertificateViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      certificate: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const CertificateDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      certificate: NameOrId,
-    }),
-    query: z.object({}),
-  })
-);
-
 export const PhysicalDiskListParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -2716,6 +3170,81 @@ export const SledPhysicalDiskListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
+  })
+);
+
+export const SledInstanceListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      sledId: z.string().uuid(),
+    }),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
+export const NetworkingSwitchPortListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+      switchPortId: z.string().uuid().optional(),
+    }),
+  })
+);
+
+export const NetworkingSwitchPortApplySettingsParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      port: Name,
+    }),
+    query: z.object({
+      rackId: z.string().uuid(),
+      switchLocation: Name,
+    }),
+  })
+);
+
+export const NetworkingSwitchPortClearSettingsParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      port: Name,
+    }),
+    query: z.object({
+      rackId: z.string().uuid(),
+      switchLocation: Name,
+    }),
+  })
+);
+
+export const SwitchListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
+export const SwitchViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      switchId: z.string().uuid(),
+    }),
+    query: z.object({}),
   })
 );
 
@@ -2914,11 +3443,130 @@ export const SystemMetricParams = z.preprocess(
     }),
     query: z.object({
       endTime: z.coerce.date().optional(),
-      id: z.string().uuid(),
       limit: z.number().min(1).max(4294967295).optional(),
+      order: PaginationOrder.optional(),
       pageToken: z.string().optional(),
       startTime: z.coerce.date().optional(),
+      id: z.string().uuid(),
     }),
+  })
+);
+
+export const NetworkingAddressLotListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const NetworkingAddressLotCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingAddressLotDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      addressLot: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingAddressLotBlockListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      addressLot: NameOrId,
+    }),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
+export const NetworkingLoopbackAddressListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
+export const NetworkingLoopbackAddressCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingLoopbackAddressDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      address: z.string(),
+      rackId: z.string().uuid(),
+      subnetMask: z.number().min(0).max(255),
+      switchLocation: Name,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingSwitchPortSettingsListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      portSettings: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const NetworkingSwitchPortSettingsCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingSwitchPortSettingsDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      portSettings: NameOrId.optional(),
+    }),
+  })
+);
+
+export const NetworkingSwitchPortSettingsViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      port: NameOrId,
+    }),
+    query: z.object({}),
   })
 );
 
