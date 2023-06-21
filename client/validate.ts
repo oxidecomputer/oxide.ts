@@ -1988,7 +1988,7 @@ export const DiskCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      project: NameOrId.optional(),
+      project: NameOrId,
     }),
   })
 );
@@ -2194,7 +2194,7 @@ export const InstanceCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      project: NameOrId.optional(),
+      project: NameOrId,
     }),
   })
 );
@@ -2431,7 +2431,7 @@ export const InstanceNetworkInterfaceCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      instance: NameOrId.optional(),
+      instance: NameOrId,
       project: NameOrId.optional(),
     }),
   })
@@ -2580,7 +2580,7 @@ export const SnapshotCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      project: NameOrId.optional(),
+      project: NameOrId,
     }),
   })
 );
@@ -2737,7 +2737,7 @@ export const LocalIdpUserCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      silo: NameOrId.optional(),
+      silo: NameOrId,
     }),
   })
 );
@@ -2749,7 +2749,7 @@ export const LocalIdpUserDeleteParams = z.preprocess(
       userId: z.string().uuid(),
     }),
     query: z.object({
-      silo: NameOrId.optional(),
+      silo: NameOrId,
     }),
   })
 );
@@ -2761,7 +2761,7 @@ export const LocalIdpUserSetPasswordParams = z.preprocess(
       userId: z.string().uuid(),
     }),
     query: z.object({
-      silo: NameOrId.optional(),
+      silo: NameOrId,
     }),
   })
 );
@@ -2771,7 +2771,7 @@ export const SamlIdentityProviderCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      silo: NameOrId.optional(),
+      silo: NameOrId,
     }),
   })
 );
@@ -2783,7 +2783,7 @@ export const SamlIdentityProviderViewParams = z.preprocess(
       provider: NameOrId,
     }),
     query: z.object({
-      silo: NameOrId.optional(),
+      silo: NameOrId,
     }),
   })
 );
@@ -2914,7 +2914,7 @@ export const SystemMetricParams = z.preprocess(
     }),
     query: z.object({
       endTime: z.coerce.date().optional(),
-      id: z.string().uuid().optional(),
+      id: z.string().uuid(),
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
       startTime: z.coerce.date().optional(),
@@ -3137,7 +3137,7 @@ export const SiloUserViewParams = z.preprocess(
       userId: z.string().uuid(),
     }),
     query: z.object({
-      silo: NameOrId.optional(),
+      silo: NameOrId,
     }),
   })
 );
@@ -3183,7 +3183,7 @@ export const VpcFirewallRulesViewParams = z.preprocess(
     path: z.object({}),
     query: z.object({
       project: NameOrId.optional(),
-      vpc: NameOrId.optional(),
+      vpc: NameOrId,
     }),
   })
 );
@@ -3194,7 +3194,7 @@ export const VpcFirewallRulesUpdateParams = z.preprocess(
     path: z.object({}),
     query: z.object({
       project: NameOrId.optional(),
-      vpc: NameOrId.optional(),
+      vpc: NameOrId,
     }),
   })
 );
@@ -3220,7 +3220,7 @@ export const VpcRouterRouteCreateParams = z.preprocess(
     path: z.object({}),
     query: z.object({
       project: NameOrId.optional(),
-      router: NameOrId.optional(),
+      router: NameOrId,
       vpc: NameOrId.optional(),
     }),
   })
@@ -3234,7 +3234,7 @@ export const VpcRouterRouteViewParams = z.preprocess(
     }),
     query: z.object({
       project: NameOrId.optional(),
-      router: NameOrId.optional(),
+      router: NameOrId,
       vpc: NameOrId.optional(),
     }),
   })
@@ -3288,7 +3288,7 @@ export const VpcRouterCreateParams = z.preprocess(
     path: z.object({}),
     query: z.object({
       project: NameOrId.optional(),
-      vpc: NameOrId.optional(),
+      vpc: NameOrId,
     }),
   })
 );
@@ -3352,7 +3352,7 @@ export const VpcSubnetCreateParams = z.preprocess(
     path: z.object({}),
     query: z.object({
       project: NameOrId.optional(),
-      vpc: NameOrId.optional(),
+      vpc: NameOrId,
     }),
   })
 );
@@ -3430,7 +3430,7 @@ export const VpcCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      project: NameOrId.optional(),
+      project: NameOrId,
     }),
   })
 );

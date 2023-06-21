@@ -81,7 +81,8 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
           w0(`  ${processParamName(param.name)}`);
           w0(": ");
           schemaToZod(param.schema, io);
-          w(".optional(),");
+          if (!param.required) w0(".optional()");
+          w(",");
         }
       }
       w("  }),");
