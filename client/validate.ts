@@ -275,9 +275,9 @@ export const Certificate = z.preprocess(
 export const CertificateCreate = z.preprocess(
   processResponseBody,
   z.object({
-    cert: z.number().min(0).max(255).array(),
+    cert: z.string(),
     description: z.string(),
-    key: z.number().min(0).max(255).array(),
+    key: z.string(),
     name: Name,
     service: ServiceUsingCertificate,
   })
@@ -1277,7 +1277,11 @@ export const RoleResultsPage = z.preprocess(
  */
 export const Route = z.preprocess(
   processResponseBody,
-  z.object({ dst: IpNet, gw: z.string() })
+  z.object({
+    dst: IpNet,
+    gw: z.string(),
+    vid: z.number().min(0).max(65535).optional(),
+  })
 );
 
 /**
@@ -1439,6 +1443,7 @@ export const Silo = z.preprocess(
     discoverable: SafeBoolean,
     id: z.string().uuid(),
     identityMode: SiloIdentityMode,
+    mappedFleetRoles: z.object({}),
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
@@ -1455,6 +1460,7 @@ export const SiloCreate = z.preprocess(
     description: z.string(),
     discoverable: SafeBoolean,
     identityMode: SiloIdentityMode,
+    mappedFleetRoles: z.object({}).optional(),
     name: Name,
     tlsCertificates: CertificateCreate.array(),
   })
@@ -1750,6 +1756,7 @@ export const SwitchPortRouteConfig = z.preprocess(
     gw: IpNet,
     interfaceName: z.string(),
     portSettingsId: z.string().uuid(),
+    vlanId: z.number().min(0).max(65535).optional(),
   })
 );
 
@@ -1814,7 +1821,7 @@ export const SwitchVlanInterfaceConfig = z.preprocess(
   processResponseBody,
   z.object({
     interfaceConfigId: z.string().uuid(),
-    vid: z.number().min(0).max(65535),
+    vlanId: z.number().min(0).max(65535),
   })
 );
 
