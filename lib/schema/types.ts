@@ -32,14 +32,9 @@ export const schemaToTypes = makeSchemaGenerator({
   },
   array(schema, io) {
     const { w0 } = io;
-    if (schema.uniqueItems) {
-      w0("Set<");
-      schemaToTypes(schema.items, io);
-      w0(">");
-    } else {
-      schemaToTypes(schema.items, io);
-      w0(`[]`);
-    }
+    w0(schema.uniqueItems ? "Set<" : "Array<");
+    schemaToTypes(schema.items, io);
+    w0(">");
   },
   object(schema, io) {
     const { w0, w } = io;

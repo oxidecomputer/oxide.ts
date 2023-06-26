@@ -49,7 +49,7 @@ export type Address = {
  */
 export type AddressConfig = {
   /** The set of addresses assigned to the port configuration. */
-  addresses: Address[];
+  addresses: Array<Address>;
 };
 
 /**
@@ -106,7 +106,7 @@ export type AddressLotBlockCreate = {
  */
 export type AddressLotBlockResultsPage = {
   /** list of items on this page of results */
-  items: AddressLotBlock[];
+  items: Array<AddressLotBlock>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -116,7 +116,7 @@ export type AddressLotBlockResultsPage = {
  */
 export type AddressLotCreate = {
   /** The blocks to add along with the new address lot. */
-  blocks: AddressLotBlockCreate[];
+  blocks: Array<AddressLotBlockCreate>;
   description: string;
   /** The kind of address lot to create. */
   kind: AddressLotKind;
@@ -128,7 +128,7 @@ export type AddressLotCreate = {
  */
 export type AddressLotCreateResponse = {
   /** The address lot blocks that were created. */
-  blocks: AddressLotBlock[];
+  blocks: Array<AddressLotBlock>;
   /** The address lot that was created. */
   lot: AddressLot;
 };
@@ -138,7 +138,7 @@ export type AddressLotCreateResponse = {
  */
 export type AddressLotResultsPage = {
   /** list of items on this page of results */
-  items: AddressLot[];
+  items: Array<AddressLot>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -259,7 +259,7 @@ export type CertificateCreate = {
  */
 export type CertificateResultsPage = {
   /** list of items on this page of results */
-  items: Certificate[];
+  items: Array<Certificate>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -299,7 +299,7 @@ export type ComponentUpdate = {
  */
 export type ComponentUpdateResultsPage = {
   /** list of items on this page of results */
-  items: ComponentUpdate[];
+  items: Array<ComponentUpdate>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -335,7 +335,7 @@ export type CurrentUser = {
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramint64 = {
-  bins: Binint64[];
+  bins: Array<Binint64>;
   nSamples: number;
   startTime: Date;
 };
@@ -348,7 +348,7 @@ export type Histogramint64 = {
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramdouble = {
-  bins: Bindouble[];
+  bins: Array<Bindouble>;
   nSamples: number;
   startTime: Date;
 };
@@ -361,7 +361,7 @@ export type Datum =
   | { datum: number; type: "i64" }
   | { datum: number; type: "f64" }
   | { datum: string; type: "string" }
-  | { datum: number[]; type: "bytes" }
+  | { datum: Array<number>; type: "bytes" }
   | { datum: Cumulativeint64; type: "cumulative_i64" }
   | { datum: Cumulativedouble; type: "cumulative_f64" }
   | { datum: Histogramint64; type: "histogram_i64" }
@@ -477,7 +477,7 @@ export type DiskPath = {
  */
 export type DiskResultsPage = {
   /** list of items on this page of results */
-  items: Disk[];
+  items: Array<Disk>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -501,7 +501,7 @@ export type ExternalIpCreate = { poolName?: Name; type: "ephemeral" };
  */
 export type ExternalIpResultsPage = {
   /** list of items on this page of results */
-  items: ExternalIp[];
+  items: Array<ExternalIp>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -539,7 +539,7 @@ export type FleetRoleRoleAssignment = {
  */
 export type FleetRolePolicy = {
   /** Roles directly assigned on this resource */
-  roleAssignments: FleetRoleRoleAssignment[];
+  roleAssignments: Array<FleetRoleRoleAssignment>;
 };
 
 /**
@@ -558,7 +558,7 @@ export type Group = {
  */
 export type GroupResultsPage = {
   /** list of items on this page of results */
-  items: Group[];
+  items: Array<Group>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -588,7 +588,7 @@ export type IdentityProvider = {
  */
 export type IdentityProviderResultsPage = {
   /** list of items on this page of results */
-  items: IdentityProvider[];
+  items: Array<IdentityProvider>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -659,7 +659,7 @@ export type ImageCreate = {
  */
 export type ImageResultsPage = {
   /** list of items on this page of results */
-  items: Image[];
+  items: Array<Image>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -782,7 +782,7 @@ export type InstanceNetworkInterfaceAttachment =
   /** Create one or more `InstanceNetworkInterface`s for the `Instance`.
 
 If more than one interface is provided, then the first will be designated the primary interface for the instance. */
-  | { params: InstanceNetworkInterfaceCreate[]; type: "create" }
+  | { params: Array<InstanceNetworkInterfaceCreate>; type: "create" }
   /** The default networking configuration for an instance is to create a single primary interface with an automatically-assigned IP address. The IP will be pulled from the Project's default VPC / VPC Subnet. */
   | { type: "default" }
   /** No network interfaces at all will be created for the instance. */
@@ -794,11 +794,11 @@ If more than one interface is provided, then the first will be designated the pr
 export type InstanceCreate = {
   description: string;
   /** The disks to be created or attached for this instance. */
-  disks?: InstanceDiskAttachment[];
+  disks?: Array<InstanceDiskAttachment>;
   /** The external IP addresses provided to this instance.
 
 By default, all instances have outbound connectivity, but no inbound connectivity. These external addresses can be used to provide a fixed, known IP address for making inbound connections to the instance. */
-  externalIps?: ExternalIpCreate[];
+  externalIps?: Array<ExternalIpCreate>;
   hostname: string;
   memory: ByteCount;
   name: Name;
@@ -856,7 +856,7 @@ export type InstanceNetworkInterface = {
  */
 export type InstanceNetworkInterfaceResultsPage = {
   /** list of items on this page of results */
-  items: InstanceNetworkInterface[];
+  items: Array<InstanceNetworkInterface>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -882,7 +882,7 @@ Note that this can only be used to select a new primary interface for an instanc
  */
 export type InstanceResultsPage = {
   /** list of items on this page of results */
-  items: Instance[];
+  items: Array<Instance>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -892,7 +892,7 @@ export type InstanceResultsPage = {
  */
 export type InstanceSerialConsoleData = {
   /** The bytes starting from the requested offset up to either the end of the buffer or the request's `max_bytes`. Provided as a u8 array rather than a string, as it may not be UTF-8. */
-  data: number[];
+  data: Array<number>;
   /** The absolute offset since boot (suitable for use as `byte_offset` in a subsequent request) of the last byte returned in `data`. */
   lastByteOffset: number;
 };
@@ -941,7 +941,7 @@ export type IpPoolRange = { id: string; range: IpRange; timeCreated: Date };
  */
 export type IpPoolRangeResultsPage = {
   /** list of items on this page of results */
-  items: IpPoolRange[];
+  items: Array<IpPoolRange>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -951,7 +951,7 @@ export type IpPoolRangeResultsPage = {
  */
 export type IpPoolResultsPage = {
   /** list of items on this page of results */
-  items: IpPool[];
+  items: Array<IpPool>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1025,7 +1025,7 @@ export type LoopbackAddressCreate = {
  */
 export type LoopbackAddressResultsPage = {
   /** list of items on this page of results */
-  items: LoopbackAddress[];
+  items: Array<LoopbackAddress>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1040,7 +1040,7 @@ export type Measurement = { datum: Datum; timestamp: Date };
  */
 export type MeasurementResultsPage = {
   /** list of items on this page of results */
-  items: Measurement[];
+  items: Array<Measurement>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1079,7 +1079,7 @@ export type PhysicalDisk = {
  */
 export type PhysicalDiskResultsPage = {
   /** list of items on this page of results */
-  items: PhysicalDisk[];
+  items: Array<PhysicalDisk>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1110,7 +1110,7 @@ export type ProjectCreate = { description: string; name: Name };
  */
 export type ProjectResultsPage = {
   /** list of items on this page of results */
-  items: Project[];
+  items: Array<Project>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1135,7 +1135,7 @@ export type ProjectRoleRoleAssignment = {
  */
 export type ProjectRolePolicy = {
   /** Roles directly assigned on this resource */
-  roleAssignments: ProjectRoleRoleAssignment[];
+  roleAssignments: Array<ProjectRoleRoleAssignment>;
 };
 
 /**
@@ -1160,7 +1160,7 @@ export type Rack = {
  */
 export type RackResultsPage = {
   /** list of items on this page of results */
-  items: Rack[];
+  items: Array<Rack>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1182,7 +1182,7 @@ export type Role = { description: string; name: RoleName };
  */
 export type RoleResultsPage = {
   /** list of items on this page of results */
-  items: Role[];
+  items: Array<Role>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1204,7 +1204,7 @@ export type Route = {
  */
 export type RouteConfig = {
   /** The set of routes assigned to a switch port. */
-  routes: Route[];
+  routes: Array<Route>;
 };
 
 /**
@@ -1297,7 +1297,7 @@ export type RouterRouteCreate = {
  */
 export type RouterRouteResultsPage = {
   /** list of items on this page of results */
-  items: RouterRoute[];
+  items: Array<RouterRoute>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1418,7 +1418,7 @@ The default is that no Fleet roles are conferred by any Silo roles unless there'
   mappedFleetRoles?: Record<string, Set<FleetRole>>;
   name: Name;
   /** Initial TLS certificates to be used for the new Silo's console and API endpoints.  These should be valid for the Silo's DNS name(s). */
-  tlsCertificates: CertificateCreate[];
+  tlsCertificates: Array<CertificateCreate>;
 };
 
 /**
@@ -1426,7 +1426,7 @@ The default is that no Fleet roles are conferred by any Silo roles unless there'
  */
 export type SiloResultsPage = {
   /** list of items on this page of results */
-  items: Silo[];
+  items: Array<Silo>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1451,7 +1451,7 @@ export type SiloRoleRoleAssignment = {
  */
 export type SiloRolePolicy = {
   /** Roles directly assigned on this resource */
-  roleAssignments: SiloRoleRoleAssignment[];
+  roleAssignments: Array<SiloRoleRoleAssignment>;
 };
 
 /**
@@ -1498,7 +1498,7 @@ export type SledInstance = {
  */
 export type SledInstanceResultsPage = {
   /** list of items on this page of results */
-  items: SledInstance[];
+  items: Array<SledInstance>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1508,7 +1508,7 @@ export type SledInstanceResultsPage = {
  */
 export type SledResultsPage = {
   /** list of items on this page of results */
-  items: Sled[];
+  items: Array<Sled>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1550,7 +1550,7 @@ export type SnapshotCreate = {
  */
 export type SnapshotResultsPage = {
   /** list of items on this page of results */
-  items: Snapshot[];
+  items: Array<Snapshot>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1590,7 +1590,7 @@ export type SshKeyCreate = {
  */
 export type SshKeyResultsPage = {
   /** list of items on this page of results */
-  items: SshKey[];
+  items: Array<SshKey>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1727,7 +1727,7 @@ export type SwitchPortLinkConfig = {
  */
 export type SwitchPortResultsPage = {
   /** list of items on this page of results */
-  items: SwitchPort[];
+  items: Array<SwitchPort>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1773,7 +1773,7 @@ export type SwitchPortSettingsCreate = {
   /** BGP peers indexed by interface name. */
   bgpPeers: Record<string, BgpPeerConfig>;
   description: string;
-  groups: NameOrId[];
+  groups: Array<NameOrId>;
   /** Interfaces indexed by link name. */
   interfaces: Record<string, SwitchInterfaceConfig>;
   /** Links indexed by phy name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
@@ -1799,7 +1799,7 @@ export type SwitchPortSettingsGroups = {
  */
 export type SwitchPortSettingsResultsPage = {
   /** list of items on this page of results */
-  items: SwitchPortSettings[];
+  items: Array<SwitchPortSettings>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1819,25 +1819,25 @@ export type SwitchVlanInterfaceConfig = {
  */
 export type SwitchPortSettingsView = {
   /** Layer 3 IP address settings. */
-  addresses: SwitchPortAddressConfig[];
+  addresses: Array<SwitchPortAddressConfig>;
   /** BGP peer settings. */
-  bgpPeers: SwitchPortBgpPeerConfig[];
+  bgpPeers: Array<SwitchPortBgpPeerConfig>;
   /** Switch port settings included from other switch port settings groups. */
-  groups: SwitchPortSettingsGroups[];
+  groups: Array<SwitchPortSettingsGroups>;
   /** Layer 3 interface settings. */
-  interfaces: SwitchInterfaceConfig[];
+  interfaces: Array<SwitchInterfaceConfig>;
   /** Link-layer discovery protocol (LLDP) settings. */
-  linkLldp: LldpServiceConfig[];
+  linkLldp: Array<LldpServiceConfig>;
   /** Layer 2 link settings. */
-  links: SwitchPortLinkConfig[];
+  links: Array<SwitchPortLinkConfig>;
   /** Layer 1 physical port settings. */
   port: SwitchPortConfig;
   /** IP route settings. */
-  routes: SwitchPortRouteConfig[];
+  routes: Array<SwitchPortRouteConfig>;
   /** The primary switch port settings handle. */
   settings: SwitchPortSettings;
   /** Vlan interface settings. */
-  vlanInterfaces: SwitchVlanInterfaceConfig[];
+  vlanInterfaces: Array<SwitchVlanInterfaceConfig>;
 };
 
 /**
@@ -1845,7 +1845,7 @@ export type SwitchPortSettingsView = {
  */
 export type SwitchResultsPage = {
   /** list of items on this page of results */
-  items: Switch[];
+  items: Array<Switch>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1868,7 +1868,7 @@ export type SystemUpdate = {
  */
 export type SystemUpdateResultsPage = {
   /** list of items on this page of results */
-  items: SystemUpdate[];
+  items: Array<SystemUpdate>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1903,7 +1903,7 @@ export type UpdateDeployment = {
  */
 export type UpdateDeploymentResultsPage = {
   /** list of items on this page of results */
-  items: UpdateDeployment[];
+  items: Array<UpdateDeployment>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1930,7 +1930,7 @@ export type UpdateableComponent = {
  */
 export type UpdateableComponentResultsPage = {
   /** list of items on this page of results */
-  items: UpdateableComponent[];
+  items: Array<UpdateableComponent>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -1969,7 +1969,7 @@ export type UserBuiltin = {
  */
 export type UserBuiltinResultsPage = {
   /** list of items on this page of results */
-  items: UserBuiltin[];
+  items: Array<UserBuiltin>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -2005,7 +2005,7 @@ export type UserCreate = {
  */
 export type UserResultsPage = {
   /** list of items on this page of results */
-  items: User[];
+  items: Array<User>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -2084,11 +2084,11 @@ export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
  */
 export type VpcFirewallRuleFilter = {
   /** If present, the sources (if incoming) or destinations (if outgoing) this rule applies to. */
-  hosts?: VpcFirewallRuleHostFilter[];
+  hosts?: Array<VpcFirewallRuleHostFilter>;
   /** If present, the destination ports this rule applies to. */
-  ports?: L4PortRange[];
+  ports?: Array<L4PortRange>;
   /** If present, the networking protocols this rule applies to. */
-  protocols?: VpcFirewallRuleProtocol[];
+  protocols?: Array<VpcFirewallRuleProtocol>;
 };
 
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
@@ -2129,7 +2129,7 @@ export type VpcFirewallRule = {
   /** whether this rule is in effect */
   status: VpcFirewallRuleStatus;
   /** list of sets of instances that the rule applies to */
-  targets: VpcFirewallRuleTarget[];
+  targets: Array<VpcFirewallRuleTarget>;
   /** timestamp when this resource was created */
   timeCreated: Date;
   /** timestamp when this resource was last modified */
@@ -2157,25 +2157,27 @@ export type VpcFirewallRuleUpdate = {
   /** whether this rule is in effect */
   status: VpcFirewallRuleStatus;
   /** list of sets of instances that the rule applies to */
-  targets: VpcFirewallRuleTarget[];
+  targets: Array<VpcFirewallRuleTarget>;
 };
 
 /**
  * Updateable properties of a `Vpc`'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
  */
-export type VpcFirewallRuleUpdateParams = { rules: VpcFirewallRuleUpdate[] };
+export type VpcFirewallRuleUpdateParams = {
+  rules: Array<VpcFirewallRuleUpdate>;
+};
 
 /**
  * Collection of a Vpc's firewall rules
  */
-export type VpcFirewallRules = { rules: VpcFirewallRule[] };
+export type VpcFirewallRules = { rules: Array<VpcFirewallRule> };
 
 /**
  * A single page of results
  */
 export type VpcResultsPage = {
   /** list of items on this page of results */
-  items: Vpc[];
+  items: Array<Vpc>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -2211,7 +2213,7 @@ export type VpcRouterCreate = { description: string; name: Name };
  */
 export type VpcRouterResultsPage = {
   /** list of items on this page of results */
-  items: VpcRouter[];
+  items: Array<VpcRouter>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
@@ -2264,7 +2266,7 @@ It must be allocated from the RFC 4193 Unique Local Address range, with the pref
  */
 export type VpcSubnetResultsPage = {
   /** list of items on this page of results */
-  items: VpcSubnet[];
+  items: Array<VpcSubnet>;
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
