@@ -68,6 +68,18 @@ export const schemaToZod = makeSchemaGenerator({
 
   object(schema, io) {
     const { w0, w } = io;
+    // record type, which only tells us the type of the values
+    if (!schema.properties || Object.keys(schema.properties).length === 0) {
+      w0("z.record(z.string().min(1),");
+      if (typeof schema.additionalProperties === "object") {
+        schemaToZod(schema.additionalProperties, io);
+      } else {
+        w0("z.unknown()");
+      }
+      w0(")");
+      return;
+    }
+
     w0("z.object({");
     for (const [name, subSchema] of Object.entries(schema.properties || {})) {
       w0(`${JSON.stringify(snakeToCamel(name))}: `);
