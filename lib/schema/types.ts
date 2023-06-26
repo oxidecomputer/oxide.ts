@@ -31,11 +31,30 @@ export const schemaToTypes = makeSchemaGenerator({
     w0(`number`);
   },
   array(schema, io) {
-    schemaToTypes(schema.items, io);
-    io.w0(`[]`);
+    const { w0 } = io;
+    if (schema.uniqueItems) {
+      w0("Set<");
+      schemaToTypes(schema.items, io);
+      w0(">");
+    } else {
+      schemaToTypes(schema.items, io);
+      w0(`[]`);
+    }
   },
   object(schema, io) {
     const { w0, w } = io;
+    // record type, which only tells us the type of the values
+    if (!schema.properties || Object.keys(schema.properties).length === 0) {
+      w0("Record<string,");
+      if (typeof schema.additionalProperties === "object") {
+        schemaToTypes(schema.additionalProperties, io);
+      } else {
+        w0("unknown");
+      }
+      w0(">");
+      return;
+    }
+
     w0("{");
     for (const [name, subSchema] of Object.entries(schema.properties || {})) {
       const optional = schema.required?.includes(name) ? "" : "?";
