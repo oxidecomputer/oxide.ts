@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { z, ZodType } from "zod";
-import { snakeify, processResponseBody } from "./util";
+import { processResponseBody, uniqueItems } from "./util";
 
 /**
  * Zod only supports string enums at the moment. A previous issue was opened
@@ -1443,7 +1443,10 @@ export const Silo = z.preprocess(
     discoverable: SafeBoolean,
     id: z.string().uuid(),
     identityMode: SiloIdentityMode,
-    mappedFleetRoles: z.record(z.string().min(1), FleetRole.array()),
+    mappedFleetRoles: z.record(
+      z.string().min(1),
+      FleetRole.array().refine(...uniqueItems)
+    ),
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
@@ -1460,7 +1463,9 @@ export const SiloCreate = z.preprocess(
     description: z.string(),
     discoverable: SafeBoolean,
     identityMode: SiloIdentityMode,
-    mappedFleetRoles: z.record(z.string().min(1), FleetRole.array()).optional(),
+    mappedFleetRoles: z
+      .record(z.string().min(1), FleetRole.array().refine(...uniqueItems))
+      .optional(),
     name: Name,
     tlsCertificates: CertificateCreate.array(),
   })

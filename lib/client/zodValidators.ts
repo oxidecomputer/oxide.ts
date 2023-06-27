@@ -14,7 +14,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
 
   w(`/* eslint-disable */
   import { z, ZodType } from 'zod';
-  import { snakeify, processResponseBody } from './util';
+  import { processResponseBody, uniqueItems } from './util';
 
   /**
    * Zod only supports string enums at the moment. A previous issue was opened
