@@ -6,8 +6,10 @@ import {
   processResponseBody,
   snakeify,
   snakeToCamel,
+  uniqueItems,
 } from "./util";
 import { describe, expect, it, test } from "vitest";
+import { z } from "zod";
 
 test("camelToSnake", () => {
   expect(camelToSnake("name")).toEqual("name");
@@ -121,4 +123,28 @@ test("snakeify", () => {
       "time_modified": "2021-01-02T00:00:00.000Z",
     }
   `);
+});
+
+test("uniqueItems", () => {
+  const schema = z
+    .enum(["x", "y", "z"])
+    .array()
+    .refine(...uniqueItems);
+
+  expect(schema.safeParse(["x"]).success).toBe(true);
+  expect(schema.safeParse(["x", "y"]).success).toBe(true);
+  expect(schema.safeParse(["z", "y"]).success).toBe(true);
+  expect(schema.safeParse(["z", "y", "x"]).success).toBe(true);
+  expect(schema.safeParse(["x", "x"])).toMatchInlineSnapshot(`
+      {
+        "error": [ZodError: [
+        {
+          "code": "custom",
+          "message": "Items must be unique",
+          "path": []
+        }
+      ]],
+        "success": false,
+      }
+    `);
 });

@@ -53,3 +53,8 @@ export const processResponseBody = mapObj(snakeToCamel, parseIfDate);
 export function isNotNull<T>(value: T): value is NonNullable<T> {
   return value != null;
 }
+
+export const uniqueItems = [
+  <T>(arr: T[]) => new Set(arr).size === arr.length,
+  { message: "Items must be unique" },
+] as const;
