@@ -102,10 +102,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const queryParamsType = queryParams?.length
       ? `query: Api.${snakeToPascal(opId)}QueryParams,`
       : "";
-    const params =
-      pathParamsType || queryParamsType || body
-        ? `params: { ${pathParamsType} ${queryParamsType} ${body} }`
-        : "";
+    const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: RestRequest }`;
 
     const resultType =
       successType === "void" ? "StatusCode" : `HandlerResult<${successType}>`;
@@ -162,7 +159,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
           // TypeScript can't narrow the handler down because there's not an explicit relationship between the schema
           // being present and the shape of the handler API. The type of this function could be resolved such that the
           // relevant schema is required if and only if the handler has a type that matches the inferred schema
-          const result = await (handler as any).apply(null, [{path, query, body}])
+          const result = await (handler as any).apply(null, [{path, query, body, req}])
           if (typeof result === "number") {
             return res(ctx.status(result))
           }
