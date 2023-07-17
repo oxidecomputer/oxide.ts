@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Debug Generation",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/lib/index.ts",
+      "program": "${workspaceFolder}/generator/index.ts",
       "runtimeArgs": ["-r", "esbuild-register"],
       "args": ["./spec.json"],
       "console": "integratedTerminal"
