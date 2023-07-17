@@ -1,3 +1,9 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ **/
+
 import type { OpenAPIV3 } from "openapi-types";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
@@ -57,6 +63,14 @@ export function generateApi(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
   w("/* eslint-disable */\n");
+
+  w(`
+    /**
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+     **/
+  `);
 
   copy("./static/util.ts");
   copy("./static/http-client.ts");
