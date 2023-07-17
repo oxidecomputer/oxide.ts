@@ -1,3 +1,9 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { getSortedSchemas } from "./base";
@@ -9,6 +15,14 @@ export function generateTypeTests(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
   const schemaNames = getSortedSchemas(spec).filter((name) => name !== "Error");
+
+  w(`
+    /**
+     * This Source Code Form is subject to the terms of the Mozilla Public
+     * License, v. 2.0. If a copy of the MPL was not distributed with this
+     * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+     */
+  `);
 
   w(`
     import { z } from "zod";
