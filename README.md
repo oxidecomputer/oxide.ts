@@ -3,7 +3,7 @@
 This repo contains a TypeScript OpenAPI client generator and a copy of the
 client it generates from [Oxide's OpenAPI
 spec](https://github.com/oxidecomputer/omicron/blob/main/openapi/nexus.json).
-The source of the generator is in [`lib`](lib/), and the generated client can be
+The source of the generator is in [`generator`](generator/), and the generated client can be
 found in [`client`](client/). We generate several distinct pieces:
 
 | File                                        | Description                                                                                            |

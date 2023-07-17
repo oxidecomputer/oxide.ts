@@ -9,7 +9,8 @@
 set -o errexit
 set -o pipefail
 
-HELP="$(cat <<EOF
+HELP="$(
+	cat <<EOF
 usage: ./gen.sh [spec-file] [out-file]
 EOF
 )"
@@ -25,4 +26,4 @@ SPEC_DESTINATION="./spec.json"
 
 curl --fail "$SPEC_SOURCE" -o $SPEC_DESTINATION
 
-node -r esbuild-register lib/index.ts $SPEC_DESTINATION $2
+node -r esbuild-register generator/index.ts $SPEC_DESTINATION $2
