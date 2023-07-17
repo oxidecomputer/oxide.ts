@@ -28,9 +28,8 @@ existing generators through their own APIs and templates.
 ## Using the API client
 
 We intend to publish the generated code on npm, but have not done so yet. In the
-Oxide web console (the primary consumer of the TS client) we use the library by
-generating it from a given spec version with `npm run gen-from` and versioning a
-full copy of the generated code in that repo.
+Oxide web console (the primary consumer of the TS client, not yet open source)
+we use the library by generating it from a given spec version with `npm run gen-from` and versioning a full copy of the generated code in that repo.
 
 ## Generating the client
 

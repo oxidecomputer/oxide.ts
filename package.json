@@ -8,6 +8,9 @@
     "oxide computer",
     "oxide sdk"
   ],
+  "engines": {
+    "node": ">=16"
+  },
   "main": "./dist/Api.js",
   "module": "./dist/Api.mjs",
   "types": "./dist/Api.d.ts",
