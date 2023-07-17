@@ -298,55 +298,6 @@ export const CertificateResultsPage = z.preprocess(
   z.object({ items: Certificate.array(), nextPage: z.string().optional() })
 );
 
-export const UpdateableComponentType = z.preprocess(
-  processResponseBody,
-  z.enum([
-    "bootloader_for_rot",
-    "bootloader_for_sp",
-    "bootloader_for_host_proc",
-    "hubris_for_psc_rot",
-    "hubris_for_psc_sp",
-    "hubris_for_sidecar_rot",
-    "hubris_for_sidecar_sp",
-    "hubris_for_gimlet_rot",
-    "hubris_for_gimlet_sp",
-    "helios_host_phase1",
-    "helios_host_phase2",
-    "host_omicron",
-  ])
-);
-
-export const SemverVersion = z.preprocess(
-  processResponseBody,
-  z
-    .string()
-    .regex(
-      /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
-    )
-);
-
-/**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export const ComponentUpdate = z.preprocess(
-  processResponseBody,
-  z.object({
-    componentType: UpdateableComponentType,
-    id: z.string().uuid(),
-    timeCreated: z.coerce.date(),
-    timeModified: z.coerce.date(),
-    version: SemverVersion,
-  })
-);
-
-/**
- * A single page of results
- */
-export const ComponentUpdateResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({ items: ComponentUpdate.array(), nextPage: z.string().optional() })
-);
-
 /**
  * A cumulative or counter data type.
  */
@@ -715,7 +666,7 @@ export const Image = z.preprocess(
 export const ImageSource = z.preprocess(
   processResponseBody,
   z.union([
-    z.object({ type: z.enum(["url"]), url: z.string() }),
+    z.object({ blockSize: BlockSize, type: z.enum(["url"]), url: z.string() }),
     z.object({ id: z.string().uuid(), type: z.enum(["snapshot"]) }),
     z.object({ type: z.enum(["you_can_boot_anything_as_long_as_its_alpine"]) }),
   ])
@@ -727,7 +678,6 @@ export const ImageSource = z.preprocess(
 export const ImageCreate = z.preprocess(
   processResponseBody,
   z.object({
-    blockSize: BlockSize,
     description: z.string(),
     name: Name,
     os: z.string(),
@@ -1013,6 +963,7 @@ export const IpPoolRange = z.preprocess(
   processResponseBody,
   z.object({
     id: z.string().uuid(),
+    ipPoolId: z.string().uuid(),
     range: IpRange,
     timeCreated: z.coerce.date(),
   })
@@ -1094,6 +1045,7 @@ export const LoopbackAddressCreate = z.preprocess(
   z.object({
     address: z.string(),
     addressLot: NameOrId,
+    anycast: SafeBoolean,
     mask: z.number().min(0).max(255),
     rackId: z.string().uuid(),
     switchLocation: Name,
@@ -1131,9 +1083,12 @@ export const MeasurementResultsPage = z.preprocess(
  */
 export const Password = z.preprocess(processResponseBody, z.string().max(512));
 
-export const PhysicalDiskType = z.preprocess(
+/**
+ * Describes the form factor of physical disks.
+ */
+export const PhysicalDiskKind = z.preprocess(
   processResponseBody,
-  z.enum(["internal", "external"])
+  z.enum(["m2", "u2"])
 );
 
 /**
@@ -1144,7 +1099,7 @@ export const PhysicalDiskType = z.preprocess(
 export const PhysicalDisk = z.preprocess(
   processResponseBody,
   z.object({
-    diskType: PhysicalDiskType,
+    formFactor: PhysicalDiskKind,
     id: z.string().uuid(),
     model: z.string(),
     serial: z.string(),
@@ -1595,7 +1550,7 @@ export const Snapshot = z.preprocess(
  */
 export const SnapshotCreate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string(), disk: Name, name: Name })
+  z.object({ description: z.string(), disk: NameOrId, name: Name })
 );
 
 /**
@@ -1865,100 +1820,6 @@ export const SwitchResultsPage = z.preprocess(
 );
 
 /**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export const SystemUpdate = z.preprocess(
-  processResponseBody,
-  z.object({
-    id: z.string().uuid(),
-    timeCreated: z.coerce.date(),
-    timeModified: z.coerce.date(),
-    version: SemverVersion,
-  })
-);
-
-/**
- * A single page of results
- */
-export const SystemUpdateResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({ items: SystemUpdate.array(), nextPage: z.string().optional() })
-);
-
-export const SystemUpdateStart = z.preprocess(
-  processResponseBody,
-  z.object({ version: SemverVersion })
-);
-
-export const UpdateStatus = z.preprocess(
-  processResponseBody,
-  z.union([
-    z.object({ status: z.enum(["updating"]) }),
-    z.object({ status: z.enum(["steady"]) }),
-  ])
-);
-
-export const VersionRange = z.preprocess(
-  processResponseBody,
-  z.object({ high: SemverVersion, low: SemverVersion })
-);
-
-export const SystemVersion = z.preprocess(
-  processResponseBody,
-  z.object({ status: UpdateStatus, versionRange: VersionRange })
-);
-
-/**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export const UpdateDeployment = z.preprocess(
-  processResponseBody,
-  z.object({
-    id: z.string().uuid(),
-    status: UpdateStatus,
-    timeCreated: z.coerce.date(),
-    timeModified: z.coerce.date(),
-    version: SemverVersion,
-  })
-);
-
-/**
- * A single page of results
- */
-export const UpdateDeploymentResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({ items: UpdateDeployment.array(), nextPage: z.string().optional() })
-);
-
-/**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export const UpdateableComponent = z.preprocess(
-  processResponseBody,
-  z.object({
-    componentType: UpdateableComponentType,
-    deviceId: z.string(),
-    id: z.string().uuid(),
-    status: UpdateStatus,
-    systemVersion: SemverVersion,
-    timeCreated: z.coerce.date(),
-    timeModified: z.coerce.date(),
-    version: SemverVersion,
-  })
-);
-
-/**
- * A single page of results
- */
-export const UpdateableComponentResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({
-    items: UpdateableComponent.array(),
-    nextPage: z.string().optional(),
-  })
-);
-
-/**
  * View of a User
  */
 export const User = z.preprocess(
@@ -2016,8 +1877,8 @@ export const UserId = z.preprocess(
 export const UserPassword = z.preprocess(
   processResponseBody,
   z.union([
-    z.object({ details: Password, userPasswordValue: z.enum(["password"]) }),
-    z.object({ userPasswordValue: z.enum(["invalid_password"]) }),
+    z.object({ mode: z.enum(["password"]), value: Password }),
+    z.object({ mode: z.enum(["login_disallowed"]) }),
   ])
 );
 
@@ -2581,7 +2442,6 @@ export const ImageListParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({
-      includeSiloImages: SafeBoolean.optional(),
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
       project: NameOrId.optional(),
@@ -2922,6 +2782,23 @@ export const CurrentUserSshKeyDeleteParams = z.preprocess(
       sshKey: NameOrId,
     }),
     query: z.object({}),
+  })
+);
+
+export const SiloMetricParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      metricName: SystemMetricName,
+    }),
+    query: z.object({
+      endTime: z.coerce.date().optional(),
+      limit: z.number().min(1).max(4294967295).optional(),
+      order: PaginationOrder.optional(),
+      pageToken: z.string().optional(),
+      startTime: z.coerce.date().optional(),
+      project: NameOrId.optional(),
+    }),
   })
 );
 
@@ -3466,7 +3343,7 @@ export const SystemMetricParams = z.preprocess(
       order: PaginationOrder.optional(),
       pageToken: z.string().optional(),
       startTime: z.coerce.date().optional(),
-      id: z.string().uuid(),
+      silo: NameOrId.optional(),
     }),
   })
 );
@@ -3682,104 +3559,6 @@ export const SiloPolicyUpdateParams = z.preprocess(
     path: z.object({
       silo: NameOrId,
     }),
-    query: z.object({}),
-  })
-);
-
-export const SystemComponentVersionListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const UpdateDeploymentsListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const UpdateDeploymentViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      id: z.string().uuid(),
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SystemUpdateRefreshParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SystemUpdateStartParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SystemUpdateStopParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({}),
-  })
-);
-
-export const SystemUpdateListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      sortBy: IdSortMode.optional(),
-    }),
-  })
-);
-
-export const SystemUpdateViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      version: SemverVersion,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SystemUpdateComponentsListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      version: SemverVersion,
-    }),
-    query: z.object({}),
-  })
-);
-
-export const SystemVersionParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
     query: z.object({}),
   })
 );

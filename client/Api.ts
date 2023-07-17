@@ -270,46 +270,6 @@ export type CertificateResultsPage = {
   nextPage?: string;
 };
 
-export type UpdateableComponentType =
-  | "bootloader_for_rot"
-  | "bootloader_for_sp"
-  | "bootloader_for_host_proc"
-  | "hubris_for_psc_rot"
-  | "hubris_for_psc_sp"
-  | "hubris_for_sidecar_rot"
-  | "hubris_for_sidecar_sp"
-  | "hubris_for_gimlet_rot"
-  | "hubris_for_gimlet_sp"
-  | "helios_host_phase1"
-  | "helios_host_phase2"
-  | "host_omicron";
-
-export type SemverVersion = string;
-
-/**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export type ComponentUpdate = {
-  componentType: UpdateableComponentType;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  version: SemverVersion;
-};
-
-/**
- * A single page of results
- */
-export type ComponentUpdateResultsPage = {
-  /** list of items on this page of results */
-  items: ComponentUpdate[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
 /**
  * A cumulative or counter data type.
  */
@@ -639,7 +599,12 @@ export type Image = {
  * The source of the underlying image.
  */
 export type ImageSource =
-  | { type: "url"; url: string }
+  | {
+      /** The block size in bytes */
+      blockSize: BlockSize;
+      type: "url";
+      url: string;
+    }
   | { id: string; type: "snapshot" }
   /** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
   | { type: "you_can_boot_anything_as_long_as_its_alpine" };
@@ -648,8 +613,6 @@ export type ImageSource =
  * Create-time parameters for an `Image`
  */
 export type ImageCreate = {
-  /** block size in bytes */
-  blockSize: BlockSize;
   description: string;
   name: Name;
   /** The family of the operating system (e.g. Debian, Ubuntu, etc.) */
@@ -940,7 +903,12 @@ export type Ipv6Range = { first: string; last: string };
 
 export type IpRange = Ipv4Range | Ipv6Range;
 
-export type IpPoolRange = { id: string; range: IpRange; timeCreated: Date };
+export type IpPoolRange = {
+  id: string;
+  ipPoolId: string;
+  range: IpRange;
+  timeCreated: Date;
+};
 
 /**
  * A single page of results
@@ -1018,6 +986,8 @@ export type LoopbackAddressCreate = {
   address: string;
   /** The name or id of the address lot this loopback address will pull an address from. */
   addressLot: NameOrId;
+  /** Address is an anycast address. This allows the address to be assigned to multiple locations simultaneously. */
+  anycast: boolean;
   /** The subnet mask to use for the address. */
   mask: number;
   /** The containing the switch this loopback address will be configured on. */
@@ -1058,7 +1028,10 @@ export type MeasurementResultsPage = {
  */
 export type Password = string;
 
-export type PhysicalDiskType = "internal" | "external";
+/**
+ * Describes the form factor of physical disks.
+ */
+export type PhysicalDiskKind = "m2" | "u2";
 
 /**
  * View of a Physical Disk
@@ -1066,7 +1039,7 @@ export type PhysicalDiskType = "internal" | "external";
  * Physical disks reside in a particular sled and are used to store both Instance Disk data as well as internal metadata.
  */
 export type PhysicalDisk = {
-  diskType: PhysicalDiskType;
+  formFactor: PhysicalDiskKind;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   model: string;
@@ -1546,8 +1519,8 @@ export type Snapshot = {
  */
 export type SnapshotCreate = {
   description: string;
-  /** The name of the disk to be snapshotted */
-  disk: Name;
+  /** The disk to be snapshotted */
+  disk: NameOrId;
   name: Name;
 };
 
@@ -1857,91 +1830,6 @@ export type SwitchResultsPage = {
 };
 
 /**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export type SystemUpdate = {
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  version: SemverVersion;
-};
-
-/**
- * A single page of results
- */
-export type SystemUpdateResultsPage = {
-  /** list of items on this page of results */
-  items: SystemUpdate[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
-export type SystemUpdateStart = { version: SemverVersion };
-
-export type UpdateStatus = { status: "updating" } | { status: "steady" };
-
-export type VersionRange = { high: SemverVersion; low: SemverVersion };
-
-export type SystemVersion = {
-  status: UpdateStatus;
-  versionRange: VersionRange;
-};
-
-/**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export type UpdateDeployment = {
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  status: UpdateStatus;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  version: SemverVersion;
-};
-
-/**
- * A single page of results
- */
-export type UpdateDeploymentResultsPage = {
-  /** list of items on this page of results */
-  items: UpdateDeployment[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
-/**
- * Identity-related metadata that's included in "asset" public API objects (which generally have no name or description)
- */
-export type UpdateableComponent = {
-  componentType: UpdateableComponentType;
-  deviceId: string;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  status: UpdateStatus;
-  systemVersion: SemverVersion;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  version: SemverVersion;
-};
-
-/**
- * A single page of results
- */
-export type UpdateableComponentResultsPage = {
-  /** list of items on this page of results */
-  items: UpdateableComponent[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
-/**
  * View of a User
  */
 export type User = {
@@ -1992,9 +1880,9 @@ export type UserId = string;
  */
 export type UserPassword =
   /** Sets the user's password to the provided value */
-  | { details: Password; userPasswordValue: "password" }
+  | { mode: "password"; value: Password }
   /** Invalidates any current password (disabling password authentication) */
-  | { userPasswordValue: "invalid_password" };
+  | { mode: "login_disallowed" };
 
 /**
  * Create-time parameters for a `User`
@@ -2002,7 +1890,7 @@ export type UserPassword =
 export type UserCreate = {
   /** username used to log in */
   externalId: UserId;
-  /** password used to log in */
+  /** how to set the user's login password */
   password: UserPassword;
 };
 
@@ -2439,7 +2327,6 @@ export interface GroupViewPathParams {
 }
 
 export interface ImageListQueryParams {
-  includeSiloImages?: boolean;
   limit?: number;
   pageToken?: string;
   project?: NameOrId;
@@ -2633,6 +2520,19 @@ export interface CurrentUserSshKeyViewPathParams {
 
 export interface CurrentUserSshKeyDeletePathParams {
   sshKey: NameOrId;
+}
+
+export interface SiloMetricPathParams {
+  metricName: SystemMetricName;
+}
+
+export interface SiloMetricQueryParams {
+  endTime?: Date;
+  limit?: number;
+  order?: PaginationOrder;
+  pageToken?: string;
+  startTime?: Date;
+  project?: NameOrId;
 }
 
 export interface InstanceNetworkInterfaceListQueryParams {
@@ -2898,7 +2798,7 @@ export interface SystemMetricQueryParams {
   order?: PaginationOrder;
   pageToken?: string;
   startTime?: Date;
-  id: string;
+  silo?: NameOrId;
 }
 
 export interface NetworkingAddressLotListQueryParams {
@@ -2978,36 +2878,6 @@ export interface SiloPolicyViewPathParams {
 
 export interface SiloPolicyUpdatePathParams {
   silo: NameOrId;
-}
-
-export interface SystemComponentVersionListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  sortBy?: IdSortMode;
-}
-
-export interface UpdateDeploymentsListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  sortBy?: IdSortMode;
-}
-
-export interface UpdateDeploymentViewPathParams {
-  id: string;
-}
-
-export interface SystemUpdateListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  sortBy?: IdSortMode;
-}
-
-export interface SystemUpdateViewPathParams {
-  version: SemverVersion;
-}
-
-export interface SystemUpdateComponentsListPathParams {
-  version: SemverVersion;
 }
 
 export interface SiloUserListQueryParams {
@@ -3256,10 +3126,6 @@ export type ApiListMethods = Pick<
   | "networkingSwitchPortSettingsList"
   | "roleList"
   | "siloList"
-  | "systemComponentVersionList"
-  | "updateDeploymentsList"
-  | "systemUpdateList"
-  | "systemUpdateComponentsList"
   | "siloUserList"
   | "userBuiltinList"
   | "userList"
@@ -4078,6 +3944,23 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Access metrics data
+     */
+    siloMetric: (
+      {
+        path,
+        query = {},
+      }: { path: SiloMetricPathParams; query?: SiloMetricQueryParams },
+      params: RequestParams = {}
+    ) => {
+      return this.request<MeasurementResultsPage>({
+        path: `/v1/metrics/${path.metricName}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List network interfaces
      */
     instanceNetworkInterfaceList: (
@@ -4845,7 +4728,7 @@ export class Api extends HttpClient {
     systemMetric: (
       {
         path,
-        query,
+        query = {},
       }: { path: SystemMetricPathParams; query?: SystemMetricQueryParams },
       params: RequestParams = {}
     ) => {
@@ -5145,131 +5028,6 @@ export class Api extends HttpClient {
         path: `/v1/system/silos/${path.silo}/policy`,
         method: "PUT",
         body,
-        ...params,
-      });
-    },
-    /**
-     * View version and update status of component tree
-     */
-    systemComponentVersionList: (
-      { query = {} }: { query?: SystemComponentVersionListQueryParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<UpdateableComponentResultsPage>({
-        path: `/v1/system/update/components`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * List all update deployments
-     */
-    updateDeploymentsList: (
-      { query = {} }: { query?: UpdateDeploymentsListQueryParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<UpdateDeploymentResultsPage>({
-        path: `/v1/system/update/deployments`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Fetch a system update deployment
-     */
-    updateDeploymentView: (
-      { path }: { path: UpdateDeploymentViewPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<UpdateDeployment>({
-        path: `/v1/system/update/deployments/${path.id}`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * Refresh update data
-     */
-    systemUpdateRefresh: (_: EmptyObj, params: RequestParams = {}) => {
-      return this.request<void>({
-        path: `/v1/system/update/refresh`,
-        method: "POST",
-        ...params,
-      });
-    },
-    /**
-     * Start system update
-     */
-    systemUpdateStart: (
-      { body }: { body: SystemUpdateStart },
-      params: RequestParams = {}
-    ) => {
-      return this.request<UpdateDeployment>({
-        path: `/v1/system/update/start`,
-        method: "POST",
-        body,
-        ...params,
-      });
-    },
-    /**
-     * Stop system update
-     */
-    systemUpdateStop: (_: EmptyObj, params: RequestParams = {}) => {
-      return this.request<void>({
-        path: `/v1/system/update/stop`,
-        method: "POST",
-        ...params,
-      });
-    },
-    /**
-     * List all updates
-     */
-    systemUpdateList: (
-      { query = {} }: { query?: SystemUpdateListQueryParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<SystemUpdateResultsPage>({
-        path: `/v1/system/update/updates`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * View system update
-     */
-    systemUpdateView: (
-      { path }: { path: SystemUpdateViewPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<SystemUpdate>({
-        path: `/v1/system/update/updates/${path.version}`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * View system update component tree
-     */
-    systemUpdateComponentsList: (
-      { path }: { path: SystemUpdateComponentsListPathParams },
-      params: RequestParams = {}
-    ) => {
-      return this.request<ComponentUpdateResultsPage>({
-        path: `/v1/system/update/updates/${path.version}/components`,
-        method: "GET",
-        ...params,
-      });
-    },
-    /**
-     * View system version and update status
-     */
-    systemVersion: (_: EmptyObj, params: RequestParams = {}) => {
-      return this.request<SystemVersion>({
-        path: `/v1/system/update/version`,
-        method: "GET",
         ...params,
       });
     },

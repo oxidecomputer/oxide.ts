@@ -51,17 +51,6 @@ assert<Equals<A.CertificateCreate, z.infer<typeof V.CertificateCreate>>>();
 assert<
   Equals<A.CertificateResultsPage, z.infer<typeof V.CertificateResultsPage>>
 >();
-assert<
-  Equals<A.UpdateableComponentType, z.infer<typeof V.UpdateableComponentType>>
->();
-assert<Equals<A.SemverVersion, z.infer<typeof V.SemverVersion>>>();
-assert<Equals<A.ComponentUpdate, z.infer<typeof V.ComponentUpdate>>>();
-assert<
-  Equals<
-    A.ComponentUpdateResultsPage,
-    z.infer<typeof V.ComponentUpdateResultsPage>
-  >
->();
 assert<Equals<A.Cumulativedouble, z.infer<typeof V.Cumulativedouble>>>();
 assert<Equals<A.Cumulativeint64, z.infer<typeof V.Cumulativeint64>>>();
 assert<Equals<A.CurrentUser, z.infer<typeof V.CurrentUser>>>();
@@ -188,7 +177,7 @@ assert<
   Equals<A.MeasurementResultsPage, z.infer<typeof V.MeasurementResultsPage>>
 >();
 assert<Equals<A.Password, z.infer<typeof V.Password>>>();
-assert<Equals<A.PhysicalDiskType, z.infer<typeof V.PhysicalDiskType>>>();
+assert<Equals<A.PhysicalDiskKind, z.infer<typeof V.PhysicalDiskKind>>>();
 assert<Equals<A.PhysicalDisk, z.infer<typeof V.PhysicalDisk>>>();
 assert<
   Equals<A.PhysicalDiskResultsPage, z.infer<typeof V.PhysicalDiskResultsPage>>
@@ -301,28 +290,6 @@ assert<
   Equals<A.SwitchPortSettingsView, z.infer<typeof V.SwitchPortSettingsView>>
 >();
 assert<Equals<A.SwitchResultsPage, z.infer<typeof V.SwitchResultsPage>>>();
-assert<Equals<A.SystemUpdate, z.infer<typeof V.SystemUpdate>>>();
-assert<
-  Equals<A.SystemUpdateResultsPage, z.infer<typeof V.SystemUpdateResultsPage>>
->();
-assert<Equals<A.SystemUpdateStart, z.infer<typeof V.SystemUpdateStart>>>();
-assert<Equals<A.UpdateStatus, z.infer<typeof V.UpdateStatus>>>();
-assert<Equals<A.VersionRange, z.infer<typeof V.VersionRange>>>();
-assert<Equals<A.SystemVersion, z.infer<typeof V.SystemVersion>>>();
-assert<Equals<A.UpdateDeployment, z.infer<typeof V.UpdateDeployment>>>();
-assert<
-  Equals<
-    A.UpdateDeploymentResultsPage,
-    z.infer<typeof V.UpdateDeploymentResultsPage>
-  >
->();
-assert<Equals<A.UpdateableComponent, z.infer<typeof V.UpdateableComponent>>>();
-assert<
-  Equals<
-    A.UpdateableComponentResultsPage,
-    z.infer<typeof V.UpdateableComponentResultsPage>
-  >
->();
 assert<Equals<A.User, z.infer<typeof V.User>>>();
 assert<Equals<A.UserBuiltin, z.infer<typeof V.UserBuiltin>>>();
 assert<

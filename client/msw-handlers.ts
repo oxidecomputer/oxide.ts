@@ -336,6 +336,12 @@ export interface MSWHandlers {
     path: Api.CurrentUserSshKeyDeletePathParams;
     req: RestRequest;
   }) => StatusCode;
+  /** `GET /v1/metrics/:metricName` */
+  siloMetric: (params: {
+    path: Api.SiloMetricPathParams;
+    query: Api.SiloMetricQueryParams;
+    req: RestRequest;
+  }) => HandlerResult<Api.MeasurementResultsPage>;
   /** `GET /v1/network-interfaces` */
   instanceNetworkInterfaceList: (params: {
     query: Api.InstanceNetworkInterfaceListQueryParams;
@@ -711,49 +717,6 @@ export interface MSWHandlers {
     body: Json<Api.SiloRolePolicy>;
     req: RestRequest;
   }) => HandlerResult<Api.SiloRolePolicy>;
-  /** `GET /v1/system/update/components` */
-  systemComponentVersionList: (params: {
-    query: Api.SystemComponentVersionListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.UpdateableComponentResultsPage>;
-  /** `GET /v1/system/update/deployments` */
-  updateDeploymentsList: (params: {
-    query: Api.UpdateDeploymentsListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.UpdateDeploymentResultsPage>;
-  /** `GET /v1/system/update/deployments/:id` */
-  updateDeploymentView: (params: {
-    path: Api.UpdateDeploymentViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.UpdateDeployment>;
-  /** `POST /v1/system/update/refresh` */
-  systemUpdateRefresh: (params: { req: RestRequest }) => StatusCode;
-  /** `POST /v1/system/update/start` */
-  systemUpdateStart: (params: {
-    body: Json<Api.SystemUpdateStart>;
-    req: RestRequest;
-  }) => HandlerResult<Api.UpdateDeployment>;
-  /** `POST /v1/system/update/stop` */
-  systemUpdateStop: (params: { req: RestRequest }) => StatusCode;
-  /** `GET /v1/system/update/updates` */
-  systemUpdateList: (params: {
-    query: Api.SystemUpdateListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SystemUpdateResultsPage>;
-  /** `GET /v1/system/update/updates/:version` */
-  systemUpdateView: (params: {
-    path: Api.SystemUpdateViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SystemUpdate>;
-  /** `GET /v1/system/update/updates/:version/components` */
-  systemUpdateComponentsList: (params: {
-    path: Api.SystemUpdateComponentsListPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.ComponentUpdateResultsPage>;
-  /** `GET /v1/system/update/version` */
-  systemVersion: (params: {
-    req: RestRequest;
-  }) => HandlerResult<Api.SystemVersion>;
   /** `GET /v1/system/users` */
   siloUserList: (params: {
     query: Api.SiloUserListQueryParams;
@@ -1284,6 +1247,10 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
       )
     ),
     rest.get(
+      "/v1/metrics/:metricName",
+      handler(handlers["siloMetric"], schema.SiloMetricParams, null)
+    ),
+    rest.get(
       "/v1/network-interfaces",
       handler(
         handlers["instanceNetworkInterfaceList"],
@@ -1699,62 +1666,6 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.SiloPolicyUpdateParams,
         schema.SiloRolePolicy
       )
-    ),
-    rest.get(
-      "/v1/system/update/components",
-      handler(
-        handlers["systemComponentVersionList"],
-        schema.SystemComponentVersionListParams,
-        null
-      )
-    ),
-    rest.get(
-      "/v1/system/update/deployments",
-      handler(
-        handlers["updateDeploymentsList"],
-        schema.UpdateDeploymentsListParams,
-        null
-      )
-    ),
-    rest.get(
-      "/v1/system/update/deployments/:id",
-      handler(
-        handlers["updateDeploymentView"],
-        schema.UpdateDeploymentViewParams,
-        null
-      )
-    ),
-    rest.post(
-      "/v1/system/update/refresh",
-      handler(handlers["systemUpdateRefresh"], null, null)
-    ),
-    rest.post(
-      "/v1/system/update/start",
-      handler(handlers["systemUpdateStart"], null, schema.SystemUpdateStart)
-    ),
-    rest.post(
-      "/v1/system/update/stop",
-      handler(handlers["systemUpdateStop"], null, null)
-    ),
-    rest.get(
-      "/v1/system/update/updates",
-      handler(handlers["systemUpdateList"], schema.SystemUpdateListParams, null)
-    ),
-    rest.get(
-      "/v1/system/update/updates/:version",
-      handler(handlers["systemUpdateView"], schema.SystemUpdateViewParams, null)
-    ),
-    rest.get(
-      "/v1/system/update/updates/:version/components",
-      handler(
-        handlers["systemUpdateComponentsList"],
-        schema.SystemUpdateComponentsListParams,
-        null
-      )
-    ),
-    rest.get(
-      "/v1/system/update/version",
-      handler(handlers["systemVersion"], null, null)
     ),
     rest.get(
       "/v1/system/users",
