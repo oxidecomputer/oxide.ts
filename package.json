@@ -48,7 +48,7 @@
     "tsc": "tsc"
   },
   "author": "",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "optionalDependencies": {
     "zod": "^3.20"
   },
