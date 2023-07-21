@@ -9,7 +9,7 @@
     "oxide sdk"
   ],
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "main": "./dist/Api.js",
   "module": "./dist/Api.mjs",
