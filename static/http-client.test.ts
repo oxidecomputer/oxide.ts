@@ -8,7 +8,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { handleResponse } from "./http-client";
+import { handleResponse, mergeParams } from "./http-client";
 import { describe, expect, it } from "vitest";
 
 const headers = { "Content-Type": "application/json" };
@@ -71,5 +71,39 @@ describe("handleResponse", () => {
       },
     });
     expect(result.headers.get("Content-Type")).toBe("application/json");
+  });
+});
+
+describe("mergeParams", () => {
+  it("handles empty objects", () => {
+    expect(mergeParams({}, {})).toEqual({ headers: new Headers() });
+  });
+
+  it("merges headers of different formats", () => {
+    const obj = { headers: { a: "b" } };
+    const headers = { headers: new Headers({ c: "d" }) };
+    const tuples = { headers: [["e", "f"]] as HeadersInit };
+
+    expect(mergeParams(obj, headers)).toEqual({
+      headers: new Headers({ a: "b", c: "d" }),
+    });
+    expect(mergeParams(obj, tuples)).toEqual({
+      headers: new Headers({ a: "b", e: "f" }),
+    });
+    expect(mergeParams(tuples, headers)).toEqual({
+      headers: new Headers({ e: "f", c: "d" }),
+    });
+  });
+
+  it("second arg takes precendence in case of overlap", () => {
+    expect(
+      mergeParams(
+        { redirect: "follow", headers: { "Content-Type": "x" } },
+        { redirect: "error", headers: { "Content-Type": "y" } }
+      )
+    ).toEqual({
+      redirect: "error",
+      headers: new Headers({ "Content-Type": "y" }),
+    });
   });
 });

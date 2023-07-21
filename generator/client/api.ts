@@ -79,7 +79,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
   copy("./static/util.ts");
   copy("./static/http-client.ts");
 
-  w(`import type { RequestParams } from './http-client'
+  w(`import type { FetchParams } from './http-client'
     import { HttpClient, toQueryString } from './http-client'`);
 
   w(`export type {
@@ -256,7 +256,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
       w("_: EmptyObj,");
     }
 
-    w(`params: RequestParams = {}) => {
+    w(`params: FetchParams = {}) => {
          return this.request<${successType}>({
            path: ${pathToTemplateStr(path)},
            method: "${method.toUpperCase()}",`);
