@@ -15,7 +15,7 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
   path: string;
   query?: QueryParamsType;
   body?: unknown;
-  baseUrl?: string;
+  host?: string;
 }
 
 export type RequestParams = Omit<
@@ -23,9 +23,17 @@ export type RequestParams = Omit<
   "body" | "method" | "query" | "path"
 >;
 
+type BaseApiParams = Omit<RequestParams, "host" | "signal">;
+
 export interface ApiConfig {
-  baseUrl?: string;
-  baseApiParams?: Omit<RequestParams, "baseUrl" | "signal">;
+  host?: string;
+  /**
+   * API token. Easiest way to get one is to auth with the CLI with `oxide auth
+   * login` and then print the token with `oxide auth status --show-token`. Web
+   * console uses a session cookie, so it does not need this.
+   */
+  token?: string;
+  baseApiParams?: BaseApiParams;
 }
 
 /** Success responses from the API */
@@ -136,17 +144,21 @@ export async function handleResponse<Data>(
 }
 
 export class HttpClient {
-  public baseUrl = "";
-
-  private baseApiParams: RequestParams = {
+  public host?: string;
+  public token?: string;
+  private baseApiParams: BaseApiParams = {
     credentials: "same-origin",
-    headers: {},
+    headers: {
+      "Content-Type": "application/json",
+    },
     redirect: "follow",
     referrerPolicy: "no-referrer",
   };
 
-  constructor(apiConfig: ApiConfig = {}) {
-    Object.assign(this, apiConfig);
+  constructor({ host, token, baseApiParams }: ApiConfig = {}) {
+    this.host = host;
+    this.token = token;
+    this.baseApiParams = baseApiParams || this.baseApiParams;
   }
 
   private mergeRequestParams(params: RequestParams): RequestParams {
@@ -155,6 +167,7 @@ export class HttpClient {
       ...params,
       headers: {
         ...this.baseApiParams.headers,
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
         ...params.headers,
       },
     };
@@ -164,19 +177,13 @@ export class HttpClient {
     body,
     path,
     query,
-    baseUrl,
+    host,
     ...params
   }: FullRequestParams): Promise<ApiResult<Data>> => {
-    const requestParams = this.mergeRequestParams(params);
-
-    const url = (baseUrl || this.baseUrl || "") + path + toQueryString(query);
+    const url = (host || this.host || "") + path + toQueryString(query);
 
     const response = await fetch(url, {
-      ...requestParams,
-      headers: {
-        "Content-Type": "application/json",
-        ...requestParams.headers,
-      },
+      ...this.mergeRequestParams(params),
       body: JSON.stringify(snakeify(body), replacer),
     });
 
