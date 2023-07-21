@@ -128,19 +128,24 @@ export interface ApiConfig {
    * the web console.
    */
   host?: string;
+  token?: string;
   baseParams?: FetchParams;
 }
 
 export class HttpClient {
   host: string;
+  token?: string;
   baseParams: FetchParams;
 
-  constructor({ host = "", baseParams = {} }: ApiConfig = {}) {
+  constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
     this.host = host;
-    this.baseParams = mergeParams(
-      { headers: { "Content-Type": "application/json" } },
-      baseParams
-    );
+    this.token = token;
+
+    const headers = new Headers({ "Content-Type": "application/json" });
+    if (token) {
+      headers.append("Authorization", `Bearer ${token}`);
+    }
+    this.baseParams = mergeParams({ headers }, baseParams);
   }
 
   public async request<Data>({
