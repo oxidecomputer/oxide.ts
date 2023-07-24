@@ -55,7 +55,7 @@
   "devDependencies": {
     "@types/node": "^18.7.20",
     "esbuild-register": "^3.3.3",
-    "msw": "^1.2.1",
+    "msw": "^0.0.0-fetch.rc-15",
     "openapi-types": "^12.0.2",
     "prettier": "2.7.1",
     "swagger-parser": "^10.0.3",

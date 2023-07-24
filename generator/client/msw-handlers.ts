@@ -7,7 +7,6 @@
  */
 
 import type { OpenAPIV3 } from "openapi-types";
-import { OpenAPIV3 as O } from "openapi-types";
 import { initIO } from "../io";
 import { refToSchemaName } from "../schema/base";
 import { snakeToCamel, snakeToPascal } from "../util";
@@ -36,14 +35,13 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
 
   w(`
     import {
-      compose,
-      context,
-      ResponseComposition,
-      ResponseTransformer,
       rest,
-      RestContext,
       RestHandler,
-      RestRequest,
+      HttpResponse,
+      StrictResponse,
+      delay as doDelay,
+      DefaultBodyType,
+      PathParams,
     } from "msw";
     import type { SnakeCasedPropertiesDeep as Snakify } from "type-fest";
     import { z, ZodSchema } from "zod";
@@ -51,7 +49,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     import { snakeify } from "./util";
     import * as schema from "./validate";
 
-    type HandlerResult<T> = Json<T> | ResponseTransformer<Json<T>>
+    type HandlerResult<T> = Json<T> | StrictResponse<Json<T>>;
     type StatusCode = number
 
     /**
@@ -60,12 +58,15 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
      *
      * @see https://mswjs.io/docs/basics/response-transformer#custom-transformer
      */
-    export function json<B>(
+    export function json<B extends DefaultBodyType>(
       body: B,
       options: { status?: number; delay?: number } = {}
-    ): ResponseTransformer<B> {
-      const { status = 200, delay = 0 } = options
-      return compose(context.status(status), context.json(body), context.delay(delay))
+    ): StrictResponse<B> {
+      const { status = 200, delay = 0 } = options;
+      if (delay) {
+        doDelay(delay);
+      }
+      return HttpResponse.json(body, { status });
     }
 
 
@@ -120,7 +121,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const queryParamsType = queryParams?.length
       ? `query: Api.${snakeToPascal(opId)}QueryParams,`
       : "";
-    const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: RestRequest }`;
+    const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: Request }`;
 
     const resultType =
       successType === "void" ? "StatusCode" : `HandlerResult<${successType}>`;
@@ -138,8 +139,8 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       }
       return { bodyErr: json(result.error.issues, { status: 400 }) }
     }
-    function validateParams<S extends ZodSchema>(schema: S, req: RestRequest) {
-      const rawParams = new URLSearchParams(req.url.search)
+    function validateParams<S extends ZodSchema>(schema: S, req: Request, pathParams: PathParams) {
+      const rawParams = new URLSearchParams(new URL(req.url).search)
       const params: [string, unknown][] = []
 
       // Ensure numeric params like \`limit\` are parsed as numbers
@@ -148,7 +149,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       }
 
       const result = schema.safeParse({
-        path: req.params,
+        path: pathParams,
         query: Object.fromEntries(params),
       })
 
@@ -164,14 +165,24 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     }
 
     const handler = (handler: MSWHandlers[keyof MSWHandlers], paramSchema: ZodSchema | null, bodySchema: ZodSchema | null) => 
-      async (req: RestRequest, res: ResponseComposition, ctx: RestContext) => {
-        const { params, paramsErr } = paramSchema ? validateParams(paramSchema, req) : { params: {}, paramsErr: undefined }
-        if (paramsErr) return res(paramsErr)
+      async ({
+        request: req,
+        params: pathParams,
+      }: {
+        request: Request;
+        params: PathParams;
+      }) => {
+        const { params, paramsErr } = paramSchema
+          ? validateParams(paramSchema, req, pathParams)
+          : { params: {}, paramsErr: undefined };
+        if (paramsErr) return json(paramsErr, { status: 400 });
 
         const { path, query } = params
 
-        const { body, bodyErr } = bodySchema ? validateBody(bodySchema, await req.json()) : { body: undefined, bodyErr: undefined }
-        if (bodyErr) return res(bodyErr)
+        const { body, bodyErr } = bodySchema
+          ? validateBody(bodySchema, await req.json())
+          : { body: undefined, bodyErr: undefined };
+        if (bodyErr) return json(bodyErr, { status: 400 });
 
         try {
           // TypeScript can't narrow the handler down because there's not an explicit relationship between the schema
@@ -179,24 +190,24 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
           // relevant schema is required if and only if the handler has a type that matches the inferred schema
           const result = await (handler as any).apply(null, [{path, query, body, req}])
           if (typeof result === "number") {
-            return res(ctx.status(result))
+            return new HttpResponse(null, { status: result });
           }
           if (typeof result === "function") {
-            return res(result as ResponseTransformer)
+            return result();
           }
-          return res(json(result))
+          return json(result);
         } catch (thrown) {
           if (typeof thrown === 'number') {
-            return res(ctx.status(thrown))
+            return new HttpResponse(null, { status: thrown });
           } 
           if (typeof thrown === "function") {
-            return res(thrown as ResponseTransformer)
+            return thrown();
           }
           if (typeof thrown === "string") {
-            return res(json({ message: thrown }, { status: 400 }))
+            return json({ message: thrown }, { status: 400 });
           }
           console.error('Unexpected mock error', thrown)
-          return res(json({ message: 'Unknown Server Error' }, { status: 500 }))
+          return json({ message: "Unknown Server Error" }, { status: 500 });
         }
       }
 
