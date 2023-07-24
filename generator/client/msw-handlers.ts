@@ -60,12 +60,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
      */
     export function json<B extends DefaultBodyType>(
       body: B,
-      options: { status?: number; delay?: number } = {}
+      options: { status?: number } = {}
     ): StrictResponse<B> {
-      const { status = 200, delay = 0 } = options;
-      if (delay) {
-        doDelay(delay);
-      }
+      const { status = 200 } = options;
       return HttpResponse.json(body, { status });
     }
 
