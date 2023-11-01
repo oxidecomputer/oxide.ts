@@ -35,8 +35,8 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
 
   w(`
     import {
-      rest,
-      RestHandler,
+      http,
+      HttpHandler,
       HttpResponse,
       StrictResponse,
       delay as doDelay,
@@ -103,7 +103,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const queryParamsType = queryParams?.length
       ? `query: Api.${snakeToPascal(opId)}QueryParams,`
       : "";
-    const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: Request }`;
+    const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: Request, cookies: Record<string, string> }`;
 
     const resultType =
       successType === "void" ? "StatusCode" : `HandlerResult<${successType}>`;
@@ -196,7 +196,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
 
     export function makeHandlers(
       handlers: MSWHandlers, 
-    ): RestHandler[] {
+    ): HttpHandler[] {
       return [`);
   for (const { path, method, opId, conf } of iterPathConfig(spec.paths)) {
     const handler = snakeToCamel(opId);
@@ -210,7 +210,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       : "null";
 
     w(
-      `rest.${method}('${formatPath(
+      `http.${method}('${formatPath(
         path
       )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`
     );
