@@ -13,11 +13,12 @@ import {
   HttpHandler,
   HttpResponse,
   StrictResponse,
-  delay as doDelay,
-  DefaultBodyType,
   PathParams,
 } from "msw";
-import type { SnakeCasedPropertiesDeep as Snakify } from "type-fest";
+import type {
+  SnakeCasedPropertiesDeep as Snakify,
+  Promisable,
+} from "type-fest";
 import { z, ZodSchema } from "zod";
 import type * as Api from "./Api";
 import { snakeify } from "./util";
@@ -43,80 +44,83 @@ type StringifyDates<T> = T extends Date
  */
 export type Json<B> = Snakify<StringifyDates<B>>;
 
+// Shortcut to reduce number of imports required in consumers
+export { HttpResponse };
+
 export interface MSWHandlers {
   /** `POST /device/auth` */
   deviceAuthRequest: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /device/confirm` */
   deviceAuthConfirm: (params: {
     body: Json<Api.DeviceAuthVerify>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /device/token` */
   deviceAccessToken: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /login/:siloName/saml/:providerName` */
   loginSaml: (params: {
     path: Api.LoginSamlPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/certificates` */
   certificateList: (params: {
     query: Api.CertificateListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.CertificateResultsPage>;
+  }) => Promisable<HandlerResult<Api.CertificateResultsPage>>;
   /** `POST /v1/certificates` */
   certificateCreate: (params: {
     body: Json<Api.CertificateCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Certificate>;
+  }) => Promisable<HandlerResult<Api.Certificate>>;
   /** `GET /v1/certificates/:certificate` */
   certificateView: (params: {
     path: Api.CertificateViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Certificate>;
+  }) => Promisable<HandlerResult<Api.Certificate>>;
   /** `DELETE /v1/certificates/:certificate` */
   certificateDelete: (params: {
     path: Api.CertificateDeletePathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/disks` */
   diskList: (params: {
     query: Api.DiskListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.DiskResultsPage>;
+  }) => Promisable<HandlerResult<Api.DiskResultsPage>>;
   /** `POST /v1/disks` */
   diskCreate: (params: {
     query: Api.DiskCreateQueryParams;
     body: Json<Api.DiskCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Disk>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `GET /v1/disks/:disk` */
   diskView: (params: {
     path: Api.DiskViewPathParams;
     query: Api.DiskViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Disk>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `DELETE /v1/disks/:disk` */
   diskDelete: (params: {
     path: Api.DiskDeletePathParams;
     query: Api.DiskDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/bulk-write` */
   diskBulkWriteImport: (params: {
     path: Api.DiskBulkWriteImportPathParams;
@@ -124,21 +128,21 @@ export interface MSWHandlers {
     body: Json<Api.ImportBlocksBulkWrite>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/bulk-write-start` */
   diskBulkWriteImportStart: (params: {
     path: Api.DiskBulkWriteImportStartPathParams;
     query: Api.DiskBulkWriteImportStartQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/bulk-write-stop` */
   diskBulkWriteImportStop: (params: {
     path: Api.DiskBulkWriteImportStopPathParams;
     query: Api.DiskBulkWriteImportStopQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/finalize` */
   diskFinalizeImport: (params: {
     path: Api.DiskFinalizeImportPathParams;
@@ -146,7 +150,7 @@ export interface MSWHandlers {
     body: Json<Api.FinalizeDisk>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/import` */
   diskImportBlocksFromUrl: (params: {
     path: Api.DiskImportBlocksFromUrlPathParams;
@@ -154,101 +158,101 @@ export interface MSWHandlers {
     body: Json<Api.ImportBlocksFromUrl>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/disks/:disk/metrics/:metric` */
   diskMetricsList: (params: {
     path: Api.DiskMetricsListPathParams;
     query: Api.DiskMetricsListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.MeasurementResultsPage>;
+  }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>;
   /** `GET /v1/groups` */
   groupList: (params: {
     query: Api.GroupListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.GroupResultsPage>;
+  }) => Promisable<HandlerResult<Api.GroupResultsPage>>;
   /** `GET /v1/groups/:groupId` */
   groupView: (params: {
     path: Api.GroupViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Group>;
+  }) => Promisable<HandlerResult<Api.Group>>;
   /** `GET /v1/images` */
   imageList: (params: {
     query: Api.ImageListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.ImageResultsPage>;
+  }) => Promisable<HandlerResult<Api.ImageResultsPage>>;
   /** `POST /v1/images` */
   imageCreate: (params: {
     query: Api.ImageCreateQueryParams;
     body: Json<Api.ImageCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Image>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `GET /v1/images/:image` */
   imageView: (params: {
     path: Api.ImageViewPathParams;
     query: Api.ImageViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Image>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `DELETE /v1/images/:image` */
   imageDelete: (params: {
     path: Api.ImageDeletePathParams;
     query: Api.ImageDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/images/:image/demote` */
   imageDemote: (params: {
     path: Api.ImageDemotePathParams;
     query: Api.ImageDemoteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Image>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `POST /v1/images/:image/promote` */
   imagePromote: (params: {
     path: Api.ImagePromotePathParams;
     query: Api.ImagePromoteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Image>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `GET /v1/instances` */
   instanceList: (params: {
     query: Api.InstanceListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.InstanceResultsPage>;
+  }) => Promisable<HandlerResult<Api.InstanceResultsPage>>;
   /** `POST /v1/instances` */
   instanceCreate: (params: {
     query: Api.InstanceCreateQueryParams;
     body: Json<Api.InstanceCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Instance>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `GET /v1/instances/:instance` */
   instanceView: (params: {
     path: Api.InstanceViewPathParams;
     query: Api.InstanceViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Instance>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `DELETE /v1/instances/:instance` */
   instanceDelete: (params: {
     path: Api.InstanceDeletePathParams;
     query: Api.InstanceDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/instances/:instance/disks` */
   instanceDiskList: (params: {
     path: Api.InstanceDiskListPathParams;
     query: Api.InstanceDiskListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.DiskResultsPage>;
+  }) => Promisable<HandlerResult<Api.DiskResultsPage>>;
   /** `POST /v1/instances/:instance/disks/attach` */
   instanceDiskAttach: (params: {
     path: Api.InstanceDiskAttachPathParams;
@@ -256,7 +260,7 @@ export interface MSWHandlers {
     body: Json<Api.DiskPath>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Disk>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `POST /v1/instances/:instance/disks/detach` */
   instanceDiskDetach: (params: {
     path: Api.InstanceDiskDetachPathParams;
@@ -264,14 +268,14 @@ export interface MSWHandlers {
     body: Json<Api.DiskPath>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Disk>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `GET /v1/instances/:instance/external-ips` */
   instanceExternalIpList: (params: {
     path: Api.InstanceExternalIpListPathParams;
     query: Api.InstanceExternalIpListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.ExternalIpResultsPage>;
+  }) => Promisable<HandlerResult<Api.ExternalIpResultsPage>>;
   /** `POST /v1/instances/:instance/migrate` */
   instanceMigrate: (params: {
     path: Api.InstanceMigratePathParams;
@@ -279,129 +283,129 @@ export interface MSWHandlers {
     body: Json<Api.InstanceMigrate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Instance>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `POST /v1/instances/:instance/reboot` */
   instanceReboot: (params: {
     path: Api.InstanceRebootPathParams;
     query: Api.InstanceRebootQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Instance>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `GET /v1/instances/:instance/serial-console` */
   instanceSerialConsole: (params: {
     path: Api.InstanceSerialConsolePathParams;
     query: Api.InstanceSerialConsoleQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.InstanceSerialConsoleData>;
+  }) => Promisable<HandlerResult<Api.InstanceSerialConsoleData>>;
   /** `GET /v1/instances/:instance/serial-console/stream` */
   instanceSerialConsoleStream: (params: {
     path: Api.InstanceSerialConsoleStreamPathParams;
     query: Api.InstanceSerialConsoleStreamQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/instances/:instance/start` */
   instanceStart: (params: {
     path: Api.InstanceStartPathParams;
     query: Api.InstanceStartQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Instance>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `POST /v1/instances/:instance/stop` */
   instanceStop: (params: {
     path: Api.InstanceStopPathParams;
     query: Api.InstanceStopQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Instance>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `GET /v1/ip-pools` */
   projectIpPoolList: (params: {
     query: Api.ProjectIpPoolListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPoolResultsPage>;
+  }) => Promisable<HandlerResult<Api.IpPoolResultsPage>>;
   /** `GET /v1/ip-pools/:pool` */
   projectIpPoolView: (params: {
     path: Api.ProjectIpPoolViewPathParams;
     query: Api.ProjectIpPoolViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPool>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `POST /v1/login/:siloName/local` */
   loginLocal: (params: {
     path: Api.LoginLocalPathParams;
     body: Json<Api.UsernamePasswordCredentials>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/logout` */
   logout: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/me` */
   currentUserView: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.CurrentUser>;
+  }) => Promisable<HandlerResult<Api.CurrentUser>>;
   /** `GET /v1/me/groups` */
   currentUserGroups: (params: {
     query: Api.CurrentUserGroupsQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.GroupResultsPage>;
+  }) => Promisable<HandlerResult<Api.GroupResultsPage>>;
   /** `GET /v1/me/ssh-keys` */
   currentUserSshKeyList: (params: {
     query: Api.CurrentUserSshKeyListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SshKeyResultsPage>;
+  }) => Promisable<HandlerResult<Api.SshKeyResultsPage>>;
   /** `POST /v1/me/ssh-keys` */
   currentUserSshKeyCreate: (params: {
     body: Json<Api.SshKeyCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SshKey>;
+  }) => Promisable<HandlerResult<Api.SshKey>>;
   /** `GET /v1/me/ssh-keys/:sshKey` */
   currentUserSshKeyView: (params: {
     path: Api.CurrentUserSshKeyViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SshKey>;
+  }) => Promisable<HandlerResult<Api.SshKey>>;
   /** `DELETE /v1/me/ssh-keys/:sshKey` */
   currentUserSshKeyDelete: (params: {
     path: Api.CurrentUserSshKeyDeletePathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/metrics/:metricName` */
   siloMetric: (params: {
     path: Api.SiloMetricPathParams;
     query: Api.SiloMetricQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.MeasurementResultsPage>;
+  }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>;
   /** `GET /v1/network-interfaces` */
   instanceNetworkInterfaceList: (params: {
     query: Api.InstanceNetworkInterfaceListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.InstanceNetworkInterfaceResultsPage>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterfaceResultsPage>>;
   /** `POST /v1/network-interfaces` */
   instanceNetworkInterfaceCreate: (params: {
     query: Api.InstanceNetworkInterfaceCreateQueryParams;
     body: Json<Api.InstanceNetworkInterfaceCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.InstanceNetworkInterface>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterface>>;
   /** `GET /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceView: (params: {
     path: Api.InstanceNetworkInterfaceViewPathParams;
     query: Api.InstanceNetworkInterfaceViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.InstanceNetworkInterface>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterface>>;
   /** `PUT /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceUpdate: (params: {
     path: Api.InstanceNetworkInterfaceUpdatePathParams;
@@ -409,146 +413,146 @@ export interface MSWHandlers {
     body: Json<Api.InstanceNetworkInterfaceUpdate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.InstanceNetworkInterface>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterface>>;
   /** `DELETE /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceDelete: (params: {
     path: Api.InstanceNetworkInterfaceDeletePathParams;
     query: Api.InstanceNetworkInterfaceDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/policy` */
   policyView: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `PUT /v1/policy` */
   policyUpdate: (params: {
     body: Json<Api.SiloRolePolicy>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `GET /v1/projects` */
   projectList: (params: {
     query: Api.ProjectListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.ProjectResultsPage>;
+  }) => Promisable<HandlerResult<Api.ProjectResultsPage>>;
   /** `POST /v1/projects` */
   projectCreate: (params: {
     body: Json<Api.ProjectCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Project>;
+  }) => Promisable<HandlerResult<Api.Project>>;
   /** `GET /v1/projects/:project` */
   projectView: (params: {
     path: Api.ProjectViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Project>;
+  }) => Promisable<HandlerResult<Api.Project>>;
   /** `PUT /v1/projects/:project` */
   projectUpdate: (params: {
     path: Api.ProjectUpdatePathParams;
     body: Json<Api.ProjectUpdate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Project>;
+  }) => Promisable<HandlerResult<Api.Project>>;
   /** `DELETE /v1/projects/:project` */
   projectDelete: (params: {
     path: Api.ProjectDeletePathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/projects/:project/policy` */
   projectPolicyView: (params: {
     path: Api.ProjectPolicyViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.ProjectRolePolicy>;
+  }) => Promisable<HandlerResult<Api.ProjectRolePolicy>>;
   /** `PUT /v1/projects/:project/policy` */
   projectPolicyUpdate: (params: {
     path: Api.ProjectPolicyUpdatePathParams;
     body: Json<Api.ProjectRolePolicy>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.ProjectRolePolicy>;
+  }) => Promisable<HandlerResult<Api.ProjectRolePolicy>>;
   /** `GET /v1/snapshots` */
   snapshotList: (params: {
     query: Api.SnapshotListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SnapshotResultsPage>;
+  }) => Promisable<HandlerResult<Api.SnapshotResultsPage>>;
   /** `POST /v1/snapshots` */
   snapshotCreate: (params: {
     query: Api.SnapshotCreateQueryParams;
     body: Json<Api.SnapshotCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Snapshot>;
+  }) => Promisable<HandlerResult<Api.Snapshot>>;
   /** `GET /v1/snapshots/:snapshot` */
   snapshotView: (params: {
     path: Api.SnapshotViewPathParams;
     query: Api.SnapshotViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Snapshot>;
+  }) => Promisable<HandlerResult<Api.Snapshot>>;
   /** `DELETE /v1/snapshots/:snapshot` */
   snapshotDelete: (params: {
     path: Api.SnapshotDeletePathParams;
     query: Api.SnapshotDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/hardware/disks` */
   physicalDiskList: (params: {
     query: Api.PhysicalDiskListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.PhysicalDiskResultsPage>;
+  }) => Promisable<HandlerResult<Api.PhysicalDiskResultsPage>>;
   /** `GET /v1/system/hardware/racks` */
   rackList: (params: {
     query: Api.RackListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.RackResultsPage>;
+  }) => Promisable<HandlerResult<Api.RackResultsPage>>;
   /** `GET /v1/system/hardware/racks/:rackId` */
   rackView: (params: {
     path: Api.RackViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Rack>;
+  }) => Promisable<HandlerResult<Api.Rack>>;
   /** `GET /v1/system/hardware/sleds` */
   sledList: (params: {
     query: Api.SledListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SledResultsPage>;
+  }) => Promisable<HandlerResult<Api.SledResultsPage>>;
   /** `GET /v1/system/hardware/sleds/:sledId` */
   sledView: (params: {
     path: Api.SledViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Sled>;
+  }) => Promisable<HandlerResult<Api.Sled>>;
   /** `GET /v1/system/hardware/sleds/:sledId/disks` */
   sledPhysicalDiskList: (params: {
     path: Api.SledPhysicalDiskListPathParams;
     query: Api.SledPhysicalDiskListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.PhysicalDiskResultsPage>;
+  }) => Promisable<HandlerResult<Api.PhysicalDiskResultsPage>>;
   /** `GET /v1/system/hardware/sleds/:sledId/instances` */
   sledInstanceList: (params: {
     path: Api.SledInstanceListPathParams;
     query: Api.SledInstanceListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SledInstanceResultsPage>;
+  }) => Promisable<HandlerResult<Api.SledInstanceResultsPage>>;
   /** `GET /v1/system/hardware/switch-port` */
   networkingSwitchPortList: (params: {
     query: Api.NetworkingSwitchPortListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SwitchPortResultsPage>;
+  }) => Promisable<HandlerResult<Api.SwitchPortResultsPage>>;
   /** `POST /v1/system/hardware/switch-port/:port/settings` */
   networkingSwitchPortApplySettings: (params: {
     path: Api.NetworkingSwitchPortApplySettingsPathParams;
@@ -556,46 +560,46 @@ export interface MSWHandlers {
     body: Json<Api.SwitchPortApplySettings>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `DELETE /v1/system/hardware/switch-port/:port/settings` */
   networkingSwitchPortClearSettings: (params: {
     path: Api.NetworkingSwitchPortClearSettingsPathParams;
     query: Api.NetworkingSwitchPortClearSettingsQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/hardware/switches` */
   switchList: (params: {
     query: Api.SwitchListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SwitchResultsPage>;
+  }) => Promisable<HandlerResult<Api.SwitchResultsPage>>;
   /** `GET /v1/system/hardware/switches/:switchId` */
   switchView: (params: {
     path: Api.SwitchViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Switch>;
+  }) => Promisable<HandlerResult<Api.Switch>>;
   /** `GET /v1/system/identity-providers` */
   siloIdentityProviderList: (params: {
     query: Api.SiloIdentityProviderListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IdentityProviderResultsPage>;
+  }) => Promisable<HandlerResult<Api.IdentityProviderResultsPage>>;
   /** `POST /v1/system/identity-providers/local/users` */
   localIdpUserCreate: (params: {
     query: Api.LocalIdpUserCreateQueryParams;
     body: Json<Api.UserCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.User>;
+  }) => Promisable<HandlerResult<Api.User>>;
   /** `DELETE /v1/system/identity-providers/local/users/:userId` */
   localIdpUserDelete: (params: {
     path: Api.LocalIdpUserDeletePathParams;
     query: Api.LocalIdpUserDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/system/identity-providers/local/users/:userId/set-password` */
   localIdpUserSetPassword: (params: {
     path: Api.LocalIdpUserSetPasswordPathParams;
@@ -603,294 +607,294 @@ export interface MSWHandlers {
     body: Json<Api.UserPassword>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/system/identity-providers/saml` */
   samlIdentityProviderCreate: (params: {
     query: Api.SamlIdentityProviderCreateQueryParams;
     body: Json<Api.SamlIdentityProviderCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SamlIdentityProvider>;
+  }) => Promisable<HandlerResult<Api.SamlIdentityProvider>>;
   /** `GET /v1/system/identity-providers/saml/:provider` */
   samlIdentityProviderView: (params: {
     path: Api.SamlIdentityProviderViewPathParams;
     query: Api.SamlIdentityProviderViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SamlIdentityProvider>;
+  }) => Promisable<HandlerResult<Api.SamlIdentityProvider>>;
   /** `GET /v1/system/ip-pools` */
   ipPoolList: (params: {
     query: Api.IpPoolListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPoolResultsPage>;
+  }) => Promisable<HandlerResult<Api.IpPoolResultsPage>>;
   /** `POST /v1/system/ip-pools` */
   ipPoolCreate: (params: {
     body: Json<Api.IpPoolCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPool>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `GET /v1/system/ip-pools/:pool` */
   ipPoolView: (params: {
     path: Api.IpPoolViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPool>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `PUT /v1/system/ip-pools/:pool` */
   ipPoolUpdate: (params: {
     path: Api.IpPoolUpdatePathParams;
     body: Json<Api.IpPoolUpdate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPool>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `DELETE /v1/system/ip-pools/:pool` */
   ipPoolDelete: (params: {
     path: Api.IpPoolDeletePathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/ip-pools/:pool/ranges` */
   ipPoolRangeList: (params: {
     path: Api.IpPoolRangeListPathParams;
     query: Api.IpPoolRangeListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPoolRangeResultsPage>;
+  }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>;
   /** `POST /v1/system/ip-pools/:pool/ranges/add` */
   ipPoolRangeAdd: (params: {
     path: Api.IpPoolRangeAddPathParams;
     body: Json<Api.IpRange>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPoolRange>;
+  }) => Promisable<HandlerResult<Api.IpPoolRange>>;
   /** `POST /v1/system/ip-pools/:pool/ranges/remove` */
   ipPoolRangeRemove: (params: {
     path: Api.IpPoolRangeRemovePathParams;
     body: Json<Api.IpRange>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/ip-pools-service` */
   ipPoolServiceView: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPool>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `GET /v1/system/ip-pools-service/ranges` */
   ipPoolServiceRangeList: (params: {
     query: Api.IpPoolServiceRangeListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPoolRangeResultsPage>;
+  }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>;
   /** `POST /v1/system/ip-pools-service/ranges/add` */
   ipPoolServiceRangeAdd: (params: {
     body: Json<Api.IpRange>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.IpPoolRange>;
+  }) => Promisable<HandlerResult<Api.IpPoolRange>>;
   /** `POST /v1/system/ip-pools-service/ranges/remove` */
   ipPoolServiceRangeRemove: (params: {
     body: Json<Api.IpRange>;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/metrics/:metricName` */
   systemMetric: (params: {
     path: Api.SystemMetricPathParams;
     query: Api.SystemMetricQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.MeasurementResultsPage>;
+  }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>;
   /** `GET /v1/system/networking/address-lot` */
   networkingAddressLotList: (params: {
     query: Api.NetworkingAddressLotListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.AddressLotResultsPage>;
+  }) => Promisable<HandlerResult<Api.AddressLotResultsPage>>;
   /** `POST /v1/system/networking/address-lot` */
   networkingAddressLotCreate: (params: {
     body: Json<Api.AddressLotCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.AddressLotCreateResponse>;
+  }) => Promisable<HandlerResult<Api.AddressLotCreateResponse>>;
   /** `DELETE /v1/system/networking/address-lot/:addressLot` */
   networkingAddressLotDelete: (params: {
     path: Api.NetworkingAddressLotDeletePathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/networking/address-lot/:addressLot/blocks` */
   networkingAddressLotBlockList: (params: {
     path: Api.NetworkingAddressLotBlockListPathParams;
     query: Api.NetworkingAddressLotBlockListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.AddressLotBlockResultsPage>;
+  }) => Promisable<HandlerResult<Api.AddressLotBlockResultsPage>>;
   /** `GET /v1/system/networking/loopback-address` */
   networkingLoopbackAddressList: (params: {
     query: Api.NetworkingLoopbackAddressListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.LoopbackAddressResultsPage>;
+  }) => Promisable<HandlerResult<Api.LoopbackAddressResultsPage>>;
   /** `POST /v1/system/networking/loopback-address` */
   networkingLoopbackAddressCreate: (params: {
     body: Json<Api.LoopbackAddressCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.LoopbackAddress>;
+  }) => Promisable<HandlerResult<Api.LoopbackAddress>>;
   /** `DELETE /v1/system/networking/loopback-address/:rackId/:switchLocation/:address/:subnetMask` */
   networkingLoopbackAddressDelete: (params: {
     path: Api.NetworkingLoopbackAddressDeletePathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/networking/switch-port-settings` */
   networkingSwitchPortSettingsList: (params: {
     query: Api.NetworkingSwitchPortSettingsListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SwitchPortSettingsResultsPage>;
+  }) => Promisable<HandlerResult<Api.SwitchPortSettingsResultsPage>>;
   /** `POST /v1/system/networking/switch-port-settings` */
   networkingSwitchPortSettingsCreate: (params: {
     body: Json<Api.SwitchPortSettingsCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SwitchPortSettingsView>;
+  }) => Promisable<HandlerResult<Api.SwitchPortSettingsView>>;
   /** `DELETE /v1/system/networking/switch-port-settings` */
   networkingSwitchPortSettingsDelete: (params: {
     query: Api.NetworkingSwitchPortSettingsDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/networking/switch-port-settings/:port` */
   networkingSwitchPortSettingsView: (params: {
     path: Api.NetworkingSwitchPortSettingsViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SwitchPortSettingsView>;
+  }) => Promisable<HandlerResult<Api.SwitchPortSettingsView>>;
   /** `GET /v1/system/policy` */
   systemPolicyView: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.FleetRolePolicy>;
+  }) => Promisable<HandlerResult<Api.FleetRolePolicy>>;
   /** `PUT /v1/system/policy` */
   systemPolicyUpdate: (params: {
     body: Json<Api.FleetRolePolicy>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.FleetRolePolicy>;
+  }) => Promisable<HandlerResult<Api.FleetRolePolicy>>;
   /** `GET /v1/system/roles` */
   roleList: (params: {
     query: Api.RoleListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.RoleResultsPage>;
+  }) => Promisable<HandlerResult<Api.RoleResultsPage>>;
   /** `GET /v1/system/roles/:roleName` */
   roleView: (params: {
     path: Api.RoleViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Role>;
+  }) => Promisable<HandlerResult<Api.Role>>;
   /** `GET /v1/system/silos` */
   siloList: (params: {
     query: Api.SiloListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SiloResultsPage>;
+  }) => Promisable<HandlerResult<Api.SiloResultsPage>>;
   /** `POST /v1/system/silos` */
   siloCreate: (params: {
     body: Json<Api.SiloCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Silo>;
+  }) => Promisable<HandlerResult<Api.Silo>>;
   /** `GET /v1/system/silos/:silo` */
   siloView: (params: {
     path: Api.SiloViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Silo>;
+  }) => Promisable<HandlerResult<Api.Silo>>;
   /** `DELETE /v1/system/silos/:silo` */
   siloDelete: (params: {
     path: Api.SiloDeletePathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/silos/:silo/policy` */
   siloPolicyView: (params: {
     path: Api.SiloPolicyViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `PUT /v1/system/silos/:silo/policy` */
   siloPolicyUpdate: (params: {
     path: Api.SiloPolicyUpdatePathParams;
     body: Json<Api.SiloRolePolicy>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `GET /v1/system/users` */
   siloUserList: (params: {
     query: Api.SiloUserListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.UserResultsPage>;
+  }) => Promisable<HandlerResult<Api.UserResultsPage>>;
   /** `GET /v1/system/users/:userId` */
   siloUserView: (params: {
     path: Api.SiloUserViewPathParams;
     query: Api.SiloUserViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.User>;
+  }) => Promisable<HandlerResult<Api.User>>;
   /** `GET /v1/system/users-builtin` */
   userBuiltinList: (params: {
     query: Api.UserBuiltinListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.UserBuiltinResultsPage>;
+  }) => Promisable<HandlerResult<Api.UserBuiltinResultsPage>>;
   /** `GET /v1/system/users-builtin/:user` */
   userBuiltinView: (params: {
     path: Api.UserBuiltinViewPathParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.UserBuiltin>;
+  }) => Promisable<HandlerResult<Api.UserBuiltin>>;
   /** `GET /v1/users` */
   userList: (params: {
     query: Api.UserListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.UserResultsPage>;
+  }) => Promisable<HandlerResult<Api.UserResultsPage>>;
   /** `GET /v1/vpc-firewall-rules` */
   vpcFirewallRulesView: (params: {
     query: Api.VpcFirewallRulesViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcFirewallRules>;
+  }) => Promisable<HandlerResult<Api.VpcFirewallRules>>;
   /** `PUT /v1/vpc-firewall-rules` */
   vpcFirewallRulesUpdate: (params: {
     query: Api.VpcFirewallRulesUpdateQueryParams;
     body: Json<Api.VpcFirewallRuleUpdateParams>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcFirewallRules>;
+  }) => Promisable<HandlerResult<Api.VpcFirewallRules>>;
   /** `GET /v1/vpc-router-routes` */
   vpcRouterRouteList: (params: {
     query: Api.VpcRouterRouteListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.RouterRouteResultsPage>;
+  }) => Promisable<HandlerResult<Api.RouterRouteResultsPage>>;
   /** `POST /v1/vpc-router-routes` */
   vpcRouterRouteCreate: (params: {
     query: Api.VpcRouterRouteCreateQueryParams;
     body: Json<Api.RouterRouteCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.RouterRoute>;
+  }) => Promisable<HandlerResult<Api.RouterRoute>>;
   /** `GET /v1/vpc-router-routes/:route` */
   vpcRouterRouteView: (params: {
     path: Api.VpcRouterRouteViewPathParams;
     query: Api.VpcRouterRouteViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.RouterRoute>;
+  }) => Promisable<HandlerResult<Api.RouterRoute>>;
   /** `PUT /v1/vpc-router-routes/:route` */
   vpcRouterRouteUpdate: (params: {
     path: Api.VpcRouterRouteUpdatePathParams;
@@ -898,34 +902,34 @@ export interface MSWHandlers {
     body: Json<Api.RouterRouteUpdate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.RouterRoute>;
+  }) => Promisable<HandlerResult<Api.RouterRoute>>;
   /** `DELETE /v1/vpc-router-routes/:route` */
   vpcRouterRouteDelete: (params: {
     path: Api.VpcRouterRouteDeletePathParams;
     query: Api.VpcRouterRouteDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/vpc-routers` */
   vpcRouterList: (params: {
     query: Api.VpcRouterListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcRouterResultsPage>;
+  }) => Promisable<HandlerResult<Api.VpcRouterResultsPage>>;
   /** `POST /v1/vpc-routers` */
   vpcRouterCreate: (params: {
     query: Api.VpcRouterCreateQueryParams;
     body: Json<Api.VpcRouterCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcRouter>;
+  }) => Promisable<HandlerResult<Api.VpcRouter>>;
   /** `GET /v1/vpc-routers/:router` */
   vpcRouterView: (params: {
     path: Api.VpcRouterViewPathParams;
     query: Api.VpcRouterViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcRouter>;
+  }) => Promisable<HandlerResult<Api.VpcRouter>>;
   /** `PUT /v1/vpc-routers/:router` */
   vpcRouterUpdate: (params: {
     path: Api.VpcRouterUpdatePathParams;
@@ -933,34 +937,34 @@ export interface MSWHandlers {
     body: Json<Api.VpcRouterUpdate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcRouter>;
+  }) => Promisable<HandlerResult<Api.VpcRouter>>;
   /** `DELETE /v1/vpc-routers/:router` */
   vpcRouterDelete: (params: {
     path: Api.VpcRouterDeletePathParams;
     query: Api.VpcRouterDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/vpc-subnets` */
   vpcSubnetList: (params: {
     query: Api.VpcSubnetListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcSubnetResultsPage>;
+  }) => Promisable<HandlerResult<Api.VpcSubnetResultsPage>>;
   /** `POST /v1/vpc-subnets` */
   vpcSubnetCreate: (params: {
     query: Api.VpcSubnetCreateQueryParams;
     body: Json<Api.VpcSubnetCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcSubnet>;
+  }) => Promisable<HandlerResult<Api.VpcSubnet>>;
   /** `GET /v1/vpc-subnets/:subnet` */
   vpcSubnetView: (params: {
     path: Api.VpcSubnetViewPathParams;
     query: Api.VpcSubnetViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcSubnet>;
+  }) => Promisable<HandlerResult<Api.VpcSubnet>>;
   /** `PUT /v1/vpc-subnets/:subnet` */
   vpcSubnetUpdate: (params: {
     path: Api.VpcSubnetUpdatePathParams;
@@ -968,41 +972,41 @@ export interface MSWHandlers {
     body: Json<Api.VpcSubnetUpdate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcSubnet>;
+  }) => Promisable<HandlerResult<Api.VpcSubnet>>;
   /** `DELETE /v1/vpc-subnets/:subnet` */
   vpcSubnetDelete: (params: {
     path: Api.VpcSubnetDeletePathParams;
     query: Api.VpcSubnetDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/vpc-subnets/:subnet/network-interfaces` */
   vpcSubnetListNetworkInterfaces: (params: {
     path: Api.VpcSubnetListNetworkInterfacesPathParams;
     query: Api.VpcSubnetListNetworkInterfacesQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.InstanceNetworkInterfaceResultsPage>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterfaceResultsPage>>;
   /** `GET /v1/vpcs` */
   vpcList: (params: {
     query: Api.VpcListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.VpcResultsPage>;
+  }) => Promisable<HandlerResult<Api.VpcResultsPage>>;
   /** `POST /v1/vpcs` */
   vpcCreate: (params: {
     query: Api.VpcCreateQueryParams;
     body: Json<Api.VpcCreate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Vpc>;
+  }) => Promisable<HandlerResult<Api.Vpc>>;
   /** `GET /v1/vpcs/:vpc` */
   vpcView: (params: {
     path: Api.VpcViewPathParams;
     query: Api.VpcViewQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Vpc>;
+  }) => Promisable<HandlerResult<Api.Vpc>>;
   /** `PUT /v1/vpcs/:vpc` */
   vpcUpdate: (params: {
     path: Api.VpcUpdatePathParams;
@@ -1010,14 +1014,14 @@ export interface MSWHandlers {
     body: Json<Api.VpcUpdate>;
     req: Request;
     cookies: Record<string, string>;
-  }) => HandlerResult<Api.Vpc>;
+  }) => Promisable<HandlerResult<Api.Vpc>>;
   /** `DELETE /v1/vpcs/:vpc` */
   vpcDelete: (params: {
     path: Api.VpcDeletePathParams;
     query: Api.VpcDeleteQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => StatusCode;
+  }) => Promisable<StatusCode>;
 }
 
 function validateBody<S extends ZodSchema>(schema: S, body: unknown) {

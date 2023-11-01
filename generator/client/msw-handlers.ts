@@ -39,11 +39,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       HttpHandler,
       HttpResponse,
       StrictResponse,
-      delay as doDelay,
-      DefaultBodyType,
       PathParams,
     } from "msw";
-    import type { SnakeCasedPropertiesDeep as Snakify } from "type-fest";
+    import type { SnakeCasedPropertiesDeep as Snakify, Promisable } from "type-fest";
     import { z, ZodSchema } from "zod";
     import type * as Api from "./Api";
     import { snakeify } from "./util";
@@ -68,6 +66,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
      * purpose JSON type!
      */
     export type Json<B> = Snakify<StringifyDates<B>>
+
+
+    // Shortcut to reduce number of imports required in consumers
+    export { HttpResponse }
   `);
 
   w(`export interface MSWHandlers {`);
@@ -106,7 +108,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: Request, cookies: Record<string, string> }`;
 
     const resultType =
-      successType === "void" ? "StatusCode" : `HandlerResult<${successType}>`;
+      successType === "void"
+        ? "Promisable<StatusCode>"
+        : `Promisable<HandlerResult<${successType}>>`;
 
     w(`/** \`${method.toUpperCase()} ${formatPath(path)}\` */`);
     w(`  ${opName}: (${params}) => ${resultType},`);
