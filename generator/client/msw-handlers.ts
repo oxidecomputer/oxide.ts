@@ -184,6 +184,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
           if (typeof result === "function") {
             return result();
           }
+          if (result instanceof Response) {
+            return result;
+          }
           return json(result);
         } catch (thrown) {
           if (typeof thrown === 'number') {
