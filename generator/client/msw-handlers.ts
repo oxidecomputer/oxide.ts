@@ -195,6 +195,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
           if (typeof thrown === "string") {
             return json({ message: thrown }, { status: 400 });
           }
+          if (thrown instanceof Response) {
+            return thrown;
+          }
           console.error('Unexpected mock error', thrown)
           return json({ message: "Unknown Server Error" }, { status: 500 });
         }
