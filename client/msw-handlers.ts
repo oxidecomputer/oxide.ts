@@ -9,41 +9,23 @@
  */
 
 import {
-  compose,
-  context,
-  ResponseComposition,
-  ResponseTransformer,
-  rest,
-  RestContext,
-  RestHandler,
-  RestRequest,
+  http,
+  HttpHandler,
+  HttpResponse,
+  StrictResponse,
+  PathParams,
 } from "msw";
-import type { SnakeCasedPropertiesDeep as Snakify } from "type-fest";
+import type {
+  SnakeCasedPropertiesDeep as Snakify,
+  Promisable,
+} from "type-fest";
 import { z, ZodSchema } from "zod";
 import type * as Api from "./Api";
 import { snakeify } from "./util";
 import * as schema from "./validate";
 
-type HandlerResult<T> = Json<T> | ResponseTransformer<Json<T>>;
+type HandlerResult<T> = Json<T> | StrictResponse<Json<T>>;
 type StatusCode = number;
-
-/**
- * Custom transformer: convenience function for setting response `status` and/or
- * `delay`.
- *
- * @see https://mswjs.io/docs/basics/response-transformer#custom-transformer
- */
-export function json<B>(
-  body: B,
-  options: { status?: number; delay?: number } = {}
-): ResponseTransformer<B> {
-  const { status = 200, delay = 0 } = options;
-  return compose(
-    context.status(status),
-    context.json(body),
-    context.delay(delay)
-  );
-}
 
 // these are used for turning our nice JS-ified API types back into the original
 // API JSON types (snake cased and dates as strings) for use in our mock API
@@ -61,827 +43,986 @@ type StringifyDates<T> = T extends Date
  * purpose JSON type!
  */
 export type Json<B> = Snakify<StringifyDates<B>>;
+export const json = HttpResponse.json;
+
+// Shortcut to reduce number of imports required in consumers
+export { HttpResponse };
 
 export interface MSWHandlers {
   /** `POST /device/auth` */
-  deviceAuthRequest: (params: { req: RestRequest }) => StatusCode;
+  deviceAuthRequest: (params: {
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /device/confirm` */
   deviceAuthConfirm: (params: {
     body: Json<Api.DeviceAuthVerify>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /device/token` */
-  deviceAccessToken: (params: { req: RestRequest }) => StatusCode;
+  deviceAccessToken: (params: {
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /login/:siloName/saml/:providerName` */
   loginSaml: (params: {
     path: Api.LoginSamlPathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/certificates` */
   certificateList: (params: {
     query: Api.CertificateListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.CertificateResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.CertificateResultsPage>>;
   /** `POST /v1/certificates` */
   certificateCreate: (params: {
     body: Json<Api.CertificateCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Certificate>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Certificate>>;
   /** `GET /v1/certificates/:certificate` */
   certificateView: (params: {
     path: Api.CertificateViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Certificate>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Certificate>>;
   /** `DELETE /v1/certificates/:certificate` */
   certificateDelete: (params: {
     path: Api.CertificateDeletePathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/disks` */
   diskList: (params: {
     query: Api.DiskListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.DiskResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.DiskResultsPage>>;
   /** `POST /v1/disks` */
   diskCreate: (params: {
     query: Api.DiskCreateQueryParams;
     body: Json<Api.DiskCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Disk>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `GET /v1/disks/:disk` */
   diskView: (params: {
     path: Api.DiskViewPathParams;
     query: Api.DiskViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Disk>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `DELETE /v1/disks/:disk` */
   diskDelete: (params: {
     path: Api.DiskDeletePathParams;
     query: Api.DiskDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/bulk-write` */
   diskBulkWriteImport: (params: {
     path: Api.DiskBulkWriteImportPathParams;
     query: Api.DiskBulkWriteImportQueryParams;
     body: Json<Api.ImportBlocksBulkWrite>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/bulk-write-start` */
   diskBulkWriteImportStart: (params: {
     path: Api.DiskBulkWriteImportStartPathParams;
     query: Api.DiskBulkWriteImportStartQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/bulk-write-stop` */
   diskBulkWriteImportStop: (params: {
     path: Api.DiskBulkWriteImportStopPathParams;
     query: Api.DiskBulkWriteImportStopQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/finalize` */
   diskFinalizeImport: (params: {
     path: Api.DiskFinalizeImportPathParams;
     query: Api.DiskFinalizeImportQueryParams;
     body: Json<Api.FinalizeDisk>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/disks/:disk/import` */
   diskImportBlocksFromUrl: (params: {
     path: Api.DiskImportBlocksFromUrlPathParams;
     query: Api.DiskImportBlocksFromUrlQueryParams;
     body: Json<Api.ImportBlocksFromUrl>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/disks/:disk/metrics/:metric` */
   diskMetricsList: (params: {
     path: Api.DiskMetricsListPathParams;
     query: Api.DiskMetricsListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.MeasurementResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>;
   /** `GET /v1/groups` */
   groupList: (params: {
     query: Api.GroupListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.GroupResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.GroupResultsPage>>;
   /** `GET /v1/groups/:groupId` */
   groupView: (params: {
     path: Api.GroupViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Group>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Group>>;
   /** `GET /v1/images` */
   imageList: (params: {
     query: Api.ImageListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.ImageResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.ImageResultsPage>>;
   /** `POST /v1/images` */
   imageCreate: (params: {
     query: Api.ImageCreateQueryParams;
     body: Json<Api.ImageCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Image>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `GET /v1/images/:image` */
   imageView: (params: {
     path: Api.ImageViewPathParams;
     query: Api.ImageViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Image>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `DELETE /v1/images/:image` */
   imageDelete: (params: {
     path: Api.ImageDeletePathParams;
     query: Api.ImageDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/images/:image/demote` */
   imageDemote: (params: {
     path: Api.ImageDemotePathParams;
     query: Api.ImageDemoteQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Image>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `POST /v1/images/:image/promote` */
   imagePromote: (params: {
     path: Api.ImagePromotePathParams;
     query: Api.ImagePromoteQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Image>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Image>>;
   /** `GET /v1/instances` */
   instanceList: (params: {
     query: Api.InstanceListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.InstanceResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.InstanceResultsPage>>;
   /** `POST /v1/instances` */
   instanceCreate: (params: {
     query: Api.InstanceCreateQueryParams;
     body: Json<Api.InstanceCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Instance>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `GET /v1/instances/:instance` */
   instanceView: (params: {
     path: Api.InstanceViewPathParams;
     query: Api.InstanceViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Instance>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `DELETE /v1/instances/:instance` */
   instanceDelete: (params: {
     path: Api.InstanceDeletePathParams;
     query: Api.InstanceDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/instances/:instance/disks` */
   instanceDiskList: (params: {
     path: Api.InstanceDiskListPathParams;
     query: Api.InstanceDiskListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.DiskResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.DiskResultsPage>>;
   /** `POST /v1/instances/:instance/disks/attach` */
   instanceDiskAttach: (params: {
     path: Api.InstanceDiskAttachPathParams;
     query: Api.InstanceDiskAttachQueryParams;
     body: Json<Api.DiskPath>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Disk>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `POST /v1/instances/:instance/disks/detach` */
   instanceDiskDetach: (params: {
     path: Api.InstanceDiskDetachPathParams;
     query: Api.InstanceDiskDetachQueryParams;
     body: Json<Api.DiskPath>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Disk>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Disk>>;
   /** `GET /v1/instances/:instance/external-ips` */
   instanceExternalIpList: (params: {
     path: Api.InstanceExternalIpListPathParams;
     query: Api.InstanceExternalIpListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.ExternalIpResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.ExternalIpResultsPage>>;
   /** `POST /v1/instances/:instance/migrate` */
   instanceMigrate: (params: {
     path: Api.InstanceMigratePathParams;
     query: Api.InstanceMigrateQueryParams;
     body: Json<Api.InstanceMigrate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Instance>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `POST /v1/instances/:instance/reboot` */
   instanceReboot: (params: {
     path: Api.InstanceRebootPathParams;
     query: Api.InstanceRebootQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Instance>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `GET /v1/instances/:instance/serial-console` */
   instanceSerialConsole: (params: {
     path: Api.InstanceSerialConsolePathParams;
     query: Api.InstanceSerialConsoleQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.InstanceSerialConsoleData>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.InstanceSerialConsoleData>>;
   /** `GET /v1/instances/:instance/serial-console/stream` */
   instanceSerialConsoleStream: (params: {
     path: Api.InstanceSerialConsoleStreamPathParams;
     query: Api.InstanceSerialConsoleStreamQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/instances/:instance/start` */
   instanceStart: (params: {
     path: Api.InstanceStartPathParams;
     query: Api.InstanceStartQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Instance>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `POST /v1/instances/:instance/stop` */
   instanceStop: (params: {
     path: Api.InstanceStopPathParams;
     query: Api.InstanceStopQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Instance>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Instance>>;
   /** `GET /v1/ip-pools` */
   projectIpPoolList: (params: {
     query: Api.ProjectIpPoolListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPoolResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPoolResultsPage>>;
   /** `GET /v1/ip-pools/:pool` */
   projectIpPoolView: (params: {
     path: Api.ProjectIpPoolViewPathParams;
     query: Api.ProjectIpPoolViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPool>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `POST /v1/login/:siloName/local` */
   loginLocal: (params: {
     path: Api.LoginLocalPathParams;
     body: Json<Api.UsernamePasswordCredentials>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/logout` */
-  logout: (params: { req: RestRequest }) => StatusCode;
+  logout: (params: {
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/me` */
   currentUserView: (params: {
-    req: RestRequest;
-  }) => HandlerResult<Api.CurrentUser>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.CurrentUser>>;
   /** `GET /v1/me/groups` */
   currentUserGroups: (params: {
     query: Api.CurrentUserGroupsQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.GroupResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.GroupResultsPage>>;
   /** `GET /v1/me/ssh-keys` */
   currentUserSshKeyList: (params: {
     query: Api.CurrentUserSshKeyListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SshKeyResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SshKeyResultsPage>>;
   /** `POST /v1/me/ssh-keys` */
   currentUserSshKeyCreate: (params: {
     body: Json<Api.SshKeyCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.SshKey>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SshKey>>;
   /** `GET /v1/me/ssh-keys/:sshKey` */
   currentUserSshKeyView: (params: {
     path: Api.CurrentUserSshKeyViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SshKey>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SshKey>>;
   /** `DELETE /v1/me/ssh-keys/:sshKey` */
   currentUserSshKeyDelete: (params: {
     path: Api.CurrentUserSshKeyDeletePathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/metrics/:metricName` */
   siloMetric: (params: {
     path: Api.SiloMetricPathParams;
     query: Api.SiloMetricQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.MeasurementResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>;
   /** `GET /v1/network-interfaces` */
   instanceNetworkInterfaceList: (params: {
     query: Api.InstanceNetworkInterfaceListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.InstanceNetworkInterfaceResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterfaceResultsPage>>;
   /** `POST /v1/network-interfaces` */
   instanceNetworkInterfaceCreate: (params: {
     query: Api.InstanceNetworkInterfaceCreateQueryParams;
     body: Json<Api.InstanceNetworkInterfaceCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.InstanceNetworkInterface>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterface>>;
   /** `GET /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceView: (params: {
     path: Api.InstanceNetworkInterfaceViewPathParams;
     query: Api.InstanceNetworkInterfaceViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.InstanceNetworkInterface>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterface>>;
   /** `PUT /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceUpdate: (params: {
     path: Api.InstanceNetworkInterfaceUpdatePathParams;
     query: Api.InstanceNetworkInterfaceUpdateQueryParams;
     body: Json<Api.InstanceNetworkInterfaceUpdate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.InstanceNetworkInterface>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterface>>;
   /** `DELETE /v1/network-interfaces/:interface` */
   instanceNetworkInterfaceDelete: (params: {
     path: Api.InstanceNetworkInterfaceDeletePathParams;
     query: Api.InstanceNetworkInterfaceDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/policy` */
   policyView: (params: {
-    req: RestRequest;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `PUT /v1/policy` */
   policyUpdate: (params: {
     body: Json<Api.SiloRolePolicy>;
-    req: RestRequest;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `GET /v1/projects` */
   projectList: (params: {
     query: Api.ProjectListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.ProjectResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.ProjectResultsPage>>;
   /** `POST /v1/projects` */
   projectCreate: (params: {
     body: Json<Api.ProjectCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Project>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Project>>;
   /** `GET /v1/projects/:project` */
   projectView: (params: {
     path: Api.ProjectViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Project>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Project>>;
   /** `PUT /v1/projects/:project` */
   projectUpdate: (params: {
     path: Api.ProjectUpdatePathParams;
     body: Json<Api.ProjectUpdate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Project>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Project>>;
   /** `DELETE /v1/projects/:project` */
   projectDelete: (params: {
     path: Api.ProjectDeletePathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/projects/:project/policy` */
   projectPolicyView: (params: {
     path: Api.ProjectPolicyViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.ProjectRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.ProjectRolePolicy>>;
   /** `PUT /v1/projects/:project/policy` */
   projectPolicyUpdate: (params: {
     path: Api.ProjectPolicyUpdatePathParams;
     body: Json<Api.ProjectRolePolicy>;
-    req: RestRequest;
-  }) => HandlerResult<Api.ProjectRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.ProjectRolePolicy>>;
   /** `GET /v1/snapshots` */
   snapshotList: (params: {
     query: Api.SnapshotListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SnapshotResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SnapshotResultsPage>>;
   /** `POST /v1/snapshots` */
   snapshotCreate: (params: {
     query: Api.SnapshotCreateQueryParams;
     body: Json<Api.SnapshotCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Snapshot>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Snapshot>>;
   /** `GET /v1/snapshots/:snapshot` */
   snapshotView: (params: {
     path: Api.SnapshotViewPathParams;
     query: Api.SnapshotViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Snapshot>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Snapshot>>;
   /** `DELETE /v1/snapshots/:snapshot` */
   snapshotDelete: (params: {
     path: Api.SnapshotDeletePathParams;
     query: Api.SnapshotDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/hardware/disks` */
   physicalDiskList: (params: {
     query: Api.PhysicalDiskListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.PhysicalDiskResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.PhysicalDiskResultsPage>>;
   /** `GET /v1/system/hardware/racks` */
   rackList: (params: {
     query: Api.RackListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.RackResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.RackResultsPage>>;
   /** `GET /v1/system/hardware/racks/:rackId` */
   rackView: (params: {
     path: Api.RackViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Rack>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Rack>>;
   /** `GET /v1/system/hardware/sleds` */
   sledList: (params: {
     query: Api.SledListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SledResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SledResultsPage>>;
   /** `GET /v1/system/hardware/sleds/:sledId` */
   sledView: (params: {
     path: Api.SledViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Sled>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Sled>>;
   /** `GET /v1/system/hardware/sleds/:sledId/disks` */
   sledPhysicalDiskList: (params: {
     path: Api.SledPhysicalDiskListPathParams;
     query: Api.SledPhysicalDiskListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.PhysicalDiskResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.PhysicalDiskResultsPage>>;
   /** `GET /v1/system/hardware/sleds/:sledId/instances` */
   sledInstanceList: (params: {
     path: Api.SledInstanceListPathParams;
     query: Api.SledInstanceListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SledInstanceResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SledInstanceResultsPage>>;
   /** `GET /v1/system/hardware/switch-port` */
   networkingSwitchPortList: (params: {
     query: Api.NetworkingSwitchPortListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SwitchPortResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SwitchPortResultsPage>>;
   /** `POST /v1/system/hardware/switch-port/:port/settings` */
   networkingSwitchPortApplySettings: (params: {
     path: Api.NetworkingSwitchPortApplySettingsPathParams;
     query: Api.NetworkingSwitchPortApplySettingsQueryParams;
     body: Json<Api.SwitchPortApplySettings>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `DELETE /v1/system/hardware/switch-port/:port/settings` */
   networkingSwitchPortClearSettings: (params: {
     path: Api.NetworkingSwitchPortClearSettingsPathParams;
     query: Api.NetworkingSwitchPortClearSettingsQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/hardware/switches` */
   switchList: (params: {
     query: Api.SwitchListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SwitchResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SwitchResultsPage>>;
   /** `GET /v1/system/hardware/switches/:switchId` */
   switchView: (params: {
     path: Api.SwitchViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Switch>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Switch>>;
   /** `GET /v1/system/identity-providers` */
   siloIdentityProviderList: (params: {
     query: Api.SiloIdentityProviderListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.IdentityProviderResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IdentityProviderResultsPage>>;
   /** `POST /v1/system/identity-providers/local/users` */
   localIdpUserCreate: (params: {
     query: Api.LocalIdpUserCreateQueryParams;
     body: Json<Api.UserCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.User>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.User>>;
   /** `DELETE /v1/system/identity-providers/local/users/:userId` */
   localIdpUserDelete: (params: {
     path: Api.LocalIdpUserDeletePathParams;
     query: Api.LocalIdpUserDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/system/identity-providers/local/users/:userId/set-password` */
   localIdpUserSetPassword: (params: {
     path: Api.LocalIdpUserSetPasswordPathParams;
     query: Api.LocalIdpUserSetPasswordQueryParams;
     body: Json<Api.UserPassword>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /v1/system/identity-providers/saml` */
   samlIdentityProviderCreate: (params: {
     query: Api.SamlIdentityProviderCreateQueryParams;
     body: Json<Api.SamlIdentityProviderCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.SamlIdentityProvider>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SamlIdentityProvider>>;
   /** `GET /v1/system/identity-providers/saml/:provider` */
   samlIdentityProviderView: (params: {
     path: Api.SamlIdentityProviderViewPathParams;
     query: Api.SamlIdentityProviderViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SamlIdentityProvider>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SamlIdentityProvider>>;
   /** `GET /v1/system/ip-pools` */
   ipPoolList: (params: {
     query: Api.IpPoolListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPoolResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPoolResultsPage>>;
   /** `POST /v1/system/ip-pools` */
   ipPoolCreate: (params: {
     body: Json<Api.IpPoolCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPool>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `GET /v1/system/ip-pools/:pool` */
   ipPoolView: (params: {
     path: Api.IpPoolViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPool>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `PUT /v1/system/ip-pools/:pool` */
   ipPoolUpdate: (params: {
     path: Api.IpPoolUpdatePathParams;
     body: Json<Api.IpPoolUpdate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPool>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `DELETE /v1/system/ip-pools/:pool` */
   ipPoolDelete: (params: {
     path: Api.IpPoolDeletePathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/ip-pools/:pool/ranges` */
   ipPoolRangeList: (params: {
     path: Api.IpPoolRangeListPathParams;
     query: Api.IpPoolRangeListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPoolRangeResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>;
   /** `POST /v1/system/ip-pools/:pool/ranges/add` */
   ipPoolRangeAdd: (params: {
     path: Api.IpPoolRangeAddPathParams;
     body: Json<Api.IpRange>;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPoolRange>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPoolRange>>;
   /** `POST /v1/system/ip-pools/:pool/ranges/remove` */
   ipPoolRangeRemove: (params: {
     path: Api.IpPoolRangeRemovePathParams;
     body: Json<Api.IpRange>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/ip-pools-service` */
   ipPoolServiceView: (params: {
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPool>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPool>>;
   /** `GET /v1/system/ip-pools-service/ranges` */
   ipPoolServiceRangeList: (params: {
     query: Api.IpPoolServiceRangeListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPoolRangeResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>;
   /** `POST /v1/system/ip-pools-service/ranges/add` */
   ipPoolServiceRangeAdd: (params: {
     body: Json<Api.IpRange>;
-    req: RestRequest;
-  }) => HandlerResult<Api.IpPoolRange>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.IpPoolRange>>;
   /** `POST /v1/system/ip-pools-service/ranges/remove` */
   ipPoolServiceRangeRemove: (params: {
     body: Json<Api.IpRange>;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/metrics/:metricName` */
   systemMetric: (params: {
     path: Api.SystemMetricPathParams;
     query: Api.SystemMetricQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.MeasurementResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>;
   /** `GET /v1/system/networking/address-lot` */
   networkingAddressLotList: (params: {
     query: Api.NetworkingAddressLotListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.AddressLotResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.AddressLotResultsPage>>;
   /** `POST /v1/system/networking/address-lot` */
   networkingAddressLotCreate: (params: {
     body: Json<Api.AddressLotCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.AddressLotCreateResponse>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.AddressLotCreateResponse>>;
   /** `DELETE /v1/system/networking/address-lot/:addressLot` */
   networkingAddressLotDelete: (params: {
     path: Api.NetworkingAddressLotDeletePathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/networking/address-lot/:addressLot/blocks` */
   networkingAddressLotBlockList: (params: {
     path: Api.NetworkingAddressLotBlockListPathParams;
     query: Api.NetworkingAddressLotBlockListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.AddressLotBlockResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.AddressLotBlockResultsPage>>;
   /** `GET /v1/system/networking/loopback-address` */
   networkingLoopbackAddressList: (params: {
     query: Api.NetworkingLoopbackAddressListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.LoopbackAddressResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.LoopbackAddressResultsPage>>;
   /** `POST /v1/system/networking/loopback-address` */
   networkingLoopbackAddressCreate: (params: {
     body: Json<Api.LoopbackAddressCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.LoopbackAddress>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.LoopbackAddress>>;
   /** `DELETE /v1/system/networking/loopback-address/:rackId/:switchLocation/:address/:subnetMask` */
   networkingLoopbackAddressDelete: (params: {
     path: Api.NetworkingLoopbackAddressDeletePathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/networking/switch-port-settings` */
   networkingSwitchPortSettingsList: (params: {
     query: Api.NetworkingSwitchPortSettingsListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SwitchPortSettingsResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SwitchPortSettingsResultsPage>>;
   /** `POST /v1/system/networking/switch-port-settings` */
   networkingSwitchPortSettingsCreate: (params: {
     body: Json<Api.SwitchPortSettingsCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.SwitchPortSettingsView>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SwitchPortSettingsView>>;
   /** `DELETE /v1/system/networking/switch-port-settings` */
   networkingSwitchPortSettingsDelete: (params: {
     query: Api.NetworkingSwitchPortSettingsDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/networking/switch-port-settings/:port` */
   networkingSwitchPortSettingsView: (params: {
     path: Api.NetworkingSwitchPortSettingsViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SwitchPortSettingsView>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SwitchPortSettingsView>>;
   /** `GET /v1/system/policy` */
   systemPolicyView: (params: {
-    req: RestRequest;
-  }) => HandlerResult<Api.FleetRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.FleetRolePolicy>>;
   /** `PUT /v1/system/policy` */
   systemPolicyUpdate: (params: {
     body: Json<Api.FleetRolePolicy>;
-    req: RestRequest;
-  }) => HandlerResult<Api.FleetRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.FleetRolePolicy>>;
   /** `GET /v1/system/roles` */
   roleList: (params: {
     query: Api.RoleListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.RoleResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.RoleResultsPage>>;
   /** `GET /v1/system/roles/:roleName` */
   roleView: (params: {
     path: Api.RoleViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Role>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Role>>;
   /** `GET /v1/system/silos` */
   siloList: (params: {
     query: Api.SiloListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SiloResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SiloResultsPage>>;
   /** `POST /v1/system/silos` */
   siloCreate: (params: {
     body: Json<Api.SiloCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Silo>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Silo>>;
   /** `GET /v1/system/silos/:silo` */
   siloView: (params: {
     path: Api.SiloViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Silo>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Silo>>;
   /** `DELETE /v1/system/silos/:silo` */
   siloDelete: (params: {
     path: Api.SiloDeletePathParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/silos/:silo/policy` */
   siloPolicyView: (params: {
     path: Api.SiloPolicyViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `PUT /v1/system/silos/:silo/policy` */
   siloPolicyUpdate: (params: {
     path: Api.SiloPolicyUpdatePathParams;
     body: Json<Api.SiloRolePolicy>;
-    req: RestRequest;
-  }) => HandlerResult<Api.SiloRolePolicy>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SiloRolePolicy>>;
   /** `GET /v1/system/users` */
   siloUserList: (params: {
     query: Api.SiloUserListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.UserResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.UserResultsPage>>;
   /** `GET /v1/system/users/:userId` */
   siloUserView: (params: {
     path: Api.SiloUserViewPathParams;
     query: Api.SiloUserViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.User>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.User>>;
   /** `GET /v1/system/users-builtin` */
   userBuiltinList: (params: {
     query: Api.UserBuiltinListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.UserBuiltinResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.UserBuiltinResultsPage>>;
   /** `GET /v1/system/users-builtin/:user` */
   userBuiltinView: (params: {
     path: Api.UserBuiltinViewPathParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.UserBuiltin>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.UserBuiltin>>;
   /** `GET /v1/users` */
   userList: (params: {
     query: Api.UserListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.UserResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.UserResultsPage>>;
   /** `GET /v1/vpc-firewall-rules` */
   vpcFirewallRulesView: (params: {
     query: Api.VpcFirewallRulesViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcFirewallRules>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcFirewallRules>>;
   /** `PUT /v1/vpc-firewall-rules` */
   vpcFirewallRulesUpdate: (params: {
     query: Api.VpcFirewallRulesUpdateQueryParams;
     body: Json<Api.VpcFirewallRuleUpdateParams>;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcFirewallRules>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcFirewallRules>>;
   /** `GET /v1/vpc-router-routes` */
   vpcRouterRouteList: (params: {
     query: Api.VpcRouterRouteListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.RouterRouteResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.RouterRouteResultsPage>>;
   /** `POST /v1/vpc-router-routes` */
   vpcRouterRouteCreate: (params: {
     query: Api.VpcRouterRouteCreateQueryParams;
     body: Json<Api.RouterRouteCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.RouterRoute>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.RouterRoute>>;
   /** `GET /v1/vpc-router-routes/:route` */
   vpcRouterRouteView: (params: {
     path: Api.VpcRouterRouteViewPathParams;
     query: Api.VpcRouterRouteViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.RouterRoute>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.RouterRoute>>;
   /** `PUT /v1/vpc-router-routes/:route` */
   vpcRouterRouteUpdate: (params: {
     path: Api.VpcRouterRouteUpdatePathParams;
     query: Api.VpcRouterRouteUpdateQueryParams;
     body: Json<Api.RouterRouteUpdate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.RouterRoute>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.RouterRoute>>;
   /** `DELETE /v1/vpc-router-routes/:route` */
   vpcRouterRouteDelete: (params: {
     path: Api.VpcRouterRouteDeletePathParams;
     query: Api.VpcRouterRouteDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/vpc-routers` */
   vpcRouterList: (params: {
     query: Api.VpcRouterListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcRouterResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcRouterResultsPage>>;
   /** `POST /v1/vpc-routers` */
   vpcRouterCreate: (params: {
     query: Api.VpcRouterCreateQueryParams;
     body: Json<Api.VpcRouterCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcRouter>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcRouter>>;
   /** `GET /v1/vpc-routers/:router` */
   vpcRouterView: (params: {
     path: Api.VpcRouterViewPathParams;
     query: Api.VpcRouterViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcRouter>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcRouter>>;
   /** `PUT /v1/vpc-routers/:router` */
   vpcRouterUpdate: (params: {
     path: Api.VpcRouterUpdatePathParams;
     query: Api.VpcRouterUpdateQueryParams;
     body: Json<Api.VpcRouterUpdate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcRouter>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcRouter>>;
   /** `DELETE /v1/vpc-routers/:router` */
   vpcRouterDelete: (params: {
     path: Api.VpcRouterDeletePathParams;
     query: Api.VpcRouterDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/vpc-subnets` */
   vpcSubnetList: (params: {
     query: Api.VpcSubnetListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcSubnetResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcSubnetResultsPage>>;
   /** `POST /v1/vpc-subnets` */
   vpcSubnetCreate: (params: {
     query: Api.VpcSubnetCreateQueryParams;
     body: Json<Api.VpcSubnetCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcSubnet>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcSubnet>>;
   /** `GET /v1/vpc-subnets/:subnet` */
   vpcSubnetView: (params: {
     path: Api.VpcSubnetViewPathParams;
     query: Api.VpcSubnetViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcSubnet>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcSubnet>>;
   /** `PUT /v1/vpc-subnets/:subnet` */
   vpcSubnetUpdate: (params: {
     path: Api.VpcSubnetUpdatePathParams;
     query: Api.VpcSubnetUpdateQueryParams;
     body: Json<Api.VpcSubnetUpdate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcSubnet>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcSubnet>>;
   /** `DELETE /v1/vpc-subnets/:subnet` */
   vpcSubnetDelete: (params: {
     path: Api.VpcSubnetDeletePathParams;
     query: Api.VpcSubnetDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/vpc-subnets/:subnet/network-interfaces` */
   vpcSubnetListNetworkInterfaces: (params: {
     path: Api.VpcSubnetListNetworkInterfacesPathParams;
     query: Api.VpcSubnetListNetworkInterfacesQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.InstanceNetworkInterfaceResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.InstanceNetworkInterfaceResultsPage>>;
   /** `GET /v1/vpcs` */
   vpcList: (params: {
     query: Api.VpcListQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.VpcResultsPage>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.VpcResultsPage>>;
   /** `POST /v1/vpcs` */
   vpcCreate: (params: {
     query: Api.VpcCreateQueryParams;
     body: Json<Api.VpcCreate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Vpc>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Vpc>>;
   /** `GET /v1/vpcs/:vpc` */
   vpcView: (params: {
     path: Api.VpcViewPathParams;
     query: Api.VpcViewQueryParams;
-    req: RestRequest;
-  }) => HandlerResult<Api.Vpc>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Vpc>>;
   /** `PUT /v1/vpcs/:vpc` */
   vpcUpdate: (params: {
     path: Api.VpcUpdatePathParams;
     query: Api.VpcUpdateQueryParams;
     body: Json<Api.VpcUpdate>;
-    req: RestRequest;
-  }) => HandlerResult<Api.Vpc>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Vpc>>;
   /** `DELETE /v1/vpcs/:vpc` */
   vpcDelete: (params: {
     path: Api.VpcDeletePathParams;
     query: Api.VpcDeleteQueryParams;
-    req: RestRequest;
-  }) => StatusCode;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
 }
 
 function validateBody<S extends ZodSchema>(schema: S, body: unknown) {
@@ -891,8 +1032,12 @@ function validateBody<S extends ZodSchema>(schema: S, body: unknown) {
   }
   return { bodyErr: json(result.error.issues, { status: 400 }) };
 }
-function validateParams<S extends ZodSchema>(schema: S, req: RestRequest) {
-  const rawParams = new URLSearchParams(req.url.search);
+function validateParams<S extends ZodSchema>(
+  schema: S,
+  req: Request,
+  pathParams: PathParams
+) {
+  const rawParams = new URLSearchParams(new URL(req.url).search);
   const params: [string, unknown][] = [];
 
   // Ensure numeric params like `limit` are parsed as numbers
@@ -901,7 +1046,7 @@ function validateParams<S extends ZodSchema>(schema: S, req: RestRequest) {
   }
 
   const result = schema.safeParse({
-    path: req.params,
+    path: pathParams,
     query: Object.fromEntries(params),
   });
 
@@ -922,79 +1067,93 @@ const handler =
     paramSchema: ZodSchema | null,
     bodySchema: ZodSchema | null
   ) =>
-  async (req: RestRequest, res: ResponseComposition, ctx: RestContext) => {
+  async ({
+    request: req,
+    params: pathParams,
+    cookies,
+  }: {
+    request: Request;
+    params: PathParams;
+    cookies: Record<string, string | string[]>;
+  }) => {
     const { params, paramsErr } = paramSchema
-      ? validateParams(paramSchema, req)
+      ? validateParams(paramSchema, req, pathParams)
       : { params: {}, paramsErr: undefined };
-    if (paramsErr) return res(paramsErr);
+    if (paramsErr) return json(paramsErr, { status: 400 });
 
     const { path, query } = params;
 
     const { body, bodyErr } = bodySchema
       ? validateBody(bodySchema, await req.json())
       : { body: undefined, bodyErr: undefined };
-    if (bodyErr) return res(bodyErr);
+    if (bodyErr) return json(bodyErr, { status: 400 });
 
     try {
       // TypeScript can't narrow the handler down because there's not an explicit relationship between the schema
       // being present and the shape of the handler API. The type of this function could be resolved such that the
       // relevant schema is required if and only if the handler has a type that matches the inferred schema
       const result = await (handler as any).apply(null, [
-        { path, query, body, req },
+        { path, query, body, req, cookies },
       ]);
       if (typeof result === "number") {
-        return res(ctx.status(result));
+        return new HttpResponse(null, { status: result });
       }
       if (typeof result === "function") {
-        return res(result as ResponseTransformer);
+        return result();
       }
-      return res(json(result));
+      if (result instanceof Response) {
+        return result;
+      }
+      return json(result);
     } catch (thrown) {
       if (typeof thrown === "number") {
-        return res(ctx.status(thrown));
+        return new HttpResponse(null, { status: thrown });
       }
       if (typeof thrown === "function") {
-        return res(thrown as ResponseTransformer);
+        return thrown();
       }
       if (typeof thrown === "string") {
-        return res(json({ message: thrown }, { status: 400 }));
+        return json({ message: thrown }, { status: 400 });
+      }
+      if (thrown instanceof Response) {
+        return thrown;
       }
       console.error("Unexpected mock error", thrown);
-      return res(json({ message: "Unknown Server Error" }, { status: 500 }));
+      return json({ message: "Unknown Server Error" }, { status: 500 });
     }
   };
 
-export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
+export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
   return [
-    rest.post(
+    http.post(
       "/device/auth",
       handler(handlers["deviceAuthRequest"], null, null)
     ),
-    rest.post(
+    http.post(
       "/device/confirm",
       handler(handlers["deviceAuthConfirm"], null, schema.DeviceAuthVerify)
     ),
-    rest.post(
+    http.post(
       "/device/token",
       handler(handlers["deviceAccessToken"], null, null)
     ),
-    rest.post(
+    http.post(
       "/login/:siloName/saml/:providerName",
       handler(handlers["loginSaml"], schema.LoginSamlParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/certificates",
       handler(handlers["certificateList"], schema.CertificateListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/certificates",
       handler(handlers["certificateCreate"], null, schema.CertificateCreate)
     ),
-    rest.get(
+    http.get(
       "/v1/certificates/:certificate",
       handler(handlers["certificateView"], schema.CertificateViewParams, null)
     ),
-    rest.delete(
+    http.delete(
       "/v1/certificates/:certificate",
       handler(
         handlers["certificateDelete"],
@@ -1002,11 +1161,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/disks",
       handler(handlers["diskList"], schema.DiskListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/disks",
       handler(
         handlers["diskCreate"],
@@ -1014,15 +1173,15 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.DiskCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/disks/:disk",
       handler(handlers["diskView"], schema.DiskViewParams, null)
     ),
-    rest.delete(
+    http.delete(
       "/v1/disks/:disk",
       handler(handlers["diskDelete"], schema.DiskDeleteParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/disks/:disk/bulk-write",
       handler(
         handlers["diskBulkWriteImport"],
@@ -1030,7 +1189,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.ImportBlocksBulkWrite
       )
     ),
-    rest.post(
+    http.post(
       "/v1/disks/:disk/bulk-write-start",
       handler(
         handlers["diskBulkWriteImportStart"],
@@ -1038,7 +1197,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/disks/:disk/bulk-write-stop",
       handler(
         handlers["diskBulkWriteImportStop"],
@@ -1046,7 +1205,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/disks/:disk/finalize",
       handler(
         handlers["diskFinalizeImport"],
@@ -1054,7 +1213,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.FinalizeDisk
       )
     ),
-    rest.post(
+    http.post(
       "/v1/disks/:disk/import",
       handler(
         handlers["diskImportBlocksFromUrl"],
@@ -1062,23 +1221,23 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.ImportBlocksFromUrl
       )
     ),
-    rest.get(
+    http.get(
       "/v1/disks/:disk/metrics/:metric",
       handler(handlers["diskMetricsList"], schema.DiskMetricsListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/groups",
       handler(handlers["groupList"], schema.GroupListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/groups/:groupId",
       handler(handlers["groupView"], schema.GroupViewParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/images",
       handler(handlers["imageList"], schema.ImageListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/images",
       handler(
         handlers["imageCreate"],
@@ -1086,27 +1245,27 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.ImageCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/images/:image",
       handler(handlers["imageView"], schema.ImageViewParams, null)
     ),
-    rest.delete(
+    http.delete(
       "/v1/images/:image",
       handler(handlers["imageDelete"], schema.ImageDeleteParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/images/:image/demote",
       handler(handlers["imageDemote"], schema.ImageDemoteParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/images/:image/promote",
       handler(handlers["imagePromote"], schema.ImagePromoteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/instances",
       handler(handlers["instanceList"], schema.InstanceListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/instances",
       handler(
         handlers["instanceCreate"],
@@ -1114,19 +1273,19 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.InstanceCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/instances/:instance",
       handler(handlers["instanceView"], schema.InstanceViewParams, null)
     ),
-    rest.delete(
+    http.delete(
       "/v1/instances/:instance",
       handler(handlers["instanceDelete"], schema.InstanceDeleteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/instances/:instance/disks",
       handler(handlers["instanceDiskList"], schema.InstanceDiskListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/instances/:instance/disks/attach",
       handler(
         handlers["instanceDiskAttach"],
@@ -1134,7 +1293,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.DiskPath
       )
     ),
-    rest.post(
+    http.post(
       "/v1/instances/:instance/disks/detach",
       handler(
         handlers["instanceDiskDetach"],
@@ -1142,7 +1301,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.DiskPath
       )
     ),
-    rest.get(
+    http.get(
       "/v1/instances/:instance/external-ips",
       handler(
         handlers["instanceExternalIpList"],
@@ -1150,7 +1309,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/instances/:instance/migrate",
       handler(
         handlers["instanceMigrate"],
@@ -1158,11 +1317,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.InstanceMigrate
       )
     ),
-    rest.post(
+    http.post(
       "/v1/instances/:instance/reboot",
       handler(handlers["instanceReboot"], schema.InstanceRebootParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/instances/:instance/serial-console",
       handler(
         handlers["instanceSerialConsole"],
@@ -1170,7 +1329,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/instances/:instance/serial-console/stream",
       handler(
         handlers["instanceSerialConsoleStream"],
@@ -1178,15 +1337,15 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/instances/:instance/start",
       handler(handlers["instanceStart"], schema.InstanceStartParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/instances/:instance/stop",
       handler(handlers["instanceStop"], schema.InstanceStopParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/ip-pools",
       handler(
         handlers["projectIpPoolList"],
@@ -1194,7 +1353,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/ip-pools/:pool",
       handler(
         handlers["projectIpPoolView"],
@@ -1202,7 +1361,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/login/:siloName/local",
       handler(
         handlers["loginLocal"],
@@ -1210,9 +1369,9 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.UsernamePasswordCredentials
       )
     ),
-    rest.post("/v1/logout", handler(handlers["logout"], null, null)),
-    rest.get("/v1/me", handler(handlers["currentUserView"], null, null)),
-    rest.get(
+    http.post("/v1/logout", handler(handlers["logout"], null, null)),
+    http.get("/v1/me", handler(handlers["currentUserView"], null, null)),
+    http.get(
       "/v1/me/groups",
       handler(
         handlers["currentUserGroups"],
@@ -1220,7 +1379,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/me/ssh-keys",
       handler(
         handlers["currentUserSshKeyList"],
@@ -1228,11 +1387,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/me/ssh-keys",
       handler(handlers["currentUserSshKeyCreate"], null, schema.SshKeyCreate)
     ),
-    rest.get(
+    http.get(
       "/v1/me/ssh-keys/:sshKey",
       handler(
         handlers["currentUserSshKeyView"],
@@ -1240,7 +1399,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/me/ssh-keys/:sshKey",
       handler(
         handlers["currentUserSshKeyDelete"],
@@ -1248,11 +1407,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/metrics/:metricName",
       handler(handlers["siloMetric"], schema.SiloMetricParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/network-interfaces",
       handler(
         handlers["instanceNetworkInterfaceList"],
@@ -1260,7 +1419,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/network-interfaces",
       handler(
         handlers["instanceNetworkInterfaceCreate"],
@@ -1268,7 +1427,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.InstanceNetworkInterfaceCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/network-interfaces/:interface",
       handler(
         handlers["instanceNetworkInterfaceView"],
@@ -1276,7 +1435,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.put(
+    http.put(
       "/v1/network-interfaces/:interface",
       handler(
         handlers["instanceNetworkInterfaceUpdate"],
@@ -1284,7 +1443,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.InstanceNetworkInterfaceUpdate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/network-interfaces/:interface",
       handler(
         handlers["instanceNetworkInterfaceDelete"],
@@ -1292,24 +1451,24 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get("/v1/policy", handler(handlers["policyView"], null, null)),
-    rest.put(
+    http.get("/v1/policy", handler(handlers["policyView"], null, null)),
+    http.put(
       "/v1/policy",
       handler(handlers["policyUpdate"], null, schema.SiloRolePolicy)
     ),
-    rest.get(
+    http.get(
       "/v1/projects",
       handler(handlers["projectList"], schema.ProjectListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/projects",
       handler(handlers["projectCreate"], null, schema.ProjectCreate)
     ),
-    rest.get(
+    http.get(
       "/v1/projects/:project",
       handler(handlers["projectView"], schema.ProjectViewParams, null)
     ),
-    rest.put(
+    http.put(
       "/v1/projects/:project",
       handler(
         handlers["projectUpdate"],
@@ -1317,11 +1476,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.ProjectUpdate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/projects/:project",
       handler(handlers["projectDelete"], schema.ProjectDeleteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/projects/:project/policy",
       handler(
         handlers["projectPolicyView"],
@@ -1329,7 +1488,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.put(
+    http.put(
       "/v1/projects/:project/policy",
       handler(
         handlers["projectPolicyUpdate"],
@@ -1337,11 +1496,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.ProjectRolePolicy
       )
     ),
-    rest.get(
+    http.get(
       "/v1/snapshots",
       handler(handlers["snapshotList"], schema.SnapshotListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/snapshots",
       handler(
         handlers["snapshotCreate"],
@@ -1349,35 +1508,35 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.SnapshotCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/snapshots/:snapshot",
       handler(handlers["snapshotView"], schema.SnapshotViewParams, null)
     ),
-    rest.delete(
+    http.delete(
       "/v1/snapshots/:snapshot",
       handler(handlers["snapshotDelete"], schema.SnapshotDeleteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/disks",
       handler(handlers["physicalDiskList"], schema.PhysicalDiskListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/racks",
       handler(handlers["rackList"], schema.RackListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/racks/:rackId",
       handler(handlers["rackView"], schema.RackViewParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/sleds",
       handler(handlers["sledList"], schema.SledListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/sleds/:sledId",
       handler(handlers["sledView"], schema.SledViewParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/sleds/:sledId/disks",
       handler(
         handlers["sledPhysicalDiskList"],
@@ -1385,11 +1544,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/sleds/:sledId/instances",
       handler(handlers["sledInstanceList"], schema.SledInstanceListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/switch-port",
       handler(
         handlers["networkingSwitchPortList"],
@@ -1397,7 +1556,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/hardware/switch-port/:port/settings",
       handler(
         handlers["networkingSwitchPortApplySettings"],
@@ -1405,7 +1564,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.SwitchPortApplySettings
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/system/hardware/switch-port/:port/settings",
       handler(
         handlers["networkingSwitchPortClearSettings"],
@@ -1413,15 +1572,15 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/switches",
       handler(handlers["switchList"], schema.SwitchListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/hardware/switches/:switchId",
       handler(handlers["switchView"], schema.SwitchViewParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/identity-providers",
       handler(
         handlers["siloIdentityProviderList"],
@@ -1429,7 +1588,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/identity-providers/local/users",
       handler(
         handlers["localIdpUserCreate"],
@@ -1437,7 +1596,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.UserCreate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/system/identity-providers/local/users/:userId",
       handler(
         handlers["localIdpUserDelete"],
@@ -1445,7 +1604,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/identity-providers/local/users/:userId/set-password",
       handler(
         handlers["localIdpUserSetPassword"],
@@ -1453,7 +1612,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.UserPassword
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/identity-providers/saml",
       handler(
         handlers["samlIdentityProviderCreate"],
@@ -1461,7 +1620,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.SamlIdentityProviderCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/identity-providers/saml/:provider",
       handler(
         handlers["samlIdentityProviderView"],
@@ -1469,19 +1628,19 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/ip-pools",
       handler(handlers["ipPoolList"], schema.IpPoolListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/system/ip-pools",
       handler(handlers["ipPoolCreate"], null, schema.IpPoolCreate)
     ),
-    rest.get(
+    http.get(
       "/v1/system/ip-pools/:pool",
       handler(handlers["ipPoolView"], schema.IpPoolViewParams, null)
     ),
-    rest.put(
+    http.put(
       "/v1/system/ip-pools/:pool",
       handler(
         handlers["ipPoolUpdate"],
@@ -1489,15 +1648,15 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.IpPoolUpdate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/system/ip-pools/:pool",
       handler(handlers["ipPoolDelete"], schema.IpPoolDeleteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/ip-pools/:pool/ranges",
       handler(handlers["ipPoolRangeList"], schema.IpPoolRangeListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/system/ip-pools/:pool/ranges/add",
       handler(
         handlers["ipPoolRangeAdd"],
@@ -1505,7 +1664,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.IpRange
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/ip-pools/:pool/ranges/remove",
       handler(
         handlers["ipPoolRangeRemove"],
@@ -1513,11 +1672,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.IpRange
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/ip-pools-service",
       handler(handlers["ipPoolServiceView"], null, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/ip-pools-service/ranges",
       handler(
         handlers["ipPoolServiceRangeList"],
@@ -1525,19 +1684,19 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/ip-pools-service/ranges/add",
       handler(handlers["ipPoolServiceRangeAdd"], null, schema.IpRange)
     ),
-    rest.post(
+    http.post(
       "/v1/system/ip-pools-service/ranges/remove",
       handler(handlers["ipPoolServiceRangeRemove"], null, schema.IpRange)
     ),
-    rest.get(
+    http.get(
       "/v1/system/metrics/:metricName",
       handler(handlers["systemMetric"], schema.SystemMetricParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/networking/address-lot",
       handler(
         handlers["networkingAddressLotList"],
@@ -1545,7 +1704,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/networking/address-lot",
       handler(
         handlers["networkingAddressLotCreate"],
@@ -1553,7 +1712,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.AddressLotCreate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/system/networking/address-lot/:addressLot",
       handler(
         handlers["networkingAddressLotDelete"],
@@ -1561,7 +1720,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/networking/address-lot/:addressLot/blocks",
       handler(
         handlers["networkingAddressLotBlockList"],
@@ -1569,7 +1728,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/networking/loopback-address",
       handler(
         handlers["networkingLoopbackAddressList"],
@@ -1577,7 +1736,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/networking/loopback-address",
       handler(
         handlers["networkingLoopbackAddressCreate"],
@@ -1585,7 +1744,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.LoopbackAddressCreate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/system/networking/loopback-address/:rackId/:switchLocation/:address/:subnetMask",
       handler(
         handlers["networkingLoopbackAddressDelete"],
@@ -1593,7 +1752,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/networking/switch-port-settings",
       handler(
         handlers["networkingSwitchPortSettingsList"],
@@ -1601,7 +1760,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/system/networking/switch-port-settings",
       handler(
         handlers["networkingSwitchPortSettingsCreate"],
@@ -1609,7 +1768,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.SwitchPortSettingsCreate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/system/networking/switch-port-settings",
       handler(
         handlers["networkingSwitchPortSettingsDelete"],
@@ -1617,7 +1776,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/networking/switch-port-settings/:port",
       handler(
         handlers["networkingSwitchPortSettingsView"],
@@ -1625,43 +1784,43 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/policy",
       handler(handlers["systemPolicyView"], null, null)
     ),
-    rest.put(
+    http.put(
       "/v1/system/policy",
       handler(handlers["systemPolicyUpdate"], null, schema.FleetRolePolicy)
     ),
-    rest.get(
+    http.get(
       "/v1/system/roles",
       handler(handlers["roleList"], schema.RoleListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/roles/:roleName",
       handler(handlers["roleView"], schema.RoleViewParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/silos",
       handler(handlers["siloList"], schema.SiloListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/system/silos",
       handler(handlers["siloCreate"], null, schema.SiloCreate)
     ),
-    rest.get(
+    http.get(
       "/v1/system/silos/:silo",
       handler(handlers["siloView"], schema.SiloViewParams, null)
     ),
-    rest.delete(
+    http.delete(
       "/v1/system/silos/:silo",
       handler(handlers["siloDelete"], schema.SiloDeleteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/silos/:silo/policy",
       handler(handlers["siloPolicyView"], schema.SiloPolicyViewParams, null)
     ),
-    rest.put(
+    http.put(
       "/v1/system/silos/:silo/policy",
       handler(
         handlers["siloPolicyUpdate"],
@@ -1669,27 +1828,27 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.SiloRolePolicy
       )
     ),
-    rest.get(
+    http.get(
       "/v1/system/users",
       handler(handlers["siloUserList"], schema.SiloUserListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/users/:userId",
       handler(handlers["siloUserView"], schema.SiloUserViewParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/users-builtin",
       handler(handlers["userBuiltinList"], schema.UserBuiltinListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/system/users-builtin/:user",
       handler(handlers["userBuiltinView"], schema.UserBuiltinViewParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/users",
       handler(handlers["userList"], schema.UserListParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-firewall-rules",
       handler(
         handlers["vpcFirewallRulesView"],
@@ -1697,7 +1856,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.put(
+    http.put(
       "/v1/vpc-firewall-rules",
       handler(
         handlers["vpcFirewallRulesUpdate"],
@@ -1705,7 +1864,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.VpcFirewallRuleUpdateParams
       )
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-router-routes",
       handler(
         handlers["vpcRouterRouteList"],
@@ -1713,7 +1872,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.post(
+    http.post(
       "/v1/vpc-router-routes",
       handler(
         handlers["vpcRouterRouteCreate"],
@@ -1721,7 +1880,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.RouterRouteCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-router-routes/:route",
       handler(
         handlers["vpcRouterRouteView"],
@@ -1729,7 +1888,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.put(
+    http.put(
       "/v1/vpc-router-routes/:route",
       handler(
         handlers["vpcRouterRouteUpdate"],
@@ -1737,7 +1896,7 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.RouterRouteUpdate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/vpc-router-routes/:route",
       handler(
         handlers["vpcRouterRouteDelete"],
@@ -1745,11 +1904,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-routers",
       handler(handlers["vpcRouterList"], schema.VpcRouterListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/vpc-routers",
       handler(
         handlers["vpcRouterCreate"],
@@ -1757,11 +1916,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.VpcRouterCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-routers/:router",
       handler(handlers["vpcRouterView"], schema.VpcRouterViewParams, null)
     ),
-    rest.put(
+    http.put(
       "/v1/vpc-routers/:router",
       handler(
         handlers["vpcRouterUpdate"],
@@ -1769,15 +1928,15 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.VpcRouterUpdate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/vpc-routers/:router",
       handler(handlers["vpcRouterDelete"], schema.VpcRouterDeleteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-subnets",
       handler(handlers["vpcSubnetList"], schema.VpcSubnetListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/vpc-subnets",
       handler(
         handlers["vpcSubnetCreate"],
@@ -1785,11 +1944,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.VpcSubnetCreate
       )
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-subnets/:subnet",
       handler(handlers["vpcSubnetView"], schema.VpcSubnetViewParams, null)
     ),
-    rest.put(
+    http.put(
       "/v1/vpc-subnets/:subnet",
       handler(
         handlers["vpcSubnetUpdate"],
@@ -1797,11 +1956,11 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         schema.VpcSubnetUpdate
       )
     ),
-    rest.delete(
+    http.delete(
       "/v1/vpc-subnets/:subnet",
       handler(handlers["vpcSubnetDelete"], schema.VpcSubnetDeleteParams, null)
     ),
-    rest.get(
+    http.get(
       "/v1/vpc-subnets/:subnet/network-interfaces",
       handler(
         handlers["vpcSubnetListNetworkInterfaces"],
@@ -1809,23 +1968,23 @@ export function makeHandlers(handlers: MSWHandlers): RestHandler[] {
         null
       )
     ),
-    rest.get(
+    http.get(
       "/v1/vpcs",
       handler(handlers["vpcList"], schema.VpcListParams, null)
     ),
-    rest.post(
+    http.post(
       "/v1/vpcs",
       handler(handlers["vpcCreate"], schema.VpcCreateParams, schema.VpcCreate)
     ),
-    rest.get(
+    http.get(
       "/v1/vpcs/:vpc",
       handler(handlers["vpcView"], schema.VpcViewParams, null)
     ),
-    rest.put(
+    http.put(
       "/v1/vpcs/:vpc",
       handler(handlers["vpcUpdate"], schema.VpcUpdateParams, schema.VpcUpdate)
     ),
-    rest.delete(
+    http.delete(
       "/v1/vpcs/:vpc",
       handler(handlers["vpcDelete"], schema.VpcDeleteParams, null)
     ),
