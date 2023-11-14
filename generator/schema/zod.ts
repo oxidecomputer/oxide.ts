@@ -44,6 +44,9 @@ export const schemaToZod = makeSchemaGenerator({
     if (schema.format === "uuid") {
       w0(".uuid()");
     }
+    if (schema.format === "ip") {
+      w0(".ip()");
+    }
     if ("minLength" in schema) {
       w0(`.min(${schema.minLength})`);
     }
