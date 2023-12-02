@@ -7,7 +7,7 @@
  */
 
 import SwaggerParser from "@apidevtools/swagger-parser";
-import { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 import { match, P } from "ts-pattern";
 
 type SchemaTypes = Record<

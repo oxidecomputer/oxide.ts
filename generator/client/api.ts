@@ -18,7 +18,8 @@ import {
   snakeToPascal,
 } from "../util";
 import { initIO } from "../io";
-import { refToSchemaName, Schema } from "../schema/base";
+import type { Schema } from "../schema/base";
+import { refToSchemaName } from "../schema/base";
 import {
   contentRef,
   docComment,

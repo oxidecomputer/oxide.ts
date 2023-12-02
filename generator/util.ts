@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");

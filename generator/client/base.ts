@@ -6,10 +6,10 @@
  * Copyright Oxide Computer Company
  */
 
-import { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 import { topologicalSort } from "../util";
-import { IO } from "../io";
-import { Schema } from "../schema/base";
+import type { IO } from "../io";
+import type { Schema } from "../schema/base";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 

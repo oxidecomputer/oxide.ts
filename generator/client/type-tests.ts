@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { getSortedSchemas } from "./base";
 

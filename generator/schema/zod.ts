@@ -6,9 +6,9 @@
  * Copyright Oxide Computer Company
  */
 
-import { IO } from "../io";
+import { type IO } from "../io";
 import { makeSchemaGenerator, refToSchemaName } from "./base";
-import { OpenAPIV3 } from "openapi-types";
+import { type OpenAPIV3 } from "openapi-types";
 import { snakeToCamel } from "../util";
 
 export const schemaToZod = makeSchemaGenerator({

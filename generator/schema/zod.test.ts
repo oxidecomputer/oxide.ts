@@ -7,7 +7,8 @@
  */
 
 import { expect, test, beforeEach } from "vitest";
-import { initIO, TestWritable } from "../io";
+import type { TestWritable } from "../io";
+import { initIO } from "../io";
 import { schemaToZod } from "./zod";
 
 const io = initIO();

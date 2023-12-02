@@ -7,8 +7,8 @@
  */
 
 import { match, P } from "ts-pattern";
-import { OpenAPIV3 } from "openapi-types";
-import { IO } from "../io";
+import type { OpenAPIV3 } from "openapi-types";
+import type { IO } from "../io";
 
 export type Schema = OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject;
 
