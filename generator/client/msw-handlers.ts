@@ -32,10 +32,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
 
     import {
       http,
-      HttpHandler,
+      type HttpHandler,
       HttpResponse,
-      StrictResponse,
-      PathParams,
+      type StrictResponse,
+      type PathParams,
     } from "msw";
     import type { SnakeCasedPropertiesDeep as Snakify, Promisable } from "type-fest";
     import { type ZodSchema } from "zod";

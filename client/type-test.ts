@@ -6,9 +6,8 @@
  * Copyright Oxide Computer Company
  */
 
-import type { z } from "zod";
-import type { Equals } from "tsafe";
-import { assert } from "tsafe";
+import { type z } from "zod";
+import { assert, type Equals } from "tsafe";
 import type * as A from "./Api";
 import type * as V from "./validate";
 

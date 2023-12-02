@@ -6,13 +6,12 @@
  * Copyright Oxide Computer Company
  */
 
-import type {
-  HttpHandler,
-  StrictResponse,
-  PathParams} from "msw";
 import {
   http,
-  HttpResponse
+  type HttpHandler,
+  HttpResponse,
+  type StrictResponse,
+  type PathParams,
 } from "msw";
 import type {
   SnakeCasedPropertiesDeep as Snakify,
