@@ -42,7 +42,7 @@
   "author": "",
   "license": "MPL-2.0",
   "optionalDependencies": {
-    "zod": "^3.20"
+    "zod": "^3.22"
   },
   "devDependencies": {
     "@types/node": "^18.7.20",
@@ -60,6 +60,6 @@
     "type-fest": "^3.1.0",
     "typescript": "^5.2.2",
     "vitest": "^0.32.2",
-    "zod": "3.21.1"
+    "zod": "3.22.3"
   }
 }
