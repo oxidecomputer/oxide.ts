@@ -2,12 +2,7 @@
   "name": "@oxide/api",
   "version": "0.0.1",
   "description": "The official JavaScript and TypeScript client SDK for interacting with the Oxide API",
-  "keywords": [
-    "oxide",
-    "oxide.ts",
-    "oxide computer",
-    "oxide sdk"
-  ],
+  "keywords": ["oxide", "oxide.ts", "oxide computer", "oxide sdk"],
   "engines": {
     "node": ">=18"
   },
@@ -31,15 +26,12 @@
       "types": "./dist/msw-handlers.d.ts"
     }
   },
-  "files": [
-    "client",
-    "!client/type-test.ts",
-    "dist"
-  ],
+  "files": ["client", "!client/type-test.ts", "dist"],
   "scripts": {
     "build": "tsup client/Api.ts client/validate.ts client/msw-handlers.ts --format cjs,esm --dts --clean --no-splitting",
     "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client && npm run build",
     "gen-from": "./tools/gen.sh",
+    "lint": "eslint .",
     "postgen": "prettier --parser typescript --write ./client",
     "postgen-from": "npm run postgen",
     "pretest": "npm run gen",
@@ -54,8 +46,11 @@
   },
   "devDependencies": {
     "@types/node": "^18.7.20",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
     "esbuild-register": "^3.3.3",
-    "msw": "^2.0.0",
+    "eslint": "^8.55.0",
+    "msw": "^2.0.9",
     "openapi-types": "^12.0.2",
     "prettier": "2.7.1",
     "swagger-parser": "^10.0.3",
@@ -63,7 +58,7 @@
     "tsafe": "^1.1.1",
     "tsup": "^6.7.0",
     "type-fest": "^3.1.0",
-    "typescript": "^5.0.4",
+    "typescript": "^5.2.2",
     "vitest": "^0.32.2",
     "zod": "3.21.1"
   }

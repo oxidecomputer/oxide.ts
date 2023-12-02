@@ -19,10 +19,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "18"
-      - name: TypeCheck and Test
-        shell: bash
-        run: |
-          npm install
-          npm run gen
-          npm run tsc
-          npm test
+      - name: npm install
+        run: npm install
+      - name: Generate client
+        run: npm run gen
+      - name: TypeCheck
+        run: npm run tsc
+      - name: Lint
+        run: npx eslint .
+      - name: Test
+        run: npm test

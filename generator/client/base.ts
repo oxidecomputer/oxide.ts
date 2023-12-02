@@ -7,7 +7,7 @@
  */
 
 import { OpenAPIV3 } from "openapi-types";
-import { snakeToPascal, topologicalSort } from "../util";
+import { topologicalSort } from "../util";
 import { IO } from "../io";
 import { Schema } from "../schema/base";
 import { OpenAPIV3 as O } from "openapi-types";

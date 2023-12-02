@@ -14,7 +14,7 @@ const exec = promisify(execCb);
 
 test("ensure only desired files are published", async () => {
   const { stderr } = await exec("npm publish --dry-run");
-  let packageLog = stderr
+  const packageLog = stderr
     .split("\n")
     .map((l) => l.replace("npm notice", "").trim())
     .filter((l) => l.match(/^\d+/))

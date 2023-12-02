@@ -29,7 +29,7 @@ export const processParamName = (s: string) => snakeToCamel(renameParam(s));
 
 /** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
 const segmentToInterpolation = (s: string) =>
-  s.startsWith("{") ? `\$\{path.${processParamName(s.slice(1, -1))}\}` : s;
+  s.startsWith("{") ? `$\{path.${processParamName(s.slice(1, -1))}}` : s;
 
 export const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";

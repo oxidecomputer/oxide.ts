@@ -214,7 +214,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       bodyTypeRef && (method === "post" || method === "put")
         ? `schema.${refToSchemaName(bodyTypeRef)}`
         : "null";
-    const paramSchema = !!conf.parameters?.length
+    const paramSchema = conf.parameters?.length
       ? `schema.${snakeToPascal(opId)}Params`
       : "null";
 
