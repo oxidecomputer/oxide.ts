@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { getSortedSchemas } from "./base";
 
@@ -26,13 +26,11 @@ export function generateTypeTests(spec: OpenAPIV3.Document) {
      *
      * Copyright Oxide Computer Company
      */
-  `);
 
-  w(`
-    import { z } from "zod";
-    import { assert, Equals } from "tsafe"
+    import { type z } from "zod";
+    import { assert, type Equals } from "tsafe"
     import type * as A from "./Api"
-    import * as V from "./validate"
+    import type * as V from "./validate"
   `);
 
   for (const name of schemaNames) {

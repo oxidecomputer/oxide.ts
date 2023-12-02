@@ -21,8 +21,6 @@ const formatPath = (path: string) =>
 export function generateMSWHandlers(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
 
-  w("/* eslint-disable */\n");
-
   w(`
     /**
      * This Source Code Form is subject to the terms of the Mozilla Public
@@ -31,18 +29,16 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
      *
      * Copyright Oxide Computer Company
      */
-  `);
 
-  w(`
     import {
       http,
-      HttpHandler,
+      type HttpHandler,
       HttpResponse,
-      StrictResponse,
-      PathParams,
+      type StrictResponse,
+      type PathParams,
     } from "msw";
     import type { SnakeCasedPropertiesDeep as Snakify, Promisable } from "type-fest";
-    import { z, ZodSchema } from "zod";
+    import { type ZodSchema } from "zod";
     import type * as Api from "./Api";
     import { snakeify } from "./util";
     import * as schema from "./validate";
@@ -173,6 +169,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
           // TypeScript can't narrow the handler down because there's not an explicit relationship between the schema
           // being present and the shape of the handler API. The type of this function could be resolved such that the
           // relevant schema is required if and only if the handler has a type that matches the inferred schema
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = await (handler as any).apply(null, [{path, query, body, req, cookies}])
           if (typeof result === "number") {
             return new HttpResponse(null, { status: result });
@@ -214,7 +211,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
       bodyTypeRef && (method === "post" || method === "put")
         ? `schema.${refToSchemaName(bodyTypeRef)}`
         : "null";
-    const paramSchema = !!conf.parameters?.length
+    const paramSchema = conf.parameters?.length
       ? `schema.${snakeToPascal(opId)}Params`
       : "null";
 

@@ -7,7 +7,7 @@
  */
 
 import SwaggerParser from "@apidevtools/swagger-parser";
-import { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 
 import { generateApi } from "./client/api";
 import { generateMSWHandlers } from "./client/msw-handlers";

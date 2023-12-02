@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { OpenAPIV3 } from "openapi-types";
+import type { OpenAPIV3 } from "openapi-types";
 
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");
@@ -29,7 +29,7 @@ export const processParamName = (s: string) => snakeToCamel(renameParam(s));
 
 /** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
 const segmentToInterpolation = (s: string) =>
-  s.startsWith("{") ? `\$\{path.${processParamName(s.slice(1, -1))}\}` : s;
+  s.startsWith("{") ? `$\{path.${processParamName(s.slice(1, -1))}}` : s;
 
 export const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";

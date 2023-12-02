@@ -6,10 +6,10 @@
  * Copyright Oxide Computer Company
  */
 
-import { z } from "zod";
-import { assert, Equals } from "tsafe";
+import { type z } from "zod";
+import { assert, type Equals } from "tsafe";
 import type * as A from "./Api";
-import * as V from "./validate";
+import type * as V from "./validate";
 
 assert<Equals<A.Ipv4Net, z.infer<typeof V.Ipv4Net>>>();
 assert<Equals<A.Ipv6Net, z.infer<typeof V.Ipv6Net>>>();

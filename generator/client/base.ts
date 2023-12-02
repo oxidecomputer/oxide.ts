@@ -6,10 +6,10 @@
  * Copyright Oxide Computer Company
  */
 
-import { OpenAPIV3 } from "openapi-types";
-import { snakeToPascal, topologicalSort } from "../util";
-import { IO } from "../io";
-import { Schema } from "../schema/base";
+import type { OpenAPIV3 } from "openapi-types";
+import { topologicalSort } from "../util";
+import type { IO } from "../io";
+import type { Schema } from "../schema/base";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 
@@ -67,20 +67,15 @@ export function docComment(
 
 type PathConfig = ReturnType<typeof iterPathConfig>[number];
 export function iterPathConfig(paths: OpenAPIV3.Document["paths"]) {
-  return Object.entries(paths)
-    .flatMap(([path, handlers]) => {
-      return Object.values(HttpMethods).map((method) => {
-        const conf = handlers![method]!;
+  return Object.entries(paths).flatMap(([path, handlers]) => {
+    if (!handlers) return [];
 
-        return {
-          path,
-          conf,
-          method,
-          opId: conf?.operationId!,
-        };
-      });
-    })
-    .filter(({ conf }) => conf && conf.operationId);
+    return Object.values(HttpMethods).flatMap((method) => {
+      const conf = handlers[method];
+      if (!conf || !conf.operationId) return [];
+      return { path, conf, method, opId: conf.operationId };
+    });
+  });
 }
 
 type Param = Omit<OpenAPIV3.ParameterObject, "schema"> &
