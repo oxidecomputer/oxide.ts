@@ -1079,7 +1079,7 @@ const handler =
     let body = undefined;
     if (bodySchema) {
       const rawBody = await req.json();
-      const result = bodySchema.transform(snakeify).safeParse(body);
+      const result = bodySchema.transform(snakeify).safeParse(rawBody);
       if (!result.success) return json(result.error.issues, { status: 400 });
       body = result.data;
     }
