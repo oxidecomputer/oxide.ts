@@ -38,11 +38,47 @@ assert<
   Equals<A.AddressLotResultsPage, z.infer<typeof V.AddressLotResultsPage>>
 >();
 assert<Equals<A.Baseboard, z.infer<typeof V.Baseboard>>>();
+assert<Equals<A.BgpAnnounceSet, z.infer<typeof V.BgpAnnounceSet>>>();
+assert<
+  Equals<A.BgpAnnouncementCreate, z.infer<typeof V.BgpAnnouncementCreate>>
+>();
+assert<
+  Equals<A.BgpAnnounceSetCreate, z.infer<typeof V.BgpAnnounceSetCreate>>
+>();
+assert<Equals<A.BgpAnnouncement, z.infer<typeof V.BgpAnnouncement>>>();
+assert<Equals<A.BgpConfig, z.infer<typeof V.BgpConfig>>>();
+assert<Equals<A.BgpConfigCreate, z.infer<typeof V.BgpConfigCreate>>>();
+assert<
+  Equals<A.BgpConfigResultsPage, z.infer<typeof V.BgpConfigResultsPage>>
+>();
+assert<Equals<A.SwitchLocation, z.infer<typeof V.SwitchLocation>>>();
+assert<
+  Equals<A.BgpImportedRouteIpv4, z.infer<typeof V.BgpImportedRouteIpv4>>
+>();
+assert<Equals<A.BgpPeer, z.infer<typeof V.BgpPeer>>>();
 assert<Equals<A.BgpPeerConfig, z.infer<typeof V.BgpPeerConfig>>>();
+assert<Equals<A.BgpPeerState, z.infer<typeof V.BgpPeerState>>>();
+assert<Equals<A.BgpPeerStatus, z.infer<typeof V.BgpPeerStatus>>>();
 assert<Equals<A.BinRangedouble, z.infer<typeof V.BinRangedouble>>>();
+assert<Equals<A.BinRangefloat, z.infer<typeof V.BinRangefloat>>>();
+assert<Equals<A.BinRangeint16, z.infer<typeof V.BinRangeint16>>>();
+assert<Equals<A.BinRangeint32, z.infer<typeof V.BinRangeint32>>>();
 assert<Equals<A.BinRangeint64, z.infer<typeof V.BinRangeint64>>>();
+assert<Equals<A.BinRangeint8, z.infer<typeof V.BinRangeint8>>>();
+assert<Equals<A.BinRangeuint16, z.infer<typeof V.BinRangeuint16>>>();
+assert<Equals<A.BinRangeuint32, z.infer<typeof V.BinRangeuint32>>>();
+assert<Equals<A.BinRangeuint64, z.infer<typeof V.BinRangeuint64>>>();
+assert<Equals<A.BinRangeuint8, z.infer<typeof V.BinRangeuint8>>>();
 assert<Equals<A.Bindouble, z.infer<typeof V.Bindouble>>>();
+assert<Equals<A.Binfloat, z.infer<typeof V.Binfloat>>>();
+assert<Equals<A.Binint16, z.infer<typeof V.Binint16>>>();
+assert<Equals<A.Binint32, z.infer<typeof V.Binint32>>>();
 assert<Equals<A.Binint64, z.infer<typeof V.Binint64>>>();
+assert<Equals<A.Binint8, z.infer<typeof V.Binint8>>>();
+assert<Equals<A.Binuint16, z.infer<typeof V.Binuint16>>>();
+assert<Equals<A.Binuint32, z.infer<typeof V.Binuint32>>>();
+assert<Equals<A.Binuint64, z.infer<typeof V.Binuint64>>>();
+assert<Equals<A.Binuint8, z.infer<typeof V.Binuint8>>>();
 assert<Equals<A.BlockSize, z.infer<typeof V.BlockSize>>>();
 assert<Equals<A.ByteCount, z.infer<typeof V.ByteCount>>>();
 assert<
@@ -54,10 +90,22 @@ assert<
   Equals<A.CertificateResultsPage, z.infer<typeof V.CertificateResultsPage>>
 >();
 assert<Equals<A.Cumulativedouble, z.infer<typeof V.Cumulativedouble>>>();
+assert<Equals<A.Cumulativefloat, z.infer<typeof V.Cumulativefloat>>>();
 assert<Equals<A.Cumulativeint64, z.infer<typeof V.Cumulativeint64>>>();
+assert<Equals<A.Cumulativeuint64, z.infer<typeof V.Cumulativeuint64>>>();
 assert<Equals<A.CurrentUser, z.infer<typeof V.CurrentUser>>>();
+assert<Equals<A.Histogramint8, z.infer<typeof V.Histogramint8>>>();
+assert<Equals<A.Histogramuint8, z.infer<typeof V.Histogramuint8>>>();
+assert<Equals<A.Histogramint16, z.infer<typeof V.Histogramint16>>>();
+assert<Equals<A.Histogramuint16, z.infer<typeof V.Histogramuint16>>>();
+assert<Equals<A.Histogramint32, z.infer<typeof V.Histogramint32>>>();
+assert<Equals<A.Histogramuint32, z.infer<typeof V.Histogramuint32>>>();
 assert<Equals<A.Histogramint64, z.infer<typeof V.Histogramint64>>>();
+assert<Equals<A.Histogramuint64, z.infer<typeof V.Histogramuint64>>>();
+assert<Equals<A.Histogramfloat, z.infer<typeof V.Histogramfloat>>>();
 assert<Equals<A.Histogramdouble, z.infer<typeof V.Histogramdouble>>>();
+assert<Equals<A.DatumType, z.infer<typeof V.DatumType>>>();
+assert<Equals<A.MissingDatum, z.infer<typeof V.MissingDatum>>>();
 assert<Equals<A.Datum, z.infer<typeof V.Datum>>>();
 assert<Equals<A.DerEncodedKeyPair, z.infer<typeof V.DerEncodedKeyPair>>>();
 assert<
@@ -162,7 +210,9 @@ assert<
 assert<Equals<A.IpPoolResultsPage, z.infer<typeof V.IpPoolResultsPage>>>();
 assert<Equals<A.IpPoolUpdate, z.infer<typeof V.IpPoolUpdate>>>();
 assert<Equals<A.L4PortRange, z.infer<typeof V.L4PortRange>>>();
+assert<Equals<A.LinkFec, z.infer<typeof V.LinkFec>>>();
 assert<Equals<A.LldpServiceConfig, z.infer<typeof V.LldpServiceConfig>>>();
+assert<Equals<A.LinkSpeed, z.infer<typeof V.LinkSpeed>>>();
 assert<Equals<A.LinkConfig, z.infer<typeof V.LinkConfig>>>();
 assert<Equals<A.LoopbackAddress, z.infer<typeof V.LoopbackAddress>>>();
 assert<
@@ -184,6 +234,8 @@ assert<Equals<A.PhysicalDisk, z.infer<typeof V.PhysicalDisk>>>();
 assert<
   Equals<A.PhysicalDiskResultsPage, z.infer<typeof V.PhysicalDiskResultsPage>>
 >();
+assert<Equals<A.PingStatus, z.infer<typeof V.PingStatus>>>();
+assert<Equals<A.Ping, z.infer<typeof V.Ping>>>();
 assert<Equals<A.Project, z.infer<typeof V.Project>>>();
 assert<Equals<A.ProjectCreate, z.infer<typeof V.ProjectCreate>>>();
 assert<Equals<A.ProjectResultsPage, z.infer<typeof V.ProjectResultsPage>>>();
@@ -203,15 +255,6 @@ assert<Equals<A.Role, z.infer<typeof V.Role>>>();
 assert<Equals<A.RoleResultsPage, z.infer<typeof V.RoleResultsPage>>>();
 assert<Equals<A.Route, z.infer<typeof V.Route>>>();
 assert<Equals<A.RouteConfig, z.infer<typeof V.RouteConfig>>>();
-assert<Equals<A.RouteDestination, z.infer<typeof V.RouteDestination>>>();
-assert<Equals<A.RouteTarget, z.infer<typeof V.RouteTarget>>>();
-assert<Equals<A.RouterRouteKind, z.infer<typeof V.RouterRouteKind>>>();
-assert<Equals<A.RouterRoute, z.infer<typeof V.RouterRoute>>>();
-assert<Equals<A.RouterRouteCreate, z.infer<typeof V.RouterRouteCreate>>>();
-assert<
-  Equals<A.RouterRouteResultsPage, z.infer<typeof V.RouterRouteResultsPage>>
->();
-assert<Equals<A.RouterRouteUpdate, z.infer<typeof V.RouterRouteUpdate>>>();
 assert<
   Equals<A.SamlIdentityProvider, z.infer<typeof V.SamlIdentityProvider>>
 >();
@@ -230,10 +273,20 @@ assert<
   Equals<A.SiloRoleRoleAssignment, z.infer<typeof V.SiloRoleRoleAssignment>>
 >();
 assert<Equals<A.SiloRolePolicy, z.infer<typeof V.SiloRolePolicy>>>();
+assert<Equals<A.SledProvisionState, z.infer<typeof V.SledProvisionState>>>();
 assert<Equals<A.Sled, z.infer<typeof V.Sled>>>();
 assert<Equals<A.SledInstance, z.infer<typeof V.SledInstance>>>();
 assert<
   Equals<A.SledInstanceResultsPage, z.infer<typeof V.SledInstanceResultsPage>>
+>();
+assert<
+  Equals<A.SledProvisionStateParams, z.infer<typeof V.SledProvisionStateParams>>
+>();
+assert<
+  Equals<
+    A.SledProvisionStateResponse,
+    z.infer<typeof V.SledProvisionStateResponse>
+  >
 >();
 assert<Equals<A.SledResultsPage, z.infer<typeof V.SledResultsPage>>>();
 assert<Equals<A.SnapshotState, z.infer<typeof V.SnapshotState>>>();
@@ -292,6 +345,7 @@ assert<
   Equals<A.SwitchPortSettingsView, z.infer<typeof V.SwitchPortSettingsView>>
 >();
 assert<Equals<A.SwitchResultsPage, z.infer<typeof V.SwitchResultsPage>>>();
+assert<Equals<A.UninitializedSled, z.infer<typeof V.UninitializedSled>>>();
 assert<Equals<A.User, z.infer<typeof V.User>>>();
 assert<Equals<A.UserBuiltin, z.infer<typeof V.UserBuiltin>>>();
 assert<
@@ -345,13 +399,6 @@ assert<
 >();
 assert<Equals<A.VpcFirewallRules, z.infer<typeof V.VpcFirewallRules>>>();
 assert<Equals<A.VpcResultsPage, z.infer<typeof V.VpcResultsPage>>>();
-assert<Equals<A.VpcRouterKind, z.infer<typeof V.VpcRouterKind>>>();
-assert<Equals<A.VpcRouter, z.infer<typeof V.VpcRouter>>>();
-assert<Equals<A.VpcRouterCreate, z.infer<typeof V.VpcRouterCreate>>>();
-assert<
-  Equals<A.VpcRouterResultsPage, z.infer<typeof V.VpcRouterResultsPage>>
->();
-assert<Equals<A.VpcRouterUpdate, z.infer<typeof V.VpcRouterUpdate>>>();
 assert<Equals<A.VpcSubnet, z.infer<typeof V.VpcSubnet>>>();
 assert<Equals<A.VpcSubnetCreate, z.infer<typeof V.VpcSubnetCreate>>>();
 assert<

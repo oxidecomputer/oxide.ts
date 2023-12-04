@@ -420,6 +420,11 @@ export interface MSWHandlers {
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<StatusCode>;
+  /** `GET /v1/ping` */
+  ping: (params: {
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Ping>>;
   /** `GET /v1/policy` */
   policyView: (params: {
     req: Request;
@@ -526,6 +531,12 @@ export interface MSWHandlers {
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<HandlerResult<Api.SledResultsPage>>;
+  /** `POST /v1/system/hardware/sleds` */
+  addSledToInitializedRack: (params: {
+    body: Json<Api.UninitializedSled>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/hardware/sleds/:sledId` */
   sledView: (params: {
     path: Api.SledViewPathParams;
@@ -546,6 +557,13 @@ export interface MSWHandlers {
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<HandlerResult<Api.SledInstanceResultsPage>>;
+  /** `PUT /v1/system/hardware/sleds/:sledId/provision-state` */
+  sledSetProvisionState: (params: {
+    path: Api.SledSetProvisionStatePathParams;
+    body: Json<Api.SledProvisionStateParams>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.SledProvisionStateResponse>>;
   /** `GET /v1/system/hardware/switch-port` */
   networkingSwitchPortList: (params: {
     query: Api.NetworkingSwitchPortListQueryParams;
@@ -579,6 +597,11 @@ export interface MSWHandlers {
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<HandlerResult<Api.Switch>>;
+  /** `GET /v1/system/hardware/uninitialized-sleds` */
+  uninitializedSledList: (params: {
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/identity-providers` */
   siloIdentityProviderList: (params: {
     query: Api.SiloIdentityProviderListQueryParams;
@@ -728,6 +751,53 @@ export interface MSWHandlers {
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<HandlerResult<Api.AddressLotBlockResultsPage>>;
+  /** `GET /v1/system/networking/bgp` */
+  networkingBgpConfigList: (params: {
+    query: Api.NetworkingBgpConfigListQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.BgpConfigResultsPage>>;
+  /** `POST /v1/system/networking/bgp` */
+  networkingBgpConfigCreate: (params: {
+    body: Json<Api.BgpConfigCreate>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.BgpConfig>>;
+  /** `DELETE /v1/system/networking/bgp` */
+  networkingBgpConfigDelete: (params: {
+    query: Api.NetworkingBgpConfigDeleteQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
+  /** `GET /v1/system/networking/bgp-announce` */
+  networkingBgpAnnounceSetList: (params: {
+    query: Api.NetworkingBgpAnnounceSetListQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
+  /** `POST /v1/system/networking/bgp-announce` */
+  networkingBgpAnnounceSetCreate: (params: {
+    body: Json<Api.BgpAnnounceSetCreate>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.BgpAnnounceSet>>;
+  /** `DELETE /v1/system/networking/bgp-announce` */
+  networkingBgpAnnounceSetDelete: (params: {
+    query: Api.NetworkingBgpAnnounceSetDeleteQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
+  /** `GET /v1/system/networking/bgp-routes-ipv4` */
+  networkingBgpImportedRoutesIpv4: (params: {
+    query: Api.NetworkingBgpImportedRoutesIpv4QueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
+  /** `GET /v1/system/networking/bgp-status` */
+  networkingBgpStatus: (params: {
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `GET /v1/system/networking/loopback-address` */
   networkingLoopbackAddressList: (params: {
     query: Api.NetworkingLoopbackAddressListQueryParams;
@@ -874,76 +944,6 @@ export interface MSWHandlers {
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<HandlerResult<Api.VpcFirewallRules>>;
-  /** `GET /v1/vpc-router-routes` */
-  vpcRouterRouteList: (params: {
-    query: Api.VpcRouterRouteListQueryParams;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.RouterRouteResultsPage>>;
-  /** `POST /v1/vpc-router-routes` */
-  vpcRouterRouteCreate: (params: {
-    query: Api.VpcRouterRouteCreateQueryParams;
-    body: Json<Api.RouterRouteCreate>;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.RouterRoute>>;
-  /** `GET /v1/vpc-router-routes/:route` */
-  vpcRouterRouteView: (params: {
-    path: Api.VpcRouterRouteViewPathParams;
-    query: Api.VpcRouterRouteViewQueryParams;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.RouterRoute>>;
-  /** `PUT /v1/vpc-router-routes/:route` */
-  vpcRouterRouteUpdate: (params: {
-    path: Api.VpcRouterRouteUpdatePathParams;
-    query: Api.VpcRouterRouteUpdateQueryParams;
-    body: Json<Api.RouterRouteUpdate>;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.RouterRoute>>;
-  /** `DELETE /v1/vpc-router-routes/:route` */
-  vpcRouterRouteDelete: (params: {
-    path: Api.VpcRouterRouteDeletePathParams;
-    query: Api.VpcRouterRouteDeleteQueryParams;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<StatusCode>;
-  /** `GET /v1/vpc-routers` */
-  vpcRouterList: (params: {
-    query: Api.VpcRouterListQueryParams;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.VpcRouterResultsPage>>;
-  /** `POST /v1/vpc-routers` */
-  vpcRouterCreate: (params: {
-    query: Api.VpcRouterCreateQueryParams;
-    body: Json<Api.VpcRouterCreate>;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.VpcRouter>>;
-  /** `GET /v1/vpc-routers/:router` */
-  vpcRouterView: (params: {
-    path: Api.VpcRouterViewPathParams;
-    query: Api.VpcRouterViewQueryParams;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.VpcRouter>>;
-  /** `PUT /v1/vpc-routers/:router` */
-  vpcRouterUpdate: (params: {
-    path: Api.VpcRouterUpdatePathParams;
-    query: Api.VpcRouterUpdateQueryParams;
-    body: Json<Api.VpcRouterUpdate>;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<HandlerResult<Api.VpcRouter>>;
-  /** `DELETE /v1/vpc-routers/:router` */
-  vpcRouterDelete: (params: {
-    path: Api.VpcRouterDeletePathParams;
-    query: Api.VpcRouterDeleteQueryParams;
-    req: Request;
-    cookies: Record<string, string>;
-  }) => Promisable<StatusCode>;
   /** `GET /v1/vpc-subnets` */
   vpcSubnetList: (params: {
     query: Api.VpcSubnetListQueryParams;
@@ -1446,6 +1446,7 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
         null
       )
     ),
+    http.get("/v1/ping", handler(handlers["ping"], null, null)),
     http.get("/v1/policy", handler(handlers["policyView"], null, null)),
     http.put(
       "/v1/policy",
@@ -1527,6 +1528,14 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
       "/v1/system/hardware/sleds",
       handler(handlers["sledList"], schema.SledListParams, null)
     ),
+    http.post(
+      "/v1/system/hardware/sleds",
+      handler(
+        handlers["addSledToInitializedRack"],
+        null,
+        schema.UninitializedSled
+      )
+    ),
     http.get(
       "/v1/system/hardware/sleds/:sledId",
       handler(handlers["sledView"], schema.SledViewParams, null)
@@ -1542,6 +1551,14 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
     http.get(
       "/v1/system/hardware/sleds/:sledId/instances",
       handler(handlers["sledInstanceList"], schema.SledInstanceListParams, null)
+    ),
+    http.put(
+      "/v1/system/hardware/sleds/:sledId/provision-state",
+      handler(
+        handlers["sledSetProvisionState"],
+        schema.SledSetProvisionStateParams,
+        schema.SledProvisionStateParams
+      )
     ),
     http.get(
       "/v1/system/hardware/switch-port",
@@ -1574,6 +1591,10 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
     http.get(
       "/v1/system/hardware/switches/:switchId",
       handler(handlers["switchView"], schema.SwitchViewParams, null)
+    ),
+    http.get(
+      "/v1/system/hardware/uninitialized-sleds",
+      handler(handlers["uninitializedSledList"], null, null)
     ),
     http.get(
       "/v1/system/identity-providers",
@@ -1724,6 +1745,66 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
       )
     ),
     http.get(
+      "/v1/system/networking/bgp",
+      handler(
+        handlers["networkingBgpConfigList"],
+        schema.NetworkingBgpConfigListParams,
+        null
+      )
+    ),
+    http.post(
+      "/v1/system/networking/bgp",
+      handler(
+        handlers["networkingBgpConfigCreate"],
+        null,
+        schema.BgpConfigCreate
+      )
+    ),
+    http.delete(
+      "/v1/system/networking/bgp",
+      handler(
+        handlers["networkingBgpConfigDelete"],
+        schema.NetworkingBgpConfigDeleteParams,
+        null
+      )
+    ),
+    http.get(
+      "/v1/system/networking/bgp-announce",
+      handler(
+        handlers["networkingBgpAnnounceSetList"],
+        schema.NetworkingBgpAnnounceSetListParams,
+        null
+      )
+    ),
+    http.post(
+      "/v1/system/networking/bgp-announce",
+      handler(
+        handlers["networkingBgpAnnounceSetCreate"],
+        null,
+        schema.BgpAnnounceSetCreate
+      )
+    ),
+    http.delete(
+      "/v1/system/networking/bgp-announce",
+      handler(
+        handlers["networkingBgpAnnounceSetDelete"],
+        schema.NetworkingBgpAnnounceSetDeleteParams,
+        null
+      )
+    ),
+    http.get(
+      "/v1/system/networking/bgp-routes-ipv4",
+      handler(
+        handlers["networkingBgpImportedRoutesIpv4"],
+        schema.NetworkingBgpImportedRoutesIpv4Params,
+        null
+      )
+    ),
+    http.get(
+      "/v1/system/networking/bgp-status",
+      handler(handlers["networkingBgpStatus"], null, null)
+    ),
+    http.get(
       "/v1/system/networking/loopback-address",
       handler(
         handlers["networkingLoopbackAddressList"],
@@ -1858,74 +1939,6 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
         schema.VpcFirewallRulesUpdateParams,
         schema.VpcFirewallRuleUpdateParams
       )
-    ),
-    http.get(
-      "/v1/vpc-router-routes",
-      handler(
-        handlers["vpcRouterRouteList"],
-        schema.VpcRouterRouteListParams,
-        null
-      )
-    ),
-    http.post(
-      "/v1/vpc-router-routes",
-      handler(
-        handlers["vpcRouterRouteCreate"],
-        schema.VpcRouterRouteCreateParams,
-        schema.RouterRouteCreate
-      )
-    ),
-    http.get(
-      "/v1/vpc-router-routes/:route",
-      handler(
-        handlers["vpcRouterRouteView"],
-        schema.VpcRouterRouteViewParams,
-        null
-      )
-    ),
-    http.put(
-      "/v1/vpc-router-routes/:route",
-      handler(
-        handlers["vpcRouterRouteUpdate"],
-        schema.VpcRouterRouteUpdateParams,
-        schema.RouterRouteUpdate
-      )
-    ),
-    http.delete(
-      "/v1/vpc-router-routes/:route",
-      handler(
-        handlers["vpcRouterRouteDelete"],
-        schema.VpcRouterRouteDeleteParams,
-        null
-      )
-    ),
-    http.get(
-      "/v1/vpc-routers",
-      handler(handlers["vpcRouterList"], schema.VpcRouterListParams, null)
-    ),
-    http.post(
-      "/v1/vpc-routers",
-      handler(
-        handlers["vpcRouterCreate"],
-        schema.VpcRouterCreateParams,
-        schema.VpcRouterCreate
-      )
-    ),
-    http.get(
-      "/v1/vpc-routers/:router",
-      handler(handlers["vpcRouterView"], schema.VpcRouterViewParams, null)
-    ),
-    http.put(
-      "/v1/vpc-routers/:router",
-      handler(
-        handlers["vpcRouterUpdate"],
-        schema.VpcRouterUpdateParams,
-        schema.VpcRouterUpdate
-      )
-    ),
-    http.delete(
-      "/v1/vpc-routers/:router",
-      handler(handlers["vpcRouterDelete"], schema.VpcRouterDeleteParams, null)
     ),
     http.get(
       "/v1/vpc-subnets",

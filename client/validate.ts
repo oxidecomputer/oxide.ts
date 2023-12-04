@@ -186,15 +186,161 @@ export const Baseboard = z.preprocess(
 );
 
 /**
+ * Represents a BGP announce set by id. The id can be used with other API calls to view and manage the announce set.
+ */
+export const BgpAnnounceSet = z.preprocess(
+  processResponseBody,
+  z.object({
+    description: z.string(),
+    id: z.string().uuid(),
+    name: Name,
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * A BGP announcement tied to a particular address lot block.
+ */
+export const BgpAnnouncementCreate = z.preprocess(
+  processResponseBody,
+  z.object({ addressLotBlock: NameOrId, network: IpNet })
+);
+
+/**
+ * Parameters for creating a named set of BGP announcements.
+ */
+export const BgpAnnounceSetCreate = z.preprocess(
+  processResponseBody,
+  z.object({
+    announcement: BgpAnnouncementCreate.array(),
+    description: z.string(),
+    name: Name,
+  })
+);
+
+/**
+ * A BGP announcement tied to an address lot block.
+ */
+export const BgpAnnouncement = z.preprocess(
+  processResponseBody,
+  z.object({
+    addressLotBlockId: z.string().uuid(),
+    announceSetId: z.string().uuid(),
+    network: IpNet,
+  })
+);
+
+/**
+ * A base BGP configuration.
+ */
+export const BgpConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    asn: z.number().min(0).max(4294967295),
+    description: z.string(),
+    id: z.string().uuid(),
+    name: Name,
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+    vrf: z.string().optional(),
+  })
+);
+
+/**
+ * Parameters for creating a BGP configuration. This includes and autonomous system number (ASN) and a virtual routing and forwarding (VRF) identifier.
+ */
+export const BgpConfigCreate = z.preprocess(
+  processResponseBody,
+  z.object({
+    asn: z.number().min(0).max(4294967295),
+    bgpAnnounceSetId: NameOrId,
+    description: z.string(),
+    name: Name,
+    vrf: Name.optional(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const BgpConfigResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: BgpConfig.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * Identifies switch physical location
+ */
+export const SwitchLocation = z.preprocess(
+  processResponseBody,
+  z.enum(["switch0", "switch1"])
+);
+
+/**
+ * A route imported from a BGP peer.
+ */
+export const BgpImportedRouteIpv4 = z.preprocess(
+  processResponseBody,
+  z.object({
+    id: z.number().min(0).max(4294967295),
+    nexthop: z.string(),
+    prefix: Ipv4Net,
+    switch: SwitchLocation,
+  })
+);
+
+/**
  * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
  */
-export const BgpPeerConfig = z.preprocess(
+export const BgpPeer = z.preprocess(
   processResponseBody,
   z.object({
     addr: z.string().ip(),
     bgpAnnounceSet: NameOrId,
     bgpConfig: NameOrId,
+    connectRetry: z.number().min(0).max(4294967295),
+    delayOpen: z.number().min(0).max(4294967295),
+    holdTime: z.number().min(0).max(4294967295),
+    idleHoldTime: z.number().min(0).max(4294967295),
     interfaceName: z.string(),
+    keepalive: z.number().min(0).max(4294967295),
+  })
+);
+
+export const BgpPeerConfig = z.preprocess(
+  processResponseBody,
+  z.object({ peers: BgpPeer.array() })
+);
+
+/**
+ * The current state of a BGP peer.
+ */
+export const BgpPeerState = z.preprocess(
+  processResponseBody,
+  z.enum([
+    "idle",
+    "connect",
+    "active",
+    "open_sent",
+    "open_confirm",
+    "session_setup",
+    "established",
+  ])
+);
+
+/**
+ * The current status of a BGP peer.
+ */
+export const BgpPeerStatus = z.preprocess(
+  processResponseBody,
+  z.object({
+    addr: z.string().ip(),
+    localAsn: z.number().min(0).max(4294967295),
+    remoteAsn: z.number().min(0).max(4294967295),
+    state: BgpPeerState,
+    stateDurationMillis: z.number().min(0),
+    switch: SwitchLocation,
   })
 );
 
@@ -217,12 +363,182 @@ export const BinRangedouble = z.preprocess(
  *
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
+export const BinRangefloat = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({ end: z.number(), type: z.enum(["range_to"]) }),
+    z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
+    z.object({ start: z.number(), type: z.enum(["range_from"]) }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export const BinRangeint16 = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({
+      end: z.number().min(-32767).max(32767),
+      type: z.enum(["range_to"]),
+    }),
+    z.object({
+      end: z.number().min(-32767).max(32767),
+      start: z.number().min(-32767).max(32767),
+      type: z.enum(["range"]),
+    }),
+    z.object({
+      start: z.number().min(-32767).max(32767),
+      type: z.enum(["range_from"]),
+    }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export const BinRangeint32 = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({
+      end: z.number().min(-2147483647).max(2147483647),
+      type: z.enum(["range_to"]),
+    }),
+    z.object({
+      end: z.number().min(-2147483647).max(2147483647),
+      start: z.number().min(-2147483647).max(2147483647),
+      type: z.enum(["range"]),
+    }),
+    z.object({
+      start: z.number().min(-2147483647).max(2147483647),
+      type: z.enum(["range_from"]),
+    }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
 export const BinRangeint64 = z.preprocess(
   processResponseBody,
   z.union([
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
     z.object({ start: z.number(), type: z.enum(["range_from"]) }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export const BinRangeint8 = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({
+      end: z.number().min(-127).max(127),
+      type: z.enum(["range_to"]),
+    }),
+    z.object({
+      end: z.number().min(-127).max(127),
+      start: z.number().min(-127).max(127),
+      type: z.enum(["range"]),
+    }),
+    z.object({
+      start: z.number().min(-127).max(127),
+      type: z.enum(["range_from"]),
+    }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export const BinRangeuint16 = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({ end: z.number().min(0).max(65535), type: z.enum(["range_to"]) }),
+    z.object({
+      end: z.number().min(0).max(65535),
+      start: z.number().min(0).max(65535),
+      type: z.enum(["range"]),
+    }),
+    z.object({
+      start: z.number().min(0).max(65535),
+      type: z.enum(["range_from"]),
+    }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export const BinRangeuint32 = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({
+      end: z.number().min(0).max(4294967295),
+      type: z.enum(["range_to"]),
+    }),
+    z.object({
+      end: z.number().min(0).max(4294967295),
+      start: z.number().min(0).max(4294967295),
+      type: z.enum(["range"]),
+    }),
+    z.object({
+      start: z.number().min(0).max(4294967295),
+      type: z.enum(["range_from"]),
+    }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export const BinRangeuint64 = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({ end: z.number().min(0), type: z.enum(["range_to"]) }),
+    z.object({
+      end: z.number().min(0),
+      start: z.number().min(0),
+      type: z.enum(["range"]),
+    }),
+    z.object({ start: z.number().min(0), type: z.enum(["range_from"]) }),
+  ])
+);
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export const BinRangeuint8 = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({ end: z.number().min(0).max(255), type: z.enum(["range_to"]) }),
+    z.object({
+      end: z.number().min(0).max(255),
+      start: z.number().min(0).max(255),
+      type: z.enum(["range"]),
+    }),
+    z.object({
+      start: z.number().min(0).max(255),
+      type: z.enum(["range_from"]),
+    }),
   ])
 );
 
@@ -237,9 +553,73 @@ export const Bindouble = z.preprocess(
 /**
  * Type storing bin edges and a count of samples within it.
  */
+export const Binfloat = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangefloat })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export const Binint16 = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangeint16 })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export const Binint32 = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangeint32 })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
 export const Binint64 = z.preprocess(
   processResponseBody,
   z.object({ count: z.number().min(0), range: BinRangeint64 })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export const Binint8 = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangeint8 })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export const Binuint16 = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangeuint16 })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export const Binuint32 = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangeuint32 })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export const Binuint64 = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangeuint64 })
+);
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export const Binuint8 = z.preprocess(
+  processResponseBody,
+  z.object({ count: z.number().min(0), range: BinRangeuint8 })
 );
 
 /**
@@ -311,9 +691,25 @@ export const Cumulativedouble = z.preprocess(
 /**
  * A cumulative or counter data type.
  */
+export const Cumulativefloat = z.preprocess(
+  processResponseBody,
+  z.object({ startTime: z.coerce.date(), value: z.number() })
+);
+
+/**
+ * A cumulative or counter data type.
+ */
 export const Cumulativeint64 = z.preprocess(
   processResponseBody,
   z.object({ startTime: z.coerce.date(), value: z.number() })
+);
+
+/**
+ * A cumulative or counter data type.
+ */
+export const Cumulativeuint64 = z.preprocess(
+  processResponseBody,
+  z.object({ startTime: z.coerce.date(), value: z.number().min(0) })
 );
 
 /**
@@ -326,6 +722,102 @@ export const CurrentUser = z.preprocess(
     id: z.string().uuid(),
     siloId: z.string().uuid(),
     siloName: Name,
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export const Histogramint8 = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binint8.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export const Histogramuint8 = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binuint8.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export const Histogramint16 = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binint16.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export const Histogramuint16 = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binuint16.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export const Histogramint32 = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binint32.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export const Histogramuint32 = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binuint32.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
   })
 );
 
@@ -352,6 +844,38 @@ export const Histogramint64 = z.preprocess(
  *
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
+export const Histogramuint64 = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binuint64.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export const Histogramfloat = z.preprocess(
+  processResponseBody,
+  z.object({
+    bins: Binfloat.array(),
+    nSamples: z.number().min(0),
+    startTime: z.coerce.date(),
+  })
+);
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
 export const Histogramdouble = z.preprocess(
   processResponseBody,
   z.object({
@@ -362,13 +886,71 @@ export const Histogramdouble = z.preprocess(
 );
 
 /**
+ * The type of an individual datum of a metric.
+ */
+export const DatumType = z.preprocess(
+  processResponseBody,
+  z.enum([
+    "bool",
+    "i8",
+    "u8",
+    "i16",
+    "u16",
+    "i32",
+    "u32",
+    "i64",
+    "u64",
+    "f32",
+    "f64",
+    "string",
+    "bytes",
+    "cumulative_i64",
+    "cumulative_u64",
+    "cumulative_f32",
+    "cumulative_f64",
+    "histogram_i8",
+    "histogram_u8",
+    "histogram_i16",
+    "histogram_u16",
+    "histogram_i32",
+    "histogram_u32",
+    "histogram_i64",
+    "histogram_u64",
+    "histogram_f32",
+    "histogram_f64",
+  ])
+);
+
+export const MissingDatum = z.preprocess(
+  processResponseBody,
+  z.object({ datumType: DatumType, startTime: z.coerce.date().optional() })
+);
+
+/**
  * A `Datum` is a single sampled data point from a metric.
  */
 export const Datum = z.preprocess(
   processResponseBody,
   z.union([
     z.object({ datum: SafeBoolean, type: z.enum(["bool"]) }),
+    z.object({ datum: z.number().min(-127).max(127), type: z.enum(["i8"]) }),
+    z.object({ datum: z.number().min(0).max(255), type: z.enum(["u8"]) }),
+    z.object({
+      datum: z.number().min(-32767).max(32767),
+      type: z.enum(["i16"]),
+    }),
+    z.object({ datum: z.number().min(0).max(65535), type: z.enum(["u16"]) }),
+    z.object({
+      datum: z.number().min(-2147483647).max(2147483647),
+      type: z.enum(["i32"]),
+    }),
+    z.object({
+      datum: z.number().min(0).max(4294967295),
+      type: z.enum(["u32"]),
+    }),
     z.object({ datum: z.number(), type: z.enum(["i64"]) }),
+    z.object({ datum: z.number().min(0), type: z.enum(["u64"]) }),
+    z.object({ datum: z.number(), type: z.enum(["f32"]) }),
     z.object({ datum: z.number(), type: z.enum(["f64"]) }),
     z.object({ datum: z.string(), type: z.enum(["string"]) }),
     z.object({
@@ -376,9 +958,20 @@ export const Datum = z.preprocess(
       type: z.enum(["bytes"]),
     }),
     z.object({ datum: Cumulativeint64, type: z.enum(["cumulative_i64"]) }),
+    z.object({ datum: Cumulativeuint64, type: z.enum(["cumulative_u64"]) }),
+    z.object({ datum: Cumulativefloat, type: z.enum(["cumulative_f32"]) }),
     z.object({ datum: Cumulativedouble, type: z.enum(["cumulative_f64"]) }),
+    z.object({ datum: Histogramint8, type: z.enum(["histogram_i8"]) }),
+    z.object({ datum: Histogramuint8, type: z.enum(["histogram_u8"]) }),
+    z.object({ datum: Histogramint16, type: z.enum(["histogram_i16"]) }),
+    z.object({ datum: Histogramuint16, type: z.enum(["histogram_u16"]) }),
+    z.object({ datum: Histogramint32, type: z.enum(["histogram_i32"]) }),
+    z.object({ datum: Histogramuint32, type: z.enum(["histogram_u32"]) }),
     z.object({ datum: Histogramint64, type: z.enum(["histogram_i64"]) }),
+    z.object({ datum: Histogramuint64, type: z.enum(["histogram_u64"]) }),
+    z.object({ datum: Histogramfloat, type: z.enum(["histogram_f32"]) }),
     z.object({ datum: Histogramdouble, type: z.enum(["histogram_f64"]) }),
+    z.object({ datum: MissingDatum, type: z.enum(["missing"]) }),
   ])
 );
 
@@ -922,7 +1515,9 @@ export const IpPool = z.preprocess(
   z.object({
     description: z.string(),
     id: z.string().uuid(),
+    isDefault: SafeBoolean,
     name: Name,
+    siloId: z.string().uuid().optional(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
   })
@@ -933,7 +1528,12 @@ export const IpPool = z.preprocess(
  */
 export const IpPoolCreate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string(), name: Name })
+  z.object({
+    description: z.string(),
+    isDefault: SafeBoolean.default(false).optional(),
+    name: Name,
+    silo: NameOrId.optional(),
+  })
 );
 
 /**
@@ -1010,6 +1610,14 @@ export const L4PortRange = z.preprocess(
 );
 
 /**
+ * The forward error correction mode of a link.
+ */
+export const LinkFec = z.preprocess(
+  processResponseBody,
+  z.enum(["firecode", "none", "rs"])
+);
+
+/**
  * The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
  */
 export const LldpServiceConfig = z.preprocess(
@@ -1018,11 +1626,35 @@ export const LldpServiceConfig = z.preprocess(
 );
 
 /**
+ * The speed of a link.
+ */
+export const LinkSpeed = z.preprocess(
+  processResponseBody,
+  z.enum([
+    "speed0_g",
+    "speed1_g",
+    "speed10_g",
+    "speed25_g",
+    "speed40_g",
+    "speed50_g",
+    "speed100_g",
+    "speed200_g",
+    "speed400_g",
+  ])
+);
+
+/**
  * Switch link configuration.
  */
 export const LinkConfig = z.preprocess(
   processResponseBody,
-  z.object({ lldp: LldpServiceConfig, mtu: z.number().min(0).max(65535) })
+  z.object({
+    autoneg: SafeBoolean,
+    fec: LinkFec,
+    lldp: LldpServiceConfig,
+    mtu: z.number().min(0).max(65535),
+    speed: LinkSpeed,
+  })
 );
 
 /**
@@ -1118,6 +1750,13 @@ export const PhysicalDisk = z.preprocess(
 export const PhysicalDiskResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: PhysicalDisk.array(), nextPage: z.string().optional() })
+);
+
+export const PingStatus = z.preprocess(processResponseBody, z.enum(["ok"]));
+
+export const Ping = z.preprocess(
+  processResponseBody,
+  z.object({ status: PingStatus })
 );
 
 /**
@@ -1257,97 +1896,6 @@ export const RouteConfig = z.preprocess(
 );
 
 /**
- * A `RouteDestination` is used to match traffic with a routing rule, on the destination of that traffic.
- *
- * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
- */
-export const RouteDestination = z.preprocess(
-  processResponseBody,
-  z.union([
-    z.object({ type: z.enum(["ip"]), value: z.string().ip() }),
-    z.object({ type: z.enum(["ip_net"]), value: IpNet }),
-    z.object({ type: z.enum(["vpc"]), value: Name }),
-    z.object({ type: z.enum(["subnet"]), value: Name }),
-  ])
-);
-
-/**
- * A `RouteTarget` describes the possible locations that traffic matching a route destination can be sent.
- */
-export const RouteTarget = z.preprocess(
-  processResponseBody,
-  z.union([
-    z.object({ type: z.enum(["ip"]), value: z.string().ip() }),
-    z.object({ type: z.enum(["vpc"]), value: Name }),
-    z.object({ type: z.enum(["subnet"]), value: Name }),
-    z.object({ type: z.enum(["instance"]), value: Name }),
-    z.object({ type: z.enum(["internet_gateway"]), value: Name }),
-  ])
-);
-
-/**
- * The kind of a `RouterRoute`
- *
- * The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
- */
-export const RouterRouteKind = z.preprocess(
-  processResponseBody,
-  z.enum(["default", "vpc_subnet", "vpc_peering", "custom"])
-);
-
-/**
- * A route defines a rule that governs where traffic should be sent based on its destination.
- */
-export const RouterRoute = z.preprocess(
-  processResponseBody,
-  z.object({
-    description: z.string(),
-    destination: RouteDestination,
-    id: z.string().uuid(),
-    kind: RouterRouteKind,
-    name: Name,
-    target: RouteTarget,
-    timeCreated: z.coerce.date(),
-    timeModified: z.coerce.date(),
-    vpcRouterId: z.string().uuid(),
-  })
-);
-
-/**
- * Create-time parameters for a `RouterRoute`
- */
-export const RouterRouteCreate = z.preprocess(
-  processResponseBody,
-  z.object({
-    description: z.string(),
-    destination: RouteDestination,
-    name: Name,
-    target: RouteTarget,
-  })
-);
-
-/**
- * A single page of results
- */
-export const RouterRouteResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({ items: RouterRoute.array(), nextPage: z.string().optional() })
-);
-
-/**
- * Updateable properties of a `RouterRoute`
- */
-export const RouterRouteUpdate = z.preprocess(
-  processResponseBody,
-  z.object({
-    description: z.string().optional(),
-    destination: RouteDestination,
-    name: Name.optional(),
-    target: RouteTarget,
-  })
-);
-
-/**
  * Identity-related metadata that's included in nearly all public API objects
  */
 export const SamlIdentityProvider = z.preprocess(
@@ -1473,6 +2021,16 @@ export const SiloRolePolicy = z.preprocess(
 );
 
 /**
+ * The provision state of a sled.
+ *
+ * This controls whether new resources are going to be provisioned on this sled.
+ */
+export const SledProvisionState = z.preprocess(
+  processResponseBody,
+  z.enum(["provisionable", "non_provisionable", "unknown"])
+);
+
+/**
  * An operator's view of a Sled.
  */
 export const Sled = z.preprocess(
@@ -1480,6 +2038,7 @@ export const Sled = z.preprocess(
   z.object({
     baseboard: Baseboard,
     id: z.string().uuid(),
+    provisionState: SledProvisionState,
     rackId: z.string().uuid(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
@@ -1514,6 +2073,22 @@ export const SledInstance = z.preprocess(
 export const SledInstanceResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: SledInstance.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * Parameters for `sled_set_provision_state`.
+ */
+export const SledProvisionStateParams = z.preprocess(
+  processResponseBody,
+  z.object({ state: SledProvisionState })
+);
+
+/**
+ * Response to `sled_set_provision_state`.
+ */
+export const SledProvisionStateResponse = z.preprocess(
+  processResponseBody,
+  z.object({ newState: SledProvisionState, oldState: SledProvisionState })
 );
 
 /**
@@ -1671,7 +2246,6 @@ export const SwitchPortBgpPeerConfig = z.preprocess(
   processResponseBody,
   z.object({
     addr: z.string().ip(),
-    bgpAnnounceSetId: z.string().uuid(),
     bgpConfigId: z.string().uuid(),
     interfaceName: z.string(),
     portSettingsId: z.string().uuid(),
@@ -1819,6 +2393,18 @@ export const SwitchPortSettingsView = z.preprocess(
 export const SwitchResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: Switch.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * A sled that has not been added to an initialized rack yet
+ */
+export const UninitializedSled = z.preprocess(
+  processResponseBody,
+  z.object({
+    baseboard: Baseboard,
+    cubby: z.number().min(0).max(65535),
+    rackId: z.string().uuid(),
+  })
 );
 
 /**
@@ -2062,51 +2648,6 @@ export const VpcFirewallRules = z.preprocess(
 export const VpcResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: Vpc.array(), nextPage: z.string().optional() })
-);
-
-export const VpcRouterKind = z.preprocess(
-  processResponseBody,
-  z.enum(["system", "custom"])
-);
-
-/**
- * A VPC router defines a series of rules that indicate where traffic should be sent depending on its destination.
- */
-export const VpcRouter = z.preprocess(
-  processResponseBody,
-  z.object({
-    description: z.string(),
-    id: z.string().uuid(),
-    kind: VpcRouterKind,
-    name: Name,
-    timeCreated: z.coerce.date(),
-    timeModified: z.coerce.date(),
-    vpcId: z.string().uuid(),
-  })
-);
-
-/**
- * Create-time parameters for a `VpcRouter`
- */
-export const VpcRouterCreate = z.preprocess(
-  processResponseBody,
-  z.object({ description: z.string(), name: Name })
-);
-
-/**
- * A single page of results
- */
-export const VpcRouterResultsPage = z.preprocess(
-  processResponseBody,
-  z.object({ items: VpcRouter.array(), nextPage: z.string().optional() })
-);
-
-/**
- * Updateable properties of a `VpcRouter`
- */
-export const VpcRouterUpdate = z.preprocess(
-  processResponseBody,
-  z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
 /**
@@ -2868,6 +3409,14 @@ export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
   })
 );
 
+export const PingParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
 export const PolicyViewParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3047,6 +3596,14 @@ export const SledListParams = z.preprocess(
   })
 );
 
+export const AddSledToInitializedRackParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
 export const SledViewParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3082,6 +3639,16 @@ export const SledInstanceListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
+  })
+);
+
+export const SledSetProvisionStateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      sledId: z.string().uuid(),
+    }),
+    query: z.object({}),
   })
 );
 
@@ -3142,6 +3709,14 @@ export const SwitchViewParams = z.preprocess(
     path: z.object({
       switchId: z.string().uuid(),
     }),
+    query: z.object({}),
+  })
+);
+
+export const UninitializedSledListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
     query: z.object({}),
   })
 );
@@ -3394,6 +3969,83 @@ export const NetworkingAddressLotBlockListParams = z.preprocess(
   })
 );
 
+export const NetworkingBgpConfigListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      nameOrId: NameOrId.optional(),
+      pageToken: z.string().optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const NetworkingBgpConfigCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingBgpConfigDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      nameOrId: NameOrId,
+    }),
+  })
+);
+
+export const NetworkingBgpAnnounceSetListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      nameOrId: NameOrId,
+    }),
+  })
+);
+
+export const NetworkingBgpAnnounceSetCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingBgpAnnounceSetDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      nameOrId: NameOrId,
+    }),
+  })
+);
+
+export const NetworkingBgpImportedRoutesIpv4Params = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      asn: z.number().min(0).max(4294967295),
+    }),
+  })
+);
+
+export const NetworkingBgpStatusParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
 export const NetworkingLoopbackAddressListParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3643,139 +4295,6 @@ export const VpcFirewallRulesUpdateParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
       vpc: NameOrId,
-    }),
-  })
-);
-
-export const VpcRouterRouteListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      router: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterRouteCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      project: NameOrId.optional(),
-      router: NameOrId,
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterRouteViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      route: NameOrId,
-    }),
-    query: z.object({
-      project: NameOrId.optional(),
-      router: NameOrId,
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterRouteUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      route: NameOrId,
-    }),
-    query: z.object({
-      project: NameOrId.optional(),
-      router: NameOrId.optional(),
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterRouteDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      route: NameOrId,
-    }),
-    query: z.object({
-      project: NameOrId.optional(),
-      router: NameOrId.optional(),
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      limit: z.number().min(1).max(4294967295).optional(),
-      pageToken: z.string().optional(),
-      project: NameOrId.optional(),
-      sortBy: NameOrIdSortMode.optional(),
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterCreateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
-    query: z.object({
-      project: NameOrId.optional(),
-      vpc: NameOrId,
-    }),
-  })
-);
-
-export const VpcRouterViewParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      router: NameOrId,
-    }),
-    query: z.object({
-      project: NameOrId.optional(),
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterUpdateParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      router: NameOrId,
-    }),
-    query: z.object({
-      project: NameOrId.optional(),
-      vpc: NameOrId.optional(),
-    }),
-  })
-);
-
-export const VpcRouterDeleteParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      router: NameOrId,
-    }),
-    query: z.object({
-      project: NameOrId.optional(),
-      vpc: NameOrId.optional(),
     }),
   })
 );
