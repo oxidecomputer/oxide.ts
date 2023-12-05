@@ -157,17 +157,180 @@ export type AddressLotResultsPage = {
 export type Baseboard = { part: string; revision: number; serial: string };
 
 /**
+ * Represents a BGP announce set by id. The id can be used with other API calls to view and manage the announce set.
+ */
+export type BgpAnnounceSet = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * A BGP announcement tied to a particular address lot block.
+ */
+export type BgpAnnouncementCreate = {
+  /** Address lot this announcement is drawn from. */
+  addressLotBlock: NameOrId;
+  /** The network being announced. */
+  network: IpNet;
+};
+
+/**
+ * Parameters for creating a named set of BGP announcements.
+ */
+export type BgpAnnounceSetCreate = {
+  /** The announcements in this set. */
+  announcement: BgpAnnouncementCreate[];
+  description: string;
+  name: Name;
+};
+
+/**
+ * A BGP announcement tied to an address lot block.
+ */
+export type BgpAnnouncement = {
+  /** The address block the IP network being announced is drawn from. */
+  addressLotBlockId: string;
+  /** The id of the set this announcement is a part of. */
+  announceSetId: string;
+  /** The IP network being announced. */
+  network: IpNet;
+};
+
+/**
+ * A base BGP configuration.
+ */
+export type BgpConfig = {
+  /** The autonomous system number of this BGP configuration. */
+  asn: number;
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  /** Optional virtual routing and forwarding identifier for this BGP configuration. */
+  vrf?: string;
+};
+
+/**
+ * Parameters for creating a BGP configuration. This includes and autonomous system number (ASN) and a virtual routing and forwarding (VRF) identifier.
+ */
+export type BgpConfigCreate = {
+  /** The autonomous system number of this BGP configuration. */
+  asn: number;
+  bgpAnnounceSetId: NameOrId;
+  description: string;
+  name: Name;
+  /** Optional virtual routing and forwarding identifier for this BGP configuration. */
+  vrf?: Name;
+};
+
+/**
+ * A single page of results
+ */
+export type BgpConfigResultsPage = {
+  /** list of items on this page of results */
+  items: BgpConfig[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Identifies switch physical location
+ */
+export type SwitchLocation =
+  /** Switch in upper slot */
+  | "switch0"
+  /** Switch in lower slot */
+  | "switch1";
+
+/**
+ * A route imported from a BGP peer.
+ */
+export type BgpImportedRouteIpv4 = {
+  /** BGP identifier of the originating router. */
+  id: number;
+  /** The nexthop the prefix is reachable through. */
+  nexthop: string;
+  /** The destination network prefix. */
+  prefix: Ipv4Net;
+  /** Switch the route is imported into. */
+  switch: SwitchLocation;
+};
+
+/**
  * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
  */
-export type BgpPeerConfig = {
+export type BgpPeer = {
   /** The address of the host to peer with. */
   addr: string;
   /** The set of announcements advertised by the peer. */
   bgpAnnounceSet: NameOrId;
   /** The global BGP configuration used for establishing a session with this peer. */
   bgpConfig: NameOrId;
+  /** How long to to wait between TCP connection retries (seconds). */
+  connectRetry: number;
+  /** How long to delay sending an open request after establishing a TCP session (seconds). */
+  delayOpen: number;
+  /** How long to hold peer connections between keppalives (seconds). */
+  holdTime: number;
+  /** How long to hold a peer in idle before attempting a new session (seconds). */
+  idleHoldTime: number;
   /** The name of interface to peer on. This is relative to the port configuration this BGP peer configuration is a part of. For example this value could be phy0 to refer to a primary physical interface. Or it could be vlan47 to refer to a VLAN interface. */
   interfaceName: string;
+  /** How often to send keepalive requests (seconds). */
+  keepalive: number;
+};
+
+export type BgpPeerConfig = { peers: BgpPeer[] };
+
+/**
+ * The current state of a BGP peer.
+ */
+export type BgpPeerState =
+  /** Initial state. Refuse all incomming BGP connections. No resources allocated to peer. */
+  | "idle"
+  /** Waiting for the TCP connection to be completed. */
+  | "connect"
+  /** Trying to acquire peer by listening for and accepting a TCP connection. */
+  | "active"
+  /** Waiting for open message from peer. */
+  | "open_sent"
+  /** Waiting for keepaliave or notification from peer. */
+  | "open_confirm"
+  /** Synchronizing with peer. */
+  | "session_setup"
+  /** Session established. Able to exchange update, notification and keepliave messages with peers. */
+  | "established";
+
+/**
+ * The current status of a BGP peer.
+ */
+export type BgpPeerStatus = {
+  /** IP address of the peer. */
+  addr: string;
+  /** Local autonomous system number. */
+  localAsn: number;
+  /** Remote autonomous system number. */
+  remoteAsn: number;
+  /** State of the peer. */
+  state: BgpPeerState;
+  /** Time of last state change. */
+  stateDurationMillis: number;
+  /** Switch with the peer session. */
+  switch: SwitchLocation;
 };
 
 /**
@@ -176,6 +339,45 @@ export type BgpPeerConfig = {
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangedouble =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangefloat =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeint16 =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeint32 =
   /** A range unbounded below and exclusively above, `..end`. */
   | { end: number; type: "range_to" }
   /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -197,6 +399,71 @@ export type BinRangeint64 =
   | { start: number; type: "range_from" };
 
 /**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeint8 =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeuint16 =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeuint32 =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeuint64 =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
+ * A type storing a range over `T`.
+ *
+ * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
+ */
+export type BinRangeuint8 =
+  /** A range unbounded below and exclusively above, `..end`. */
+  | { end: number; type: "range_to" }
+  /** A range bounded inclusively below and exclusively above, `start..end`. */
+  | { end: number; start: number; type: "range" }
+  /** A range bounded inclusively below and unbounded above, `start..`. */
+  | { start: number; type: "range_from" };
+
+/**
  * Type storing bin edges and a count of samples within it.
  */
 export type Bindouble = {
@@ -209,11 +476,91 @@ export type Bindouble = {
 /**
  * Type storing bin edges and a count of samples within it.
  */
+export type Binfloat = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangefloat;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binint16 = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangeint16;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binint32 = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangeint32;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
 export type Binint64 = {
   /** The total count of samples in this bin. */
   count: number;
   /** The range of the support covered by this bin. */
   range: BinRangeint64;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binint8 = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangeint8;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binuint16 = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangeuint16;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binuint32 = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangeuint32;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binuint64 = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangeuint64;
+};
+
+/**
+ * Type storing bin edges and a count of samples within it.
+ */
+export type Binuint8 = {
+  /** The total count of samples in this bin. */
+  count: number;
+  /** The range of the support covered by this bin. */
+  range: BinRangeuint8;
 };
 
 /**
@@ -280,7 +627,17 @@ export type Cumulativedouble = { startTime: Date; value: number };
 /**
  * A cumulative or counter data type.
  */
+export type Cumulativefloat = { startTime: Date; value: number };
+
+/**
+ * A cumulative or counter data type.
+ */
 export type Cumulativeint64 = { startTime: Date; value: number };
+
+/**
+ * A cumulative or counter data type.
+ */
+export type Cumulativeuint64 = { startTime: Date; value: number };
 
 /**
  * Info about the current user
@@ -293,6 +650,84 @@ export type CurrentUser = {
   siloId: string;
   /** Name of the silo to which this user belongs. */
   siloName: Name;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramint8 = {
+  bins: Binint8[];
+  nSamples: number;
+  startTime: Date;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramuint8 = {
+  bins: Binuint8[];
+  nSamples: number;
+  startTime: Date;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramint16 = {
+  bins: Binint16[];
+  nSamples: number;
+  startTime: Date;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramuint16 = {
+  bins: Binuint16[];
+  nSamples: number;
+  startTime: Date;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramint32 = {
+  bins: Binint32[];
+  nSamples: number;
+  startTime: Date;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramuint32 = {
+  bins: Binuint32[];
+  nSamples: number;
+  startTime: Date;
 };
 
 /**
@@ -315,6 +750,32 @@ export type Histogramint64 = {
  *
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
+export type Histogramuint64 = {
+  bins: Binuint64[];
+  nSamples: number;
+  startTime: Date;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramfloat = {
+  bins: Binfloat[];
+  nSamples: number;
+  startTime: Date;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
 export type Histogramdouble = {
   bins: Bindouble[];
   nSamples: number;
@@ -322,18 +783,71 @@ export type Histogramdouble = {
 };
 
 /**
+ * The type of an individual datum of a metric.
+ */
+export type DatumType =
+  | "bool"
+  | "i8"
+  | "u8"
+  | "i16"
+  | "u16"
+  | "i32"
+  | "u32"
+  | "i64"
+  | "u64"
+  | "f32"
+  | "f64"
+  | "string"
+  | "bytes"
+  | "cumulative_i64"
+  | "cumulative_u64"
+  | "cumulative_f32"
+  | "cumulative_f64"
+  | "histogram_i8"
+  | "histogram_u8"
+  | "histogram_i16"
+  | "histogram_u16"
+  | "histogram_i32"
+  | "histogram_u32"
+  | "histogram_i64"
+  | "histogram_u64"
+  | "histogram_f32"
+  | "histogram_f64";
+
+export type MissingDatum = { datumType: DatumType; startTime?: Date };
+
+/**
  * A `Datum` is a single sampled data point from a metric.
  */
 export type Datum =
   | { datum: boolean; type: "bool" }
+  | { datum: number; type: "i8" }
+  | { datum: number; type: "u8" }
+  | { datum: number; type: "i16" }
+  | { datum: number; type: "u16" }
+  | { datum: number; type: "i32" }
+  | { datum: number; type: "u32" }
   | { datum: number; type: "i64" }
+  | { datum: number; type: "u64" }
+  | { datum: number; type: "f32" }
   | { datum: number; type: "f64" }
   | { datum: string; type: "string" }
   | { datum: number[]; type: "bytes" }
   | { datum: Cumulativeint64; type: "cumulative_i64" }
+  | { datum: Cumulativeuint64; type: "cumulative_u64" }
+  | { datum: Cumulativefloat; type: "cumulative_f32" }
   | { datum: Cumulativedouble; type: "cumulative_f64" }
+  | { datum: Histogramint8; type: "histogram_i8" }
+  | { datum: Histogramuint8; type: "histogram_u8" }
+  | { datum: Histogramint16; type: "histogram_i16" }
+  | { datum: Histogramuint16; type: "histogram_u16" }
+  | { datum: Histogramint32; type: "histogram_i32" }
+  | { datum: Histogramuint32; type: "histogram_u32" }
   | { datum: Histogramint64; type: "histogram_i64" }
-  | { datum: Histogramdouble; type: "histogram_f64" };
+  | { datum: Histogramuint64; type: "histogram_u64" }
+  | { datum: Histogramfloat; type: "histogram_f32" }
+  | { datum: Histogramdouble; type: "histogram_f64" }
+  | { datum: MissingDatum; type: "missing" };
 
 export type DerEncodedKeyPair = {
   /** request signing private key (base64 encoded der file) */
@@ -393,11 +907,13 @@ export type Disk = {
   devicePath: string;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
+  /** ID of image from which disk was created, if any */
   imageId?: string;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
   projectId: string;
   size: ByteCount;
+  /** ID of snapshot from which disk was created, if any */
   snapshotId?: string;
   state: DiskState;
   /** timestamp when this resource was created */
@@ -876,8 +1392,10 @@ export type IpPool = {
   description: string;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
+  isDefault: boolean;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
+  siloId?: string;
   /** timestamp when this resource was created */
   timeCreated: Date;
   /** timestamp when this resource was last modified */
@@ -887,7 +1405,14 @@ export type IpPool = {
 /**
  * Create-time parameters for an `IpPool`
  */
-export type IpPoolCreate = { description: string; name: Name };
+export type IpPoolCreate = {
+  description: string;
+  /** Whether the IP pool is considered a default pool for its scope (fleet or silo). If a pool is marked default and is associated with a silo, instances created in that silo will draw IPs from that pool unless another pool is specified at instance create time. */
+  isDefault?: boolean;
+  name: Name;
+  /** If an IP pool is associated with a silo, instance IP allocations in that silo can draw from that pool. */
+  silo?: NameOrId;
+};
 
 /**
  * A non-decreasing IPv4 address range, inclusive of both ends.
@@ -945,6 +1470,17 @@ export type IpPoolUpdate = { description?: string; name?: Name };
 export type L4PortRange = string;
 
 /**
+ * The forward error correction mode of a link.
+ */
+export type LinkFec =
+  /** Firecode foward error correction. */
+  | "firecode"
+  /** No forward error correction. */
+  | "none"
+  /** Reed-Solomon forward error correction. */
+  | "rs";
+
+/**
  * The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
  */
 export type LldpServiceConfig = {
@@ -955,13 +1491,42 @@ export type LldpServiceConfig = {
 };
 
 /**
+ * The speed of a link.
+ */
+export type LinkSpeed =
+  /** Zero gigabits per second. */
+  | "speed0_g"
+  /** 1 gigabit per second. */
+  | "speed1_g"
+  /** 10 gigabits per second. */
+  | "speed10_g"
+  /** 25 gigabits per second. */
+  | "speed25_g"
+  /** 40 gigabits per second. */
+  | "speed40_g"
+  /** 50 gigabits per second. */
+  | "speed50_g"
+  /** 100 gigabits per second. */
+  | "speed100_g"
+  /** 200 gigabits per second. */
+  | "speed200_g"
+  /** 400 gigabits per second. */
+  | "speed400_g";
+
+/**
  * Switch link configuration.
  */
 export type LinkConfig = {
+  /** Whether or not to set autonegotiation */
+  autoneg: boolean;
+  /** The forward error correction mode of the link. */
+  fec: LinkFec;
   /** The link-layer discovery protocol (LLDP) configuration for the link. */
   lldp: LldpServiceConfig;
   /** Maximum transmission unit for the link. */
   mtu: number;
+  /** The speed of the link. */
+  speed: LinkSpeed;
 };
 
 /**
@@ -1063,6 +1628,13 @@ export type PhysicalDiskResultsPage = {
   items: PhysicalDisk[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
+};
+
+export type PingStatus = "ok";
+
+export type Ping = {
+  /** Whether the external API is reachable. Will always be Ok if the endpoint returns anything at all. */
+  status: PingStatus;
 };
 
 /**
@@ -1186,111 +1758,6 @@ export type Route = {
 export type RouteConfig = {
   /** The set of routes assigned to a switch port. */
   routes: Route[];
-};
-
-/**
- * A `RouteDestination` is used to match traffic with a routing rule, on the destination of that traffic.
- *
- * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
- */
-export type RouteDestination =
-  /** Route applies to traffic destined for a specific IP address */
-  | { type: "ip"; value: string }
-  /** Route applies to traffic destined for a specific IP subnet */
-  | { type: "ip_net"; value: IpNet }
-  /** Route applies to traffic destined for the given VPC. */
-  | { type: "vpc"; value: Name }
-  /** Route applies to traffic */
-  | { type: "subnet"; value: Name };
-
-/**
- * A `RouteTarget` describes the possible locations that traffic matching a route destination can be sent.
- */
-export type RouteTarget =
-  /** Forward traffic to a particular IP address. */
-  | { type: "ip"; value: string }
-  /** Forward traffic to a VPC */
-  | { type: "vpc"; value: Name }
-  /** Forward traffic to a VPC Subnet */
-  | { type: "subnet"; value: Name }
-  /** Forward traffic to a specific instance */
-  | { type: "instance"; value: Name }
-  /** Forward traffic to an internet gateway */
-  | { type: "internet_gateway"; value: Name };
-
-/**
- * The kind of a `RouterRoute`
- *
- * The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
- */
-export type RouterRouteKind =
-  /** Determines the default destination of traffic, such as whether it goes to the internet or not.
-
-`Destination: An Internet Gateway` `Modifiable: true` */
-  | "default"
-  /** Automatically added for each VPC Subnet in the VPC
-
-`Destination: A VPC Subnet` `Modifiable: false` */
-  | "vpc_subnet"
-  /** Automatically added when VPC peering is established
-
-`Destination: A different VPC` `Modifiable: false` */
-  | "vpc_peering"
-  /** Created by a user; see `RouteTarget`
-
-`Destination: User defined` `Modifiable: true` */
-  | "custom";
-
-/**
- * A route defines a rule that governs where traffic should be sent based on its destination.
- */
-export type RouterRoute = {
-  /** human-readable free-form text about a resource */
-  description: string;
-  destination: RouteDestination;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  /** Describes the kind of router. Set at creation. `read-only` */
-  kind: RouterRouteKind;
-  /** unique, mutable, user-controlled identifier for each resource */
-  name: Name;
-  target: RouteTarget;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  /** The ID of the VPC Router to which the route belongs */
-  vpcRouterId: string;
-};
-
-/**
- * Create-time parameters for a `RouterRoute`
- */
-export type RouterRouteCreate = {
-  description: string;
-  destination: RouteDestination;
-  name: Name;
-  target: RouteTarget;
-};
-
-/**
- * A single page of results
- */
-export type RouterRouteResultsPage = {
-  /** list of items on this page of results */
-  items: RouterRoute[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
-/**
- * Updateable properties of a `RouterRoute`
- */
-export type RouterRouteUpdate = {
-  description?: string;
-  destination: RouteDestination;
-  name?: Name;
-  target: RouteTarget;
 };
 
 /**
@@ -1436,12 +1903,29 @@ export type SiloRolePolicy = {
 };
 
 /**
+ * The provision state of a sled.
+ *
+ * This controls whether new resources are going to be provisioned on this sled.
+ */
+export type SledProvisionState =
+  /** New resources will be provisioned on this sled. */
+  | "provisionable"
+  /** New resources will not be provisioned on this sled. However, existing resources will continue to be on this sled unless manually migrated off. */
+  | "non_provisionable"
+  /** This is a state that isn't known yet.
+
+This is defined to avoid API breakage. */
+  | "unknown";
+
+/**
  * An operator's view of a Sled.
  */
 export type Sled = {
   baseboard: Baseboard;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
+  /** The provision state of the sled. */
+  provisionState: SledProvisionState;
   /** The rack to which this Sled is currently attached */
   rackId: string;
   /** timestamp when this resource was created */
@@ -1482,6 +1966,24 @@ export type SledInstanceResultsPage = {
   items: SledInstance[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
+};
+
+/**
+ * Parameters for `sled_set_provision_state`.
+ */
+export type SledProvisionStateParams = {
+  /** The provision state. */
+  state: SledProvisionState;
+};
+
+/**
+ * Response to `sled_set_provision_state`.
+ */
+export type SledProvisionStateResponse = {
+  /** The new provision state. */
+  newState: SledProvisionState;
+  /** The old provision state. */
+  oldState: SledProvisionState;
 };
 
 /**
@@ -1660,8 +2162,6 @@ export type SwitchPortApplySettings = {
 export type SwitchPortBgpPeerConfig = {
   /** The address of the peer. */
   addr: string;
-  /** The id for the set of prefixes announced in this peer configuration. */
-  bgpAnnounceSetId: string;
   /** The id of the global BGP configuration referenced by this peer configuration. */
   bgpConfigId: string;
   /** The interface name used to establish a peer session. */
@@ -1829,6 +2329,15 @@ export type SwitchResultsPage = {
   items: Switch[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
+};
+
+/**
+ * A sled that has not been added to an initialized rack yet
+ */
+export type UninitializedSled = {
+  baseboard: Baseboard;
+  cubby: number;
+  rackId: string;
 };
 
 /**
@@ -2075,47 +2584,6 @@ export type VpcResultsPage = {
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
-
-export type VpcRouterKind = "system" | "custom";
-
-/**
- * A VPC router defines a series of rules that indicate where traffic should be sent depending on its destination.
- */
-export type VpcRouter = {
-  /** human-readable free-form text about a resource */
-  description: string;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  kind: VpcRouterKind;
-  /** unique, mutable, user-controlled identifier for each resource */
-  name: Name;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-  /** The VPC to which the router belongs. */
-  vpcId: string;
-};
-
-/**
- * Create-time parameters for a `VpcRouter`
- */
-export type VpcRouterCreate = { description: string; name: Name };
-
-/**
- * A single page of results
- */
-export type VpcRouterResultsPage = {
-  /** list of items on this page of results */
-  items: VpcRouter[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
-
-/**
- * Updateable properties of a `VpcRouter`
- */
-export type VpcRouterUpdate = { description?: string; name?: Name };
 
 /**
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionall an IPv6 subnetwork.
@@ -2676,6 +3144,10 @@ export interface SledInstanceListQueryParams {
   sortBy?: IdSortMode;
 }
 
+export interface SledSetProvisionStatePathParams {
+  sledId: string;
+}
+
 export interface NetworkingSwitchPortListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -2823,6 +3295,29 @@ export interface NetworkingAddressLotBlockListQueryParams {
   sortBy?: IdSortMode;
 }
 
+export interface NetworkingBgpConfigListQueryParams {
+  limit?: number;
+  nameOrId?: NameOrId;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface NetworkingBgpConfigDeleteQueryParams {
+  nameOrId: NameOrId;
+}
+
+export interface NetworkingBgpAnnounceSetListQueryParams {
+  nameOrId: NameOrId;
+}
+
+export interface NetworkingBgpAnnounceSetDeleteQueryParams {
+  nameOrId: NameOrId;
+}
+
+export interface NetworkingBgpImportedRoutesIpv4QueryParams {
+  asn: number;
+}
+
 export interface NetworkingLoopbackAddressListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -2922,91 +3417,6 @@ export interface VpcFirewallRulesViewQueryParams {
 export interface VpcFirewallRulesUpdateQueryParams {
   project?: NameOrId;
   vpc: NameOrId;
-}
-
-export interface VpcRouterRouteListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  project?: NameOrId;
-  router?: NameOrId;
-  sortBy?: NameOrIdSortMode;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterRouteCreateQueryParams {
-  project?: NameOrId;
-  router: NameOrId;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterRouteViewPathParams {
-  route: NameOrId;
-}
-
-export interface VpcRouterRouteViewQueryParams {
-  project?: NameOrId;
-  router: NameOrId;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterRouteUpdatePathParams {
-  route: NameOrId;
-}
-
-export interface VpcRouterRouteUpdateQueryParams {
-  project?: NameOrId;
-  router?: NameOrId;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterRouteDeletePathParams {
-  route: NameOrId;
-}
-
-export interface VpcRouterRouteDeleteQueryParams {
-  project?: NameOrId;
-  router?: NameOrId;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterListQueryParams {
-  limit?: number;
-  pageToken?: string;
-  project?: NameOrId;
-  sortBy?: NameOrIdSortMode;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterCreateQueryParams {
-  project?: NameOrId;
-  vpc: NameOrId;
-}
-
-export interface VpcRouterViewPathParams {
-  router: NameOrId;
-}
-
-export interface VpcRouterViewQueryParams {
-  project?: NameOrId;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterUpdatePathParams {
-  router: NameOrId;
-}
-
-export interface VpcRouterUpdateQueryParams {
-  project?: NameOrId;
-  vpc?: NameOrId;
-}
-
-export interface VpcRouterDeletePathParams {
-  router: NameOrId;
-}
-
-export interface VpcRouterDeleteQueryParams {
-  project?: NameOrId;
-  vpc?: NameOrId;
 }
 
 export interface VpcSubnetListQueryParams {
@@ -3118,12 +3528,15 @@ export type ApiListMethods = Pick<
   | "sledInstanceList"
   | "networkingSwitchPortList"
   | "switchList"
+  | "uninitializedSledList"
   | "siloIdentityProviderList"
   | "ipPoolList"
   | "ipPoolRangeList"
   | "ipPoolServiceRangeList"
   | "networkingAddressLotList"
   | "networkingAddressLotBlockList"
+  | "networkingBgpConfigList"
+  | "networkingBgpAnnounceSetList"
   | "networkingLoopbackAddressList"
   | "networkingSwitchPortSettingsList"
   | "roleList"
@@ -3131,8 +3544,6 @@ export type ApiListMethods = Pick<
   | "siloUserList"
   | "userBuiltinList"
   | "userList"
-  | "vpcRouterRouteList"
-  | "vpcRouterList"
   | "vpcSubnetList"
   | "vpcList"
 >;
@@ -4061,6 +4472,16 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Ping API
+     */
+    ping: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<Ping>({
+        path: `/v1/ping`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
      * Fetch the current silo's IAM policy
      */
     policyView: (_: EmptyObj, params: FetchParams = {}) => {
@@ -4304,6 +4725,20 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Add a sled to an initialized rack
+     */
+    addSledToInitializedRack: (
+      { body }: { body: UninitializedSled },
+      params: FetchParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/hardware/sleds`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
      * Fetch a sled
      */
     sledView: (
@@ -4353,6 +4788,26 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/sleds/${path.sledId}/instances`,
         method: "GET",
         query,
+        ...params,
+      });
+    },
+    /**
+     * Set the sled's provision state.
+     */
+    sledSetProvisionState: (
+      {
+        path,
+        body,
+      }: {
+        path: SledSetProvisionStatePathParams;
+        body: SledProvisionStateParams;
+      },
+      params: FetchParams = {}
+    ) => {
+      return this.request<SledProvisionStateResponse>({
+        path: `/v1/system/hardware/sleds/${path.sledId}/provision-state`,
+        method: "PUT",
+        body,
         ...params,
       });
     },
@@ -4436,6 +4891,16 @@ export class Api extends HttpClient {
     ) => {
       return this.request<Switch>({
         path: `/v1/system/hardware/switches/${path.switchId}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * List uninitialized sleds in a given rack
+     */
+    uninitializedSledList: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<void>({
+        path: `/v1/system/hardware/uninitialized-sleds`,
         method: "GET",
         ...params,
       });
@@ -4803,7 +5268,115 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Get loopback addresses, optionally filtering by id
+     * List BGP configurations
+     */
+    networkingBgpConfigList: (
+      { query = {} }: { query?: NetworkingBgpConfigListQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<BgpConfigResultsPage>({
+        path: `/v1/system/networking/bgp`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a new BGP configuration
+     */
+    networkingBgpConfigCreate: (
+      { body }: { body: BgpConfigCreate },
+      params: FetchParams = {}
+    ) => {
+      return this.request<BgpConfig>({
+        path: `/v1/system/networking/bgp`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Delete a BGP configuration
+     */
+    networkingBgpConfigDelete: (
+      { query }: { query?: NetworkingBgpConfigDeleteQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/bgp`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get originated routes for a BGP configuration
+     */
+    networkingBgpAnnounceSetList: (
+      { query }: { query?: NetworkingBgpAnnounceSetListQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/bgp-announce`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a new BGP announce set
+     */
+    networkingBgpAnnounceSetCreate: (
+      { body }: { body: BgpAnnounceSetCreate },
+      params: FetchParams = {}
+    ) => {
+      return this.request<BgpAnnounceSet>({
+        path: `/v1/system/networking/bgp-announce`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Delete a BGP announce set
+     */
+    networkingBgpAnnounceSetDelete: (
+      { query }: { query?: NetworkingBgpAnnounceSetDeleteQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/bgp-announce`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get imported IPv4 BGP routes
+     */
+    networkingBgpImportedRoutesIpv4: (
+      { query }: { query?: NetworkingBgpImportedRoutesIpv4QueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/bgp-routes-ipv4`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get BGP peer status
+     */
+    networkingBgpStatus: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<void>({
+        path: `/v1/system/networking/bgp-status`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * List loopback addresses
      */
     networkingLoopbackAddressList: (
       { query = {} }: { query?: NetworkingLoopbackAddressListQueryParams },
@@ -5133,193 +5706,6 @@ export class Api extends HttpClient {
         path: `/v1/vpc-firewall-rules`,
         method: "PUT",
         body,
-        query,
-        ...params,
-      });
-    },
-    /**
-     * List routes
-     */
-    vpcRouterRouteList: (
-      { query = {} }: { query?: VpcRouterRouteListQueryParams },
-      params: FetchParams = {}
-    ) => {
-      return this.request<RouterRouteResultsPage>({
-        path: `/v1/vpc-router-routes`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Create a router
-     */
-    vpcRouterRouteCreate: (
-      {
-        query,
-        body,
-      }: { query?: VpcRouterRouteCreateQueryParams; body: RouterRouteCreate },
-      params: FetchParams = {}
-    ) => {
-      return this.request<RouterRoute>({
-        path: `/v1/vpc-router-routes`,
-        method: "POST",
-        body,
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Fetch a route
-     */
-    vpcRouterRouteView: (
-      {
-        path,
-        query,
-      }: {
-        path: VpcRouterRouteViewPathParams;
-        query?: VpcRouterRouteViewQueryParams;
-      },
-      params: FetchParams = {}
-    ) => {
-      return this.request<RouterRoute>({
-        path: `/v1/vpc-router-routes/${path.route}`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Update a route
-     */
-    vpcRouterRouteUpdate: (
-      {
-        path,
-        query = {},
-        body,
-      }: {
-        path: VpcRouterRouteUpdatePathParams;
-        query?: VpcRouterRouteUpdateQueryParams;
-        body: RouterRouteUpdate;
-      },
-      params: FetchParams = {}
-    ) => {
-      return this.request<RouterRoute>({
-        path: `/v1/vpc-router-routes/${path.route}`,
-        method: "PUT",
-        body,
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Delete a route
-     */
-    vpcRouterRouteDelete: (
-      {
-        path,
-        query = {},
-      }: {
-        path: VpcRouterRouteDeletePathParams;
-        query?: VpcRouterRouteDeleteQueryParams;
-      },
-      params: FetchParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/v1/vpc-router-routes/${path.route}`,
-        method: "DELETE",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * List routers
-     */
-    vpcRouterList: (
-      { query = {} }: { query?: VpcRouterListQueryParams },
-      params: FetchParams = {}
-    ) => {
-      return this.request<VpcRouterResultsPage>({
-        path: `/v1/vpc-routers`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Create a VPC router
-     */
-    vpcRouterCreate: (
-      {
-        query,
-        body,
-      }: { query?: VpcRouterCreateQueryParams; body: VpcRouterCreate },
-      params: FetchParams = {}
-    ) => {
-      return this.request<VpcRouter>({
-        path: `/v1/vpc-routers`,
-        method: "POST",
-        body,
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Fetch a router
-     */
-    vpcRouterView: (
-      {
-        path,
-        query = {},
-      }: { path: VpcRouterViewPathParams; query?: VpcRouterViewQueryParams },
-      params: FetchParams = {}
-    ) => {
-      return this.request<VpcRouter>({
-        path: `/v1/vpc-routers/${path.router}`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Update a router
-     */
-    vpcRouterUpdate: (
-      {
-        path,
-        query = {},
-        body,
-      }: {
-        path: VpcRouterUpdatePathParams;
-        query?: VpcRouterUpdateQueryParams;
-        body: VpcRouterUpdate;
-      },
-      params: FetchParams = {}
-    ) => {
-      return this.request<VpcRouter>({
-        path: `/v1/vpc-routers/${path.router}`,
-        method: "PUT",
-        body,
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Delete a router
-     */
-    vpcRouterDelete: (
-      {
-        path,
-        query = {},
-      }: {
-        path: VpcRouterDeletePathParams;
-        query?: VpcRouterDeleteQueryParams;
-      },
-      params: FetchParams = {}
-    ) => {
-      return this.request<void>({
-        path: `/v1/vpc-routers/${path.router}`,
-        method: "DELETE",
         query,
         ...params,
       });
