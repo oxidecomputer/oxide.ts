@@ -284,7 +284,7 @@ export const BgpImportedRouteIpv4 = z.preprocess(
   processResponseBody,
   z.object({
     id: z.number().min(0).max(4294967295),
-    nexthop: z.string(),
+    nexthop: z.string().ip({ version: "v4" }),
     prefix: Ipv4Net,
     switch: SwitchLocation,
   })
@@ -1543,7 +1543,10 @@ export const IpPoolCreate = z.preprocess(
  */
 export const Ipv4Range = z.preprocess(
   processResponseBody,
-  z.object({ first: z.string(), last: z.string() })
+  z.object({
+    first: z.string().ip({ version: "v4" }),
+    last: z.string().ip({ version: "v4" }),
+  })
 );
 
 /**
@@ -1553,7 +1556,10 @@ export const Ipv4Range = z.preprocess(
  */
 export const Ipv6Range = z.preprocess(
   processResponseBody,
-  z.object({ first: z.string(), last: z.string() })
+  z.object({
+    first: z.string().ip({ version: "v6" }),
+    last: z.string().ip({ version: "v6" }),
+  })
 );
 
 export const IpRange = z.preprocess(
