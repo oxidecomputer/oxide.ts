@@ -72,7 +72,7 @@ export const Name = z.preprocess(
     .min(1)
     .max(63)
     .regex(
-      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z][a-z0-9-]*[a-zA-Z0-9]*$/
+      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z]([a-zA-Z0-9-]*[a-zA-Z0-9]+)?$/
     )
 );
 
@@ -183,6 +183,52 @@ export const AddressLotResultsPage = z.preprocess(
 export const Baseboard = z.preprocess(
   processResponseBody,
   z.object({ part: z.string(), revision: z.number(), serial: z.string() })
+);
+
+export const BfdMode = z.preprocess(
+  processResponseBody,
+  z.enum(["single_hop", "multi_hop"])
+);
+
+/**
+ * Information needed to disable a BFD session
+ */
+export const BfdSessionDisable = z.preprocess(
+  processResponseBody,
+  z.object({ remote: z.string().ip(), switch: Name })
+);
+
+/**
+ * Information about a bidirectional forwarding detection (BFD) session.
+ */
+export const BfdSessionEnable = z.preprocess(
+  processResponseBody,
+  z.object({
+    detectionThreshold: z.number().min(0).max(255),
+    local: z.string().ip().optional(),
+    mode: BfdMode,
+    remote: z.string().ip(),
+    requiredRx: z.number().min(0),
+    switch: Name,
+  })
+);
+
+export const BfdState = z.preprocess(
+  processResponseBody,
+  z.enum(["admin_down", "down", "init", "up"])
+);
+
+export const BfdStatus = z.preprocess(
+  processResponseBody,
+  z.object({
+    detectionThreshold: z.number().min(0).max(255),
+    local: z.string().ip().optional(),
+    mode: BfdMode,
+    peer: z.string().ip(),
+    requiredRx: z.number().min(0),
+    state: BfdState,
+    switch: Name,
+  })
 );
 
 /**
@@ -1086,6 +1132,14 @@ export const DiskResultsPage = z.preprocess(
 );
 
 /**
+ * Parameters for creating an ephemeral IP address for an instance.
+ */
+export const EphemeralIpCreate = z.preprocess(
+  processResponseBody,
+  z.object({ pool: NameOrId.optional() })
+);
+
+/**
  * Error information from a response.
  */
 export const Error = z.preprocess(
@@ -1097,22 +1151,22 @@ export const Error = z.preprocess(
   })
 );
 
-export const ExpectedDigest = z.preprocess(
-  processResponseBody,
-  z.object({ sha256: z.string() })
-);
-
-/**
- * The kind of an external IP address for an instance
- */
-export const IpKind = z.preprocess(
-  processResponseBody,
-  z.enum(["ephemeral", "floating"])
-);
-
 export const ExternalIp = z.preprocess(
   processResponseBody,
-  z.object({ ip: z.string().ip(), kind: IpKind })
+  z.union([
+    z.object({ ip: z.string().ip(), kind: z.enum(["ephemeral"]) }),
+    z.object({
+      description: z.string(),
+      id: z.string().uuid(),
+      instanceId: z.string().uuid().optional(),
+      ip: z.string().ip(),
+      kind: z.enum(["floating"]),
+      name: Name,
+      projectId: z.string().uuid(),
+      timeCreated: z.coerce.date(),
+      timeModified: z.coerce.date(),
+    }),
+  ])
 );
 
 /**
@@ -1120,7 +1174,10 @@ export const ExternalIp = z.preprocess(
  */
 export const ExternalIpCreate = z.preprocess(
   processResponseBody,
-  z.object({ poolName: Name.optional(), type: z.enum(["ephemeral"]) })
+  z.union([
+    z.object({ pool: NameOrId.optional(), type: z.enum(["ephemeral"]) }),
+    z.object({ floatingIp: NameOrId, type: z.enum(["floating"]) }),
+  ])
 );
 
 /**
@@ -1177,6 +1234,60 @@ export const FleetRolePolicy = z.preprocess(
 );
 
 /**
+ * A Floating IP is a well-known IP address which can be attached and detached from instances.
+ */
+export const FloatingIp = z.preprocess(
+  processResponseBody,
+  z.object({
+    description: z.string(),
+    id: z.string().uuid(),
+    instanceId: z.string().uuid().optional(),
+    ip: z.string().ip(),
+    name: Name,
+    projectId: z.string().uuid(),
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * The type of resource that a floating IP is attached to
+ */
+export const FloatingIpParentKind = z.preprocess(
+  processResponseBody,
+  z.enum(["instance"])
+);
+
+/**
+ * Parameters for attaching a floating IP address to another resource
+ */
+export const FloatingIpAttach = z.preprocess(
+  processResponseBody,
+  z.object({ kind: FloatingIpParentKind, parent: NameOrId })
+);
+
+/**
+ * Parameters for creating a new floating IP address for instances.
+ */
+export const FloatingIpCreate = z.preprocess(
+  processResponseBody,
+  z.object({
+    address: z.string().ip().optional(),
+    description: z.string(),
+    name: Name,
+    pool: NameOrId.optional(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const FloatingIpResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: FloatingIp.array(), nextPage: z.string().optional() })
+);
+
+/**
  * View of a Group
  */
 export const Group = z.preprocess(
@@ -1194,6 +1305,22 @@ export const Group = z.preprocess(
 export const GroupResultsPage = z.preprocess(
   processResponseBody,
   z.object({ items: Group.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * An RFC-1035-compliant hostname
+ *
+ * A hostname identifies a host on a network, and is usually a dot-delimited sequence of labels, where each label contains only letters, digits, or the hyphen. See RFCs 1035 and 952 for more details.
+ */
+export const Hostname = z.preprocess(
+  processResponseBody,
+  z
+    .string()
+    .min(1)
+    .max(253)
+    .regex(
+      /^([a-zA-Z0-9]+[a-zA-Z0-9\-]*(?<!-))(\.[a-zA-Z0-9]+[a-zA-Z0-9\-]*(?<!-))*$/
+    )
 );
 
 export const IdentityProviderType = z.preprocess(
@@ -1250,7 +1377,6 @@ export const Image = z.preprocess(
     size: ByteCount,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-    url: z.string().optional(),
     version: z.string(),
   })
 );
@@ -1261,7 +1387,6 @@ export const Image = z.preprocess(
 export const ImageSource = z.preprocess(
   processResponseBody,
   z.union([
-    z.object({ blockSize: BlockSize, type: z.enum(["url"]), url: z.string() }),
     z.object({ id: z.string().uuid(), type: z.enum(["snapshot"]) }),
     z.object({ type: z.enum(["you_can_boot_anything_as_long_as_its_alpine"]) }),
   ])
@@ -1295,14 +1420,6 @@ export const ImageResultsPage = z.preprocess(
 export const ImportBlocksBulkWrite = z.preprocess(
   processResponseBody,
   z.object({ base64EncodedData: z.string(), offset: z.number().min(0) })
-);
-
-/**
- * Parameters for importing blocks from a URL to a disk
- */
-export const ImportBlocksFromUrl = z.preprocess(
-  processResponseBody,
-  z.object({ expectedDigest: ExpectedDigest.optional(), url: z.string() })
 );
 
 /**
@@ -1409,13 +1526,14 @@ export const InstanceCreate = z.preprocess(
     description: z.string(),
     disks: InstanceDiskAttachment.array().default([]).optional(),
     externalIps: ExternalIpCreate.array().default([]).optional(),
-    hostname: z.string(),
+    hostname: Hostname,
     memory: ByteCount,
     name: Name,
     ncpus: InstanceCpuCount,
     networkInterfaces: InstanceNetworkInterfaceAttachment.default({
       type: "default",
     }).optional(),
+    sshPublicKeys: NameOrId.array().optional(),
     start: SafeBoolean.default(true).optional(),
     userData: z.string().default("").optional(),
   })
@@ -1508,16 +1626,14 @@ export const InstanceSerialConsoleData = z.preprocess(
 );
 
 /**
- * Identity-related metadata that's included in nearly all public API objects
+ * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
  */
 export const IpPool = z.preprocess(
   processResponseBody,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
-    isDefault: SafeBoolean,
     name: Name,
-    siloId: z.string().uuid().optional(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
   })
@@ -1528,12 +1644,12 @@ export const IpPool = z.preprocess(
  */
 export const IpPoolCreate = z.preprocess(
   processResponseBody,
-  z.object({
-    description: z.string(),
-    isDefault: SafeBoolean.default(false).optional(),
-    name: Name,
-    silo: NameOrId.optional(),
-  })
+  z.object({ description: z.string(), name: Name })
+);
+
+export const IpPoolLinkSilo = z.preprocess(
+  processResponseBody,
+  z.object({ isDefault: SafeBoolean, silo: NameOrId })
 );
 
 /**
@@ -1594,6 +1710,31 @@ export const IpPoolResultsPage = z.preprocess(
 );
 
 /**
+ * A link between an IP pool and a silo that allows one to allocate IPs from the pool within the silo
+ */
+export const IpPoolSiloLink = z.preprocess(
+  processResponseBody,
+  z.object({
+    ipPoolId: z.string().uuid(),
+    isDefault: SafeBoolean,
+    siloId: z.string().uuid(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const IpPoolSiloLinkResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: IpPoolSiloLink.array(), nextPage: z.string().optional() })
+);
+
+export const IpPoolSiloUpdate = z.preprocess(
+  processResponseBody,
+  z.object({ isDefault: SafeBoolean })
+);
+
+/**
  * Parameters for updating an IP Pool
  */
 export const IpPoolUpdate = z.preprocess(
@@ -1626,7 +1767,7 @@ export const LinkFec = z.preprocess(
 /**
  * The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
  */
-export const LldpServiceConfig = z.preprocess(
+export const LldpServiceConfigCreate = z.preprocess(
   processResponseBody,
   z.object({ enabled: SafeBoolean, lldpConfig: NameOrId.optional() })
 );
@@ -1652,14 +1793,26 @@ export const LinkSpeed = z.preprocess(
 /**
  * Switch link configuration.
  */
-export const LinkConfig = z.preprocess(
+export const LinkConfigCreate = z.preprocess(
   processResponseBody,
   z.object({
     autoneg: SafeBoolean,
     fec: LinkFec,
-    lldp: LldpServiceConfig,
+    lldp: LldpServiceConfigCreate,
     mtu: z.number().min(0).max(65535),
     speed: LinkSpeed,
+  })
+);
+
+/**
+ * A link layer discovery protocol (LLDP) service configuration.
+ */
+export const LldpServiceConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    enabled: SafeBoolean,
+    id: z.string().uuid(),
+    lldpConfigId: z.string().uuid().optional(),
   })
 );
 
@@ -1972,6 +2125,14 @@ export const Silo = z.preprocess(
 );
 
 /**
+ * The amount of provisionable resources for a Silo
+ */
+export const SiloQuotasCreate = z.preprocess(
+  processResponseBody,
+  z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount })
+);
+
+/**
  * Create-time parameters for a `Silo`
  */
 export const SiloCreate = z.preprocess(
@@ -1985,7 +2146,64 @@ export const SiloCreate = z.preprocess(
       .record(z.string().min(1), FleetRole.array().refine(...uniqueItems))
       .optional(),
     name: Name,
+    quotas: SiloQuotasCreate,
     tlsCertificates: CertificateCreate.array(),
+  })
+);
+
+/**
+ * An IP pool in the context of a silo
+ */
+export const SiloIpPool = z.preprocess(
+  processResponseBody,
+  z.object({
+    description: z.string(),
+    id: z.string().uuid(),
+    isDefault: SafeBoolean,
+    name: Name,
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const SiloIpPoolResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: SiloIpPool.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * A collection of resource counts used to set the virtual capacity of a silo
+ */
+export const SiloQuotas = z.preprocess(
+  processResponseBody,
+  z.object({
+    cpus: z.number(),
+    memory: ByteCount,
+    siloId: z.string().uuid(),
+    storage: ByteCount,
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const SiloQuotasResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: SiloQuotas.array(), nextPage: z.string().optional() })
+);
+
+/**
+ * Updateable properties of a Silo's resource limits. If a value is omitted it will not be updated.
+ */
+export const SiloQuotasUpdate = z.preprocess(
+  processResponseBody,
+  z.object({
+    cpus: z.number().optional(),
+    memory: ByteCount.optional(),
+    storage: ByteCount.optional(),
   })
 );
 
@@ -2027,13 +2245,42 @@ export const SiloRolePolicy = z.preprocess(
 );
 
 /**
+ * A collection of resource counts used to describe capacity and utilization
+ */
+export const VirtualResourceCounts = z.preprocess(
+  processResponseBody,
+  z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount })
+);
+
+/**
+ * View of a silo's resource utilization and capacity
+ */
+export const SiloUtilization = z.preprocess(
+  processResponseBody,
+  z.object({
+    allocated: VirtualResourceCounts,
+    provisioned: VirtualResourceCounts,
+    siloId: z.string().uuid(),
+    siloName: Name,
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const SiloUtilizationResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: SiloUtilization.array(), nextPage: z.string().optional() })
+);
+
+/**
  * The provision state of a sled.
  *
  * This controls whether new resources are going to be provisioned on this sled.
  */
 export const SledProvisionState = z.preprocess(
   processResponseBody,
-  z.enum(["provisionable", "non_provisionable", "unknown"])
+  z.enum(["provisionable", "non_provisionable"])
 );
 
 /**
@@ -2191,6 +2438,28 @@ export const Switch = z.preprocess(
 );
 
 /**
+ * Describes the kind of an switch interface.
+ */
+export const SwitchInterfaceKind2 = z.preprocess(
+  processResponseBody,
+  z.enum(["primary", "vlan", "loopback"])
+);
+
+/**
+ * A switch port interface configuration for a port settings object.
+ */
+export const SwitchInterfaceConfig = z.preprocess(
+  processResponseBody,
+  z.object({
+    id: z.string().uuid(),
+    interfaceName: z.string(),
+    kind: SwitchInterfaceKind2,
+    portSettingsId: z.string().uuid(),
+    v6Enabled: SafeBoolean,
+  })
+);
+
+/**
  * Indicates the kind for a switch interface.
  */
 export const SwitchInterfaceKind = z.preprocess(
@@ -2205,7 +2474,7 @@ export const SwitchInterfaceKind = z.preprocess(
 /**
  * A layer-3 switch interface configuration. When IPv6 is enabled, a link local address will be created for the interface.
  */
-export const SwitchInterfaceConfig = z.preprocess(
+export const SwitchInterfaceConfigCreate = z.preprocess(
   processResponseBody,
   z.object({ kind: SwitchInterfaceKind, v6Enabled: SafeBoolean })
 );
@@ -2261,6 +2530,22 @@ export const SwitchPortBgpPeerConfig = z.preprocess(
 /**
  * The link geometry associated with a switch port.
  */
+export const SwitchPortGeometry2 = z.preprocess(
+  processResponseBody,
+  z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
+);
+
+/**
+ * A physical port configuration for a port settings object.
+ */
+export const SwitchPortConfig = z.preprocess(
+  processResponseBody,
+  z.object({ geometry: SwitchPortGeometry2, portSettingsId: z.string().uuid() })
+);
+
+/**
+ * The link geometry associated with a switch port.
+ */
 export const SwitchPortGeometry = z.preprocess(
   processResponseBody,
   z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
@@ -2269,7 +2554,7 @@ export const SwitchPortGeometry = z.preprocess(
 /**
  * Physical switch port configuration.
  */
-export const SwitchPortConfig = z.preprocess(
+export const SwitchPortConfigCreate = z.preprocess(
   processResponseBody,
   z.object({ geometry: SwitchPortGeometry })
 );
@@ -2333,10 +2618,10 @@ export const SwitchPortSettingsCreate = z.preprocess(
     bgpPeers: z.record(z.string().min(1), BgpPeerConfig),
     description: z.string(),
     groups: NameOrId.array(),
-    interfaces: z.record(z.string().min(1), SwitchInterfaceConfig),
-    links: z.record(z.string().min(1), LinkConfig),
+    interfaces: z.record(z.string().min(1), SwitchInterfaceConfigCreate),
+    links: z.record(z.string().min(1), LinkConfigCreate),
     name: Name,
-    portConfig: SwitchPortConfig,
+    portConfig: SwitchPortConfigCreate,
     routes: z.record(z.string().min(1), RouteConfig),
   })
 );
@@ -2414,6 +2699,25 @@ export const UninitializedSled = z.preprocess(
 );
 
 /**
+ * The unique hardware ID for a sled
+ */
+export const UninitializedSledId = z.preprocess(
+  processResponseBody,
+  z.object({ part: z.string(), serial: z.string() })
+);
+
+/**
+ * A single page of results
+ */
+export const UninitializedSledResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({
+    items: UninitializedSled.array(),
+    nextPage: z.string().optional(),
+  })
+);
+
+/**
  * View of a User
  */
 export const User = z.preprocess(
@@ -2461,7 +2765,7 @@ export const UserId = z.preprocess(
     .min(1)
     .max(63)
     .regex(
-      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z][a-z0-9-]*[a-zA-Z0-9]*$/
+      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z]([a-zA-Z0-9-]*[a-zA-Z0-9]+)?$/
     )
 );
 
@@ -2498,6 +2802,17 @@ export const UserResultsPage = z.preprocess(
 export const UsernamePasswordCredentials = z.preprocess(
   processResponseBody,
   z.object({ password: Password, username: UserId })
+);
+
+/**
+ * View of the current silo's resource utilization and capacity
+ */
+export const Utilization = z.preprocess(
+  processResponseBody,
+  z.object({
+    capacity: VirtualResourceCounts,
+    provisioned: VirtualResourceCounts,
+  })
 );
 
 /**
@@ -2934,18 +3249,6 @@ export const DiskFinalizeImportParams = z.preprocess(
   })
 );
 
-export const DiskImportBlocksFromUrlParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({
-      disk: NameOrId,
-    }),
-    query: z.object({
-      project: NameOrId.optional(),
-    }),
-  })
-);
-
 export const DiskMetricsListParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -2959,6 +3262,77 @@ export const DiskMetricsListParams = z.preprocess(
       order: PaginationOrder.optional(),
       pageToken: z.string().optional(),
       startTime: z.coerce.date().optional(),
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const FloatingIpListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const FloatingIpCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      project: NameOrId,
+    }),
+  })
+);
+
+export const FloatingIpViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      floatingIp: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const FloatingIpDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      floatingIp: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const FloatingIpAttachParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      floatingIp: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const FloatingIpDetachParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      floatingIp: NameOrId,
+    }),
+    query: z.object({
       project: NameOrId.optional(),
     }),
   })
@@ -3155,6 +3529,30 @@ export const InstanceExternalIpListParams = z.preprocess(
   })
 );
 
+export const InstanceEphemeralIpAttachParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      instance: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const InstanceEphemeralIpDetachParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      instance: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
 export const InstanceMigrateParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3207,6 +3605,21 @@ export const InstanceSerialConsoleStreamParams = z.preprocess(
   })
 );
 
+export const InstanceSshPublicKeyListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      instance: NameOrId,
+    }),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
 export const InstanceStartParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3238,7 +3651,6 @@ export const ProjectIpPoolListParams = z.preprocess(
     query: z.object({
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
-      project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
   })
@@ -3250,9 +3662,7 @@ export const ProjectIpPoolViewParams = z.preprocess(
     path: z.object({
       pool: NameOrId,
     }),
-    query: z.object({
-      project: NameOrId.optional(),
-    }),
+    query: z.object({}),
   })
 );
 
@@ -3602,7 +4012,7 @@ export const SledListParams = z.preprocess(
   })
 );
 
-export const AddSledToInitializedRackParams = z.preprocess(
+export const SledAddParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({}),
@@ -3655,6 +4065,17 @@ export const SledSetProvisionStateParams = z.preprocess(
       sledId: z.string().uuid(),
     }),
     query: z.object({}),
+  })
+);
+
+export const SledListUninitializedParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+    }),
   })
 );
 
@@ -3715,14 +4136,6 @@ export const SwitchViewParams = z.preprocess(
     path: z.object({
       switchId: z.string().uuid(),
     }),
-    query: z.object({}),
-  })
-);
-
-export const UninitializedSledListParams = z.preprocess(
-  processResponseBody,
-  z.object({
-    path: z.object({}),
     query: z.object({}),
   })
 );
@@ -3879,6 +4292,52 @@ export const IpPoolRangeRemoveParams = z.preprocess(
   })
 );
 
+export const IpPoolSiloListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      pool: NameOrId,
+    }),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
+export const IpPoolSiloLinkParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      pool: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const IpPoolSiloUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      pool: NameOrId,
+      silo: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const IpPoolSiloUnlinkParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      pool: NameOrId,
+      silo: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
 export const IpPoolServiceViewParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3972,6 +4431,30 @@ export const NetworkingAddressLotBlockListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
+  })
+);
+
+export const NetworkingBfdDisableParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingBfdEnableParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
+  })
+);
+
+export const NetworkingBfdStatusParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
   })
 );
 
@@ -4163,6 +4646,18 @@ export const RoleViewParams = z.preprocess(
   })
 );
 
+export const SystemQuotasListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: IdSortMode.optional(),
+    }),
+  })
+);
+
 export const SiloListParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -4203,6 +4698,20 @@ export const SiloDeleteParams = z.preprocess(
   })
 );
 
+export const SiloIpPoolListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      silo: NameOrId,
+    }),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
 export const SiloPolicyViewParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -4214,6 +4723,26 @@ export const SiloPolicyViewParams = z.preprocess(
 );
 
 export const SiloPolicyUpdateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      silo: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const SiloQuotasViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      silo: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
+export const SiloQuotasUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({
@@ -4270,6 +4799,28 @@ export const UserBuiltinViewParams = z.preprocess(
   })
 );
 
+export const SiloUtilizationListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const SiloUtilizationViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      silo: NameOrId,
+    }),
+    query: z.object({}),
+  })
+);
+
 export const UserListParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -4280,6 +4831,14 @@ export const UserListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
+  })
+);
+
+export const UtilizationViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({}),
   })
 );
 
