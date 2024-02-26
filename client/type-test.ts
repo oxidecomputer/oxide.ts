@@ -318,19 +318,24 @@ assert<
     z.infer<typeof V.SiloUtilizationResultsPage>
   >
 >();
-assert<Equals<A.SledProvisionState, z.infer<typeof V.SledProvisionState>>>();
+assert<Equals<A.SledProvisionPolicy, z.infer<typeof V.SledProvisionPolicy>>>();
+assert<Equals<A.SledPolicy, z.infer<typeof V.SledPolicy>>>();
+assert<Equals<A.SledState, z.infer<typeof V.SledState>>>();
 assert<Equals<A.Sled, z.infer<typeof V.Sled>>>();
 assert<Equals<A.SledInstance, z.infer<typeof V.SledInstance>>>();
 assert<
   Equals<A.SledInstanceResultsPage, z.infer<typeof V.SledInstanceResultsPage>>
 >();
 assert<
-  Equals<A.SledProvisionStateParams, z.infer<typeof V.SledProvisionStateParams>>
+  Equals<
+    A.SledProvisionPolicyParams,
+    z.infer<typeof V.SledProvisionPolicyParams>
+  >
 >();
 assert<
   Equals<
-    A.SledProvisionStateResponse,
-    z.infer<typeof V.SledProvisionStateResponse>
+    A.SledProvisionPolicyResponse,
+    z.infer<typeof V.SledProvisionPolicyResponse>
   >
 >();
 assert<Equals<A.SledResultsPage, z.infer<typeof V.SledResultsPage>>>();
