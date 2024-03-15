@@ -1164,6 +1164,11 @@ export type FloatingIpResultsPage = {
 };
 
 /**
+ * Updateable identity-related parameters
+ */
+export type FloatingIpUpdate = { description?: string; name?: Name };
+
+/**
  * View of a Group
  */
 export type Group = {
@@ -1514,6 +1519,8 @@ export type InstanceSerialConsoleData = {
   lastByteOffset: number;
 };
 
+export type IpKind = "snat" | "floating" | "ephemeral";
+
 /**
  * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
  */
@@ -1753,6 +1760,37 @@ export type MeasurementResultsPage = {
 };
 
 /**
+ * The type of network interface
+ */
+export type NetworkInterfaceKind =
+  /** A vNIC attached to a guest instance */
+  | { id: string; type: "instance" }
+  /** A vNIC associated with an internal service */
+  | { id: string; type: "service" }
+  /** A vNIC associated with a probe */
+  | { id: string; type: "probe" };
+
+/**
+ * A Geneve Virtual Network Identifier
+ */
+export type Vni = number;
+
+/**
+ * Information required to construct a virtual network interface
+ */
+export type NetworkInterface = {
+  id: string;
+  ip: string;
+  kind: NetworkInterfaceKind;
+  mac: MacAddr;
+  name: Name;
+  primary: boolean;
+  slot: number;
+  subnet: IpNet;
+  vni: Vni;
+};
+
+/**
  * A password used to authenticate a user
  *
  * Passwords may be subject to additional constraints.
@@ -1799,6 +1837,58 @@ export type PingStatus = "ok";
 export type Ping = {
   /** Whether the external API is reachable. Will always be Ok if the endpoint returns anything at all. */
   status: PingStatus;
+};
+
+/**
+ * Identity-related metadata that's included in nearly all public API objects
+ */
+export type Probe = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  sled: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create time parameters for probes.
+ */
+export type ProbeCreate = {
+  description: string;
+  ipPool?: NameOrId;
+  name: Name;
+  sled: string;
+};
+
+export type ProbeExternalIp = {
+  firstPort: number;
+  ip: string;
+  kind: IpKind;
+  lastPort: number;
+};
+
+export type ProbeInfo = {
+  externalIps: ProbeExternalIp[];
+  id: string;
+  interface: NetworkInterface;
+  name: Name;
+  sled: string;
+};
+
+/**
+ * A single page of results
+ */
+export type ProbeInfoResultsPage = {
+  /** list of items on this page of results */
+  items: ProbeInfo[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
 };
 
 /**
@@ -3060,6 +3150,33 @@ export type SystemMetricName =
  */
 export type NameSortMode = "name_ascending";
 
+export interface ProbeListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface ProbeCreateQueryParams {
+  project: NameOrId;
+}
+
+export interface ProbeViewPathParams {
+  probe: NameOrId;
+}
+
+export interface ProbeViewQueryParams {
+  project: NameOrId;
+}
+
+export interface ProbeDeletePathParams {
+  probe: NameOrId;
+}
+
+export interface ProbeDeleteQueryParams {
+  project: NameOrId;
+}
+
 export interface LoginSamlPathParams {
   providerName: Name;
   siloName: Name;
@@ -3168,6 +3285,14 @@ export interface FloatingIpViewPathParams {
 }
 
 export interface FloatingIpViewQueryParams {
+  project?: NameOrId;
+}
+
+export interface FloatingIpUpdatePathParams {
+  floatingIp: NameOrId;
+}
+
+export interface FloatingIpUpdateQueryParams {
   project?: NameOrId;
 }
 
@@ -4002,6 +4127,7 @@ export interface VpcDeleteQueryParams {
 
 export type ApiListMethods = Pick<
   InstanceType<typeof Api>["methods"],
+  | "probeList"
   | "certificateList"
   | "diskList"
   | "diskMetricsList"
@@ -4081,6 +4207,69 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/device/token`,
         method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * List instrumentation probes
+     */
+    probeList: (
+      { query = {} }: { query?: ProbeListQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<ProbeInfoResultsPage>({
+        path: `/experimental/v1/probes`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create instrumentation probe
+     */
+    probeCreate: (
+      { query, body }: { query?: ProbeCreateQueryParams; body: ProbeCreate },
+      params: FetchParams = {}
+    ) => {
+      return this.request<Probe>({
+        path: `/experimental/v1/probes`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * View instrumentation probe
+     */
+    probeView: (
+      {
+        path,
+        query,
+      }: { path: ProbeViewPathParams; query?: ProbeViewQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<ProbeInfo>({
+        path: `/experimental/v1/probes/${path.probe}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete instrumentation probe
+     */
+    probeDelete: (
+      {
+        path,
+        query,
+      }: { path: ProbeDeletePathParams; query?: ProbeDeleteQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/experimental/v1/probes/${path.probe}`,
+        method: "DELETE",
+        query,
         ...params,
       });
     },
@@ -4365,6 +4554,29 @@ export class Api extends HttpClient {
       return this.request<FloatingIp>({
         path: `/v1/floating-ips/${path.floatingIp}`,
         method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update floating IP
+     */
+    floatingIpUpdate: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: FloatingIpUpdatePathParams;
+        query?: FloatingIpUpdateQueryParams;
+        body: FloatingIpUpdate;
+      },
+      params: FetchParams = {}
+    ) => {
+      return this.request<FloatingIp>({
+        path: `/v1/floating-ips/${path.floatingIp}`,
+        method: "PUT",
+        body,
         query,
         ...params,
       });

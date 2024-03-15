@@ -1288,6 +1288,14 @@ export const FloatingIpResultsPage = z.preprocess(
 );
 
 /**
+ * Updateable identity-related parameters
+ */
+export const FloatingIpUpdate = z.preprocess(
+  processResponseBody,
+  z.object({ description: z.string().optional(), name: Name.optional() })
+);
+
+/**
  * View of a Group
  */
 export const Group = z.preprocess(
@@ -1625,6 +1633,11 @@ export const InstanceSerialConsoleData = z.preprocess(
   })
 );
 
+export const IpKind = z.preprocess(
+  processResponseBody,
+  z.enum(["snat", "floating", "ephemeral"])
+);
+
 /**
  * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
  */
@@ -1870,6 +1883,44 @@ export const MeasurementResultsPage = z.preprocess(
 );
 
 /**
+ * The type of network interface
+ */
+export const NetworkInterfaceKind = z.preprocess(
+  processResponseBody,
+  z.union([
+    z.object({ id: z.string().uuid(), type: z.enum(["instance"]) }),
+    z.object({ id: z.string().uuid(), type: z.enum(["service"]) }),
+    z.object({ id: z.string().uuid(), type: z.enum(["probe"]) }),
+  ])
+);
+
+/**
+ * A Geneve Virtual Network Identifier
+ */
+export const Vni = z.preprocess(
+  processResponseBody,
+  z.number().min(0).max(4294967295)
+);
+
+/**
+ * Information required to construct a virtual network interface
+ */
+export const NetworkInterface = z.preprocess(
+  processResponseBody,
+  z.object({
+    id: z.string().uuid(),
+    ip: z.string().ip(),
+    kind: NetworkInterfaceKind,
+    mac: MacAddr,
+    name: Name,
+    primary: SafeBoolean,
+    slot: z.number().min(0).max(255),
+    subnet: IpNet,
+    vni: Vni,
+  })
+);
+
+/**
  * A password used to authenticate a user
  *
  * Passwords may be subject to additional constraints.
@@ -1916,6 +1967,63 @@ export const PingStatus = z.preprocess(processResponseBody, z.enum(["ok"]));
 export const Ping = z.preprocess(
   processResponseBody,
   z.object({ status: PingStatus })
+);
+
+/**
+ * Identity-related metadata that's included in nearly all public API objects
+ */
+export const Probe = z.preprocess(
+  processResponseBody,
+  z.object({
+    description: z.string(),
+    id: z.string().uuid(),
+    name: Name,
+    sled: z.string().uuid(),
+    timeCreated: z.coerce.date(),
+    timeModified: z.coerce.date(),
+  })
+);
+
+/**
+ * Create time parameters for probes.
+ */
+export const ProbeCreate = z.preprocess(
+  processResponseBody,
+  z.object({
+    description: z.string(),
+    ipPool: NameOrId.optional(),
+    name: Name,
+    sled: z.string().uuid(),
+  })
+);
+
+export const ProbeExternalIp = z.preprocess(
+  processResponseBody,
+  z.object({
+    firstPort: z.number().min(0).max(65535),
+    ip: z.string().ip(),
+    kind: IpKind,
+    lastPort: z.number().min(0).max(65535),
+  })
+);
+
+export const ProbeInfo = z.preprocess(
+  processResponseBody,
+  z.object({
+    externalIps: ProbeExternalIp.array(),
+    id: z.string().uuid(),
+    interface: NetworkInterface,
+    name: Name,
+    sled: z.string().uuid(),
+  })
+);
+
+/**
+ * A single page of results
+ */
+export const ProbeInfoResultsPage = z.preprocess(
+  processResponseBody,
+  z.object({ items: ProbeInfo.array(), nextPage: z.string().optional() })
 );
 
 /**
@@ -3126,6 +3234,53 @@ export const DeviceAccessTokenParams = z.preprocess(
   })
 );
 
+export const ProbeListParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      limit: z.number().min(1).max(4294967295).optional(),
+      pageToken: z.string().optional(),
+      project: NameOrId.optional(),
+      sortBy: NameOrIdSortMode.optional(),
+    }),
+  })
+);
+
+export const ProbeCreateParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({}),
+    query: z.object({
+      project: NameOrId,
+    }),
+  })
+);
+
+export const ProbeViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      probe: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId,
+    }),
+  })
+);
+
+export const ProbeDeleteParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      probe: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId,
+    }),
+  })
+);
+
 export const LoginSamlParams = z.preprocess(
   processResponseBody,
   z.object({
@@ -3314,6 +3469,18 @@ export const FloatingIpCreateParams = z.preprocess(
 );
 
 export const FloatingIpViewParams = z.preprocess(
+  processResponseBody,
+  z.object({
+    path: z.object({
+      floatingIp: NameOrId,
+    }),
+    query: z.object({
+      project: NameOrId.optional(),
+    }),
+  })
+);
+
+export const FloatingIpUpdateParams = z.preprocess(
   processResponseBody,
   z.object({
     path: z.object({

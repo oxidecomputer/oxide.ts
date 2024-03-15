@@ -147,6 +147,7 @@ assert<Equals<A.FloatingIpCreate, z.infer<typeof V.FloatingIpCreate>>>();
 assert<
   Equals<A.FloatingIpResultsPage, z.infer<typeof V.FloatingIpResultsPage>>
 >();
+assert<Equals<A.FloatingIpUpdate, z.infer<typeof V.FloatingIpUpdate>>>();
 assert<Equals<A.Group, z.infer<typeof V.Group>>>();
 assert<Equals<A.GroupResultsPage, z.infer<typeof V.GroupResultsPage>>>();
 assert<Equals<A.Hostname, z.infer<typeof V.Hostname>>>();
@@ -211,6 +212,7 @@ assert<
     z.infer<typeof V.InstanceSerialConsoleData>
   >
 >();
+assert<Equals<A.IpKind, z.infer<typeof V.IpKind>>>();
 assert<Equals<A.IpPool, z.infer<typeof V.IpPool>>>();
 assert<Equals<A.IpPoolCreate, z.infer<typeof V.IpPoolCreate>>>();
 assert<Equals<A.IpPoolLinkSilo, z.infer<typeof V.IpPoolLinkSilo>>>();
@@ -253,6 +255,11 @@ assert<Equals<A.Measurement, z.infer<typeof V.Measurement>>>();
 assert<
   Equals<A.MeasurementResultsPage, z.infer<typeof V.MeasurementResultsPage>>
 >();
+assert<
+  Equals<A.NetworkInterfaceKind, z.infer<typeof V.NetworkInterfaceKind>>
+>();
+assert<Equals<A.Vni, z.infer<typeof V.Vni>>>();
+assert<Equals<A.NetworkInterface, z.infer<typeof V.NetworkInterface>>>();
 assert<Equals<A.Password, z.infer<typeof V.Password>>>();
 assert<Equals<A.PhysicalDiskKind, z.infer<typeof V.PhysicalDiskKind>>>();
 assert<Equals<A.PhysicalDisk, z.infer<typeof V.PhysicalDisk>>>();
@@ -261,6 +268,13 @@ assert<
 >();
 assert<Equals<A.PingStatus, z.infer<typeof V.PingStatus>>>();
 assert<Equals<A.Ping, z.infer<typeof V.Ping>>>();
+assert<Equals<A.Probe, z.infer<typeof V.Probe>>>();
+assert<Equals<A.ProbeCreate, z.infer<typeof V.ProbeCreate>>>();
+assert<Equals<A.ProbeExternalIp, z.infer<typeof V.ProbeExternalIp>>>();
+assert<Equals<A.ProbeInfo, z.infer<typeof V.ProbeInfo>>>();
+assert<
+  Equals<A.ProbeInfoResultsPage, z.infer<typeof V.ProbeInfoResultsPage>>
+>();
 assert<Equals<A.Project, z.infer<typeof V.Project>>>();
 assert<Equals<A.ProjectCreate, z.infer<typeof V.ProjectCreate>>>();
 assert<Equals<A.ProjectResultsPage, z.infer<typeof V.ProjectResultsPage>>>();

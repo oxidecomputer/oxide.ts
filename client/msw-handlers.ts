@@ -63,6 +63,33 @@ export interface MSWHandlers {
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<StatusCode>;
+  /** `GET /experimental/v1/probes` */
+  probeList: (params: {
+    query: Api.ProbeListQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.ProbeInfoResultsPage>>;
+  /** `POST /experimental/v1/probes` */
+  probeCreate: (params: {
+    query: Api.ProbeCreateQueryParams;
+    body: Json<Api.ProbeCreate>;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.Probe>>;
+  /** `GET /experimental/v1/probes/:probe` */
+  probeView: (params: {
+    path: Api.ProbeViewPathParams;
+    query: Api.ProbeViewQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.ProbeInfo>>;
+  /** `DELETE /experimental/v1/probes/:probe` */
+  probeDelete: (params: {
+    path: Api.ProbeDeletePathParams;
+    query: Api.ProbeDeleteQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<StatusCode>;
   /** `POST /login/:siloName/saml/:providerName` */
   loginSaml: (params: {
     path: Api.LoginSamlPathParams;
@@ -174,6 +201,14 @@ export interface MSWHandlers {
   floatingIpView: (params: {
     path: Api.FloatingIpViewPathParams;
     query: Api.FloatingIpViewQueryParams;
+    req: Request;
+    cookies: Record<string, string>;
+  }) => Promisable<HandlerResult<Api.FloatingIp>>;
+  /** `PUT /v1/floating-ips/:floatingIp` */
+  floatingIpUpdate: (params: {
+    path: Api.FloatingIpUpdatePathParams;
+    query: Api.FloatingIpUpdateQueryParams;
+    body: Json<Api.FloatingIpUpdate>;
     req: Request;
     cookies: Record<string, string>;
   }) => Promisable<HandlerResult<Api.FloatingIp>>;
@@ -1275,6 +1310,26 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
       "/device/token",
       handler(handlers["deviceAccessToken"], null, null)
     ),
+    http.get(
+      "/experimental/v1/probes",
+      handler(handlers["probeList"], schema.ProbeListParams, null)
+    ),
+    http.post(
+      "/experimental/v1/probes",
+      handler(
+        handlers["probeCreate"],
+        schema.ProbeCreateParams,
+        schema.ProbeCreate
+      )
+    ),
+    http.get(
+      "/experimental/v1/probes/:probe",
+      handler(handlers["probeView"], schema.ProbeViewParams, null)
+    ),
+    http.delete(
+      "/experimental/v1/probes/:probe",
+      handler(handlers["probeDelete"], schema.ProbeDeleteParams, null)
+    ),
     http.post(
       "/login/:siloName/saml/:providerName",
       handler(handlers["loginSaml"], schema.LoginSamlParams, null)
@@ -1370,6 +1425,14 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
     http.get(
       "/v1/floating-ips/:floatingIp",
       handler(handlers["floatingIpView"], schema.FloatingIpViewParams, null)
+    ),
+    http.put(
+      "/v1/floating-ips/:floatingIp",
+      handler(
+        handlers["floatingIpUpdate"],
+        schema.FloatingIpUpdateParams,
+        schema.FloatingIpUpdate
+      )
     ),
     http.delete(
       "/v1/floating-ips/:floatingIp",
