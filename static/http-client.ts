@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { camelToSnake, processResponseBody, snakeify, isNotNull } from "./util";
+import { camelToSnake, camelifyKeys, snakeifyKeys, isNotNull } from "./util";
 
 /** Success responses from the API */
 export type ApiSuccess<Data> = {
@@ -81,7 +81,7 @@ export async function handleResponse<Data>(
       if (transformResponse) {
         respJson = transformResponse(respJson);
       }
-      respJson = processResponseBody(respJson);
+      respJson = camelifyKeys(respJson);
     } else {
       respJson = {};
     }
@@ -168,7 +168,7 @@ export class HttpClient {
     const url = (host || this.host) + path + toQueryString(query);
     const init = {
       ...mergeParams(this.baseParams, fetchParams),
-      body: JSON.stringify(snakeify(body), replacer),
+      body: JSON.stringify(snakeifyKeys(body), replacer),
     };
     return handleResponse(await fetch(url, init));
   }

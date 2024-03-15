@@ -9,7 +9,7 @@
  */
 
 import { z, ZodType } from "zod";
-import { processResponseBody, uniqueItems } from "./util";
+import { camelifyKeys, uniqueItems } from "./util";
 
 /**
  * Zod only supports string enums at the moment. A previous issue was opened
@@ -33,7 +33,7 @@ const SafeBoolean = z.preprocess(
  * An IPv4 subnet, including prefix and subnet mask
  */
 export const Ipv4Net = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .regex(
@@ -47,7 +47,7 @@ export const Ipv4Net = z.preprocess(
  * An IPv6 subnet, including prefix and subnet mask
  */
 export const Ipv6Net = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .regex(
@@ -55,10 +55,7 @@ export const Ipv6Net = z.preprocess(
     )
 );
 
-export const IpNet = z.preprocess(
-  processResponseBody,
-  z.union([Ipv4Net, Ipv6Net])
-);
+export const IpNet = z.preprocess(camelifyKeys, z.union([Ipv4Net, Ipv6Net]));
 
 /**
  * A name unique within the parent collection
@@ -66,7 +63,7 @@ export const IpNet = z.preprocess(
  * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
  */
 export const Name = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .min(1)
@@ -77,7 +74,7 @@ export const Name = z.preprocess(
 );
 
 export const NameOrId = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([z.string().uuid(), Name])
 );
 
@@ -85,7 +82,7 @@ export const NameOrId = z.preprocess(
  * An address tied to an address lot.
  */
 export const Address = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ address: IpNet, addressLot: NameOrId })
 );
 
@@ -93,7 +90,7 @@ export const Address = z.preprocess(
  * A set of addresses associated with a port configuration.
  */
 export const AddressConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ addresses: Address.array() })
 );
 
@@ -101,7 +98,7 @@ export const AddressConfig = z.preprocess(
  * The kind associated with an address lot.
  */
 export const AddressLotKind = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["infra", "pool"])
 );
 
@@ -109,7 +106,7 @@ export const AddressLotKind = z.preprocess(
  * Represents an address lot object, containing the id of the lot that can be used in other API calls.
  */
 export const AddressLot = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -124,7 +121,7 @@ export const AddressLot = z.preprocess(
  * An address lot block is a part of an address lot and contains a range of addresses. The range is inclusive.
  */
 export const AddressLotBlock = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     firstAddress: z.string().ip(),
     id: z.string().uuid(),
@@ -136,7 +133,7 @@ export const AddressLotBlock = z.preprocess(
  * Parameters for creating an address lot block. Fist and last addresses are inclusive.
  */
 export const AddressLotBlockCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ firstAddress: z.string().ip(), lastAddress: z.string().ip() })
 );
 
@@ -144,7 +141,7 @@ export const AddressLotBlockCreate = z.preprocess(
  * A single page of results
  */
 export const AddressLotBlockResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: AddressLotBlock.array(), nextPage: z.string().optional() })
 );
 
@@ -152,7 +149,7 @@ export const AddressLotBlockResultsPage = z.preprocess(
  * Parameters for creating an address lot.
  */
 export const AddressLotCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     blocks: AddressLotBlockCreate.array(),
     description: z.string(),
@@ -165,7 +162,7 @@ export const AddressLotCreate = z.preprocess(
  * An address lot and associated blocks resulting from creating an address lot.
  */
 export const AddressLotCreateResponse = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ blocks: AddressLotBlock.array(), lot: AddressLot })
 );
 
@@ -173,7 +170,7 @@ export const AddressLotCreateResponse = z.preprocess(
  * A single page of results
  */
 export const AddressLotResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: AddressLot.array(), nextPage: z.string().optional() })
 );
 
@@ -181,12 +178,12 @@ export const AddressLotResultsPage = z.preprocess(
  * Properties that uniquely identify an Oxide hardware component
  */
 export const Baseboard = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ part: z.string(), revision: z.number(), serial: z.string() })
 );
 
 export const BfdMode = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["single_hop", "multi_hop"])
 );
 
@@ -194,7 +191,7 @@ export const BfdMode = z.preprocess(
  * Information needed to disable a BFD session
  */
 export const BfdSessionDisable = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ remote: z.string().ip(), switch: Name })
 );
 
@@ -202,7 +199,7 @@ export const BfdSessionDisable = z.preprocess(
  * Information about a bidirectional forwarding detection (BFD) session.
  */
 export const BfdSessionEnable = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     detectionThreshold: z.number().min(0).max(255),
     local: z.string().ip().optional(),
@@ -214,12 +211,12 @@ export const BfdSessionEnable = z.preprocess(
 );
 
 export const BfdState = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["admin_down", "down", "init", "up"])
 );
 
 export const BfdStatus = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     detectionThreshold: z.number().min(0).max(255),
     local: z.string().ip().optional(),
@@ -235,7 +232,7 @@ export const BfdStatus = z.preprocess(
  * Represents a BGP announce set by id. The id can be used with other API calls to view and manage the announce set.
  */
 export const BgpAnnounceSet = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -249,7 +246,7 @@ export const BgpAnnounceSet = z.preprocess(
  * A BGP announcement tied to a particular address lot block.
  */
 export const BgpAnnouncementCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ addressLotBlock: NameOrId, network: IpNet })
 );
 
@@ -257,7 +254,7 @@ export const BgpAnnouncementCreate = z.preprocess(
  * Parameters for creating a named set of BGP announcements.
  */
 export const BgpAnnounceSetCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     announcement: BgpAnnouncementCreate.array(),
     description: z.string(),
@@ -269,7 +266,7 @@ export const BgpAnnounceSetCreate = z.preprocess(
  * A BGP announcement tied to an address lot block.
  */
 export const BgpAnnouncement = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     addressLotBlockId: z.string().uuid(),
     announceSetId: z.string().uuid(),
@@ -281,7 +278,7 @@ export const BgpAnnouncement = z.preprocess(
  * A base BGP configuration.
  */
 export const BgpConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     asn: z.number().min(0).max(4294967295),
     description: z.string(),
@@ -297,7 +294,7 @@ export const BgpConfig = z.preprocess(
  * Parameters for creating a BGP configuration. This includes and autonomous system number (ASN) and a virtual routing and forwarding (VRF) identifier.
  */
 export const BgpConfigCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     asn: z.number().min(0).max(4294967295),
     bgpAnnounceSetId: NameOrId,
@@ -311,7 +308,7 @@ export const BgpConfigCreate = z.preprocess(
  * A single page of results
  */
 export const BgpConfigResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: BgpConfig.array(), nextPage: z.string().optional() })
 );
 
@@ -319,7 +316,7 @@ export const BgpConfigResultsPage = z.preprocess(
  * Identifies switch physical location
  */
 export const SwitchLocation = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["switch0", "switch1"])
 );
 
@@ -327,7 +324,7 @@ export const SwitchLocation = z.preprocess(
  * A route imported from a BGP peer.
  */
 export const BgpImportedRouteIpv4 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     id: z.number().min(0).max(4294967295),
     nexthop: z.string().ip({ version: "v4" }),
@@ -340,7 +337,7 @@ export const BgpImportedRouteIpv4 = z.preprocess(
  * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
  */
 export const BgpPeer = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     addr: z.string().ip(),
     bgpAnnounceSet: NameOrId,
@@ -355,7 +352,7 @@ export const BgpPeer = z.preprocess(
 );
 
 export const BgpPeerConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ peers: BgpPeer.array() })
 );
 
@@ -363,7 +360,7 @@ export const BgpPeerConfig = z.preprocess(
  * The current state of a BGP peer.
  */
 export const BgpPeerState = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum([
     "idle",
     "connect",
@@ -379,7 +376,7 @@ export const BgpPeerState = z.preprocess(
  * The current status of a BGP peer.
  */
 export const BgpPeerStatus = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     addr: z.string().ip(),
     localAsn: z.number().min(0).max(4294967295),
@@ -396,7 +393,7 @@ export const BgpPeerStatus = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangedouble = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
@@ -410,7 +407,7 @@ export const BinRangedouble = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangefloat = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
@@ -424,7 +421,7 @@ export const BinRangefloat = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeint16 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({
       end: z.number().min(-32767).max(32767),
@@ -448,7 +445,7 @@ export const BinRangeint16 = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeint32 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({
       end: z.number().min(-2147483647).max(2147483647),
@@ -472,7 +469,7 @@ export const BinRangeint32 = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
@@ -486,7 +483,7 @@ export const BinRangeint64 = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeint8 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({
       end: z.number().min(-127).max(127),
@@ -510,7 +507,7 @@ export const BinRangeint8 = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeuint16 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ end: z.number().min(0).max(65535), type: z.enum(["range_to"]) }),
     z.object({
@@ -531,7 +528,7 @@ export const BinRangeuint16 = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeuint32 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({
       end: z.number().min(0).max(4294967295),
@@ -555,7 +552,7 @@ export const BinRangeuint32 = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeuint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ end: z.number().min(0), type: z.enum(["range_to"]) }),
     z.object({
@@ -573,7 +570,7 @@ export const BinRangeuint64 = z.preprocess(
  * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeuint8 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ end: z.number().min(0).max(255), type: z.enum(["range_to"]) }),
     z.object({
@@ -592,7 +589,7 @@ export const BinRangeuint8 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Bindouble = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangedouble })
 );
 
@@ -600,7 +597,7 @@ export const Bindouble = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binfloat = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangefloat })
 );
 
@@ -608,7 +605,7 @@ export const Binfloat = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binint16 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeint16 })
 );
 
@@ -616,7 +613,7 @@ export const Binint16 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binint32 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeint32 })
 );
 
@@ -624,7 +621,7 @@ export const Binint32 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeint64 })
 );
 
@@ -632,7 +629,7 @@ export const Binint64 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binint8 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeint8 })
 );
 
@@ -640,7 +637,7 @@ export const Binint8 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binuint16 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeuint16 })
 );
 
@@ -648,7 +645,7 @@ export const Binuint16 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binuint32 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeuint32 })
 );
 
@@ -656,7 +653,7 @@ export const Binuint32 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binuint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeuint64 })
 );
 
@@ -664,7 +661,7 @@ export const Binuint64 = z.preprocess(
  * Type storing bin edges and a count of samples within it.
  */
 export const Binuint8 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ count: z.number().min(0), range: BinRangeuint8 })
 );
 
@@ -672,20 +669,20 @@ export const Binuint8 = z.preprocess(
  * disk block size in bytes
  */
 export const BlockSize = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   IntEnum([512, 2048, 4096] as const)
 );
 
 /**
  * Byte count to express memory or storage capacity.
  */
-export const ByteCount = z.preprocess(processResponseBody, z.number().min(0));
+export const ByteCount = z.preprocess(camelifyKeys, z.number().min(0));
 
 /**
  * The service intended to use this certificate.
  */
 export const ServiceUsingCertificate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["external_api"])
 );
 
@@ -693,7 +690,7 @@ export const ServiceUsingCertificate = z.preprocess(
  * View of a Certificate
  */
 export const Certificate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -708,7 +705,7 @@ export const Certificate = z.preprocess(
  * Create-time parameters for a `Certificate`
  */
 export const CertificateCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     cert: z.string(),
     description: z.string(),
@@ -722,7 +719,7 @@ export const CertificateCreate = z.preprocess(
  * A single page of results
  */
 export const CertificateResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Certificate.array(), nextPage: z.string().optional() })
 );
 
@@ -730,7 +727,7 @@ export const CertificateResultsPage = z.preprocess(
  * A cumulative or counter data type.
  */
 export const Cumulativedouble = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ startTime: z.coerce.date(), value: z.number() })
 );
 
@@ -738,7 +735,7 @@ export const Cumulativedouble = z.preprocess(
  * A cumulative or counter data type.
  */
 export const Cumulativefloat = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ startTime: z.coerce.date(), value: z.number() })
 );
 
@@ -746,7 +743,7 @@ export const Cumulativefloat = z.preprocess(
  * A cumulative or counter data type.
  */
 export const Cumulativeint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ startTime: z.coerce.date(), value: z.number() })
 );
 
@@ -754,7 +751,7 @@ export const Cumulativeint64 = z.preprocess(
  * A cumulative or counter data type.
  */
 export const Cumulativeuint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ startTime: z.coerce.date(), value: z.number().min(0) })
 );
 
@@ -762,7 +759,7 @@ export const Cumulativeuint64 = z.preprocess(
  * Info about the current user
  */
 export const CurrentUser = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     displayName: z.string(),
     id: z.string().uuid(),
@@ -779,7 +776,7 @@ export const CurrentUser = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramint8 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binint8.array(),
     nSamples: z.number().min(0),
@@ -795,7 +792,7 @@ export const Histogramint8 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramuint8 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binuint8.array(),
     nSamples: z.number().min(0),
@@ -811,7 +808,7 @@ export const Histogramuint8 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramint16 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binint16.array(),
     nSamples: z.number().min(0),
@@ -827,7 +824,7 @@ export const Histogramint16 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramuint16 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binuint16.array(),
     nSamples: z.number().min(0),
@@ -843,7 +840,7 @@ export const Histogramuint16 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramint32 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binint32.array(),
     nSamples: z.number().min(0),
@@ -859,7 +856,7 @@ export const Histogramint32 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramuint32 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binuint32.array(),
     nSamples: z.number().min(0),
@@ -875,7 +872,7 @@ export const Histogramuint32 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binint64.array(),
     nSamples: z.number().min(0),
@@ -891,7 +888,7 @@ export const Histogramint64 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramuint64 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binuint64.array(),
     nSamples: z.number().min(0),
@@ -907,7 +904,7 @@ export const Histogramuint64 = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramfloat = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Binfloat.array(),
     nSamples: z.number().min(0),
@@ -923,7 +920,7 @@ export const Histogramfloat = z.preprocess(
  * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramdouble = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     bins: Bindouble.array(),
     nSamples: z.number().min(0),
@@ -935,7 +932,7 @@ export const Histogramdouble = z.preprocess(
  * The type of an individual datum of a metric.
  */
 export const DatumType = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum([
     "bool",
     "i8",
@@ -968,7 +965,7 @@ export const DatumType = z.preprocess(
 );
 
 export const MissingDatum = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ datumType: DatumType, startTime: z.coerce.date().optional() })
 );
 
@@ -976,7 +973,7 @@ export const MissingDatum = z.preprocess(
  * A `Datum` is a single sampled data point from a metric.
  */
 export const Datum = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ datum: SafeBoolean, type: z.enum(["bool"]) }),
     z.object({ datum: z.number().min(-127).max(127), type: z.enum(["i8"]) }),
@@ -1022,12 +1019,12 @@ export const Datum = z.preprocess(
 );
 
 export const DerEncodedKeyPair = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ privateKey: z.string(), publicCert: z.string() })
 );
 
 export const DeviceAccessTokenRequest = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     clientId: z.string().uuid(),
     deviceCode: z.string(),
@@ -1036,17 +1033,17 @@ export const DeviceAccessTokenRequest = z.preprocess(
 );
 
 export const DeviceAuthRequest = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ clientId: z.string().uuid() })
 );
 
 export const DeviceAuthVerify = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ userCode: z.string() })
 );
 
 export const Digest = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ type: z.enum(["sha256"]), value: z.string() })
 );
 
@@ -1054,7 +1051,7 @@ export const Digest = z.preprocess(
  * State of a Disk
  */
 export const DiskState = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ state: z.enum(["creating"]) }),
     z.object({ state: z.enum(["detached"]) }),
@@ -1075,7 +1072,7 @@ export const DiskState = z.preprocess(
  * View of a Disk
  */
 export const Disk = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     blockSize: ByteCount,
     description: z.string(),
@@ -1096,7 +1093,7 @@ export const Disk = z.preprocess(
  * Different sources for a disk
  */
 export const DiskSource = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ blockSize: BlockSize, type: z.enum(["blank"]) }),
     z.object({ snapshotId: z.string().uuid(), type: z.enum(["snapshot"]) }),
@@ -1109,7 +1106,7 @@ export const DiskSource = z.preprocess(
  * Create-time parameters for a `Disk`
  */
 export const DiskCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     diskSource: DiskSource,
@@ -1119,7 +1116,7 @@ export const DiskCreate = z.preprocess(
 );
 
 export const DiskPath = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ disk: NameOrId })
 );
 
@@ -1127,7 +1124,7 @@ export const DiskPath = z.preprocess(
  * A single page of results
  */
 export const DiskResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Disk.array(), nextPage: z.string().optional() })
 );
 
@@ -1135,7 +1132,7 @@ export const DiskResultsPage = z.preprocess(
  * Parameters for creating an ephemeral IP address for an instance.
  */
 export const EphemeralIpCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ pool: NameOrId.optional() })
 );
 
@@ -1143,7 +1140,7 @@ export const EphemeralIpCreate = z.preprocess(
  * Error information from a response.
  */
 export const Error = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     errorCode: z.string().optional(),
     message: z.string(),
@@ -1152,7 +1149,7 @@ export const Error = z.preprocess(
 );
 
 export const ExternalIp = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ ip: z.string().ip(), kind: z.enum(["ephemeral"]) }),
     z.object({
@@ -1173,7 +1170,7 @@ export const ExternalIp = z.preprocess(
  * Parameters for creating an external IP address for instances.
  */
 export const ExternalIpCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ pool: NameOrId.optional(), type: z.enum(["ephemeral"]) }),
     z.object({ floatingIp: NameOrId, type: z.enum(["floating"]) }),
@@ -1184,7 +1181,7 @@ export const ExternalIpCreate = z.preprocess(
  * A single page of results
  */
 export const ExternalIpResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: ExternalIp.array(), nextPage: z.string().optional() })
 );
 
@@ -1192,12 +1189,12 @@ export const ExternalIpResultsPage = z.preprocess(
  * Parameters for finalizing a disk
  */
 export const FinalizeDisk = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ snapshotName: Name.optional() })
 );
 
 export const FleetRole = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["admin", "collaborator", "viewer"])
 );
 
@@ -1205,7 +1202,7 @@ export const FleetRole = z.preprocess(
  * Describes what kind of identity is described by an id
  */
 export const IdentityType = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["silo_user", "silo_group"])
 );
 
@@ -1215,7 +1212,7 @@ export const IdentityType = z.preprocess(
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
 export const FleetRoleRoleAssignment = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     identityId: z.string().uuid(),
     identityType: IdentityType,
@@ -1229,7 +1226,7 @@ export const FleetRoleRoleAssignment = z.preprocess(
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
 export const FleetRolePolicy = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ roleAssignments: FleetRoleRoleAssignment.array() })
 );
 
@@ -1237,7 +1234,7 @@ export const FleetRolePolicy = z.preprocess(
  * A Floating IP is a well-known IP address which can be attached and detached from instances.
  */
 export const FloatingIp = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1254,7 +1251,7 @@ export const FloatingIp = z.preprocess(
  * The type of resource that a floating IP is attached to
  */
 export const FloatingIpParentKind = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["instance"])
 );
 
@@ -1262,7 +1259,7 @@ export const FloatingIpParentKind = z.preprocess(
  * Parameters for attaching a floating IP address to another resource
  */
 export const FloatingIpAttach = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ kind: FloatingIpParentKind, parent: NameOrId })
 );
 
@@ -1270,7 +1267,7 @@ export const FloatingIpAttach = z.preprocess(
  * Parameters for creating a new floating IP address for instances.
  */
 export const FloatingIpCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     ip: z.string().ip().optional(),
@@ -1283,7 +1280,7 @@ export const FloatingIpCreate = z.preprocess(
  * A single page of results
  */
 export const FloatingIpResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: FloatingIp.array(), nextPage: z.string().optional() })
 );
 
@@ -1291,7 +1288,7 @@ export const FloatingIpResultsPage = z.preprocess(
  * Updateable identity-related parameters
  */
 export const FloatingIpUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
@@ -1299,7 +1296,7 @@ export const FloatingIpUpdate = z.preprocess(
  * View of a Group
  */
 export const Group = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     displayName: z.string(),
     id: z.string().uuid(),
@@ -1311,7 +1308,7 @@ export const Group = z.preprocess(
  * A single page of results
  */
 export const GroupResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Group.array(), nextPage: z.string().optional() })
 );
 
@@ -1321,7 +1318,7 @@ export const GroupResultsPage = z.preprocess(
  * A hostname identifies a host on a network, and is usually a dot-delimited sequence of labels, where each label contains only letters, digits, or the hyphen. See RFCs 1035 and 952 for more details.
  */
 export const Hostname = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .min(1)
@@ -1332,7 +1329,7 @@ export const Hostname = z.preprocess(
 );
 
 export const IdentityProviderType = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["saml"])
 );
 
@@ -1340,7 +1337,7 @@ export const IdentityProviderType = z.preprocess(
  * View of an Identity Provider
  */
 export const IdentityProvider = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1355,12 +1352,12 @@ export const IdentityProvider = z.preprocess(
  * A single page of results
  */
 export const IdentityProviderResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: IdentityProvider.array(), nextPage: z.string().optional() })
 );
 
 export const IdpMetadataSource = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ type: z.enum(["url"]), url: z.string() }),
     z.object({ data: z.string(), type: z.enum(["base64_encoded_xml"]) }),
@@ -1373,7 +1370,7 @@ export const IdpMetadataSource = z.preprocess(
  * If `project_id` is present then the image is only visible inside that project. If it's not present then the image is visible to all projects in the silo.
  */
 export const Image = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     blockSize: ByteCount,
     description: z.string(),
@@ -1393,7 +1390,7 @@ export const Image = z.preprocess(
  * The source of the underlying image.
  */
 export const ImageSource = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ id: z.string().uuid(), type: z.enum(["snapshot"]) }),
     z.object({ type: z.enum(["you_can_boot_anything_as_long_as_its_alpine"]) }),
@@ -1404,7 +1401,7 @@ export const ImageSource = z.preprocess(
  * Create-time parameters for an `Image`
  */
 export const ImageCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     name: Name,
@@ -1418,7 +1415,7 @@ export const ImageCreate = z.preprocess(
  * A single page of results
  */
 export const ImageResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Image.array(), nextPage: z.string().optional() })
 );
 
@@ -1426,7 +1423,7 @@ export const ImageResultsPage = z.preprocess(
  * Parameters for importing blocks with a bulk write
  */
 export const ImportBlocksBulkWrite = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ base64EncodedData: z.string(), offset: z.number().min(0) })
 );
 
@@ -1434,7 +1431,7 @@ export const ImportBlocksBulkWrite = z.preprocess(
  * The number of CPUs in an Instance
  */
 export const InstanceCpuCount = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.number().min(0).max(65535)
 );
 
@@ -1444,7 +1441,7 @@ export const InstanceCpuCount = z.preprocess(
  * This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
  */
 export const InstanceState = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum([
     "creating",
     "starting",
@@ -1463,7 +1460,7 @@ export const InstanceState = z.preprocess(
  * View of an Instance
  */
 export const Instance = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     hostname: z.string(),
@@ -1483,7 +1480,7 @@ export const Instance = z.preprocess(
  * Describe the instance's disks at creation time
  */
 export const InstanceDiskAttachment = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({
       description: z.string(),
@@ -1500,7 +1497,7 @@ export const InstanceDiskAttachment = z.preprocess(
  * Create-time parameters for an `InstanceNetworkInterface`
  */
 export const InstanceNetworkInterfaceCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     ip: z.string().ip().optional(),
@@ -1514,7 +1511,7 @@ export const InstanceNetworkInterfaceCreate = z.preprocess(
  * Describes an attachment of an `InstanceNetworkInterface` to an `Instance`, at the time the instance is created.
  */
 export const InstanceNetworkInterfaceAttachment = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({
       params: InstanceNetworkInterfaceCreate.array(),
@@ -1529,7 +1526,7 @@ export const InstanceNetworkInterfaceAttachment = z.preprocess(
  * Create-time parameters for an `Instance`
  */
 export const InstanceCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     disks: InstanceDiskAttachment.array().default([]).optional(),
@@ -1551,7 +1548,7 @@ export const InstanceCreate = z.preprocess(
  * Migration parameters for an `Instance`
  */
 export const InstanceMigrate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ dstSledId: z.string().uuid() })
 );
 
@@ -1561,7 +1558,7 @@ export const InstanceMigrate = z.preprocess(
  * A Media Access Control address, in EUI-48 format
  */
 export const MacAddr = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .min(5)
@@ -1573,7 +1570,7 @@ export const MacAddr = z.preprocess(
  * An `InstanceNetworkInterface` represents a virtual network interface device attached to an instance.
  */
 export const InstanceNetworkInterface = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1593,7 +1590,7 @@ export const InstanceNetworkInterface = z.preprocess(
  * A single page of results
  */
 export const InstanceNetworkInterfaceResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     items: InstanceNetworkInterface.array(),
     nextPage: z.string().optional(),
@@ -1606,7 +1603,7 @@ export const InstanceNetworkInterfaceResultsPage = z.preprocess(
  * Note that modifying IP addresses for an interface is not yet supported, a new interface must be created instead.
  */
 export const InstanceNetworkInterfaceUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string().optional(),
     name: Name.optional(),
@@ -1618,7 +1615,7 @@ export const InstanceNetworkInterfaceUpdate = z.preprocess(
  * A single page of results
  */
 export const InstanceResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Instance.array(), nextPage: z.string().optional() })
 );
 
@@ -1626,7 +1623,7 @@ export const InstanceResultsPage = z.preprocess(
  * Contents of an Instance's serial console buffer.
  */
 export const InstanceSerialConsoleData = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     data: z.number().min(0).max(255).array(),
     lastByteOffset: z.number().min(0),
@@ -1634,7 +1631,7 @@ export const InstanceSerialConsoleData = z.preprocess(
 );
 
 export const IpKind = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["snat", "floating", "ephemeral"])
 );
 
@@ -1642,7 +1639,7 @@ export const IpKind = z.preprocess(
  * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
  */
 export const IpPool = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1656,12 +1653,12 @@ export const IpPool = z.preprocess(
  * Create-time parameters for an `IpPool`
  */
 export const IpPoolCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string(), name: Name })
 );
 
 export const IpPoolLinkSilo = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ isDefault: SafeBoolean, silo: NameOrId })
 );
 
@@ -1671,7 +1668,7 @@ export const IpPoolLinkSilo = z.preprocess(
  * The first address must be less than or equal to the last address.
  */
 export const Ipv4Range = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     first: z.string().ip({ version: "v4" }),
     last: z.string().ip({ version: "v4" }),
@@ -1684,7 +1681,7 @@ export const Ipv4Range = z.preprocess(
  * The first address must be less than or equal to the last address.
  */
 export const Ipv6Range = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     first: z.string().ip({ version: "v6" }),
     last: z.string().ip({ version: "v6" }),
@@ -1692,12 +1689,12 @@ export const Ipv6Range = z.preprocess(
 );
 
 export const IpRange = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([Ipv4Range, Ipv6Range])
 );
 
 export const IpPoolRange = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     id: z.string().uuid(),
     ipPoolId: z.string().uuid(),
@@ -1710,7 +1707,7 @@ export const IpPoolRange = z.preprocess(
  * A single page of results
  */
 export const IpPoolRangeResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: IpPoolRange.array(), nextPage: z.string().optional() })
 );
 
@@ -1718,7 +1715,7 @@ export const IpPoolRangeResultsPage = z.preprocess(
  * A single page of results
  */
 export const IpPoolResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: IpPool.array(), nextPage: z.string().optional() })
 );
 
@@ -1726,7 +1723,7 @@ export const IpPoolResultsPage = z.preprocess(
  * A link between an IP pool and a silo that allows one to allocate IPs from the pool within the silo
  */
 export const IpPoolSiloLink = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     ipPoolId: z.string().uuid(),
     isDefault: SafeBoolean,
@@ -1738,12 +1735,12 @@ export const IpPoolSiloLink = z.preprocess(
  * A single page of results
  */
 export const IpPoolSiloLinkResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: IpPoolSiloLink.array(), nextPage: z.string().optional() })
 );
 
 export const IpPoolSiloUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ isDefault: SafeBoolean })
 );
 
@@ -1751,7 +1748,7 @@ export const IpPoolSiloUpdate = z.preprocess(
  * Parameters for updating an IP Pool
  */
 export const IpPoolUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
@@ -1761,7 +1758,7 @@ export const IpPoolUpdate = z.preprocess(
  * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
  */
 export const L4PortRange = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .min(1)
@@ -1773,7 +1770,7 @@ export const L4PortRange = z.preprocess(
  * The forward error correction mode of a link.
  */
 export const LinkFec = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["firecode", "none", "rs"])
 );
 
@@ -1781,7 +1778,7 @@ export const LinkFec = z.preprocess(
  * The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
  */
 export const LldpServiceConfigCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ enabled: SafeBoolean, lldpConfig: NameOrId.optional() })
 );
 
@@ -1789,7 +1786,7 @@ export const LldpServiceConfigCreate = z.preprocess(
  * The speed of a link.
  */
 export const LinkSpeed = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum([
     "speed0_g",
     "speed1_g",
@@ -1807,7 +1804,7 @@ export const LinkSpeed = z.preprocess(
  * Switch link configuration.
  */
 export const LinkConfigCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     autoneg: SafeBoolean,
     fec: LinkFec,
@@ -1821,7 +1818,7 @@ export const LinkConfigCreate = z.preprocess(
  * A link layer discovery protocol (LLDP) service configuration.
  */
 export const LldpServiceConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     enabled: SafeBoolean,
     id: z.string().uuid(),
@@ -1833,7 +1830,7 @@ export const LldpServiceConfig = z.preprocess(
  * A loopback address is an address that is assigned to a rack switch but is not associated with any particular port.
  */
 export const LoopbackAddress = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     address: IpNet,
     addressLotBlockId: z.string().uuid(),
@@ -1847,7 +1844,7 @@ export const LoopbackAddress = z.preprocess(
  * Parameters for creating a loopback address on a particular rack switch.
  */
 export const LoopbackAddressCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     address: z.string().ip(),
     addressLot: NameOrId,
@@ -1862,7 +1859,7 @@ export const LoopbackAddressCreate = z.preprocess(
  * A single page of results
  */
 export const LoopbackAddressResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: LoopbackAddress.array(), nextPage: z.string().optional() })
 );
 
@@ -1870,7 +1867,7 @@ export const LoopbackAddressResultsPage = z.preprocess(
  * A `Measurement` is a timestamped datum from a single metric
  */
 export const Measurement = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ datum: Datum, timestamp: z.coerce.date() })
 );
 
@@ -1878,7 +1875,7 @@ export const Measurement = z.preprocess(
  * A single page of results
  */
 export const MeasurementResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Measurement.array(), nextPage: z.string().optional() })
 );
 
@@ -1886,7 +1883,7 @@ export const MeasurementResultsPage = z.preprocess(
  * The type of network interface
  */
 export const NetworkInterfaceKind = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ id: z.string().uuid(), type: z.enum(["instance"]) }),
     z.object({ id: z.string().uuid(), type: z.enum(["service"]) }),
@@ -1898,7 +1895,7 @@ export const NetworkInterfaceKind = z.preprocess(
  * A Geneve Virtual Network Identifier
  */
 export const Vni = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.number().min(0).max(4294967295)
 );
 
@@ -1906,7 +1903,7 @@ export const Vni = z.preprocess(
  * Information required to construct a virtual network interface
  */
 export const NetworkInterface = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     id: z.string().uuid(),
     ip: z.string().ip(),
@@ -1925,13 +1922,13 @@ export const NetworkInterface = z.preprocess(
  *
  * Passwords may be subject to additional constraints.
  */
-export const Password = z.preprocess(processResponseBody, z.string().max(512));
+export const Password = z.preprocess(camelifyKeys, z.string().max(512));
 
 /**
  * Describes the form factor of physical disks.
  */
 export const PhysicalDiskKind = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["m2", "u2"])
 );
 
@@ -1941,7 +1938,7 @@ export const PhysicalDiskKind = z.preprocess(
  * Physical disks reside in a particular sled and are used to store both Instance Disk data as well as internal metadata.
  */
 export const PhysicalDisk = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     formFactor: PhysicalDiskKind,
     id: z.string().uuid(),
@@ -1958,14 +1955,14 @@ export const PhysicalDisk = z.preprocess(
  * A single page of results
  */
 export const PhysicalDiskResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: PhysicalDisk.array(), nextPage: z.string().optional() })
 );
 
-export const PingStatus = z.preprocess(processResponseBody, z.enum(["ok"]));
+export const PingStatus = z.preprocess(camelifyKeys, z.enum(["ok"]));
 
 export const Ping = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ status: PingStatus })
 );
 
@@ -1973,7 +1970,7 @@ export const Ping = z.preprocess(
  * Identity-related metadata that's included in nearly all public API objects
  */
 export const Probe = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -1988,7 +1985,7 @@ export const Probe = z.preprocess(
  * Create time parameters for probes.
  */
 export const ProbeCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     ipPool: NameOrId.optional(),
@@ -1998,7 +1995,7 @@ export const ProbeCreate = z.preprocess(
 );
 
 export const ProbeExternalIp = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     firstPort: z.number().min(0).max(65535),
     ip: z.string().ip(),
@@ -2008,7 +2005,7 @@ export const ProbeExternalIp = z.preprocess(
 );
 
 export const ProbeInfo = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     externalIps: ProbeExternalIp.array(),
     id: z.string().uuid(),
@@ -2022,7 +2019,7 @@ export const ProbeInfo = z.preprocess(
  * A single page of results
  */
 export const ProbeInfoResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: ProbeInfo.array(), nextPage: z.string().optional() })
 );
 
@@ -2030,7 +2027,7 @@ export const ProbeInfoResultsPage = z.preprocess(
  * View of a Project
  */
 export const Project = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -2044,7 +2041,7 @@ export const Project = z.preprocess(
  * Create-time parameters for a `Project`
  */
 export const ProjectCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string(), name: Name })
 );
 
@@ -2052,12 +2049,12 @@ export const ProjectCreate = z.preprocess(
  * A single page of results
  */
 export const ProjectResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Project.array(), nextPage: z.string().optional() })
 );
 
 export const ProjectRole = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["admin", "collaborator", "viewer"])
 );
 
@@ -2067,7 +2064,7 @@ export const ProjectRole = z.preprocess(
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
 export const ProjectRoleRoleAssignment = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     identityId: z.string().uuid(),
     identityType: IdentityType,
@@ -2081,7 +2078,7 @@ export const ProjectRoleRoleAssignment = z.preprocess(
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
 export const ProjectRolePolicy = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ roleAssignments: ProjectRoleRoleAssignment.array() })
 );
 
@@ -2089,7 +2086,7 @@ export const ProjectRolePolicy = z.preprocess(
  * Updateable properties of a `Project`
  */
 export const ProjectUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
@@ -2097,7 +2094,7 @@ export const ProjectUpdate = z.preprocess(
  * View of an Rack
  */
 export const Rack = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     id: z.string().uuid(),
     timeCreated: z.coerce.date(),
@@ -2109,7 +2106,7 @@ export const Rack = z.preprocess(
  * A single page of results
  */
 export const RackResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Rack.array(), nextPage: z.string().optional() })
 );
 
@@ -2119,7 +2116,7 @@ export const RackResultsPage = z.preprocess(
  * Role names consist of two string components separated by dot (".").
  */
 export const RoleName = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .max(63)
@@ -2130,7 +2127,7 @@ export const RoleName = z.preprocess(
  * View of a Role
  */
 export const Role = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string(), name: RoleName })
 );
 
@@ -2138,7 +2135,7 @@ export const Role = z.preprocess(
  * A single page of results
  */
 export const RoleResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Role.array(), nextPage: z.string().optional() })
 );
 
@@ -2146,7 +2143,7 @@ export const RoleResultsPage = z.preprocess(
  * A route to a destination network through a gateway address.
  */
 export const Route = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     dst: IpNet,
     gw: z.string().ip(),
@@ -2158,7 +2155,7 @@ export const Route = z.preprocess(
  * Route configuration data associated with a switch port configuration.
  */
 export const RouteConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ routes: Route.array() })
 );
 
@@ -2166,7 +2163,7 @@ export const RouteConfig = z.preprocess(
  * Identity-related metadata that's included in nearly all public API objects
  */
 export const SamlIdentityProvider = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     acsUrl: z.string(),
     description: z.string(),
@@ -2187,7 +2184,7 @@ export const SamlIdentityProvider = z.preprocess(
  * Create-time identity-related parameters
  */
 export const SamlIdentityProviderCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     acsUrl: z.string(),
     description: z.string(),
@@ -2206,7 +2203,7 @@ export const SamlIdentityProviderCreate = z.preprocess(
  * Describes how identities are managed and users are authenticated in this Silo
  */
 export const SiloIdentityMode = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["saml_jit", "local_only"])
 );
 
@@ -2216,7 +2213,7 @@ export const SiloIdentityMode = z.preprocess(
  * A Silo is the highest level unit of isolation.
  */
 export const Silo = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     discoverable: SafeBoolean,
@@ -2236,7 +2233,7 @@ export const Silo = z.preprocess(
  * The amount of provisionable resources for a Silo
  */
 export const SiloQuotasCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount })
 );
 
@@ -2244,7 +2241,7 @@ export const SiloQuotasCreate = z.preprocess(
  * Create-time parameters for a `Silo`
  */
 export const SiloCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     adminGroupName: z.string().optional(),
     description: z.string(),
@@ -2263,7 +2260,7 @@ export const SiloCreate = z.preprocess(
  * An IP pool in the context of a silo
  */
 export const SiloIpPool = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -2278,7 +2275,7 @@ export const SiloIpPool = z.preprocess(
  * A single page of results
  */
 export const SiloIpPoolResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: SiloIpPool.array(), nextPage: z.string().optional() })
 );
 
@@ -2286,7 +2283,7 @@ export const SiloIpPoolResultsPage = z.preprocess(
  * A collection of resource counts used to set the virtual capacity of a silo
  */
 export const SiloQuotas = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     cpus: z.number(),
     memory: ByteCount,
@@ -2299,7 +2296,7 @@ export const SiloQuotas = z.preprocess(
  * A single page of results
  */
 export const SiloQuotasResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: SiloQuotas.array(), nextPage: z.string().optional() })
 );
 
@@ -2307,7 +2304,7 @@ export const SiloQuotasResultsPage = z.preprocess(
  * Updateable properties of a Silo's resource limits. If a value is omitted it will not be updated.
  */
 export const SiloQuotasUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     cpus: z.number().optional(),
     memory: ByteCount.optional(),
@@ -2319,12 +2316,12 @@ export const SiloQuotasUpdate = z.preprocess(
  * A single page of results
  */
 export const SiloResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Silo.array(), nextPage: z.string().optional() })
 );
 
 export const SiloRole = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["admin", "collaborator", "viewer"])
 );
 
@@ -2334,7 +2331,7 @@ export const SiloRole = z.preprocess(
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
 export const SiloRoleRoleAssignment = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     identityId: z.string().uuid(),
     identityType: IdentityType,
@@ -2348,7 +2345,7 @@ export const SiloRoleRoleAssignment = z.preprocess(
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
 export const SiloRolePolicy = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ roleAssignments: SiloRoleRoleAssignment.array() })
 );
 
@@ -2356,7 +2353,7 @@ export const SiloRolePolicy = z.preprocess(
  * A collection of resource counts used to describe capacity and utilization
  */
 export const VirtualResourceCounts = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount })
 );
 
@@ -2364,7 +2361,7 @@ export const VirtualResourceCounts = z.preprocess(
  * View of a silo's resource utilization and capacity
  */
 export const SiloUtilization = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     allocated: VirtualResourceCounts,
     provisioned: VirtualResourceCounts,
@@ -2377,7 +2374,7 @@ export const SiloUtilization = z.preprocess(
  * A single page of results
  */
 export const SiloUtilizationResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: SiloUtilization.array(), nextPage: z.string().optional() })
 );
 
@@ -2387,7 +2384,7 @@ export const SiloUtilizationResultsPage = z.preprocess(
  * This controls whether new resources are going to be provisioned on this sled.
  */
 export const SledProvisionPolicy = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["provisionable", "non_provisionable"])
 );
 
@@ -2395,7 +2392,7 @@ export const SledProvisionPolicy = z.preprocess(
  * The operator-defined policy of a sled.
  */
 export const SledPolicy = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({
       kind: z.enum(["in_service"]),
@@ -2409,7 +2406,7 @@ export const SledPolicy = z.preprocess(
  * The current state of the sled, as determined by Nexus.
  */
 export const SledState = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["active", "decommissioned"])
 );
 
@@ -2417,7 +2414,7 @@ export const SledState = z.preprocess(
  * An operator's view of a Sled.
  */
 export const Sled = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     baseboard: Baseboard,
     id: z.string().uuid(),
@@ -2435,7 +2432,7 @@ export const Sled = z.preprocess(
  * An operator's view of an instance running on a given sled
  */
 export const SledInstance = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     activeSledId: z.string().uuid(),
     id: z.string().uuid(),
@@ -2455,7 +2452,7 @@ export const SledInstance = z.preprocess(
  * A single page of results
  */
 export const SledInstanceResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: SledInstance.array(), nextPage: z.string().optional() })
 );
 
@@ -2463,7 +2460,7 @@ export const SledInstanceResultsPage = z.preprocess(
  * Parameters for `sled_set_provision_policy`.
  */
 export const SledProvisionPolicyParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ state: SledProvisionPolicy })
 );
 
@@ -2471,7 +2468,7 @@ export const SledProvisionPolicyParams = z.preprocess(
  * Response to `sled_set_provision_policy`.
  */
 export const SledProvisionPolicyResponse = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ newState: SledProvisionPolicy, oldState: SledProvisionPolicy })
 );
 
@@ -2479,12 +2476,12 @@ export const SledProvisionPolicyResponse = z.preprocess(
  * A single page of results
  */
 export const SledResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Sled.array(), nextPage: z.string().optional() })
 );
 
 export const SnapshotState = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["creating", "ready", "faulted", "destroyed"])
 );
 
@@ -2492,7 +2489,7 @@ export const SnapshotState = z.preprocess(
  * View of a Snapshot
  */
 export const Snapshot = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     diskId: z.string().uuid(),
@@ -2510,7 +2507,7 @@ export const Snapshot = z.preprocess(
  * Create-time parameters for a `Snapshot`
  */
 export const SnapshotCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string(), disk: NameOrId, name: Name })
 );
 
@@ -2518,7 +2515,7 @@ export const SnapshotCreate = z.preprocess(
  * A single page of results
  */
 export const SnapshotResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Snapshot.array(), nextPage: z.string().optional() })
 );
 
@@ -2526,7 +2523,7 @@ export const SnapshotResultsPage = z.preprocess(
  * View of an SSH Key
  */
 export const SshKey = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -2542,7 +2539,7 @@ export const SshKey = z.preprocess(
  * Create-time parameters for an `SshKey`
  */
 export const SshKeyCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string(), name: Name, publicKey: z.string() })
 );
 
@@ -2550,7 +2547,7 @@ export const SshKeyCreate = z.preprocess(
  * A single page of results
  */
 export const SshKeyResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: SshKey.array(), nextPage: z.string().optional() })
 );
 
@@ -2558,7 +2555,7 @@ export const SshKeyResultsPage = z.preprocess(
  * An operator's view of a Switch.
  */
 export const Switch = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     baseboard: Baseboard,
     id: z.string().uuid(),
@@ -2572,7 +2569,7 @@ export const Switch = z.preprocess(
  * Describes the kind of an switch interface.
  */
 export const SwitchInterfaceKind2 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["primary", "vlan", "loopback"])
 );
 
@@ -2580,7 +2577,7 @@ export const SwitchInterfaceKind2 = z.preprocess(
  * A switch port interface configuration for a port settings object.
  */
 export const SwitchInterfaceConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     id: z.string().uuid(),
     interfaceName: z.string(),
@@ -2594,7 +2591,7 @@ export const SwitchInterfaceConfig = z.preprocess(
  * Indicates the kind for a switch interface.
  */
 export const SwitchInterfaceKind = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ type: z.enum(["primary"]) }),
     z.object({ type: z.enum(["vlan"]), vid: z.number().min(0).max(65535) }),
@@ -2606,7 +2603,7 @@ export const SwitchInterfaceKind = z.preprocess(
  * A layer-3 switch interface configuration. When IPv6 is enabled, a link local address will be created for the interface.
  */
 export const SwitchInterfaceConfigCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ kind: SwitchInterfaceKind, v6Enabled: SafeBoolean })
 );
 
@@ -2614,7 +2611,7 @@ export const SwitchInterfaceConfigCreate = z.preprocess(
  * A switch port represents a physical external port on a rack switch.
  */
 export const SwitchPort = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     id: z.string().uuid(),
     portName: z.string(),
@@ -2628,7 +2625,7 @@ export const SwitchPort = z.preprocess(
  * An IP address configuration for a port settings object.
  */
 export const SwitchPortAddressConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     address: IpNet,
     addressLotBlockId: z.string().uuid(),
@@ -2641,7 +2638,7 @@ export const SwitchPortAddressConfig = z.preprocess(
  * Parameters for applying settings to switch ports.
  */
 export const SwitchPortApplySettings = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ portSettings: NameOrId })
 );
 
@@ -2649,7 +2646,7 @@ export const SwitchPortApplySettings = z.preprocess(
  * A BGP peer configuration for a port settings object.
  */
 export const SwitchPortBgpPeerConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     addr: z.string().ip(),
     bgpConfigId: z.string().uuid(),
@@ -2662,7 +2659,7 @@ export const SwitchPortBgpPeerConfig = z.preprocess(
  * The link geometry associated with a switch port.
  */
 export const SwitchPortGeometry2 = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
 );
 
@@ -2670,7 +2667,7 @@ export const SwitchPortGeometry2 = z.preprocess(
  * A physical port configuration for a port settings object.
  */
 export const SwitchPortConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ geometry: SwitchPortGeometry2, portSettingsId: z.string().uuid() })
 );
 
@@ -2678,7 +2675,7 @@ export const SwitchPortConfig = z.preprocess(
  * The link geometry associated with a switch port.
  */
 export const SwitchPortGeometry = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
 );
 
@@ -2686,7 +2683,7 @@ export const SwitchPortGeometry = z.preprocess(
  * Physical switch port configuration.
  */
 export const SwitchPortConfigCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ geometry: SwitchPortGeometry })
 );
 
@@ -2694,7 +2691,7 @@ export const SwitchPortConfigCreate = z.preprocess(
  * A link configuration for a port settings object.
  */
 export const SwitchPortLinkConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     linkName: z.string(),
     lldpServiceConfigId: z.string().uuid(),
@@ -2707,7 +2704,7 @@ export const SwitchPortLinkConfig = z.preprocess(
  * A single page of results
  */
 export const SwitchPortResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: SwitchPort.array(), nextPage: z.string().optional() })
 );
 
@@ -2715,7 +2712,7 @@ export const SwitchPortResultsPage = z.preprocess(
  * A route configuration for a port settings object.
  */
 export const SwitchPortRouteConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     dst: IpNet,
     gw: IpNet,
@@ -2729,7 +2726,7 @@ export const SwitchPortRouteConfig = z.preprocess(
  * A switch port settings identity whose id may be used to view additional details.
  */
 export const SwitchPortSettings = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -2743,7 +2740,7 @@ export const SwitchPortSettings = z.preprocess(
  * Parameters for creating switch port settings. Switch port settings are the central data structure for setting up external networking. Switch port settings include link, interface, route, address and dynamic network protocol configuration.
  */
 export const SwitchPortSettingsCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     addresses: z.record(z.string().min(1), AddressConfig),
     bgpPeers: z.record(z.string().min(1), BgpPeerConfig),
@@ -2761,7 +2758,7 @@ export const SwitchPortSettingsCreate = z.preprocess(
  * This structure maps a port settings object to a port settings groups. Port settings objects may inherit settings from groups. This mapping defines the relationship between settings objects and the groups they reference.
  */
 export const SwitchPortSettingsGroups = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     portSettingsGroupId: z.string().uuid(),
     portSettingsId: z.string().uuid(),
@@ -2772,7 +2769,7 @@ export const SwitchPortSettingsGroups = z.preprocess(
  * A single page of results
  */
 export const SwitchPortSettingsResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     items: SwitchPortSettings.array(),
     nextPage: z.string().optional(),
@@ -2783,7 +2780,7 @@ export const SwitchPortSettingsResultsPage = z.preprocess(
  * A switch port VLAN interface configuration for a port settings object.
  */
 export const SwitchVlanInterfaceConfig = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     interfaceConfigId: z.string().uuid(),
     vlanId: z.number().min(0).max(65535),
@@ -2794,7 +2791,7 @@ export const SwitchVlanInterfaceConfig = z.preprocess(
  * This structure contains all port settings information in one place. It's a convenience data structure for getting a complete view of a particular port's settings.
  */
 export const SwitchPortSettingsView = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     addresses: SwitchPortAddressConfig.array(),
     bgpPeers: SwitchPortBgpPeerConfig.array(),
@@ -2813,7 +2810,7 @@ export const SwitchPortSettingsView = z.preprocess(
  * A single page of results
  */
 export const SwitchResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Switch.array(), nextPage: z.string().optional() })
 );
 
@@ -2821,7 +2818,7 @@ export const SwitchResultsPage = z.preprocess(
  * A sled that has not been added to an initialized rack yet
  */
 export const UninitializedSled = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     baseboard: Baseboard,
     cubby: z.number().min(0).max(65535),
@@ -2833,7 +2830,7 @@ export const UninitializedSled = z.preprocess(
  * The unique hardware ID for a sled
  */
 export const UninitializedSledId = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ part: z.string(), serial: z.string() })
 );
 
@@ -2841,7 +2838,7 @@ export const UninitializedSledId = z.preprocess(
  * A single page of results
  */
 export const UninitializedSledResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     items: UninitializedSled.array(),
     nextPage: z.string().optional(),
@@ -2852,7 +2849,7 @@ export const UninitializedSledResultsPage = z.preprocess(
  * View of a User
  */
 export const User = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     displayName: z.string(),
     id: z.string().uuid(),
@@ -2866,7 +2863,7 @@ export const User = z.preprocess(
  * A Built-in User is explicitly created as opposed to being derived from an Identify Provider.
  */
 export const UserBuiltin = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -2880,7 +2877,7 @@ export const UserBuiltin = z.preprocess(
  * A single page of results
  */
 export const UserBuiltinResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: UserBuiltin.array(), nextPage: z.string().optional() })
 );
 
@@ -2890,7 +2887,7 @@ export const UserBuiltinResultsPage = z.preprocess(
  * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
  */
 export const UserId = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z
     .string()
     .min(1)
@@ -2904,7 +2901,7 @@ export const UserId = z.preprocess(
  * Parameters for setting a user's password
  */
 export const UserPassword = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ mode: z.enum(["password"]), value: Password }),
     z.object({ mode: z.enum(["login_disallowed"]) }),
@@ -2915,7 +2912,7 @@ export const UserPassword = z.preprocess(
  * Create-time parameters for a `User`
  */
 export const UserCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ externalId: UserId, password: UserPassword })
 );
 
@@ -2923,7 +2920,7 @@ export const UserCreate = z.preprocess(
  * A single page of results
  */
 export const UserResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: User.array(), nextPage: z.string().optional() })
 );
 
@@ -2931,7 +2928,7 @@ export const UserResultsPage = z.preprocess(
  * Credentials for local user login
  */
 export const UsernamePasswordCredentials = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ password: Password, username: UserId })
 );
 
@@ -2939,7 +2936,7 @@ export const UsernamePasswordCredentials = z.preprocess(
  * View of the current silo's resource utilization and capacity
  */
 export const Utilization = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     capacity: VirtualResourceCounts,
     provisioned: VirtualResourceCounts,
@@ -2950,7 +2947,7 @@ export const Utilization = z.preprocess(
  * View of a VPC
  */
 export const Vpc = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     dnsName: Name,
@@ -2968,7 +2965,7 @@ export const Vpc = z.preprocess(
  * Create-time parameters for a `Vpc`
  */
 export const VpcCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     dnsName: Name,
@@ -2978,12 +2975,12 @@ export const VpcCreate = z.preprocess(
 );
 
 export const VpcFirewallRuleAction = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["allow", "deny"])
 );
 
 export const VpcFirewallRuleDirection = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["inbound", "outbound"])
 );
 
@@ -2991,7 +2988,7 @@ export const VpcFirewallRuleDirection = z.preprocess(
  * The `VpcFirewallRuleHostFilter` is used to filter traffic on the basis of its source or destination host.
  */
 export const VpcFirewallRuleHostFilter = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ type: z.enum(["vpc"]), value: Name }),
     z.object({ type: z.enum(["subnet"]), value: Name }),
@@ -3005,7 +3002,7 @@ export const VpcFirewallRuleHostFilter = z.preprocess(
  * The protocols that may be specified in a firewall rule's filter
  */
 export const VpcFirewallRuleProtocol = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["TCP", "UDP", "ICMP"])
 );
 
@@ -3013,7 +3010,7 @@ export const VpcFirewallRuleProtocol = z.preprocess(
  * Filter for a firewall rule. A given packet must match every field that is present for the rule to apply to it. A packet matches a field if any entry in that field matches the packet.
  */
 export const VpcFirewallRuleFilter = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     hosts: VpcFirewallRuleHostFilter.array().optional(),
     ports: L4PortRange.array().optional(),
@@ -3022,7 +3019,7 @@ export const VpcFirewallRuleFilter = z.preprocess(
 );
 
 export const VpcFirewallRuleStatus = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["disabled", "enabled"])
 );
 
@@ -3030,7 +3027,7 @@ export const VpcFirewallRuleStatus = z.preprocess(
  * A `VpcFirewallRuleTarget` is used to specify the set of `Instance`s to which a firewall rule applies.
  */
 export const VpcFirewallRuleTarget = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.union([
     z.object({ type: z.enum(["vpc"]), value: Name }),
     z.object({ type: z.enum(["subnet"]), value: Name }),
@@ -3044,7 +3041,7 @@ export const VpcFirewallRuleTarget = z.preprocess(
  * A single rule in a VPC firewall
  */
 export const VpcFirewallRule = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     action: VpcFirewallRuleAction,
     description: z.string(),
@@ -3065,7 +3062,7 @@ export const VpcFirewallRule = z.preprocess(
  * A single rule in a VPC firewall
  */
 export const VpcFirewallRuleUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     action: VpcFirewallRuleAction,
     description: z.string(),
@@ -3082,7 +3079,7 @@ export const VpcFirewallRuleUpdate = z.preprocess(
  * Updateable properties of a `Vpc`'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
  */
 export const VpcFirewallRuleUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ rules: VpcFirewallRuleUpdate.array() })
 );
 
@@ -3090,7 +3087,7 @@ export const VpcFirewallRuleUpdateParams = z.preprocess(
  * Collection of a Vpc's firewall rules
  */
 export const VpcFirewallRules = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ rules: VpcFirewallRule.array() })
 );
 
@@ -3098,7 +3095,7 @@ export const VpcFirewallRules = z.preprocess(
  * A single page of results
  */
 export const VpcResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: Vpc.array(), nextPage: z.string().optional() })
 );
 
@@ -3106,7 +3103,7 @@ export const VpcResultsPage = z.preprocess(
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionall an IPv6 subnetwork.
  */
 export const VpcSubnet = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     id: z.string().uuid(),
@@ -3123,7 +3120,7 @@ export const VpcSubnet = z.preprocess(
  * Create-time parameters for a `VpcSubnet`
  */
 export const VpcSubnetCreate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string(),
     ipv4Block: Ipv4Net,
@@ -3136,7 +3133,7 @@ export const VpcSubnetCreate = z.preprocess(
  * A single page of results
  */
 export const VpcSubnetResultsPage = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ items: VpcSubnet.array(), nextPage: z.string().optional() })
 );
 
@@ -3144,7 +3141,7 @@ export const VpcSubnetResultsPage = z.preprocess(
  * Updateable properties of a `VpcSubnet`
  */
 export const VpcSubnetUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({ description: z.string().optional(), name: Name.optional() })
 );
 
@@ -3152,7 +3149,7 @@ export const VpcSubnetUpdate = z.preprocess(
  * Updateable properties of a `Vpc`
  */
 export const VpcUpdate = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     description: z.string().optional(),
     dnsName: Name.optional(),
@@ -3164,12 +3161,12 @@ export const VpcUpdate = z.preprocess(
  * Supported set of sort modes for scanning by name or id
  */
 export const NameOrIdSortMode = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["name_ascending", "name_descending", "id_ascending"])
 );
 
 export const DiskMetricName = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["activated", "flush", "read", "read_bytes", "write", "write_bytes"])
 );
 
@@ -3177,7 +3174,7 @@ export const DiskMetricName = z.preprocess(
  * The order in which the client wants to page through the requested collection
  */
 export const PaginationOrder = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["ascending", "descending"])
 );
 
@@ -3186,13 +3183,10 @@ export const PaginationOrder = z.preprocess(
  *
  * Currently, we only support scanning in ascending order.
  */
-export const IdSortMode = z.preprocess(
-  processResponseBody,
-  z.enum(["id_ascending"])
-);
+export const IdSortMode = z.preprocess(camelifyKeys, z.enum(["id_ascending"]));
 
 export const SystemMetricName = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum([
     "virtual_disk_space_provisioned",
     "cpus_provisioned",
@@ -3206,12 +3200,12 @@ export const SystemMetricName = z.preprocess(
  * Currently, we only support scanning in ascending order.
  */
 export const NameSortMode = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.enum(["name_ascending"])
 );
 
 export const DeviceAuthRequestParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -3219,7 +3213,7 @@ export const DeviceAuthRequestParams = z.preprocess(
 );
 
 export const DeviceAuthConfirmParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -3227,7 +3221,7 @@ export const DeviceAuthConfirmParams = z.preprocess(
 );
 
 export const DeviceAccessTokenParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -3235,7 +3229,7 @@ export const DeviceAccessTokenParams = z.preprocess(
 );
 
 export const ProbeListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3248,7 +3242,7 @@ export const ProbeListParams = z.preprocess(
 );
 
 export const ProbeCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3258,7 +3252,7 @@ export const ProbeCreateParams = z.preprocess(
 );
 
 export const ProbeViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       probe: NameOrId,
@@ -3270,7 +3264,7 @@ export const ProbeViewParams = z.preprocess(
 );
 
 export const ProbeDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       probe: NameOrId,
@@ -3282,7 +3276,7 @@ export const ProbeDeleteParams = z.preprocess(
 );
 
 export const LoginSamlParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       providerName: Name,
@@ -3293,7 +3287,7 @@ export const LoginSamlParams = z.preprocess(
 );
 
 export const CertificateListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3305,7 +3299,7 @@ export const CertificateListParams = z.preprocess(
 );
 
 export const CertificateCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -3313,7 +3307,7 @@ export const CertificateCreateParams = z.preprocess(
 );
 
 export const CertificateViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       certificate: NameOrId,
@@ -3323,7 +3317,7 @@ export const CertificateViewParams = z.preprocess(
 );
 
 export const CertificateDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       certificate: NameOrId,
@@ -3333,7 +3327,7 @@ export const CertificateDeleteParams = z.preprocess(
 );
 
 export const DiskListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3346,7 +3340,7 @@ export const DiskListParams = z.preprocess(
 );
 
 export const DiskCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3356,7 +3350,7 @@ export const DiskCreateParams = z.preprocess(
 );
 
 export const DiskViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       disk: NameOrId,
@@ -3368,7 +3362,7 @@ export const DiskViewParams = z.preprocess(
 );
 
 export const DiskDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       disk: NameOrId,
@@ -3380,7 +3374,7 @@ export const DiskDeleteParams = z.preprocess(
 );
 
 export const DiskBulkWriteImportParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       disk: NameOrId,
@@ -3392,7 +3386,7 @@ export const DiskBulkWriteImportParams = z.preprocess(
 );
 
 export const DiskBulkWriteImportStartParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       disk: NameOrId,
@@ -3404,7 +3398,7 @@ export const DiskBulkWriteImportStartParams = z.preprocess(
 );
 
 export const DiskBulkWriteImportStopParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       disk: NameOrId,
@@ -3416,7 +3410,7 @@ export const DiskBulkWriteImportStopParams = z.preprocess(
 );
 
 export const DiskFinalizeImportParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       disk: NameOrId,
@@ -3428,7 +3422,7 @@ export const DiskFinalizeImportParams = z.preprocess(
 );
 
 export const DiskMetricsListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       disk: NameOrId,
@@ -3446,7 +3440,7 @@ export const DiskMetricsListParams = z.preprocess(
 );
 
 export const FloatingIpListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3459,7 +3453,7 @@ export const FloatingIpListParams = z.preprocess(
 );
 
 export const FloatingIpCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3469,7 +3463,7 @@ export const FloatingIpCreateParams = z.preprocess(
 );
 
 export const FloatingIpViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       floatingIp: NameOrId,
@@ -3481,7 +3475,7 @@ export const FloatingIpViewParams = z.preprocess(
 );
 
 export const FloatingIpUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       floatingIp: NameOrId,
@@ -3493,7 +3487,7 @@ export const FloatingIpUpdateParams = z.preprocess(
 );
 
 export const FloatingIpDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       floatingIp: NameOrId,
@@ -3505,7 +3499,7 @@ export const FloatingIpDeleteParams = z.preprocess(
 );
 
 export const FloatingIpAttachParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       floatingIp: NameOrId,
@@ -3517,7 +3511,7 @@ export const FloatingIpAttachParams = z.preprocess(
 );
 
 export const FloatingIpDetachParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       floatingIp: NameOrId,
@@ -3529,7 +3523,7 @@ export const FloatingIpDetachParams = z.preprocess(
 );
 
 export const GroupListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3541,7 +3535,7 @@ export const GroupListParams = z.preprocess(
 );
 
 export const GroupViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       groupId: z.string().uuid(),
@@ -3551,7 +3545,7 @@ export const GroupViewParams = z.preprocess(
 );
 
 export const ImageListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3564,7 +3558,7 @@ export const ImageListParams = z.preprocess(
 );
 
 export const ImageCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3574,7 +3568,7 @@ export const ImageCreateParams = z.preprocess(
 );
 
 export const ImageViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       image: NameOrId,
@@ -3586,7 +3580,7 @@ export const ImageViewParams = z.preprocess(
 );
 
 export const ImageDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       image: NameOrId,
@@ -3598,7 +3592,7 @@ export const ImageDeleteParams = z.preprocess(
 );
 
 export const ImageDemoteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       image: NameOrId,
@@ -3610,7 +3604,7 @@ export const ImageDemoteParams = z.preprocess(
 );
 
 export const ImagePromoteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       image: NameOrId,
@@ -3622,7 +3616,7 @@ export const ImagePromoteParams = z.preprocess(
 );
 
 export const InstanceListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3635,7 +3629,7 @@ export const InstanceListParams = z.preprocess(
 );
 
 export const InstanceCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3645,7 +3639,7 @@ export const InstanceCreateParams = z.preprocess(
 );
 
 export const InstanceViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3657,7 +3651,7 @@ export const InstanceViewParams = z.preprocess(
 );
 
 export const InstanceDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3669,7 +3663,7 @@ export const InstanceDeleteParams = z.preprocess(
 );
 
 export const InstanceDiskListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3684,7 +3678,7 @@ export const InstanceDiskListParams = z.preprocess(
 );
 
 export const InstanceDiskAttachParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3696,7 +3690,7 @@ export const InstanceDiskAttachParams = z.preprocess(
 );
 
 export const InstanceDiskDetachParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3708,7 +3702,7 @@ export const InstanceDiskDetachParams = z.preprocess(
 );
 
 export const InstanceExternalIpListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3720,7 +3714,7 @@ export const InstanceExternalIpListParams = z.preprocess(
 );
 
 export const InstanceEphemeralIpAttachParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3732,7 +3726,7 @@ export const InstanceEphemeralIpAttachParams = z.preprocess(
 );
 
 export const InstanceEphemeralIpDetachParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3744,7 +3738,7 @@ export const InstanceEphemeralIpDetachParams = z.preprocess(
 );
 
 export const InstanceMigrateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3756,7 +3750,7 @@ export const InstanceMigrateParams = z.preprocess(
 );
 
 export const InstanceRebootParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3768,7 +3762,7 @@ export const InstanceRebootParams = z.preprocess(
 );
 
 export const InstanceSerialConsoleParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3783,7 +3777,7 @@ export const InstanceSerialConsoleParams = z.preprocess(
 );
 
 export const InstanceSerialConsoleStreamParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3796,7 +3790,7 @@ export const InstanceSerialConsoleStreamParams = z.preprocess(
 );
 
 export const InstanceSshPublicKeyListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3811,7 +3805,7 @@ export const InstanceSshPublicKeyListParams = z.preprocess(
 );
 
 export const InstanceStartParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3823,7 +3817,7 @@ export const InstanceStartParams = z.preprocess(
 );
 
 export const InstanceStopParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       instance: NameOrId,
@@ -3835,7 +3829,7 @@ export const InstanceStopParams = z.preprocess(
 );
 
 export const ProjectIpPoolListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3847,7 +3841,7 @@ export const ProjectIpPoolListParams = z.preprocess(
 );
 
 export const ProjectIpPoolViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -3857,7 +3851,7 @@ export const ProjectIpPoolViewParams = z.preprocess(
 );
 
 export const LoginLocalParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       siloName: Name,
@@ -3867,7 +3861,7 @@ export const LoginLocalParams = z.preprocess(
 );
 
 export const LogoutParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -3875,7 +3869,7 @@ export const LogoutParams = z.preprocess(
 );
 
 export const CurrentUserViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -3883,7 +3877,7 @@ export const CurrentUserViewParams = z.preprocess(
 );
 
 export const CurrentUserGroupsParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3895,7 +3889,7 @@ export const CurrentUserGroupsParams = z.preprocess(
 );
 
 export const CurrentUserSshKeyListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3907,7 +3901,7 @@ export const CurrentUserSshKeyListParams = z.preprocess(
 );
 
 export const CurrentUserSshKeyCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -3915,7 +3909,7 @@ export const CurrentUserSshKeyCreateParams = z.preprocess(
 );
 
 export const CurrentUserSshKeyViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       sshKey: NameOrId,
@@ -3925,7 +3919,7 @@ export const CurrentUserSshKeyViewParams = z.preprocess(
 );
 
 export const CurrentUserSshKeyDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       sshKey: NameOrId,
@@ -3935,7 +3929,7 @@ export const CurrentUserSshKeyDeleteParams = z.preprocess(
 );
 
 export const SiloMetricParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       metricName: SystemMetricName,
@@ -3952,7 +3946,7 @@ export const SiloMetricParams = z.preprocess(
 );
 
 export const InstanceNetworkInterfaceListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3966,7 +3960,7 @@ export const InstanceNetworkInterfaceListParams = z.preprocess(
 );
 
 export const InstanceNetworkInterfaceCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -3977,7 +3971,7 @@ export const InstanceNetworkInterfaceCreateParams = z.preprocess(
 );
 
 export const InstanceNetworkInterfaceViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       interface: NameOrId,
@@ -3990,7 +3984,7 @@ export const InstanceNetworkInterfaceViewParams = z.preprocess(
 );
 
 export const InstanceNetworkInterfaceUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       interface: NameOrId,
@@ -4003,7 +3997,7 @@ export const InstanceNetworkInterfaceUpdateParams = z.preprocess(
 );
 
 export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       interface: NameOrId,
@@ -4016,7 +4010,7 @@ export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
 );
 
 export const PingParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4024,7 +4018,7 @@ export const PingParams = z.preprocess(
 );
 
 export const PolicyViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4032,7 +4026,7 @@ export const PolicyViewParams = z.preprocess(
 );
 
 export const PolicyUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4040,7 +4034,7 @@ export const PolicyUpdateParams = z.preprocess(
 );
 
 export const ProjectListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4052,7 +4046,7 @@ export const ProjectListParams = z.preprocess(
 );
 
 export const ProjectCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4060,7 +4054,7 @@ export const ProjectCreateParams = z.preprocess(
 );
 
 export const ProjectViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       project: NameOrId,
@@ -4070,7 +4064,7 @@ export const ProjectViewParams = z.preprocess(
 );
 
 export const ProjectUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       project: NameOrId,
@@ -4080,7 +4074,7 @@ export const ProjectUpdateParams = z.preprocess(
 );
 
 export const ProjectDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       project: NameOrId,
@@ -4090,7 +4084,7 @@ export const ProjectDeleteParams = z.preprocess(
 );
 
 export const ProjectPolicyViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       project: NameOrId,
@@ -4100,7 +4094,7 @@ export const ProjectPolicyViewParams = z.preprocess(
 );
 
 export const ProjectPolicyUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       project: NameOrId,
@@ -4110,7 +4104,7 @@ export const ProjectPolicyUpdateParams = z.preprocess(
 );
 
 export const SnapshotListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4123,7 +4117,7 @@ export const SnapshotListParams = z.preprocess(
 );
 
 export const SnapshotCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4133,7 +4127,7 @@ export const SnapshotCreateParams = z.preprocess(
 );
 
 export const SnapshotViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       snapshot: NameOrId,
@@ -4145,7 +4139,7 @@ export const SnapshotViewParams = z.preprocess(
 );
 
 export const SnapshotDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       snapshot: NameOrId,
@@ -4157,7 +4151,7 @@ export const SnapshotDeleteParams = z.preprocess(
 );
 
 export const PhysicalDiskListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4169,7 +4163,7 @@ export const PhysicalDiskListParams = z.preprocess(
 );
 
 export const RackListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4181,7 +4175,7 @@ export const RackListParams = z.preprocess(
 );
 
 export const RackViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       rackId: z.string().uuid(),
@@ -4191,7 +4185,7 @@ export const RackViewParams = z.preprocess(
 );
 
 export const SledListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4203,7 +4197,7 @@ export const SledListParams = z.preprocess(
 );
 
 export const SledAddParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4211,7 +4205,7 @@ export const SledAddParams = z.preprocess(
 );
 
 export const SledViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       sledId: z.string().uuid(),
@@ -4221,7 +4215,7 @@ export const SledViewParams = z.preprocess(
 );
 
 export const SledPhysicalDiskListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       sledId: z.string().uuid(),
@@ -4235,7 +4229,7 @@ export const SledPhysicalDiskListParams = z.preprocess(
 );
 
 export const SledInstanceListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       sledId: z.string().uuid(),
@@ -4249,7 +4243,7 @@ export const SledInstanceListParams = z.preprocess(
 );
 
 export const SledSetProvisionPolicyParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       sledId: z.string().uuid(),
@@ -4259,7 +4253,7 @@ export const SledSetProvisionPolicyParams = z.preprocess(
 );
 
 export const SledListUninitializedParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4270,7 +4264,7 @@ export const SledListUninitializedParams = z.preprocess(
 );
 
 export const NetworkingSwitchPortListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4283,7 +4277,7 @@ export const NetworkingSwitchPortListParams = z.preprocess(
 );
 
 export const NetworkingSwitchPortApplySettingsParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       port: Name,
@@ -4296,7 +4290,7 @@ export const NetworkingSwitchPortApplySettingsParams = z.preprocess(
 );
 
 export const NetworkingSwitchPortClearSettingsParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       port: Name,
@@ -4309,7 +4303,7 @@ export const NetworkingSwitchPortClearSettingsParams = z.preprocess(
 );
 
 export const SwitchListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4321,7 +4315,7 @@ export const SwitchListParams = z.preprocess(
 );
 
 export const SwitchViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       switchId: z.string().uuid(),
@@ -4331,7 +4325,7 @@ export const SwitchViewParams = z.preprocess(
 );
 
 export const SiloIdentityProviderListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4344,7 +4338,7 @@ export const SiloIdentityProviderListParams = z.preprocess(
 );
 
 export const LocalIdpUserCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4354,7 +4348,7 @@ export const LocalIdpUserCreateParams = z.preprocess(
 );
 
 export const LocalIdpUserDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       userId: z.string().uuid(),
@@ -4366,7 +4360,7 @@ export const LocalIdpUserDeleteParams = z.preprocess(
 );
 
 export const LocalIdpUserSetPasswordParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       userId: z.string().uuid(),
@@ -4378,7 +4372,7 @@ export const LocalIdpUserSetPasswordParams = z.preprocess(
 );
 
 export const SamlIdentityProviderCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4388,7 +4382,7 @@ export const SamlIdentityProviderCreateParams = z.preprocess(
 );
 
 export const SamlIdentityProviderViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       provider: NameOrId,
@@ -4400,7 +4394,7 @@ export const SamlIdentityProviderViewParams = z.preprocess(
 );
 
 export const IpPoolListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4412,7 +4406,7 @@ export const IpPoolListParams = z.preprocess(
 );
 
 export const IpPoolCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4420,7 +4414,7 @@ export const IpPoolCreateParams = z.preprocess(
 );
 
 export const IpPoolViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4430,7 +4424,7 @@ export const IpPoolViewParams = z.preprocess(
 );
 
 export const IpPoolUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4440,7 +4434,7 @@ export const IpPoolUpdateParams = z.preprocess(
 );
 
 export const IpPoolDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4450,7 +4444,7 @@ export const IpPoolDeleteParams = z.preprocess(
 );
 
 export const IpPoolRangeListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4463,7 +4457,7 @@ export const IpPoolRangeListParams = z.preprocess(
 );
 
 export const IpPoolRangeAddParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4473,7 +4467,7 @@ export const IpPoolRangeAddParams = z.preprocess(
 );
 
 export const IpPoolRangeRemoveParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4483,7 +4477,7 @@ export const IpPoolRangeRemoveParams = z.preprocess(
 );
 
 export const IpPoolSiloListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4497,7 +4491,7 @@ export const IpPoolSiloListParams = z.preprocess(
 );
 
 export const IpPoolSiloLinkParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4507,7 +4501,7 @@ export const IpPoolSiloLinkParams = z.preprocess(
 );
 
 export const IpPoolSiloUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4518,7 +4512,7 @@ export const IpPoolSiloUpdateParams = z.preprocess(
 );
 
 export const IpPoolSiloUnlinkParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       pool: NameOrId,
@@ -4529,7 +4523,7 @@ export const IpPoolSiloUnlinkParams = z.preprocess(
 );
 
 export const IpPoolServiceViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4537,7 +4531,7 @@ export const IpPoolServiceViewParams = z.preprocess(
 );
 
 export const IpPoolServiceRangeListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4548,7 +4542,7 @@ export const IpPoolServiceRangeListParams = z.preprocess(
 );
 
 export const IpPoolServiceRangeAddParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4556,7 +4550,7 @@ export const IpPoolServiceRangeAddParams = z.preprocess(
 );
 
 export const IpPoolServiceRangeRemoveParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4564,7 +4558,7 @@ export const IpPoolServiceRangeRemoveParams = z.preprocess(
 );
 
 export const SystemMetricParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       metricName: SystemMetricName,
@@ -4581,7 +4575,7 @@ export const SystemMetricParams = z.preprocess(
 );
 
 export const NetworkingAddressLotListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4593,7 +4587,7 @@ export const NetworkingAddressLotListParams = z.preprocess(
 );
 
 export const NetworkingAddressLotCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4601,7 +4595,7 @@ export const NetworkingAddressLotCreateParams = z.preprocess(
 );
 
 export const NetworkingAddressLotDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       addressLot: NameOrId,
@@ -4611,7 +4605,7 @@ export const NetworkingAddressLotDeleteParams = z.preprocess(
 );
 
 export const NetworkingAddressLotBlockListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       addressLot: NameOrId,
@@ -4625,7 +4619,7 @@ export const NetworkingAddressLotBlockListParams = z.preprocess(
 );
 
 export const NetworkingBfdDisableParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4633,7 +4627,7 @@ export const NetworkingBfdDisableParams = z.preprocess(
 );
 
 export const NetworkingBfdEnableParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4641,7 +4635,7 @@ export const NetworkingBfdEnableParams = z.preprocess(
 );
 
 export const NetworkingBfdStatusParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4649,7 +4643,7 @@ export const NetworkingBfdStatusParams = z.preprocess(
 );
 
 export const NetworkingBgpConfigListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4662,7 +4656,7 @@ export const NetworkingBgpConfigListParams = z.preprocess(
 );
 
 export const NetworkingBgpConfigCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4670,7 +4664,7 @@ export const NetworkingBgpConfigCreateParams = z.preprocess(
 );
 
 export const NetworkingBgpConfigDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4680,7 +4674,7 @@ export const NetworkingBgpConfigDeleteParams = z.preprocess(
 );
 
 export const NetworkingBgpAnnounceSetListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4690,7 +4684,7 @@ export const NetworkingBgpAnnounceSetListParams = z.preprocess(
 );
 
 export const NetworkingBgpAnnounceSetCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4698,7 +4692,7 @@ export const NetworkingBgpAnnounceSetCreateParams = z.preprocess(
 );
 
 export const NetworkingBgpAnnounceSetDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4708,7 +4702,7 @@ export const NetworkingBgpAnnounceSetDeleteParams = z.preprocess(
 );
 
 export const NetworkingBgpImportedRoutesIpv4Params = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4718,7 +4712,7 @@ export const NetworkingBgpImportedRoutesIpv4Params = z.preprocess(
 );
 
 export const NetworkingBgpStatusParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4726,7 +4720,7 @@ export const NetworkingBgpStatusParams = z.preprocess(
 );
 
 export const NetworkingLoopbackAddressListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4738,7 +4732,7 @@ export const NetworkingLoopbackAddressListParams = z.preprocess(
 );
 
 export const NetworkingLoopbackAddressCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4746,7 +4740,7 @@ export const NetworkingLoopbackAddressCreateParams = z.preprocess(
 );
 
 export const NetworkingLoopbackAddressDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       address: z.string().ip(),
@@ -4759,7 +4753,7 @@ export const NetworkingLoopbackAddressDeleteParams = z.preprocess(
 );
 
 export const NetworkingSwitchPortSettingsListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4772,7 +4766,7 @@ export const NetworkingSwitchPortSettingsListParams = z.preprocess(
 );
 
 export const NetworkingSwitchPortSettingsCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4780,7 +4774,7 @@ export const NetworkingSwitchPortSettingsCreateParams = z.preprocess(
 );
 
 export const NetworkingSwitchPortSettingsDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4790,7 +4784,7 @@ export const NetworkingSwitchPortSettingsDeleteParams = z.preprocess(
 );
 
 export const NetworkingSwitchPortSettingsViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       port: NameOrId,
@@ -4800,7 +4794,7 @@ export const NetworkingSwitchPortSettingsViewParams = z.preprocess(
 );
 
 export const SystemPolicyViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4808,7 +4802,7 @@ export const SystemPolicyViewParams = z.preprocess(
 );
 
 export const SystemPolicyUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4816,7 +4810,7 @@ export const SystemPolicyUpdateParams = z.preprocess(
 );
 
 export const RoleListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4827,7 +4821,7 @@ export const RoleListParams = z.preprocess(
 );
 
 export const RoleViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       roleName: z.string(),
@@ -4837,7 +4831,7 @@ export const RoleViewParams = z.preprocess(
 );
 
 export const SystemQuotasListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4849,7 +4843,7 @@ export const SystemQuotasListParams = z.preprocess(
 );
 
 export const SiloListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4861,7 +4855,7 @@ export const SiloListParams = z.preprocess(
 );
 
 export const SiloCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -4869,7 +4863,7 @@ export const SiloCreateParams = z.preprocess(
 );
 
 export const SiloViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -4879,7 +4873,7 @@ export const SiloViewParams = z.preprocess(
 );
 
 export const SiloDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -4889,7 +4883,7 @@ export const SiloDeleteParams = z.preprocess(
 );
 
 export const SiloIpPoolListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -4903,7 +4897,7 @@ export const SiloIpPoolListParams = z.preprocess(
 );
 
 export const SiloPolicyViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -4913,7 +4907,7 @@ export const SiloPolicyViewParams = z.preprocess(
 );
 
 export const SiloPolicyUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -4923,7 +4917,7 @@ export const SiloPolicyUpdateParams = z.preprocess(
 );
 
 export const SiloQuotasViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -4933,7 +4927,7 @@ export const SiloQuotasViewParams = z.preprocess(
 );
 
 export const SiloQuotasUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -4943,7 +4937,7 @@ export const SiloQuotasUpdateParams = z.preprocess(
 );
 
 export const SiloUserListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4956,7 +4950,7 @@ export const SiloUserListParams = z.preprocess(
 );
 
 export const SiloUserViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       userId: z.string().uuid(),
@@ -4968,7 +4962,7 @@ export const SiloUserViewParams = z.preprocess(
 );
 
 export const UserBuiltinListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -4980,7 +4974,7 @@ export const UserBuiltinListParams = z.preprocess(
 );
 
 export const UserBuiltinViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       user: NameOrId,
@@ -4990,7 +4984,7 @@ export const UserBuiltinViewParams = z.preprocess(
 );
 
 export const SiloUtilizationListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5002,7 +4996,7 @@ export const SiloUtilizationListParams = z.preprocess(
 );
 
 export const SiloUtilizationViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       silo: NameOrId,
@@ -5012,7 +5006,7 @@ export const SiloUtilizationViewParams = z.preprocess(
 );
 
 export const UserListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5025,7 +5019,7 @@ export const UserListParams = z.preprocess(
 );
 
 export const UtilizationViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({}),
@@ -5033,7 +5027,7 @@ export const UtilizationViewParams = z.preprocess(
 );
 
 export const VpcFirewallRulesViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5044,7 +5038,7 @@ export const VpcFirewallRulesViewParams = z.preprocess(
 );
 
 export const VpcFirewallRulesUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5055,7 +5049,7 @@ export const VpcFirewallRulesUpdateParams = z.preprocess(
 );
 
 export const VpcSubnetListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5069,7 +5063,7 @@ export const VpcSubnetListParams = z.preprocess(
 );
 
 export const VpcSubnetCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5080,7 +5074,7 @@ export const VpcSubnetCreateParams = z.preprocess(
 );
 
 export const VpcSubnetViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       subnet: NameOrId,
@@ -5093,7 +5087,7 @@ export const VpcSubnetViewParams = z.preprocess(
 );
 
 export const VpcSubnetUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       subnet: NameOrId,
@@ -5106,7 +5100,7 @@ export const VpcSubnetUpdateParams = z.preprocess(
 );
 
 export const VpcSubnetDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       subnet: NameOrId,
@@ -5119,7 +5113,7 @@ export const VpcSubnetDeleteParams = z.preprocess(
 );
 
 export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       subnet: NameOrId,
@@ -5135,7 +5129,7 @@ export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
 );
 
 export const VpcListParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5148,7 +5142,7 @@ export const VpcListParams = z.preprocess(
 );
 
 export const VpcCreateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({}),
     query: z.object({
@@ -5158,7 +5152,7 @@ export const VpcCreateParams = z.preprocess(
 );
 
 export const VpcViewParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       vpc: NameOrId,
@@ -5170,7 +5164,7 @@ export const VpcViewParams = z.preprocess(
 );
 
 export const VpcUpdateParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       vpc: NameOrId,
@@ -5182,7 +5176,7 @@ export const VpcUpdateParams = z.preprocess(
 );
 
 export const VpcDeleteParams = z.preprocess(
-  processResponseBody,
+  camelifyKeys,
   z.object({
     path: z.object({
       vpc: NameOrId,

@@ -31,7 +31,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
    */
 
   import { z, ZodType } from 'zod';
-  import { processResponseBody, uniqueItems } from './util';
+  import { camelifyKeys, uniqueItems } from './util';
 
   /**
    * Zod only supports string enums at the moment. A previous issue was opened
@@ -55,7 +55,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
       docComment(extractDoc(schema), schemaNames, io);
     }
 
-    w0(`export const ${schemaName} = z.preprocess(processResponseBody,`);
+    w0(`export const ${schemaName} = z.preprocess(camelifyKeys,`);
     schemaToZod(schema, io);
     w(")\n");
   }
@@ -69,9 +69,7 @@ export function generateZodValidators(spec: OpenAPIV3.Document) {
 
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
-      w(
-        `export const ${opName}Params = z.preprocess(processResponseBody, z.object({`
-      );
+      w(`export const ${opName}Params = z.preprocess(camelifyKeys, z.object({`);
 
       w("  path: z.object({");
       for (const param of params || []) {

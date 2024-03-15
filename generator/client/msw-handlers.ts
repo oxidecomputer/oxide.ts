@@ -40,7 +40,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
     import type { SnakeCasedPropertiesDeep as Snakify, Promisable } from "type-fest";
     import { type ZodSchema } from "zod";
     import type * as Api from "./Api";
-    import { snakeify } from "./util";
+    import { snakeifyKeys } from "./util";
     import * as schema from "./validate";
 
     type HandlerResult<T> = Json<T> | StrictResponse<Json<T>>;
@@ -160,7 +160,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document) {
         let body = undefined
         if (bodySchema) {
           const rawBody = await req.json()
-          const result = bodySchema.transform(snakeify).safeParse(rawBody);
+          const result = bodySchema.transform(snakeifyKeys).safeParse(rawBody);
           if (!result.success) return json(result.error.issues, { status: 400 })
           body = result.data
         }

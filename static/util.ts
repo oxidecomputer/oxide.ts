@@ -45,18 +45,9 @@ export const mapObj =
     return newObj;
   };
 
-export const parseIfDate = (k: string | undefined, v: unknown) => {
-  if (typeof v === "string" && (k?.startsWith("time_") || k === "timestamp")) {
-    const d = new Date(v);
-    if (isNaN(d.getTime())) return v;
-    return d;
-  }
-  return v;
-};
+export const snakeifyKeys = mapObj(camelToSnake);
 
-export const snakeify = mapObj(camelToSnake);
-
-export const processResponseBody = mapObj(snakeToCamel);
+export const camelifyKeys = mapObj(snakeToCamel);
 
 export function isNotNull<T>(value: T): value is NonNullable<T> {
   return value != null;
