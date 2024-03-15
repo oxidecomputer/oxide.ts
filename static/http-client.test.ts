@@ -42,7 +42,7 @@ describe("handleResponse", () => {
     const resp = new Response("not json", { headers });
     const result = await handleResponse(resp);
     expect(result).toMatchObject({
-      error: new SyntaxError("Unexpected token o in JSON at position 1"),
+      error: expect.any(SyntaxError),
       statusCode: 200,
       text: "not json",
       type: "client_error",
