@@ -64,7 +64,8 @@ function encodeQueryParam(key: string, value: unknown) {
 }
 
 export async function handleResponse<Data>(
-  response: Response
+  response: Response,
+  transformResponse?: (o: unknown) => unknown
 ): Promise<ApiResult<Data>> {
   const common = { statusCode: response.status, headers: response.headers };
 
@@ -75,8 +76,15 @@ export async function handleResponse<Data>(
   try {
     // don't bother trying to parse empty responses like 204s
     // TODO: is empty object what we want here?
-    respJson =
-      respText.length > 0 ? processResponseBody(JSON.parse(respText)) : {};
+    if (respText.length > 0) {
+      respJson = JSON.parse(respText);
+      if (transformResponse) {
+        respJson = transformResponse(respJson);
+      }
+      respJson = processResponseBody(respJson);
+    } else {
+      respJson = {};
+    }
   } catch (e) {
     return {
       type: "client_error",
@@ -120,6 +128,7 @@ export interface FullParams extends FetchParams {
   body?: unknown;
   host?: string;
   method?: string;
+  transformResponse?: (o: unknown) => unknown;
 }
 
 export interface ApiConfig {
@@ -153,6 +162,7 @@ export class HttpClient {
     path,
     query,
     host,
+    transformResponse,
     ...fetchParams
   }: FullParams): Promise<ApiResult<Data>> {
     const url = (host || this.host) + path + toQueryString(query);

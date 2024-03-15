@@ -267,6 +267,30 @@ export function generateApi(spec: OpenAPIV3.Document) {
     if (queryParams.length > 0) {
       w("  query,");
     }
+
+    // insert transformResponse if necessary
+    const schema = spec.components!.schemas![successType];
+    if (schema && "properties" in schema && schema.properties) {
+      const transformResponse = genTransformResponse(schema);
+      if (transformResponse) {
+        w0("transformResponse: " + genTransformResponse(schema) + ",");
+      }
+      // so here we loop through the properies and basically if any of them are
+      // type: "string" with some weird format, we need to transform them. the
+      // hardest part of this is nesting. so fucking annoying. hmmmmm this is
+      // actually a third kind of schema generator. which is kind of sick?
+      // for (const key in schema.properties) {
+      //   const prop = schema.properties[key];
+      //   if ("type" in prop && prop.type === "string") {
+      //     if (prop.format === "date-time") {
+      //       console.log(key, "new Date()");
+      //     } else if (prop.format === "uint128") {
+      //       console.log(key, "BigInt()");
+      //     }
+      //   }
+      // }
+    }
+
     w(`  ...params,
          })
       },`);
@@ -324,4 +348,43 @@ export function generateApi(spec: OpenAPIV3.Document) {
   w(`  }
      }`);
   out.end();
+}
+
+// TODO: special case for the common transform function that just does the
+// created and modified timestamps, could save a lot of code
+// TODO: mutate object instead of spreading? cleaner-looking and faster
+export function genTransformResponse(schema: any): string | undefined {
+  function recurse(schema: any, path: string): string | undefined {
+    if (schema.type === "object") {
+      const properties = Object.entries(schema.properties || {})
+        .map(([key, propSchema]) => {
+          const propPath = path ? `${path}.${key}` : key;
+          const transformCode = recurse(propSchema, propPath);
+          return transformCode ? `o.${key} = ${transformCode}` : undefined;
+        })
+        .filter((x) => x);
+      if (properties.length === 0) return undefined;
+
+      return properties.join("\n");
+    } else if (schema.type === "array") {
+      const itemPath = path ? `${path}[]` : "[]";
+      const transformCode = recurse(schema.items, itemPath);
+      return transformCode
+        ? `o.${path}.map((item: any) => ${transformCode})`
+        : undefined;
+    } else if (schema.type === "string") {
+      if (schema.format === "date-time") {
+        return `new Date(o.${path})`;
+      } else if (schema.format === "uint128") {
+        return `BigInt(o.${path})`;
+      }
+    }
+    return undefined;
+  }
+
+  const transformCode = recurse(schema, "");
+  if (!transformCode) return undefined;
+  return `function transform(o: any): any {
+${transformCode}
+}`;
 }
