@@ -50,9 +50,11 @@ describe("handleResponse", () => {
     expect(result.headers.get("Content-Type")).toBe("application/json");
   });
 
-  it("parses dates and converts to camel case", async () => {
+  it("parses dates and applies transformResponse", async () => {
     const resp = json({ time_created: "2022-05-01" });
-    const result = await handleResponse(resp);
+    const result = await handleResponse(resp, (o: any) => {
+      o.time_created = new Date(o.time_created);
+    });
     expect(result).toMatchObject({
       type: "success",
       data: {
@@ -62,7 +64,7 @@ describe("handleResponse", () => {
     expect(result.headers.get("Content-Type")).toBe("application/json");
   });
 
-  it("leaves unparseable dates alone", async () => {
+  it("doesn't try to parse dates if there is no transformResponse", async () => {
     const resp = json({ time_created: "abc" });
     const result = await handleResponse(resp);
     expect(result).toMatchObject({

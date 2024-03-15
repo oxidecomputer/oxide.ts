@@ -65,7 +65,7 @@ function encodeQueryParam(key: string, value: unknown) {
 
 export async function handleResponse<Data>(
   response: Response,
-  transformResponse?: (o: unknown) => unknown
+  transformResponse?: (o: any) => void
 ): Promise<ApiResult<Data>> {
   const common = { statusCode: response.status, headers: response.headers };
 
@@ -78,9 +78,7 @@ export async function handleResponse<Data>(
     // TODO: is empty object what we want here?
     if (respText.length > 0) {
       respJson = JSON.parse(respText);
-      if (transformResponse) {
-        respJson = transformResponse(respJson);
-      }
+      transformResponse?.(respJson); // no assignment because this mutates the object
       respJson = camelifyKeys(respJson);
     } else {
       respJson = {};

@@ -4236,7 +4236,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4315,7 +4315,7 @@ export class Api extends HttpClient {
         path: `/v1/certificates`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4332,7 +4332,7 @@ export class Api extends HttpClient {
       return this.request<Certificate>({
         path: `/v1/certificates/${path.certificate}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4378,7 +4378,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4399,7 +4399,7 @@ export class Api extends HttpClient {
         path: `/v1/disks/${path.disk}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4558,7 +4558,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4579,7 +4579,7 @@ export class Api extends HttpClient {
         path: `/v1/floating-ips/${path.floatingIp}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4606,7 +4606,7 @@ export class Api extends HttpClient {
         method: "PUT",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4653,7 +4653,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4677,7 +4677,7 @@ export class Api extends HttpClient {
         path: `/v1/floating-ips/${path.floatingIp}/detach`,
         method: "POST",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4740,7 +4740,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4761,7 +4761,7 @@ export class Api extends HttpClient {
         path: `/v1/images/${path.image}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4799,7 +4799,7 @@ export class Api extends HttpClient {
         path: `/v1/images/${path.image}/demote`,
         method: "POST",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4820,7 +4820,7 @@ export class Api extends HttpClient {
         path: `/v1/images/${path.image}/promote`,
         method: "POST",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4856,7 +4856,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
           o.time_run_state_updated = new Date(o.time_run_state_updated);
@@ -4878,7 +4878,7 @@ export class Api extends HttpClient {
         path: `/v1/instances/${path.instance}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
           o.time_run_state_updated = new Date(o.time_run_state_updated);
@@ -4943,7 +4943,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -4970,7 +4970,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5060,7 +5060,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
           o.time_run_state_updated = new Date(o.time_run_state_updated);
@@ -5082,7 +5082,7 @@ export class Api extends HttpClient {
         path: `/v1/instances/${path.instance}/reboot`,
         method: "POST",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
           o.time_run_state_updated = new Date(o.time_run_state_updated);
@@ -5144,7 +5144,7 @@ export class Api extends HttpClient {
         path: `/v1/instances/${path.instance}/start`,
         method: "POST",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
           o.time_run_state_updated = new Date(o.time_run_state_updated);
@@ -5166,7 +5166,7 @@ export class Api extends HttpClient {
         path: `/v1/instances/${path.instance}/stop`,
         method: "POST",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
           o.time_run_state_updated = new Date(o.time_run_state_updated);
@@ -5198,7 +5198,7 @@ export class Api extends HttpClient {
       return this.request<SiloIpPool>({
         path: `/v1/ip-pools/${path.pool}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5281,7 +5281,7 @@ export class Api extends HttpClient {
         path: `/v1/me/ssh-keys`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5298,7 +5298,7 @@ export class Api extends HttpClient {
       return this.request<SshKey>({
         path: `/v1/me/ssh-keys/${path.sshKey}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5367,7 +5367,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5391,7 +5391,7 @@ export class Api extends HttpClient {
         path: `/v1/network-interfaces/${path.interface}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5418,7 +5418,7 @@ export class Api extends HttpClient {
         method: "PUT",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5504,7 +5504,7 @@ export class Api extends HttpClient {
         path: `/v1/projects`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5521,7 +5521,7 @@ export class Api extends HttpClient {
       return this.request<Project>({
         path: `/v1/projects/${path.project}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5539,7 +5539,7 @@ export class Api extends HttpClient {
         path: `/v1/projects/${path.project}`,
         method: "PUT",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5618,7 +5618,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5639,7 +5639,7 @@ export class Api extends HttpClient {
         path: `/v1/snapshots/${path.snapshot}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5701,7 +5701,7 @@ export class Api extends HttpClient {
       return this.request<Rack>({
         path: `/v1/system/hardware/racks/${path.rackId}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5746,7 +5746,7 @@ export class Api extends HttpClient {
       return this.request<Sled>({
         path: `/v1/system/hardware/sleds/${path.sledId}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -5908,7 +5908,7 @@ export class Api extends HttpClient {
       return this.request<Switch>({
         path: `/v1/system/hardware/switches/${path.switchId}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6008,7 +6008,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6032,7 +6032,7 @@ export class Api extends HttpClient {
         path: `/v1/system/identity-providers/saml/${path.provider}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6064,7 +6064,7 @@ export class Api extends HttpClient {
         path: `/v1/system/ip-pools`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6081,7 +6081,7 @@ export class Api extends HttpClient {
       return this.request<IpPool>({
         path: `/v1/system/ip-pools/${path.pool}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6099,7 +6099,7 @@ export class Api extends HttpClient {
         path: `/v1/system/ip-pools/${path.pool}`,
         method: "PUT",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6150,7 +6150,7 @@ export class Api extends HttpClient {
         path: `/v1/system/ip-pools/${path.pool}/ranges/add`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
         },
         ...params,
@@ -6238,7 +6238,7 @@ export class Api extends HttpClient {
       return this.request<IpPool>({
         path: `/v1/system/ip-pools-service`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6270,7 +6270,7 @@ export class Api extends HttpClient {
         path: `/v1/system/ip-pools-service/ranges/add`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
         },
         ...params,
@@ -6431,7 +6431,7 @@ export class Api extends HttpClient {
         path: `/v1/system/networking/bgp`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6477,7 +6477,7 @@ export class Api extends HttpClient {
         path: `/v1/system/networking/bgp-announce`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6705,7 +6705,7 @@ export class Api extends HttpClient {
         path: `/v1/system/silos`,
         method: "POST",
         body,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6722,7 +6722,7 @@ export class Api extends HttpClient {
       return this.request<Silo>({
         path: `/v1/system/silos/${path.silo}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6874,7 +6874,7 @@ export class Api extends HttpClient {
       return this.request<UserBuiltin>({
         path: `/v1/system/users-builtin/${path.user}`,
         method: "GET",
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -6996,7 +6996,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -7017,7 +7017,7 @@ export class Api extends HttpClient {
         path: `/v1/vpc-subnets/${path.subnet}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -7044,7 +7044,7 @@ export class Api extends HttpClient {
         method: "PUT",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -7117,7 +7117,7 @@ export class Api extends HttpClient {
         method: "POST",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -7138,7 +7138,7 @@ export class Api extends HttpClient {
         path: `/v1/vpcs/${path.vpc}`,
         method: "GET",
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },
@@ -7165,7 +7165,7 @@ export class Api extends HttpClient {
         method: "PUT",
         body,
         query,
-        transformResponse: function transform(o: any): any {
+        transformResponse: (o: any) => {
           o.time_created = new Date(o.time_created);
           o.time_modified = new Date(o.time_modified);
         },

@@ -351,8 +351,7 @@ export function generateApi(spec: OpenAPIV3.Document) {
 }
 
 // TODO: special case for the common transform function that just does the
-// created and modified timestamps, could save a lot of code
-// TODO: mutate object instead of spreading? cleaner-looking and faster
+// created and modified timestamps, could save a lot of lines
 export function genTransformResponse(schema: any): string | undefined {
   function recurse(schema: any, path: string): string | undefined {
     if (schema.type === "object") {
@@ -384,7 +383,7 @@ export function genTransformResponse(schema: any): string | undefined {
 
   const transformCode = recurse(schema, "");
   if (!transformCode) return undefined;
-  return `function transform(o: any): any {
+  return `(o: any) => {
 ${transformCode}
 }`;
 }

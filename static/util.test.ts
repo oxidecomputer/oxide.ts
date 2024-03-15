@@ -62,8 +62,7 @@ describe("mapObj", () => {
 test("camelifyKeys", () => {
   expect(camelifyKeys({})).toEqual({});
 
-  const date = new Date();
-  const dateStr = date.toISOString();
+  const dateStr = new Date().toISOString();
   const resp = {
     id: "big-uuid",
     another_prop: "abc",
@@ -72,7 +71,7 @@ test("camelifyKeys", () => {
   expect(camelifyKeys(resp)).toMatchObject({
     id: "big-uuid",
     anotherProp: "abc",
-    timeCreated: expect.any(Date),
+    timeCreated: dateStr,
   });
 });
 
