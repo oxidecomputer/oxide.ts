@@ -65,6 +65,7 @@ function encodeQueryParam(key: string, value: unknown) {
 
 export async function handleResponse<Data>(
   response: Response,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformResponse?: (o: any) => void
 ): Promise<ApiResult<Data>> {
   const common = { statusCode: response.status, headers: response.headers };
@@ -126,7 +127,8 @@ export interface FullParams extends FetchParams {
   body?: unknown;
   host?: string;
   method?: string;
-  transformResponse?: (o: unknown) => unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transformResponse?: (o: any) => void;
 }
 
 export interface ApiConfig {
@@ -168,7 +170,7 @@ export class HttpClient {
       ...mergeParams(this.baseParams, fetchParams),
       body: JSON.stringify(snakeifyKeys(body), replacer),
     };
-    return handleResponse(await fetch(url, init));
+    return handleResponse(await fetch(url, init), transformResponse);
   }
 }
 

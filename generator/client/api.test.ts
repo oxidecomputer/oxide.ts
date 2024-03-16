@@ -68,7 +68,7 @@ const noTransforms = {
 describe("generateTransformFunction", () => {
   it("handles timestamps at top level", () => {
     expect(genTransformResponse(projectSchema)).toMatchInlineSnapshot(`
-      "(o: any) => {
+      "(o) => {
       o.time_created = new Date(o.time_created)
       o.time_modified = new Date(o.time_modified)
       }"

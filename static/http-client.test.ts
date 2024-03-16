@@ -52,7 +52,7 @@ describe("handleResponse", () => {
 
   it("parses dates and applies transformResponse", async () => {
     const resp = json({ time_created: "2022-05-01" });
-    const result = await handleResponse(resp, (o: any) => {
+    const result = await handleResponse(resp, (o) => {
       o.time_created = new Date(o.time_created);
     });
     expect(result).toMatchObject({

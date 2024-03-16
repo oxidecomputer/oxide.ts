@@ -275,20 +275,6 @@ export function generateApi(spec: OpenAPIV3.Document) {
       if (transformResponse) {
         w0("transformResponse: " + genTransformResponse(schema) + ",");
       }
-      // so here we loop through the properies and basically if any of them are
-      // type: "string" with some weird format, we need to transform them. the
-      // hardest part of this is nesting. so fucking annoying. hmmmmm this is
-      // actually a third kind of schema generator. which is kind of sick?
-      // for (const key in schema.properties) {
-      //   const prop = schema.properties[key];
-      //   if ("type" in prop && prop.type === "string") {
-      //     if (prop.format === "date-time") {
-      //       console.log(key, "new Date()");
-      //     } else if (prop.format === "uint128") {
-      //       console.log(key, "BigInt()");
-      //     }
-      //   }
-      // }
     }
 
     w(`  ...params,
@@ -352,7 +338,9 @@ export function generateApi(spec: OpenAPIV3.Document) {
 
 // TODO: special case for the common transform function that just does the
 // created and modified timestamps, could save a lot of lines
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function genTransformResponse(schema: any): string | undefined {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function recurse(schema: any, path: string): string | undefined {
     if (schema.type === "object") {
       const properties = Object.entries(schema.properties || {})
@@ -383,7 +371,7 @@ export function genTransformResponse(schema: any): string | undefined {
 
   const transformCode = recurse(schema, "");
   if (!transformCode) return undefined;
-  return `(o: any) => {
+  return `(o) => {
 ${transformCode}
 }`;
 }
