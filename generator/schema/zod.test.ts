@@ -35,5 +35,5 @@ test("string", () => {
 
 test("string with default", () => {
   schemaToZod({ type: "string", default: "test" }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.string().default(\\"test\\")"');
+  expect(out.value()).toMatchInlineSnapshot(`"z.string().default("test")"`);
 });
