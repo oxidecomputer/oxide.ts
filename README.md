@@ -56,8 +56,7 @@ npm i
 npm run gen
 ```
 
-The TypeScript client code will be written to [`client`](client/). Browser ready
-code will be added to [`dist`](dist/).
+The TypeScript client code will be written to [`client`](client/).
 
 ## Contributing
 

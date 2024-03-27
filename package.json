@@ -2,34 +2,17 @@
   "name": "@oxide/api",
   "version": "0.0.1",
   "description": "The official JavaScript and TypeScript client SDK for interacting with the Oxide API",
-  "keywords": ["oxide", "oxide.ts", "oxide computer", "oxide sdk"],
+  "keywords": [
+    "oxide",
+    "oxide.ts",
+    "oxide computer",
+    "oxide sdk"
+  ],
   "engines": {
     "node": ">=18"
   },
-  "main": "./dist/Api.js",
-  "module": "./dist/Api.mjs",
-  "types": "./dist/Api.d.ts",
-  "exports": {
-    ".": {
-      "require": "./dist/Api.js",
-      "import": "./dist/Api.mjs",
-      "types": "./dist/Api.d.ts"
-    },
-    "./validate": {
-      "require": "./dist/validate.js",
-      "import": "./dist/validate.mjs",
-      "types": "./dist/validate.d.ts"
-    },
-    "./msw-handlers": {
-      "require": "./dist/msw-handlers.js",
-      "import": "./dist/msw-handlers.mjs",
-      "types": "./dist/msw-handlers.d.ts"
-    }
-  },
-  "files": ["client", "!client/type-test.ts", "dist"],
   "scripts": {
-    "build": "tsup client/Api.ts client/validate.ts client/msw-handlers.ts --format cjs,esm --dts --clean --no-splitting",
-    "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client && npm run build",
+    "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client",
     "gen-from": "./tools/gen.sh",
     "lint": "eslint .",
     "postgen": "prettier --parser typescript --write ./client",
@@ -56,7 +39,6 @@
     "swagger-parser": "^10.0.3",
     "ts-pattern": "^4.0.5",
     "tsafe": "^1.1.1",
-    "tsup": "^6.7.0",
     "type-fest": "^3.1.0",
     "typescript": "^5.2.2",
     "vitest": "^1.4.0",
