@@ -25,12 +25,14 @@ if (!destDir) {
   throw Error("Missing destDir argument");
 }
 
+// destination directory is resolved relative to CWD
 const destDirAbs = resolve(process.cwd(), destDir);
 
 SwaggerParser.parse(specFile).then((spec) => {
   copyStaticFiles(destDirAbs);
   generateApi(spec as OpenAPIV3.Document, destDirAbs);
   generateZodValidators(spec as OpenAPIV3.Document, destDirAbs);
+  // TODO: make conditional - we only want generated for testing purpose
   generateTypeTests(spec as OpenAPIV3.Document, destDirAbs);
   generateMSWHandlers(spec as OpenAPIV3.Document, destDirAbs);
 });

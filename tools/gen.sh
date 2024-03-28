@@ -29,4 +29,4 @@ SPEC_FILE="./spec.json"
 # TODO: we could get rid of this DL if a test didn't rely on it
 curl --fail "$SPEC_URL" -o $SPEC_FILE
 
-node -r esbuild-register generator/index.ts $SPEC_FILE $DEST_DIR
+tsx generator/index.ts $SPEC_FILE $DEST_DIR

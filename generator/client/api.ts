@@ -6,11 +6,14 @@
  * Copyright Oxide Computer Company
  */
 
+import fs from "node:fs";
+import assert from "node:assert";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
 import type { OpenAPIV3 } from "openapi-types";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
-import fs from "fs";
-import assert from "assert";
 import {
   extractDoc,
   pathToTemplateStr,
@@ -29,7 +32,6 @@ import {
   iterPathConfig,
 } from "./base";
 import { schemaToTypes } from "../schema/types";
-import path from "path";
 
 /**
  * `Error` is hard-coded into `http-client.ts` as `ErrorBody` so we can check
@@ -61,14 +63,20 @@ function checkErrorSchema(schema: Schema) {
 const queryParamsType = (opId: string) => `${opId}QueryParams`;
 const pathParamsType = (opId: string) => `${opId}PathParams`;
 
-function copyFile(file: string, destDir: string) {
-  const dest = path.resolve(destDir, path.basename(file));
-  fs.copyFileSync(file, dest);
+/**
+ * Source file is a relative path that we resolve relative to this
+ * file, not the CWD or package root
+ */
+function copyFile(sourceRelPath: string, destDirAbs: string) {
+  const thisFileDir = path.dirname(fileURLToPath(import.meta.url));
+  const sourceAbsPath = path.resolve(thisFileDir, sourceRelPath);
+  const destAbs = path.resolve(destDirAbs, path.basename(sourceRelPath));
+  fs.copyFileSync(sourceAbsPath, destAbs);
 }
 
 export function copyStaticFiles(destDir: string) {
-  copyFile("./static/util.ts", destDir);
-  copyFile("./static/http-client.ts", destDir);
+  copyFile("../../static/util.ts", destDir);
+  copyFile("../../static/http-client.ts", destDir);
 }
 
 export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
