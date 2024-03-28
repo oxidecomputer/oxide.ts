@@ -15,24 +15,36 @@ import { generateTypeTests } from "./client/type-tests";
 import { generateZodValidators } from "./client/zodValidators";
 import { resolve } from "path";
 
-const specFile = process.argv[2];
-if (!specFile) {
-  throw Error("Missing specFile argument");
-}
+async function generate(specFile: string, destDir: string) {
+  // destination directory is resolved relative to CWD
+  const destDirAbs = resolve(process.cwd(), destDir);
 
-const destDir = process.argv[3];
-if (!destDir) {
-  throw Error("Missing destDir argument");
-}
+  const rawSpec = await SwaggerParser.parse(specFile);
+  if (!("openapi" in rawSpec) || !rawSpec.openapi.startsWith("3.0")) {
+    throw new Error("Only OpenAPI 3.0 is currently supported");
+  }
 
-// destination directory is resolved relative to CWD
-const destDirAbs = resolve(process.cwd(), destDir);
+  // we're not actually changing anything from rawSpec to spec, we've
+  // just ruled out v2 and v3.1
+  const spec = rawSpec as OpenAPIV3.Document;
 
-SwaggerParser.parse(specFile).then((spec) => {
   copyStaticFiles(destDirAbs);
-  generateApi(spec as OpenAPIV3.Document, destDirAbs);
-  generateZodValidators(spec as OpenAPIV3.Document, destDirAbs);
+  generateApi(spec, destDirAbs);
+  generateZodValidators(spec, destDirAbs);
   // TODO: make conditional - we only want generated for testing purpose
-  generateTypeTests(spec as OpenAPIV3.Document, destDirAbs);
-  generateMSWHandlers(spec as OpenAPIV3.Document, destDirAbs);
-});
+  generateTypeTests(spec, destDirAbs);
+  generateMSWHandlers(spec, destDirAbs);
+}
+
+function helpAndExit(msg: string): never {
+  console.log(msg);
+  console.log("\nUsage: gen <specFile> <destDir>");
+  process.exit(1);
+}
+
+const [specFile, destDir] = process.argv.slice(2);
+
+if (!specFile) helpAndExit(`Missing <specFile>`);
+if (!destDir) helpAndExit(`Missing <destdir>`);
+
+generate(specFile, destDir);
