@@ -15,10 +15,10 @@ import { contentRef, iterPathConfig } from "./base";
 const formatPath = (path: string) =>
   path.replace(/{(\w+)}/g, (n) => `:${snakeToCamel(n.slice(1, -1))}`);
 
-export function generateMSWHandlers(spec: OpenAPIV3.Document) {
+export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
-  const io = initIO("msw-handlers.ts");
+  const io = initIO("msw-handlers.ts", destDir);
   const { w } = io;
 
   w(`

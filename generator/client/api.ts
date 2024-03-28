@@ -59,10 +59,10 @@ function checkErrorSchema(schema: Schema) {
 const queryParamsType = (opId: string) => `${opId}QueryParams`;
 const pathParamsType = (opId: string) => `${opId}PathParams`;
 
-export function generateApi(spec: OpenAPIV3.Document) {
+export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
-  const io = initIO("Api.ts");
+  const io = initIO("Api.ts", destDir);
   const { w, w0, out, copy } = io;
 
   w("/* eslint-disable */\n");

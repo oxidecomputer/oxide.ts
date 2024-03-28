@@ -53,36 +53,20 @@ export function initTestIO(): IO<TestWritable> {
   };
 }
 
-export function initIO(outFile: string): IO {
-  const destDir = process.argv[3];
-  let out: Writable;
-  if (!destDir || !outFile) {
-    out = new TestWritable();
-  } else {
-    out = fs.createWriteStream(path.resolve(process.cwd(), destDir, outFile), {
-      flags: "w",
-    });
-  }
+export function initIO(outFile: string, destDir: string): IO {
+  const out = fs.createWriteStream(path.resolve(destDir, outFile), {
+    flags: "w",
+  });
 
   return {
     /** write to file with newline */
-    w(s: string) {
-      out.write(s + "\n");
-    },
-
+    w: (s: string) => out.write(s + "\n"),
     /** same as w() but no newline */
-    w0(s: string) {
-      out.write(s);
-    },
-
+    w0: (s: string) => out.write(s),
     copy(file) {
-      destDir &&
-        fs.copyFileSync(
-          file,
-          path.resolve(process.cwd(), destDir, path.basename(file))
-        );
+      const dest = path.resolve(destDir, path.basename(file));
+      fs.copyFileSync(file, dest);
     },
-
     out,
   };
 }

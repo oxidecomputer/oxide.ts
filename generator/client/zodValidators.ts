@@ -14,10 +14,13 @@ import { docComment, getSortedSchemas } from "./base";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
 
-export function generateZodValidators(spec: OpenAPIV3.Document) {
+export function generateZodValidators(
+  spec: OpenAPIV3.Document,
+  destDir: string
+) {
   if (!spec.components) return;
 
-  const io = initIO("validate.ts");
+  const io = initIO("validate.ts", destDir);
   const { w, w0, out } = io;
 
   w(`/* eslint-disable */
