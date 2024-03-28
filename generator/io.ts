@@ -37,7 +37,6 @@ export class TestWritable extends Writable {
 export interface IO<O extends Writable = Writable> {
   w: (str: string) => void;
   w0: (str: string) => void;
-  copy: (file: string) => void;
   out: O;
 }
 
@@ -48,7 +47,6 @@ export function initTestIO(): IO<TestWritable> {
     w: (s: string) => out.write(s + "\n"),
     /** same as w() but no newline */
     w0: (s: string) => out.write(s),
-    copy(_file) {},
     out,
   };
 }
@@ -63,10 +61,6 @@ export function initIO(outFile: string, destDir: string): IO {
     w: (s: string) => out.write(s + "\n"),
     /** same as w() but no newline */
     w0: (s: string) => out.write(s),
-    copy(file) {
-      const dest = path.resolve(destDir, path.basename(file));
-      fs.copyFileSync(file, dest);
-    },
     out,
   };
 }

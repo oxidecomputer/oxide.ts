@@ -9,6 +9,7 @@
 import type { OpenAPIV3 } from "openapi-types";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
+import fs from "fs";
 import assert from "assert";
 import {
   extractDoc,
@@ -28,6 +29,7 @@ import {
   iterPathConfig,
 } from "./base";
 import { schemaToTypes } from "../schema/types";
+import path from "path";
 
 /**
  * `Error` is hard-coded into `http-client.ts` as `ErrorBody` so we can check
@@ -59,11 +61,16 @@ function checkErrorSchema(schema: Schema) {
 const queryParamsType = (opId: string) => `${opId}QueryParams`;
 const pathParamsType = (opId: string) => `${opId}PathParams`;
 
+function copyFile(file: string, destDir: string) {
+  const dest = path.resolve(destDir, path.basename(file));
+  fs.copyFileSync(file, dest);
+}
+
 export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
   const io = initIO("Api.ts", destDir);
-  const { w, w0, out, copy } = io;
+  const { w, w0, out } = io;
 
   w("/* eslint-disable */\n");
 
@@ -77,8 +84,8 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
      */
   `);
 
-  copy("./static/util.ts");
-  copy("./static/http-client.ts");
+  copyFile("./static/util.ts", destDir);
+  copyFile("./static/http-client.ts", destDir);
 
   w(`import type { FetchParams } from './http-client'
     import { HttpClient, toQueryString } from './http-client'`);
