@@ -12,14 +12,14 @@ import { refToSchemaName } from "../schema/base";
 import { snakeToCamel, snakeToPascal } from "../util";
 import { contentRef, iterPathConfig } from "./base";
 
-const io = initIO("msw-handlers.ts");
-const { w } = io;
-
 const formatPath = (path: string) =>
   path.replace(/{(\w+)}/g, (n) => `:${snakeToCamel(n.slice(1, -1))}`);
 
 export function generateMSWHandlers(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
+
+  const io = initIO("msw-handlers.ts");
+  const { w } = io;
 
   w(`
     /**

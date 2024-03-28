@@ -41,9 +41,19 @@ export interface IO<O extends Writable = Writable> {
   out: O;
 }
 
-export function initIO(): IO<TestWritable>;
-export function initIO(outFile: string): IO<Writable>;
-export function initIO(outFile?: string): IO {
+export function initTestIO(): IO<TestWritable> {
+  const out = new TestWritable();
+  return {
+    /** write to file with newline */
+    w: (s: string) => out.write(s + "\n"),
+    /** same as w() but no newline */
+    w0: (s: string) => out.write(s),
+    copy(_file) {},
+    out,
+  };
+}
+
+export function initIO(outFile: string): IO {
   const destDir = process.argv[3];
   let out: Writable;
   if (!destDir || !outFile) {

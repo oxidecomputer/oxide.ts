@@ -7,12 +7,11 @@
  */
 
 import { expect, test, beforeEach } from "vitest";
-import type { TestWritable } from "../io";
-import { initIO } from "../io";
+import { initTestIO } from "../io";
 import { schemaToZod } from "./zod";
 
-const io = initIO();
-const out = io.out as TestWritable;
+const io = initTestIO();
+const out = io.out;
 
 beforeEach(() => {
   out.clear();

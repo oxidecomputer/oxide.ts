@@ -29,9 +29,6 @@ import {
 } from "./base";
 import { schemaToTypes } from "../schema/types";
 
-const io = initIO("Api.ts");
-const { w, w0, out, copy } = io;
-
 /**
  * `Error` is hard-coded into `http-client.ts` as `ErrorBody` so we can check
  * and test that file statically, i.e., without doing any generation. We just
@@ -64,6 +61,9 @@ const pathParamsType = (opId: string) => `${opId}PathParams`;
 
 export function generateApi(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
+
+  const io = initIO("Api.ts");
+  const { w, w0, out, copy } = io;
 
   w("/* eslint-disable */\n");
 

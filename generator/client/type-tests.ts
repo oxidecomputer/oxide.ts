@@ -10,11 +10,11 @@ import type { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { getSortedSchemas } from "./base";
 
-const io = initIO("type-test.ts");
-const { w } = io;
-
 export function generateTypeTests(spec: OpenAPIV3.Document) {
   if (!spec.components) return;
+
+  const io = initIO("type-test.ts");
+  const { w } = io;
 
   const schemaNames = getSortedSchemas(spec).filter((name) => name !== "Error");
 
