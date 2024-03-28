@@ -41,12 +41,14 @@ generate several distinct pieces:
 
 ## Using the API client
 
-We intend to publish the generated code on npm, but have not done so yet. In the
-Oxide web console (the primary consumer of the TS client, not yet open source)
-we use the library by generating it from a given spec version with `npm run gen-from` and versioning a full copy of the generated code in that repo.
+We intend to publish the generated code on npm, but have not done so yet. In
+the [Oxide web console](https://github.com/oxidecomputer/console) (the primary
+consumer of the TS client) we use the client by generating it from a pinned
+spec version with `tsx generator/index.ts` and versioning a full copy of the
+generated code in that repo.
 
-The generated client uses the Fetch API, so in order to be used in Node.js, it
-requires either Node.js v18 or a polyfill.
+The generated client uses the Fetch API, so in
+order to be used in Node.js, it requires either Node.js v18 or a polyfill.
 
 ## Generating the client
 

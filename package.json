@@ -13,10 +13,8 @@
   },
   "scripts": {
     "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./client",
-    "gen-from": "./tools/gen.sh",
     "lint": "eslint .",
     "postgen": "prettier --parser typescript --write ./client",
-    "postgen-from": "npm run postgen",
     "pretest": "npm run gen",
     "test": "vitest",
     "test:ui": "vitest --ui",
