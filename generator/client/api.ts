@@ -69,12 +69,14 @@ function copyFile(file: string, destDir: string) {
 export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
+  copyFile("./static/util.ts", destDir);
+  copyFile("./static/http-client.ts", destDir);
+
   const io = initIO("Api.ts", destDir);
   const { w, w0, out } = io;
 
-  w("/* eslint-disable */\n");
+  w(`/* eslint-disable */
 
-  w(`
     /**
      * This Source Code Form is subject to the terms of the Mozilla Public
      * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -82,20 +84,11 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
      *
      * Copyright Oxide Computer Company
      */
-  `);
 
-  copyFile("./static/util.ts", destDir);
-  copyFile("./static/http-client.ts", destDir);
+    import type { FetchParams } from './http-client'
+    import { HttpClient, toQueryString } from './http-client'
 
-  w(`import type { FetchParams } from './http-client'
-    import { HttpClient, toQueryString } from './http-client'`);
-
-  w(`export type {
-      ApiConfig, 
-      ApiResult,
-      ErrorBody,
-      ErrorResult,
-    } from './http-client'
+    export type { ApiConfig, ApiResult, ErrorBody, ErrorResult, } from './http-client'
     `);
 
   const schemaNames = getSortedSchemas(spec);
