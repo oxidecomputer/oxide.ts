@@ -11,8 +11,8 @@ import { initIO } from "../io";
 import { refToSchemaName } from "../schema/base";
 import { snakeToCamel, snakeToPascal } from "../util";
 import { contentRef, iterPathConfig } from "./base";
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 
 const formatPath = (path: string) =>
   path.replace(/{(\w+)}/g, (n) => `:${snakeToCamel(n.slice(1, -1))}`);

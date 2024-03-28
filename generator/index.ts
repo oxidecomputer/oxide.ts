@@ -13,7 +13,7 @@ import { copyStaticFiles, generateApi } from "./client/api";
 import { generateMSWHandlers } from "./client/msw-handlers";
 import { generateTypeTests } from "./client/type-tests";
 import { generateZodValidators } from "./client/zodValidators";
-import { resolve } from "path";
+import { resolve } from "node:path";
 
 async function generate(specFile: string, destDir: string) {
   // destination directory is resolved relative to CWD

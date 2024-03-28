@@ -9,8 +9,8 @@
 import type { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { getSortedSchemas } from "./base";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 export function generateTypeTests(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;

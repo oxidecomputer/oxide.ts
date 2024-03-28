@@ -11,8 +11,8 @@ import { initIO } from "../io";
 import { schemaToZod } from "../schema/zod";
 import { extractDoc, processParamName, snakeToPascal } from "../util";
 import { docComment, getSortedSchemas } from "./base";
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
 
