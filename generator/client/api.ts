@@ -72,8 +72,10 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   copyFile("./static/util.ts", destDir);
   copyFile("./static/http-client.ts", destDir);
 
-  const io = initIO("Api.ts", destDir);
-  const { w, w0, out } = io;
+  const outFile = path.resolve(destDir, "Api.ts");
+  const out = fs.createWriteStream(outFile, { flags: "w" });
+  const io = initIO(out);
+  const { w, w0 } = io;
 
   w(`/* eslint-disable */
 

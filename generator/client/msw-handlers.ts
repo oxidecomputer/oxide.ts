@@ -11,6 +11,8 @@ import { initIO } from "../io";
 import { refToSchemaName } from "../schema/base";
 import { snakeToCamel, snakeToPascal } from "../util";
 import { contentRef, iterPathConfig } from "./base";
+import path from "path";
+import fs from "fs";
 
 const formatPath = (path: string) =>
   path.replace(/{(\w+)}/g, (n) => `:${snakeToCamel(n.slice(1, -1))}`);
@@ -18,7 +20,9 @@ const formatPath = (path: string) =>
 export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
-  const io = initIO("msw-handlers.ts", destDir);
+  const outFile = path.resolve(destDir, "msw-handlers.ts");
+  const out = fs.createWriteStream(outFile, { flags: "w" });
+  const io = initIO(out);
   const { w } = io;
 
   w(`
