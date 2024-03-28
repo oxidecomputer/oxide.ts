@@ -9,7 +9,7 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 
-import { generateApi } from "./client/api";
+import { copyStaticFiles, generateApi } from "./client/api";
 import { generateMSWHandlers } from "./client/msw-handlers";
 import { generateTypeTests } from "./client/type-tests";
 import { generateZodValidators } from "./client/zodValidators";
@@ -28,6 +28,7 @@ if (!destDir) {
 const destDirAbs = resolve(process.cwd(), destDir);
 
 SwaggerParser.parse(specFile).then((spec) => {
+  copyStaticFiles(destDirAbs);
   generateApi(spec as OpenAPIV3.Document, destDirAbs);
   generateZodValidators(spec as OpenAPIV3.Document, destDirAbs);
   generateTypeTests(spec as OpenAPIV3.Document, destDirAbs);

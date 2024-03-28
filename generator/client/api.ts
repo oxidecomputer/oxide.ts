@@ -66,11 +66,13 @@ function copyFile(file: string, destDir: string) {
   fs.copyFileSync(file, dest);
 }
 
-export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
-  if (!spec.components) return;
-
+export function copyStaticFiles(destDir: string) {
   copyFile("./static/util.ts", destDir);
   copyFile("./static/http-client.ts", destDir);
+}
+
+export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
+  if (!spec.components) return;
 
   const outFile = path.resolve(destDir, "Api.ts");
   const out = fs.createWriteStream(outFile, { flags: "w" });
