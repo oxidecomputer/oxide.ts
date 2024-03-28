@@ -6,9 +6,22 @@
  * Copyright Oxide Computer Company
  */
 
-import path from "path";
-import fs from "fs";
 import { Writable } from "stream";
+
+export interface IO {
+  w: (str: string) => void;
+  w0: (str: string) => void;
+}
+
+// not a class because we want to destructure w and w0 in the calling code, and
+// if it was a class, they would lose their 'this' on destructure
+export function initIO(out: Writable) {
+  return {
+    w: (s: string) => out.write(s + "\n"),
+    /** same as w() but no newline */
+    w0: (s: string) => out.write(s),
+  };
+}
 
 /**
  * A test stream that stores a buffer internally
@@ -32,47 +45,4 @@ export class TestWritable extends Writable {
   clear(): void {
     this.buffer = Buffer.from("");
   }
-}
-
-export interface IO<O extends Writable = Writable> {
-  w: (str: string) => void;
-  w0: (str: string) => void;
-  copy: (file: string) => void;
-  out: O;
-}
-
-export function initIO(): IO<TestWritable>;
-export function initIO(outFile: string): IO<Writable>;
-export function initIO(outFile?: string): IO {
-  const destDir = process.argv[3];
-  let out: Writable;
-  if (!destDir || !outFile) {
-    out = new TestWritable();
-  } else {
-    out = fs.createWriteStream(path.resolve(process.cwd(), destDir, outFile), {
-      flags: "w",
-    });
-  }
-
-  return {
-    /** write to file with newline */
-    w(s: string) {
-      out.write(s + "\n");
-    },
-
-    /** same as w() but no newline */
-    w0(s: string) {
-      out.write(s);
-    },
-
-    copy(file) {
-      destDir &&
-        fs.copyFileSync(
-          file,
-          path.resolve(process.cwd(), destDir, path.basename(file))
-        );
-    },
-
-    out,
-  };
 }

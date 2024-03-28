@@ -11,14 +11,21 @@ import { initIO } from "../io";
 import { schemaToZod } from "../schema/zod";
 import { extractDoc, processParamName, snakeToPascal } from "../util";
 import { docComment, getSortedSchemas } from "./base";
+import path from "path";
+import fs from "fs";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
 
-const io = initIO("validate.ts");
-const { w, w0, out } = io;
-
-export function generateZodValidators(spec: OpenAPIV3.Document) {
+export function generateZodValidators(
+  spec: OpenAPIV3.Document,
+  destDir: string
+) {
   if (!spec.components) return;
+
+  const outFile = path.resolve(destDir, "validate.ts");
+  const out = fs.createWriteStream(outFile, { flags: "w" });
+  const io = initIO(out);
+  const { w, w0 } = io;
 
   w(`/* eslint-disable */
 

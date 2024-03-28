@@ -20,10 +20,13 @@ if [[ $# != 2 ]]; then
 	exit 2
 fi
 
-API_SOURCE="https://raw.githubusercontent.com/oxidecomputer/omicron/OMICRON_VERSION/openapi/nexus.json"
-SPEC_SOURCE=$(echo $API_SOURCE | sed "s/OMICRON_VERSION/$1/g")
-SPEC_DESTINATION="./spec.json"
+OMICRON_SHA="$1"
+DEST_DIR="$2"
 
-curl --fail "$SPEC_SOURCE" -o $SPEC_DESTINATION
+SPEC_URL="https://raw.githubusercontent.com/oxidecomputer/omicron/$OMICRON_SHA/openapi/nexus.json"
+SPEC_FILE="./spec.json"
 
-node -r esbuild-register generator/index.ts $SPEC_DESTINATION $2
+# TODO: we could get rid of this DL if a test didn't rely on it
+curl --fail "$SPEC_URL" -o $SPEC_FILE
+
+tsx generator/index.ts $SPEC_FILE $DEST_DIR

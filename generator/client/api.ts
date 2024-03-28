@@ -6,10 +6,14 @@
  * Copyright Oxide Computer Company
  */
 
+import fs from "node:fs";
+import assert from "node:assert";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
 import type { OpenAPIV3 } from "openapi-types";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
-import assert from "assert";
 import {
   extractDoc,
   pathToTemplateStr,
@@ -28,9 +32,6 @@ import {
   iterPathConfig,
 } from "./base";
 import { schemaToTypes } from "../schema/types";
-
-const io = initIO("Api.ts");
-const { w, w0, out, copy } = io;
 
 /**
  * `Error` is hard-coded into `http-client.ts` as `ErrorBody` so we can check
@@ -62,12 +63,32 @@ function checkErrorSchema(schema: Schema) {
 const queryParamsType = (opId: string) => `${opId}QueryParams`;
 const pathParamsType = (opId: string) => `${opId}PathParams`;
 
-export function generateApi(spec: OpenAPIV3.Document) {
+/**
+ * Source file is a relative path that we resolve relative to this
+ * file, not the CWD or package root
+ */
+function copyFile(sourceRelPath: string, destDirAbs: string) {
+  const thisFileDir = path.dirname(fileURLToPath(import.meta.url));
+  const sourceAbsPath = path.resolve(thisFileDir, sourceRelPath);
+  const destAbs = path.resolve(destDirAbs, path.basename(sourceRelPath));
+  fs.copyFileSync(sourceAbsPath, destAbs);
+}
+
+export function copyStaticFiles(destDir: string) {
+  copyFile("../../static/util.ts", destDir);
+  copyFile("../../static/http-client.ts", destDir);
+}
+
+export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
-  w("/* eslint-disable */\n");
+  const outFile = path.resolve(destDir, "Api.ts");
+  const out = fs.createWriteStream(outFile, { flags: "w" });
+  const io = initIO(out);
+  const { w, w0 } = io;
 
-  w(`
+  w(`/* eslint-disable */
+
     /**
      * This Source Code Form is subject to the terms of the Mozilla Public
      * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -75,20 +96,11 @@ export function generateApi(spec: OpenAPIV3.Document) {
      *
      * Copyright Oxide Computer Company
      */
-  `);
 
-  copy("./static/util.ts");
-  copy("./static/http-client.ts");
+    import type { FetchParams } from './http-client'
+    import { HttpClient, toQueryString } from './http-client'
 
-  w(`import type { FetchParams } from './http-client'
-    import { HttpClient, toQueryString } from './http-client'`);
-
-  w(`export type {
-      ApiConfig, 
-      ApiResult,
-      ErrorBody,
-      ErrorResult,
-    } from './http-client'
+    export type { ApiConfig, ApiResult, ErrorBody, ErrorResult, } from './http-client'
     `);
 
   const schemaNames = getSortedSchemas(spec);
