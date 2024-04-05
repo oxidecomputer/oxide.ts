@@ -897,7 +897,7 @@ export interface MSWHandlers {
   networkingBfdStatus: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => Promisable<StatusCode>;
+  }) => Promisable<HandlerResult<Api.BfdStatus[]>>;
   /** `GET /v1/system/networking/bgp` */
   networkingBgpConfigList: (params: {
     query: Api.NetworkingBgpConfigListQueryParams;
@@ -921,7 +921,7 @@ export interface MSWHandlers {
     query: Api.NetworkingBgpAnnounceSetListQueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => Promisable<StatusCode>;
+  }) => Promisable<HandlerResult<Api.BgpAnnouncement[]>>;
   /** `POST /v1/system/networking/bgp-announce` */
   networkingBgpAnnounceSetCreate: (params: {
     body: Json<Api.BgpAnnounceSetCreate>;
@@ -945,12 +945,12 @@ export interface MSWHandlers {
     query: Api.NetworkingBgpImportedRoutesIpv4QueryParams;
     req: Request;
     cookies: Record<string, string>;
-  }) => Promisable<StatusCode>;
+  }) => Promisable<HandlerResult<Api.BgpImportedRouteIpv4[]>>;
   /** `GET /v1/system/networking/bgp-status` */
   networkingBgpStatus: (params: {
     req: Request;
     cookies: Record<string, string>;
-  }) => Promisable<StatusCode>;
+  }) => Promisable<HandlerResult<Api.BgpPeerStatus[]>>;
   /** `GET /v1/system/networking/loopback-address` */
   networkingLoopbackAddressList: (params: {
     query: Api.NetworkingLoopbackAddressListQueryParams;
@@ -1121,7 +1121,7 @@ export interface MSWHandlers {
     body: Json<Api.TimeseriesQuery>;
     req: Request;
     cookies: Record<string, string>;
-  }) => Promisable<StatusCode>;
+  }) => Promisable<HandlerResult<Api.Table[]>>;
   /** `GET /v1/timeseries/schema` */
   timeseriesSchemaList: (params: {
     query: Api.TimeseriesSchemaListQueryParams;

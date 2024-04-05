@@ -23,7 +23,6 @@ import {
 } from "../util";
 import { initIO } from "../io";
 import type { Schema } from "../schema/base";
-import { refToSchemaName } from "../schema/base";
 import {
   contentRef,
   docComment,
@@ -226,8 +225,7 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       (p) => "in" in p && p.in === "query"
     ) as OpenAPIV3.ParameterObject[];
 
-    const bodyTypeRef = contentRef(conf.requestBody);
-    const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
+    const bodyType = contentRef(conf.requestBody);
 
     const successResponse =
       conf.responses["200"] ||
@@ -235,10 +233,16 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       conf.responses["202"] ||
       conf.responses["204"];
 
-    const successTypeRef = contentRef(successResponse);
-    const successType = successTypeRef
-      ? refToSchemaName(successTypeRef)
-      : "void";
+    const successType = contentRef(successResponse);
+
+    if (successType === "void" && !conf.responses["204"]) {
+      console.log(path);
+      if (successResponse && "content" in successResponse) {
+        console.log(successResponse.content["application/json"].schema);
+      }
+      console.log(successType);
+      console.log();
+    }
 
     docComment(conf.summary || conf.description, schemaNames, io);
 
@@ -270,7 +274,7 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     }
 
     w(`params: FetchParams = {}) => {
-         return this.request<${successType}>({
+         return this.request<${successType || "void"}>({
            path: ${pathToTemplateStr(path)},
            method: "${method.toUpperCase()}",`);
     if (bodyType) {

@@ -9,7 +9,7 @@
 import type { OpenAPIV3 } from "openapi-types";
 import { topologicalSort } from "../util";
 import type { IO } from "../io";
-import type { Schema } from "../schema/base";
+import { refToSchemaName, type Schema } from "../schema/base";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 
@@ -36,14 +36,26 @@ export const jsdocLinkify = (s: string, schemaNames: string[]) =>
   );
 
 export function contentRef(
-  o: Schema | OpenAPIV3.RequestBodyObject | undefined
+  o: Schema | OpenAPIV3.RequestBodyObject | undefined,
+  prefix = ""
 ) {
-  return o &&
-    "content" in o &&
-    o.content?.["application/json"]?.schema &&
-    "$ref" in o.content["application/json"].schema
-    ? o.content["application/json"].schema.$ref
-    : null;
+  if (!(o && "content" in o && o.content?.["application/json"]?.schema)) {
+    return null;
+  }
+  const schema = o.content["application/json"].schema;
+
+  if ("$ref" in schema) {
+    return prefix + refToSchemaName(schema.$ref);
+  }
+
+  if (schema.type === "array") {
+    if ("$ref" in schema.items) {
+      return prefix + refToSchemaName(schema.items.$ref) + "[]";
+    }
+    return null;
+  }
+
+  return null;
 }
 
 /**
