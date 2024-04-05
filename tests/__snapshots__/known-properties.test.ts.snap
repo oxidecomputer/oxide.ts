@@ -17,6 +17,7 @@ exports[`Known properties > Type array should contain only known properties 1`] 
   "items",
   "nullable",
   "type",
+  "uniqueItems",
 ]
 `;
 
@@ -24,6 +25,7 @@ exports[`Known properties > Type boolean should contain only known properties 1`
 [
   "default",
   "description",
+  "nullable",
   "type",
 ]
 `;
@@ -43,6 +45,7 @@ exports[`Known properties > Type integer should contain only known properties 1`
 exports[`Known properties > Type number should contain only known properties 1`] = `
 [
   "format",
+  "nullable",
   "type",
 ]
 `;

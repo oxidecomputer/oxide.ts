@@ -20,6 +20,8 @@ describe("Known properties", async () => {
   const types = await getSchemaTypes();
   const typeNames = Object.keys(types) as Array<keyof typeof types>;
 
+  // TODO: we need a way to say what schema is causing the failure!
+  // Just need to collect everything in a different structure, I guess
   test.each(typeNames)(
     "Type %s should contain only known properties",
     (typeName) => {
