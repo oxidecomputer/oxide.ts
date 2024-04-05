@@ -8,7 +8,6 @@
 
 import type { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
-import { refToSchemaName } from "../schema/base";
 import { snakeToCamel, snakeToPascal } from "../util";
 import { contentRef, iterPathConfig } from "./base";
 import path from "node:path";
@@ -83,13 +82,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
       conf.responses["202"] ||
       conf.responses["204"];
 
-    const successTypeRef = contentRef(successResponse);
-    const successType = successTypeRef
-      ? "Api." + refToSchemaName(successTypeRef)
-      : "void";
+    const successType = contentRef(successResponse, "Api.");
 
-    const bodyTypeRef = contentRef(conf.requestBody);
-    const bodyType = bodyTypeRef ? refToSchemaName(bodyTypeRef) : null;
+    const bodyType = contentRef(conf.requestBody);
     const body =
       bodyType && (method === "post" || method === "put")
         ? `body: Json<Api.${bodyType}>,`
@@ -108,10 +103,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
       : "";
     const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: Request, cookies: Record<string, string> }`;
 
-    const resultType =
-      successType === "void"
-        ? "Promisable<StatusCode>"
-        : `Promisable<HandlerResult<${successType}>>`;
+    const resultType = successType
+      ? `Promisable<HandlerResult<${successType}>>`
+      : "Promisable<StatusCode>";
 
     w(`/** \`${method.toUpperCase()} ${formatPath(path)}\` */`);
     w(`  ${opName}: (${params}) => ${resultType},`);
@@ -210,10 +204,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
       return [`);
   for (const { path, method, opId, conf } of iterPathConfig(spec.paths)) {
     const handler = snakeToCamel(opId);
-    const bodyTypeRef = contentRef(conf.requestBody);
+    const bodyType = contentRef(conf.requestBody, "schema.");
     const bodySchema =
-      bodyTypeRef && (method === "post" || method === "put")
-        ? `schema.${refToSchemaName(bodyTypeRef)}`
+      bodyType !== "void" && (method === "post" || method === "put")
+        ? bodyType
         : "null";
     const paramSchema = conf.parameters?.length
       ? `schema.${snakeToPascal(opId)}Params`
