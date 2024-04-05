@@ -6221,7 +6221,7 @@ export class Api extends HttpClient {
      * Get BFD status
      */
     networkingBfdStatus: (_: EmptyObj, params: FetchParams = {}) => {
-      return this.request<void>({
+      return this.request<BfdStatus[]>({
         path: `/v1/system/networking/bfd-status`,
         method: "GET",
         ...params,
@@ -6276,7 +6276,7 @@ export class Api extends HttpClient {
       { query }: { query?: NetworkingBgpAnnounceSetListQueryParams },
       params: FetchParams = {}
     ) => {
-      return this.request<void>({
+      return this.request<BgpAnnouncement[]>({
         path: `/v1/system/networking/bgp-announce`,
         method: "GET",
         query,
@@ -6318,7 +6318,7 @@ export class Api extends HttpClient {
       { query }: { query?: NetworkingBgpImportedRoutesIpv4QueryParams },
       params: FetchParams = {}
     ) => {
-      return this.request<void>({
+      return this.request<BgpImportedRouteIpv4[]>({
         path: `/v1/system/networking/bgp-routes-ipv4`,
         method: "GET",
         query,
@@ -6329,7 +6329,7 @@ export class Api extends HttpClient {
      * Get BGP peer status
      */
     networkingBgpStatus: (_: EmptyObj, params: FetchParams = {}) => {
-      return this.request<void>({
+      return this.request<BgpPeerStatus[]>({
         path: `/v1/system/networking/bgp-status`,
         method: "GET",
         ...params,
