@@ -235,15 +235,6 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
     const successType = contentRef(successResponse);
 
-    if (successType === "void" && !conf.responses["204"]) {
-      console.log(path);
-      if (successResponse && "content" in successResponse) {
-        console.log(successResponse.content["application/json"].schema);
-      }
-      console.log(successType);
-      console.log();
-    }
-
     docComment(conf.summary || conf.description, schemaNames, io);
 
     w0(`${methodName}: (`);
