@@ -19,59 +19,61 @@ const json = (body: any, status = 200) =>
 
 describe("handleResponse", () => {
   it("handles success", async () => {
-    const result = await handleResponse(json({ abc: 123 }));
-    expect(result).toMatchObject({
+    const { response, ...rest } = await handleResponse(json({ abc: 123 }));
+    expect(rest).toMatchObject({
       data: { abc: 123 },
-      statusCode: 200,
       type: "success",
     });
-    expect(result.headers.get("Content-Type")).toBe("application/json");
+    expect(response.status).toEqual(200);
+    expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
   it('API error returns type "error"', async () => {
-    const result = await handleResponse(json({ bad_stuff: "hi" }, 400));
-    expect(result).toMatchObject({
+    const { response, ...rest } = await handleResponse(
+      json({ bad_stuff: "hi" }, 400)
+    );
+    expect(rest).toMatchObject({
       data: { badStuff: "hi" },
-      statusCode: 400,
       type: "error",
     });
-    expect(result.headers.get("Content-Type")).toBe("application/json");
+    expect(response.status).toEqual(400);
+    expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
   it("non-json response causes client_error w/ text and error", async () => {
     const resp = new Response("not json", { headers });
-    const result = await handleResponse(resp);
-    expect(result).toMatchObject({
+    const { response, ...rest } = await handleResponse(resp);
+    expect(rest).toMatchObject({
       error: expect.any(SyntaxError),
-      statusCode: 200,
       text: "not json",
       type: "client_error",
     });
-    expect(result.headers.get("Content-Type")).toBe("application/json");
+    expect(response.status).toEqual(200);
+    expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
   it("parses dates and converts to camel case", async () => {
     const resp = json({ time_created: "2022-05-01" });
-    const result = await handleResponse(resp);
-    expect(result).toMatchObject({
+    const { response, ...rest } = await handleResponse(resp);
+    expect(rest).toMatchObject({
       type: "success",
       data: {
         timeCreated: new Date(Date.UTC(2022, 4, 1)),
       },
     });
-    expect(result.headers.get("Content-Type")).toBe("application/json");
+    expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
   it("leaves unparseable dates alone", async () => {
     const resp = json({ time_created: "abc" });
-    const result = await handleResponse(resp);
-    expect(result).toMatchObject({
+    const { response, ...rest } = await handleResponse(resp);
+    expect(rest).toMatchObject({
       type: "success",
       data: {
         timeCreated: "abc",
       },
     });
-    expect(result.headers.get("Content-Type")).toBe("application/json");
+    expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 });
 
