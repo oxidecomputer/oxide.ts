@@ -37,6 +37,15 @@ assert<
 assert<
   Equals<A.AddressLotResultsPage, z.infer<typeof V.AddressLotResultsPage>>
 >();
+assert<Equals<A.BgpMessageHistory, z.infer<typeof V.BgpMessageHistory>>>();
+assert<Equals<A.SwitchLocation, z.infer<typeof V.SwitchLocation>>>();
+assert<Equals<A.SwitchBgpHistory, z.infer<typeof V.SwitchBgpHistory>>>();
+assert<
+  Equals<
+    A.AggregateBgpMessageHistory,
+    z.infer<typeof V.AggregateBgpMessageHistory>
+  >
+>();
 assert<Equals<A.Baseboard, z.infer<typeof V.Baseboard>>>();
 assert<Equals<A.BfdMode, z.infer<typeof V.BfdMode>>>();
 assert<Equals<A.BfdSessionDisable, z.infer<typeof V.BfdSessionDisable>>>();
@@ -56,7 +65,6 @@ assert<Equals<A.BgpConfigCreate, z.infer<typeof V.BgpConfigCreate>>>();
 assert<
   Equals<A.BgpConfigResultsPage, z.infer<typeof V.BgpConfigResultsPage>>
 >();
-assert<Equals<A.SwitchLocation, z.infer<typeof V.SwitchLocation>>>();
 assert<
   Equals<A.BgpImportedRouteIpv4, z.infer<typeof V.BgpImportedRouteIpv4>>
 >();
@@ -125,12 +133,18 @@ assert<Equals<A.DiskSource, z.infer<typeof V.DiskSource>>>();
 assert<Equals<A.DiskCreate, z.infer<typeof V.DiskCreate>>>();
 assert<Equals<A.DiskPath, z.infer<typeof V.DiskPath>>>();
 assert<Equals<A.DiskResultsPage, z.infer<typeof V.DiskResultsPage>>>();
+assert<Equals<A.Distributiondouble, z.infer<typeof V.Distributiondouble>>>();
+assert<Equals<A.Distributionint64, z.infer<typeof V.Distributionint64>>>();
 assert<Equals<A.EphemeralIpCreate, z.infer<typeof V.EphemeralIpCreate>>>();
 assert<Equals<A.ExternalIp, z.infer<typeof V.ExternalIp>>>();
 assert<Equals<A.ExternalIpCreate, z.infer<typeof V.ExternalIpCreate>>>();
 assert<
   Equals<A.ExternalIpResultsPage, z.infer<typeof V.ExternalIpResultsPage>>
 >();
+assert<Equals<A.FieldType, z.infer<typeof V.FieldType>>>();
+assert<Equals<A.FieldSource, z.infer<typeof V.FieldSource>>>();
+assert<Equals<A.FieldSchema, z.infer<typeof V.FieldSchema>>>();
+assert<Equals<A.FieldValue, z.infer<typeof V.FieldValue>>>();
 assert<Equals<A.FinalizeDisk, z.infer<typeof V.FinalizeDisk>>>();
 assert<Equals<A.FleetRole, z.infer<typeof V.FleetRole>>>();
 assert<Equals<A.IdentityType, z.infer<typeof V.IdentityType>>>();
@@ -233,6 +247,9 @@ assert<
 >();
 assert<Equals<A.IpPoolSiloUpdate, z.infer<typeof V.IpPoolSiloUpdate>>>();
 assert<Equals<A.IpPoolUpdate, z.infer<typeof V.IpPoolUpdate>>>();
+assert<Equals<A.Ipv4Utilization, z.infer<typeof V.Ipv4Utilization>>>();
+assert<Equals<A.Ipv6Utilization, z.infer<typeof V.Ipv6Utilization>>>();
+assert<Equals<A.IpPoolUtilization, z.infer<typeof V.IpPoolUtilization>>>();
 assert<Equals<A.L4PortRange, z.infer<typeof V.L4PortRange>>>();
 assert<Equals<A.LinkFec, z.infer<typeof V.LinkFec>>>();
 assert<
@@ -255,6 +272,7 @@ assert<Equals<A.Measurement, z.infer<typeof V.Measurement>>>();
 assert<
   Equals<A.MeasurementResultsPage, z.infer<typeof V.MeasurementResultsPage>>
 >();
+assert<Equals<A.MetricType, z.infer<typeof V.MetricType>>>();
 assert<
   Equals<A.NetworkInterfaceKind, z.infer<typeof V.NetworkInterfaceKind>>
 >();
@@ -262,12 +280,17 @@ assert<Equals<A.Vni, z.infer<typeof V.Vni>>>();
 assert<Equals<A.NetworkInterface, z.infer<typeof V.NetworkInterface>>>();
 assert<Equals<A.Password, z.infer<typeof V.Password>>>();
 assert<Equals<A.PhysicalDiskKind, z.infer<typeof V.PhysicalDiskKind>>>();
+assert<Equals<A.PhysicalDiskPolicy, z.infer<typeof V.PhysicalDiskPolicy>>>();
+assert<Equals<A.PhysicalDiskState, z.infer<typeof V.PhysicalDiskState>>>();
 assert<Equals<A.PhysicalDisk, z.infer<typeof V.PhysicalDisk>>>();
 assert<
   Equals<A.PhysicalDiskResultsPage, z.infer<typeof V.PhysicalDiskResultsPage>>
 >();
 assert<Equals<A.PingStatus, z.infer<typeof V.PingStatus>>>();
 assert<Equals<A.Ping, z.infer<typeof V.Ping>>>();
+assert<Equals<A.ValueArray, z.infer<typeof V.ValueArray>>>();
+assert<Equals<A.Values, z.infer<typeof V.Values>>>();
+assert<Equals<A.Points, z.infer<typeof V.Points>>>();
 assert<Equals<A.Probe, z.infer<typeof V.Probe>>>();
 assert<Equals<A.ProbeCreate, z.infer<typeof V.ProbeCreate>>>();
 assert<Equals<A.ProbeExternalIp, z.infer<typeof V.ProbeExternalIp>>>();
@@ -422,6 +445,17 @@ assert<
   Equals<A.SwitchPortSettingsView, z.infer<typeof V.SwitchPortSettingsView>>
 >();
 assert<Equals<A.SwitchResultsPage, z.infer<typeof V.SwitchResultsPage>>>();
+assert<Equals<A.Timeseries, z.infer<typeof V.Timeseries>>>();
+assert<Equals<A.Table, z.infer<typeof V.Table>>>();
+assert<Equals<A.TimeseriesName, z.infer<typeof V.TimeseriesName>>>();
+assert<Equals<A.TimeseriesQuery, z.infer<typeof V.TimeseriesQuery>>>();
+assert<Equals<A.TimeseriesSchema, z.infer<typeof V.TimeseriesSchema>>>();
+assert<
+  Equals<
+    A.TimeseriesSchemaResultsPage,
+    z.infer<typeof V.TimeseriesSchemaResultsPage>
+  >
+>();
 assert<Equals<A.UninitializedSled, z.infer<typeof V.UninitializedSled>>>();
 assert<Equals<A.UninitializedSledId, z.infer<typeof V.UninitializedSledId>>>();
 assert<

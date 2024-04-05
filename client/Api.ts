@@ -152,11 +152,43 @@ export type AddressLotResultsPage = {
   nextPage?: string;
 };
 
+export type BgpMessageHistory = Record<string, unknown>;
+
+/**
+ * Identifies switch physical location
+ */
+export type SwitchLocation =
+  /** Switch in upper slot */
+  | "switch0"
+  /** Switch in lower slot */
+  | "switch1";
+
+/**
+ * BGP message history for a particular switch.
+ */
+export type SwitchBgpHistory = {
+  /** Message history indexed by peer address. */
+  history: Record<string, BgpMessageHistory>;
+  /** Switch this message history is associated with. */
+  switch: SwitchLocation;
+};
+
+/**
+ * BGP message history for rack switches.
+ */
+export type AggregateBgpMessageHistory = {
+  /** BGP history organized by switch. */
+  switchHistories: SwitchBgpHistory[];
+};
+
 /**
  * Properties that uniquely identify an Oxide hardware component
  */
 export type Baseboard = { part: string; revision: number; serial: string };
 
+/**
+ * BFD connection mode.
+ */
 export type BfdMode = "single_hop" | "multi_hop";
 
 /**
@@ -297,15 +329,6 @@ export type BgpConfigResultsPage = {
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
-
-/**
- * Identifies switch physical location
- */
-export type SwitchLocation =
-  /** Switch in upper slot */
-  | "switch0"
-  /** Switch in lower slot */
-  | "switch1";
 
 /**
  * A route imported from a BGP peer.
@@ -1018,6 +1041,16 @@ export type DiskResultsPage = {
 };
 
 /**
+ * A distribution is a sequence of bins and counts in those bins.
+ */
+export type Distributiondouble = { bins: number[]; counts: number[] };
+
+/**
+ * A distribution is a sequence of bins and counts in those bins.
+ */
+export type Distributionint64 = { bins: number[]; counts: number[] };
+
+/**
  * Parameters for creating an ephemeral IP address for an instance.
  */
 export type EphemeralIpCreate = {
@@ -1068,6 +1101,54 @@ export type ExternalIpResultsPage = {
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
+
+/**
+ * The `FieldType` identifies the data type of a target or metric field.
+ */
+export type FieldType =
+  | "string"
+  | "i8"
+  | "u8"
+  | "i16"
+  | "u16"
+  | "i32"
+  | "u32"
+  | "i64"
+  | "u64"
+  | "ip_addr"
+  | "uuid"
+  | "bool";
+
+/**
+ * The source from which a field is derived, the target or metric.
+ */
+export type FieldSource = "target" | "metric";
+
+/**
+ * The name and type information for a field of a timeseries schema.
+ */
+export type FieldSchema = {
+  fieldType: FieldType;
+  name: string;
+  source: FieldSource;
+};
+
+/**
+ * The `FieldValue` contains the value of a target or metric field.
+ */
+export type FieldValue =
+  | { type: "string"; value: string }
+  | { type: "i8"; value: number }
+  | { type: "u8"; value: number }
+  | { type: "i16"; value: number }
+  | { type: "u16"; value: number }
+  | { type: "i32"; value: number }
+  | { type: "u32"; value: number }
+  | { type: "i64"; value: number }
+  | { type: "u64"; value: number }
+  | { type: "ip_addr"; value: string }
+  | { type: "uuid"; value: string }
+  | { type: "bool"; value: boolean };
 
 /**
  * Parameters for finalizing a disk
@@ -1622,6 +1703,27 @@ export type IpPoolSiloUpdate = {
  */
 export type IpPoolUpdate = { description?: string; name?: Name };
 
+export type Ipv4Utilization = {
+  /** The number of IPv4 addresses allocated from this pool */
+  allocated: number;
+  /** The total number of IPv4 addresses in the pool, i.e., the sum of the lengths of the IPv4 ranges. Unlike IPv6 capacity, can be a 32-bit integer because there are only 2^32 IPv4 addresses. */
+  capacity: number;
+};
+
+export type Ipv6Utilization = {
+  /** The number of IPv6 addresses allocated from this pool. A 128-bit integer string to match the capacity field. */
+  allocated: string;
+  /** The total number of IPv6 addresses in the pool, i.e., the sum of the lengths of the IPv6 ranges. An IPv6 range can contain up to 2^128 addresses, so we represent this value in JSON as a numeric string with a custom "uint128" format. */
+  capacity: string;
+};
+
+export type IpPoolUtilization = {
+  /** Number of allocated and total available IPv4 addresses in pool */
+  ipv4: Ipv4Utilization;
+  /** Number of allocated and total available IPv6 addresses in pool */
+  ipv6: Ipv6Utilization;
+};
+
 /**
  * A range of IP ports
  *
@@ -1761,6 +1863,17 @@ export type MeasurementResultsPage = {
 };
 
 /**
+ * The type of the metric itself, indicating what its values represent.
+ */
+export type MetricType =
+  /** The value represents an instantaneous measurement in time. */
+  | "gauge"
+  /** The value represents a difference between two points in time. */
+  | "delta"
+  /** The value represents an accumulation between two points in time. */
+  | "cumulative";
+
+/**
  * The type of network interface
  */
 export type NetworkInterfaceKind =
@@ -1804,6 +1917,30 @@ export type Password = string;
 export type PhysicalDiskKind = "m2" | "u2";
 
 /**
+ * The operator-defined policy of a physical disk.
+ */
+export type PhysicalDiskPolicy =
+  /** The operator has indicated that the disk is in-service. */
+  | { kind: "in_service" }
+  /** The operator has indicated that the disk has been permanently removed from service.
+
+This is a terminal state: once a particular disk ID is expunged, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.)
+
+An expunged disk is always non-provisionable. */
+  | { kind: "expunged" };
+
+/**
+ * The current state of the disk, as determined by Nexus.
+ */
+export type PhysicalDiskState =
+  /** The disk is currently active, and has resources allocated on it. */
+  | "active"
+  /** The disk has been permanently removed from service.
+
+This is a terminal state: once a particular disk ID is decommissioned, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.) */
+  | "decommissioned";
+
+/**
  * View of a Physical Disk
  *
  * Physical disks reside in a particular sled and are used to store both Instance Disk data as well as internal metadata.
@@ -1813,9 +1950,13 @@ export type PhysicalDisk = {
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   model: string;
+  /** The operator-defined policy for a physical disk. */
+  policy: PhysicalDiskPolicy;
   serial: string;
   /** The sled to which this disk is attached, if any. */
   sledId?: string;
+  /** The current state Nexus believes the disk to be in. */
+  state: PhysicalDiskState;
   /** timestamp when this resource was created */
   timeCreated: Date;
   /** timestamp when this resource was last modified */
@@ -1838,6 +1979,33 @@ export type PingStatus = "ok";
 export type Ping = {
   /** Whether the external API is reachable. Will always be Ok if the endpoint returns anything at all. */
   status: PingStatus;
+};
+
+/**
+ * List of data values for one timeseries.
+ *
+ * Each element is an option, where `None` represents a missing sample.
+ */
+export type ValueArray =
+  | { type: "integer"; values: number[] }
+  | { type: "double"; values: number[] }
+  | { type: "boolean"; values: boolean[] }
+  | { type: "string"; values: string[] }
+  | { type: "integer_distribution"; values: Distributionint64[] }
+  | { type: "double_distribution"; values: Distributiondouble[] };
+
+/**
+ * A single list of values, for one dimension of a timeseries.
+ */
+export type Values = { metricType: MetricType; values: ValueArray };
+
+/**
+ * Timepoints and values for one timeseries.
+ */
+export type Points = {
+  startTimes?: Date[];
+  timestamps: Date[];
+  values: Values[];
 };
 
 /**
@@ -2772,6 +2940,57 @@ export type SwitchResultsPage = {
 };
 
 /**
+ * A timeseries contains a timestamped set of values from one source.
+ *
+ * This includes the typed key-value pairs that uniquely identify it, and the set of timestamps and data values from it.
+ */
+export type Timeseries = { fields: Record<string, FieldValue>; points: Points };
+
+/**
+ * A table represents one or more timeseries with the same schema.
+ *
+ * A table is the result of an OxQL query. It contains a name, usually the name of the timeseries schema from which the data is derived, and any number of timeseries, which contain the actual data.
+ */
+export type Table = { name: string; timeseries: Record<string, Timeseries> };
+
+/**
+ * The name of a timeseries
+ *
+ * Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
+ */
+export type TimeseriesName = string;
+
+/**
+ * A timeseries query string, written in the Oximeter query language.
+ */
+export type TimeseriesQuery = {
+  /** A timeseries query string, written in the Oximeter query language. */
+  query: string;
+};
+
+/**
+ * The schema for a timeseries.
+ *
+ * This includes the name of the timeseries, as well as the datum type of its metric and the schema for each field.
+ */
+export type TimeseriesSchema = {
+  created: Date;
+  datumType: DatumType;
+  fieldSchema: FieldSchema[];
+  timeseriesName: TimeseriesName;
+};
+
+/**
+ * A single page of results
+ */
+export type TimeseriesSchemaResultsPage = {
+  /** list of items on this page of results */
+  items: TimeseriesSchema[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
  * A sled that has not been added to an initialized rack yet
  */
 export type UninitializedSled = {
@@ -3661,6 +3880,10 @@ export interface PhysicalDiskListQueryParams {
   sortBy?: IdSortMode;
 }
 
+export interface PhysicalDiskViewPathParams {
+  diskId: string;
+}
+
 export interface RackListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -3843,6 +4066,10 @@ export interface IpPoolSiloUnlinkPathParams {
   silo: NameOrId;
 }
 
+export interface IpPoolUtilizationViewPathParams {
+  pool: NameOrId;
+}
+
 export interface IpPoolServiceRangeListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -3898,6 +4125,10 @@ export interface NetworkingBgpAnnounceSetListQueryParams {
 
 export interface NetworkingBgpAnnounceSetDeleteQueryParams {
   nameOrId: NameOrId;
+}
+
+export interface NetworkingBgpMessageHistoryQueryParams {
+  asn: number;
 }
 
 export interface NetworkingBgpImportedRoutesIpv4QueryParams {
@@ -4020,6 +4251,11 @@ export interface SiloUtilizationListQueryParams {
 
 export interface SiloUtilizationViewPathParams {
   silo: NameOrId;
+}
+
+export interface TimeseriesSchemaListQueryParams {
+  limit?: number;
+  pageToken?: string;
 }
 
 export interface UserListQueryParams {
@@ -4169,6 +4405,7 @@ export type ApiListMethods = Pick<
   | "siloUserList"
   | "userBuiltinList"
   | "siloUtilizationList"
+  | "timeseriesSchemaList"
   | "userList"
   | "vpcSubnetList"
   | "vpcList"
@@ -4511,7 +4748,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List all floating IPs
+     * List floating IPs
      */
     floatingIpList: (
       { query = {} }: { query?: FloatingIpListQueryParams },
@@ -5082,7 +5319,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List all IP pools
+     * List IP pools
      */
     projectIpPoolList: (
       { query = {} }: { query?: ProjectIpPoolListQueryParams },
@@ -5214,7 +5451,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Access metrics data
+     * View metrics
      */
     siloMetric: (
       {
@@ -5537,6 +5774,19 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/disks`,
         method: "GET",
         query,
+        ...params,
+      });
+    },
+    /**
+     * Get a physical disk
+     */
+    physicalDiskView: (
+      { path }: { path: PhysicalDiskViewPathParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<PhysicalDisk>({
+        path: `/v1/system/hardware/disks/${path.diskId}`,
+        method: "GET",
         ...params,
       });
     },
@@ -6060,6 +6310,19 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Fetch IP pool utilization
+     */
+    ipPoolUtilizationView: (
+      { path }: { path: IpPoolUtilizationViewPathParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<IpPoolUtilization>({
+        path: `/v1/system/ip-pools/${path.pool}/utilization`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
      * Fetch Oxide service IP pool
      */
     ipPoolServiceView: (_: EmptyObj, params: FetchParams = {}) => {
@@ -6112,7 +6375,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Access metrics data
+     * View metrics
      */
     systemMetric: (
       {
@@ -6307,6 +6570,20 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/v1/system/networking/bgp-announce`,
         method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get BGP router message history
+     */
+    networkingBgpMessageHistory: (
+      { query }: { query?: NetworkingBgpMessageHistoryQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<AggregateBgpMessageHistory>({
+        path: `/v1/system/networking/bgp-message-history`,
+        method: "GET",
         query,
         ...params,
       });
@@ -6706,6 +6983,34 @@ export class Api extends HttpClient {
       return this.request<SiloUtilization>({
         path: `/v1/system/utilization/silos/${path.silo}`,
         method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Run timeseries query
+     */
+    timeseriesQuery: (
+      { body }: { body: TimeseriesQuery },
+      params: FetchParams = {}
+    ) => {
+      return this.request<void>({
+        path: `/v1/timeseries/query`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * List timeseries schemas
+     */
+    timeseriesSchemaList: (
+      { query = {} }: { query?: TimeseriesSchemaListQueryParams },
+      params: FetchParams = {}
+    ) => {
+      return this.request<TimeseriesSchemaResultsPage>({
+        path: `/v1/timeseries/schema`,
+        method: "GET",
+        query,
         ...params,
       });
     },
