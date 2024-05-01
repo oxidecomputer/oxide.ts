@@ -74,8 +74,8 @@ function copyFile(sourceRelPath: string, destDirAbs: string) {
 }
 
 export function copyStaticFiles(destDir: string) {
-  copyFile("../../static/util.ts", destDir);
-  copyFile("../../static/http-client.ts", destDir);
+  copyFile("../static/util.ts", destDir);
+  copyFile("../static/http-client.ts", destDir);
 }
 
 export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
