@@ -29,7 +29,6 @@
     "build": "tsup",
     "lint": "eslint .",
     "pretest": "../../tools/gen.sh",
-    "publish": "npm publish --access public",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "tsc": "tsc"
