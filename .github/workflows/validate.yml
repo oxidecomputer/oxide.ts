@@ -19,13 +19,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "18"
-      - name: npm install
+      - working-directory: "./packages/openapi-gen-ts"
         run: npm install
       - name: Generate client
-        run: npm run gen
-      - name: TypeCheck
+        run: "./tools/gen.sh"
+      - name: Typecheck
+        working-directory: "./packages/openapi-gen-ts"
         run: npm run tsc
       - name: Lint
+        working-directory: "./packages/openapi-gen-ts"
         run: npx eslint .
       - name: Test
-        run: npm test
+        working-directory: "./packages/openapi-gen-ts"
+        run: npm test run
