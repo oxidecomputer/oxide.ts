@@ -28,7 +28,7 @@ jobs:
         run: npm run tsc
       - name: Lint
         working-directory: "./packages/openapi-gen-ts"
-        run: npx eslint .
+        run: npm run lint
       - name: Test
         working-directory: "./packages/openapi-gen-ts"
         run: npm test run
