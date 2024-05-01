@@ -11,8 +11,12 @@
   "engines": {
     "node": ">=18"
   },
+  "tsup": {
+    "entry": ["index.ts"],
+    "shims": true
+  },
   "scripts": {
-    "build": "tsup index.ts",
+    "build": "tsup",
     "lint": "eslint .",
     "pretest": "../../tools/gen.sh",
     "test": "vitest",
