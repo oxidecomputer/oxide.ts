@@ -12,10 +12,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "gen": "./tools/gen.sh $(cat ./OMICRON_VERSION) ./packages/api",
     "lint": "eslint .",
-    "postgen": "prettier --parser typescript --write ./packages/api",
-    "pretest": "npm run gen",
+    "pretest": "../../tools/gen.sh",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "tsc": "tsc"

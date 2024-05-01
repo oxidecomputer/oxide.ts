@@ -9,19 +9,9 @@
 set -o errexit
 set -o pipefail
 
-HELP="$(
-	cat <<EOF
-usage: ./gen.sh [spec-file] [out-file]
-EOF
-)"
-
-if [[ $# != 2 ]]; then
-	echo "$HELP"
-	exit 2
-fi
-
-OMICRON_SHA="$1"
-DEST_DIR="$2"
+ROOT_DIR="$(dirname "$0")/.."
+OMICRON_SHA=$(cat "$ROOT_DIR/OMICRON_VERSION")
+DEST_DIR="$ROOT_DIR/packages/api"
 
 SPEC_URL="https://raw.githubusercontent.com/oxidecomputer/omicron/$OMICRON_SHA/openapi/nexus.json"
 SPEC_FILE="./spec.json"
@@ -29,4 +19,5 @@ SPEC_FILE="./spec.json"
 # TODO: we could get rid of this DL if a test didn't rely on it
 curl --fail "$SPEC_URL" -o $SPEC_FILE
 
-tsx packages/openapi-gen/index.ts $SPEC_FILE $DEST_DIR
+npx tsx "$ROOT_DIR/packages/openapi-gen/index.ts" $SPEC_FILE $DEST_DIR
+npx prettier --write --log-level error "$DEST_DIR"
