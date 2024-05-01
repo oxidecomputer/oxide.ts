@@ -18,11 +18,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "18"
-      - name: Generate spec
-        shell: bash
-        run: |
-          npm install
-          npm run gen
+      - working-directory: "./packages/openapi-gen-ts"
+        run: 'npm install'
+      - run: ./tools/gen.sh
       - uses: EndBug/add-and-commit@v9
         with:
           add: .
