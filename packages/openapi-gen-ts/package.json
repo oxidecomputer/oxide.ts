@@ -12,10 +12,10 @@
     "node": ">=18"
   },
   "type": "module",
-  "main": "./dist/index.mjs",
+  "main": "./dist/index.js",
   "exports": {
-    "import": "./dist/index.mjs",
-    "require": "./dist/index.js"
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
   },
   "bin": {
     "@oxide/openapi-gen-ts": "./dist/index.mjs"
@@ -29,6 +29,7 @@
     "build": "tsup",
     "lint": "eslint .",
     "pretest": "../../tools/gen.sh",
+    "publish": "npm publish --access public",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "tsc": "tsc"
