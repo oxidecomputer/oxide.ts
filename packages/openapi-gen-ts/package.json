@@ -11,8 +11,18 @@
   "engines": {
     "node": ">=18"
   },
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.js"
+  },
+  "bin": {
+    "@oxide/openapi-gen-ts": "./dist/index.mjs"
+  },
   "tsup": {
     "entry": ["src/index.ts"],
+    "format": ["cjs", "esm"],
     "shims": true
   },
   "scripts": {
