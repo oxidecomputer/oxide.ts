@@ -24,7 +24,7 @@ const IntEnum = <T extends readonly number[]>(values: T) =>
 /** Helper to ensure booleans provided as strings end up with the correct value */
 const SafeBoolean = z.preprocess(
   (v) => (v === "false" ? false : v),
-  z.coerce.boolean()
+  z.coerce.boolean(),
 );
 
 /**
@@ -37,8 +37,8 @@ export const Ipv4Net = z.preprocess(
   z
     .string()
     .regex(
-      /^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/([0-9]|1[0-9]|2[0-9]|3[0-2])$/
-    )
+      /^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\/([0-9]|1[0-9]|2[0-9]|3[0-2])$/,
+    ),
 );
 
 /**
@@ -51,13 +51,13 @@ export const Ipv6Net = z.preprocess(
   z
     .string()
     .regex(
-      /^([fF][dD])[0-9a-fA-F]{2}:(([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,6}:)([0-9a-fA-F]{1,4})?\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$/
-    )
+      /^([fF][dD])[0-9a-fA-F]{2}:(([0-9a-fA-F]{1,4}:){6}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,6}:)([0-9a-fA-F]{1,4})?\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8])$/,
+    ),
 );
 
 export const IpNet = z.preprocess(
   processResponseBody,
-  z.union([Ipv4Net, Ipv6Net])
+  z.union([Ipv4Net, Ipv6Net]),
 );
 
 /**
@@ -72,13 +72,13 @@ export const Name = z.preprocess(
     .min(1)
     .max(63)
     .regex(
-      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z]([a-zA-Z0-9-]*[a-zA-Z0-9]+)?$/
-    )
+      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z]([a-zA-Z0-9-]*[a-zA-Z0-9]+)?$/,
+    ),
 );
 
 export const NameOrId = z.preprocess(
   processResponseBody,
-  z.union([z.string().uuid(), Name])
+  z.union([z.string().uuid(), Name]),
 );
 
 /**
@@ -86,7 +86,7 @@ export const NameOrId = z.preprocess(
  */
 export const Address = z.preprocess(
   processResponseBody,
-  z.object({ address: IpNet, addressLot: NameOrId })
+  z.object({ address: IpNet, addressLot: NameOrId }),
 );
 
 /**
@@ -94,7 +94,7 @@ export const Address = z.preprocess(
  */
 export const AddressConfig = z.preprocess(
   processResponseBody,
-  z.object({ addresses: Address.array() })
+  z.object({ addresses: Address.array() }),
 );
 
 /**
@@ -102,7 +102,7 @@ export const AddressConfig = z.preprocess(
  */
 export const AddressLotKind = z.preprocess(
   processResponseBody,
-  z.enum(["infra", "pool"])
+  z.enum(["infra", "pool"]),
 );
 
 /**
@@ -117,7 +117,7 @@ export const AddressLot = z.preprocess(
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -129,7 +129,7 @@ export const AddressLotBlock = z.preprocess(
     firstAddress: z.string().ip(),
     id: z.string().uuid(),
     lastAddress: z.string().ip(),
-  })
+  }),
 );
 
 /**
@@ -137,7 +137,7 @@ export const AddressLotBlock = z.preprocess(
  */
 export const AddressLotBlockCreate = z.preprocess(
   processResponseBody,
-  z.object({ firstAddress: z.string().ip(), lastAddress: z.string().ip() })
+  z.object({ firstAddress: z.string().ip(), lastAddress: z.string().ip() }),
 );
 
 /**
@@ -145,7 +145,7 @@ export const AddressLotBlockCreate = z.preprocess(
  */
 export const AddressLotBlockResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: AddressLotBlock.array(), nextPage: z.string().optional() })
+  z.object({ items: AddressLotBlock.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -158,7 +158,7 @@ export const AddressLotCreate = z.preprocess(
     description: z.string(),
     kind: AddressLotKind,
     name: Name,
-  })
+  }),
 );
 
 /**
@@ -166,7 +166,7 @@ export const AddressLotCreate = z.preprocess(
  */
 export const AddressLotCreateResponse = z.preprocess(
   processResponseBody,
-  z.object({ blocks: AddressLotBlock.array(), lot: AddressLot })
+  z.object({ blocks: AddressLotBlock.array(), lot: AddressLot }),
 );
 
 /**
@@ -174,7 +174,7 @@ export const AddressLotCreateResponse = z.preprocess(
  */
 export const AddressLotResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: AddressLot.array(), nextPage: z.string().optional() })
+  z.object({ items: AddressLot.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -182,12 +182,12 @@ export const AddressLotResultsPage = z.preprocess(
  */
 export const Baseboard = z.preprocess(
   processResponseBody,
-  z.object({ part: z.string(), revision: z.number(), serial: z.string() })
+  z.object({ part: z.string(), revision: z.number(), serial: z.string() }),
 );
 
 export const BfdMode = z.preprocess(
   processResponseBody,
-  z.enum(["single_hop", "multi_hop"])
+  z.enum(["single_hop", "multi_hop"]),
 );
 
 /**
@@ -195,7 +195,7 @@ export const BfdMode = z.preprocess(
  */
 export const BfdSessionDisable = z.preprocess(
   processResponseBody,
-  z.object({ remote: z.string().ip(), switch: Name })
+  z.object({ remote: z.string().ip(), switch: Name }),
 );
 
 /**
@@ -210,12 +210,12 @@ export const BfdSessionEnable = z.preprocess(
     remote: z.string().ip(),
     requiredRx: z.number().min(0),
     switch: Name,
-  })
+  }),
 );
 
 export const BfdState = z.preprocess(
   processResponseBody,
-  z.enum(["admin_down", "down", "init", "up"])
+  z.enum(["admin_down", "down", "init", "up"]),
 );
 
 export const BfdStatus = z.preprocess(
@@ -228,7 +228,7 @@ export const BfdStatus = z.preprocess(
     requiredRx: z.number().min(0),
     state: BfdState,
     switch: Name,
-  })
+  }),
 );
 
 /**
@@ -242,7 +242,7 @@ export const BgpAnnounceSet = z.preprocess(
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -250,7 +250,7 @@ export const BgpAnnounceSet = z.preprocess(
  */
 export const BgpAnnouncementCreate = z.preprocess(
   processResponseBody,
-  z.object({ addressLotBlock: NameOrId, network: IpNet })
+  z.object({ addressLotBlock: NameOrId, network: IpNet }),
 );
 
 /**
@@ -262,7 +262,7 @@ export const BgpAnnounceSetCreate = z.preprocess(
     announcement: BgpAnnouncementCreate.array(),
     description: z.string(),
     name: Name,
-  })
+  }),
 );
 
 /**
@@ -274,7 +274,7 @@ export const BgpAnnouncement = z.preprocess(
     addressLotBlockId: z.string().uuid(),
     announceSetId: z.string().uuid(),
     network: IpNet,
-  })
+  }),
 );
 
 /**
@@ -290,7 +290,7 @@ export const BgpConfig = z.preprocess(
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
     vrf: z.string().optional(),
-  })
+  }),
 );
 
 /**
@@ -304,7 +304,7 @@ export const BgpConfigCreate = z.preprocess(
     description: z.string(),
     name: Name,
     vrf: Name.optional(),
-  })
+  }),
 );
 
 /**
@@ -312,7 +312,7 @@ export const BgpConfigCreate = z.preprocess(
  */
 export const BgpConfigResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: BgpConfig.array(), nextPage: z.string().optional() })
+  z.object({ items: BgpConfig.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -320,7 +320,7 @@ export const BgpConfigResultsPage = z.preprocess(
  */
 export const SwitchLocation = z.preprocess(
   processResponseBody,
-  z.enum(["switch0", "switch1"])
+  z.enum(["switch0", "switch1"]),
 );
 
 /**
@@ -333,7 +333,7 @@ export const BgpImportedRouteIpv4 = z.preprocess(
     nexthop: z.string().ip({ version: "v4" }),
     prefix: Ipv4Net,
     switch: SwitchLocation,
-  })
+  }),
 );
 
 /**
@@ -351,12 +351,12 @@ export const BgpPeer = z.preprocess(
     idleHoldTime: z.number().min(0).max(4294967295),
     interfaceName: z.string(),
     keepalive: z.number().min(0).max(4294967295),
-  })
+  }),
 );
 
 export const BgpPeerConfig = z.preprocess(
   processResponseBody,
-  z.object({ peers: BgpPeer.array() })
+  z.object({ peers: BgpPeer.array() }),
 );
 
 /**
@@ -372,7 +372,7 @@ export const BgpPeerState = z.preprocess(
     "open_confirm",
     "session_setup",
     "established",
-  ])
+  ]),
 );
 
 /**
@@ -387,7 +387,7 @@ export const BgpPeerStatus = z.preprocess(
     state: BgpPeerState,
     stateDurationMillis: z.number().min(0),
     switch: SwitchLocation,
-  })
+  }),
 );
 
 /**
@@ -401,7 +401,7 @@ export const BinRangedouble = z.preprocess(
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
     z.object({ start: z.number(), type: z.enum(["range_from"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -415,7 +415,7 @@ export const BinRangefloat = z.preprocess(
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
     z.object({ start: z.number(), type: z.enum(["range_from"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -439,7 +439,7 @@ export const BinRangeint16 = z.preprocess(
       start: z.number().min(-32767).max(32767),
       type: z.enum(["range_from"]),
     }),
-  ])
+  ]),
 );
 
 /**
@@ -463,7 +463,7 @@ export const BinRangeint32 = z.preprocess(
       start: z.number().min(-2147483647).max(2147483647),
       type: z.enum(["range_from"]),
     }),
-  ])
+  ]),
 );
 
 /**
@@ -477,7 +477,7 @@ export const BinRangeint64 = z.preprocess(
     z.object({ end: z.number(), type: z.enum(["range_to"]) }),
     z.object({ end: z.number(), start: z.number(), type: z.enum(["range"]) }),
     z.object({ start: z.number(), type: z.enum(["range_from"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -501,7 +501,7 @@ export const BinRangeint8 = z.preprocess(
       start: z.number().min(-127).max(127),
       type: z.enum(["range_from"]),
     }),
-  ])
+  ]),
 );
 
 /**
@@ -522,7 +522,7 @@ export const BinRangeuint16 = z.preprocess(
       start: z.number().min(0).max(65535),
       type: z.enum(["range_from"]),
     }),
-  ])
+  ]),
 );
 
 /**
@@ -546,7 +546,7 @@ export const BinRangeuint32 = z.preprocess(
       start: z.number().min(0).max(4294967295),
       type: z.enum(["range_from"]),
     }),
-  ])
+  ]),
 );
 
 /**
@@ -564,7 +564,7 @@ export const BinRangeuint64 = z.preprocess(
       type: z.enum(["range"]),
     }),
     z.object({ start: z.number().min(0), type: z.enum(["range_from"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -585,7 +585,7 @@ export const BinRangeuint8 = z.preprocess(
       start: z.number().min(0).max(255),
       type: z.enum(["range_from"]),
     }),
-  ])
+  ]),
 );
 
 /**
@@ -593,7 +593,7 @@ export const BinRangeuint8 = z.preprocess(
  */
 export const Bindouble = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangedouble })
+  z.object({ count: z.number().min(0), range: BinRangedouble }),
 );
 
 /**
@@ -601,7 +601,7 @@ export const Bindouble = z.preprocess(
  */
 export const Binfloat = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangefloat })
+  z.object({ count: z.number().min(0), range: BinRangefloat }),
 );
 
 /**
@@ -609,7 +609,7 @@ export const Binfloat = z.preprocess(
  */
 export const Binint16 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeint16 })
+  z.object({ count: z.number().min(0), range: BinRangeint16 }),
 );
 
 /**
@@ -617,7 +617,7 @@ export const Binint16 = z.preprocess(
  */
 export const Binint32 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeint32 })
+  z.object({ count: z.number().min(0), range: BinRangeint32 }),
 );
 
 /**
@@ -625,7 +625,7 @@ export const Binint32 = z.preprocess(
  */
 export const Binint64 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeint64 })
+  z.object({ count: z.number().min(0), range: BinRangeint64 }),
 );
 
 /**
@@ -633,7 +633,7 @@ export const Binint64 = z.preprocess(
  */
 export const Binint8 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeint8 })
+  z.object({ count: z.number().min(0), range: BinRangeint8 }),
 );
 
 /**
@@ -641,7 +641,7 @@ export const Binint8 = z.preprocess(
  */
 export const Binuint16 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeuint16 })
+  z.object({ count: z.number().min(0), range: BinRangeuint16 }),
 );
 
 /**
@@ -649,7 +649,7 @@ export const Binuint16 = z.preprocess(
  */
 export const Binuint32 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeuint32 })
+  z.object({ count: z.number().min(0), range: BinRangeuint32 }),
 );
 
 /**
@@ -657,7 +657,7 @@ export const Binuint32 = z.preprocess(
  */
 export const Binuint64 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeuint64 })
+  z.object({ count: z.number().min(0), range: BinRangeuint64 }),
 );
 
 /**
@@ -665,7 +665,7 @@ export const Binuint64 = z.preprocess(
  */
 export const Binuint8 = z.preprocess(
   processResponseBody,
-  z.object({ count: z.number().min(0), range: BinRangeuint8 })
+  z.object({ count: z.number().min(0), range: BinRangeuint8 }),
 );
 
 /**
@@ -673,7 +673,7 @@ export const Binuint8 = z.preprocess(
  */
 export const BlockSize = z.preprocess(
   processResponseBody,
-  IntEnum([512, 2048, 4096] as const)
+  IntEnum([512, 2048, 4096] as const),
 );
 
 /**
@@ -686,7 +686,7 @@ export const ByteCount = z.preprocess(processResponseBody, z.number().min(0));
  */
 export const ServiceUsingCertificate = z.preprocess(
   processResponseBody,
-  z.enum(["external_api"])
+  z.enum(["external_api"]),
 );
 
 /**
@@ -701,7 +701,7 @@ export const Certificate = z.preprocess(
     service: ServiceUsingCertificate,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -715,7 +715,7 @@ export const CertificateCreate = z.preprocess(
     key: z.string(),
     name: Name,
     service: ServiceUsingCertificate,
-  })
+  }),
 );
 
 /**
@@ -723,7 +723,7 @@ export const CertificateCreate = z.preprocess(
  */
 export const CertificateResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Certificate.array(), nextPage: z.string().optional() })
+  z.object({ items: Certificate.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -731,7 +731,7 @@ export const CertificateResultsPage = z.preprocess(
  */
 export const Cumulativedouble = z.preprocess(
   processResponseBody,
-  z.object({ startTime: z.coerce.date(), value: z.number() })
+  z.object({ startTime: z.coerce.date(), value: z.number() }),
 );
 
 /**
@@ -739,7 +739,7 @@ export const Cumulativedouble = z.preprocess(
  */
 export const Cumulativefloat = z.preprocess(
   processResponseBody,
-  z.object({ startTime: z.coerce.date(), value: z.number() })
+  z.object({ startTime: z.coerce.date(), value: z.number() }),
 );
 
 /**
@@ -747,7 +747,7 @@ export const Cumulativefloat = z.preprocess(
  */
 export const Cumulativeint64 = z.preprocess(
   processResponseBody,
-  z.object({ startTime: z.coerce.date(), value: z.number() })
+  z.object({ startTime: z.coerce.date(), value: z.number() }),
 );
 
 /**
@@ -755,7 +755,7 @@ export const Cumulativeint64 = z.preprocess(
  */
 export const Cumulativeuint64 = z.preprocess(
   processResponseBody,
-  z.object({ startTime: z.coerce.date(), value: z.number().min(0) })
+  z.object({ startTime: z.coerce.date(), value: z.number().min(0) }),
 );
 
 /**
@@ -768,7 +768,7 @@ export const CurrentUser = z.preprocess(
     id: z.string().uuid(),
     siloId: z.string().uuid(),
     siloName: Name,
-  })
+  }),
 );
 
 /**
@@ -784,7 +784,7 @@ export const Histogramint8 = z.preprocess(
     bins: Binint8.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -800,7 +800,7 @@ export const Histogramuint8 = z.preprocess(
     bins: Binuint8.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -816,7 +816,7 @@ export const Histogramint16 = z.preprocess(
     bins: Binint16.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -832,7 +832,7 @@ export const Histogramuint16 = z.preprocess(
     bins: Binuint16.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -848,7 +848,7 @@ export const Histogramint32 = z.preprocess(
     bins: Binint32.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -864,7 +864,7 @@ export const Histogramuint32 = z.preprocess(
     bins: Binuint32.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -880,7 +880,7 @@ export const Histogramint64 = z.preprocess(
     bins: Binint64.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -896,7 +896,7 @@ export const Histogramuint64 = z.preprocess(
     bins: Binuint64.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -912,7 +912,7 @@ export const Histogramfloat = z.preprocess(
     bins: Binfloat.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -928,7 +928,7 @@ export const Histogramdouble = z.preprocess(
     bins: Bindouble.array(),
     nSamples: z.number().min(0),
     startTime: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -964,12 +964,12 @@ export const DatumType = z.preprocess(
     "histogram_u64",
     "histogram_f32",
     "histogram_f64",
-  ])
+  ]),
 );
 
 export const MissingDatum = z.preprocess(
   processResponseBody,
-  z.object({ datumType: DatumType, startTime: z.coerce.date().optional() })
+  z.object({ datumType: DatumType, startTime: z.coerce.date().optional() }),
 );
 
 /**
@@ -1018,12 +1018,12 @@ export const Datum = z.preprocess(
     z.object({ datum: Histogramfloat, type: z.enum(["histogram_f32"]) }),
     z.object({ datum: Histogramdouble, type: z.enum(["histogram_f64"]) }),
     z.object({ datum: MissingDatum, type: z.enum(["missing"]) }),
-  ])
+  ]),
 );
 
 export const DerEncodedKeyPair = z.preprocess(
   processResponseBody,
-  z.object({ privateKey: z.string(), publicCert: z.string() })
+  z.object({ privateKey: z.string(), publicCert: z.string() }),
 );
 
 export const DeviceAccessTokenRequest = z.preprocess(
@@ -1032,22 +1032,22 @@ export const DeviceAccessTokenRequest = z.preprocess(
     clientId: z.string().uuid(),
     deviceCode: z.string(),
     grantType: z.string(),
-  })
+  }),
 );
 
 export const DeviceAuthRequest = z.preprocess(
   processResponseBody,
-  z.object({ clientId: z.string().uuid() })
+  z.object({ clientId: z.string().uuid() }),
 );
 
 export const DeviceAuthVerify = z.preprocess(
   processResponseBody,
-  z.object({ userCode: z.string() })
+  z.object({ userCode: z.string() }),
 );
 
 export const Digest = z.preprocess(
   processResponseBody,
-  z.object({ type: z.enum(["sha256"]), value: z.string() })
+  z.object({ type: z.enum(["sha256"]), value: z.string() }),
 );
 
 /**
@@ -1068,7 +1068,7 @@ export const DiskState = z.preprocess(
     z.object({ instance: z.string().uuid(), state: z.enum(["detaching"]) }),
     z.object({ state: z.enum(["destroyed"]) }),
     z.object({ state: z.enum(["faulted"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1089,7 +1089,7 @@ export const Disk = z.preprocess(
     state: DiskState,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -1102,7 +1102,7 @@ export const DiskSource = z.preprocess(
     z.object({ snapshotId: z.string().uuid(), type: z.enum(["snapshot"]) }),
     z.object({ imageId: z.string().uuid(), type: z.enum(["image"]) }),
     z.object({ blockSize: BlockSize, type: z.enum(["importing_blocks"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1115,12 +1115,12 @@ export const DiskCreate = z.preprocess(
     diskSource: DiskSource,
     name: Name,
     size: ByteCount,
-  })
+  }),
 );
 
 export const DiskPath = z.preprocess(
   processResponseBody,
-  z.object({ disk: NameOrId })
+  z.object({ disk: NameOrId }),
 );
 
 /**
@@ -1128,7 +1128,7 @@ export const DiskPath = z.preprocess(
  */
 export const DiskResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Disk.array(), nextPage: z.string().optional() })
+  z.object({ items: Disk.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1136,7 +1136,7 @@ export const DiskResultsPage = z.preprocess(
  */
 export const EphemeralIpCreate = z.preprocess(
   processResponseBody,
-  z.object({ pool: NameOrId.optional() })
+  z.object({ pool: NameOrId.optional() }),
 );
 
 /**
@@ -1148,7 +1148,7 @@ export const Error = z.preprocess(
     errorCode: z.string().optional(),
     message: z.string(),
     requestId: z.string(),
-  })
+  }),
 );
 
 export const ExternalIp = z.preprocess(
@@ -1166,7 +1166,7 @@ export const ExternalIp = z.preprocess(
       timeCreated: z.coerce.date(),
       timeModified: z.coerce.date(),
     }),
-  ])
+  ]),
 );
 
 /**
@@ -1177,7 +1177,7 @@ export const ExternalIpCreate = z.preprocess(
   z.union([
     z.object({ pool: NameOrId.optional(), type: z.enum(["ephemeral"]) }),
     z.object({ floatingIp: NameOrId, type: z.enum(["floating"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1185,7 +1185,7 @@ export const ExternalIpCreate = z.preprocess(
  */
 export const ExternalIpResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: ExternalIp.array(), nextPage: z.string().optional() })
+  z.object({ items: ExternalIp.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1193,12 +1193,12 @@ export const ExternalIpResultsPage = z.preprocess(
  */
 export const FinalizeDisk = z.preprocess(
   processResponseBody,
-  z.object({ snapshotName: Name.optional() })
+  z.object({ snapshotName: Name.optional() }),
 );
 
 export const FleetRole = z.preprocess(
   processResponseBody,
-  z.enum(["admin", "collaborator", "viewer"])
+  z.enum(["admin", "collaborator", "viewer"]),
 );
 
 /**
@@ -1206,7 +1206,7 @@ export const FleetRole = z.preprocess(
  */
 export const IdentityType = z.preprocess(
   processResponseBody,
-  z.enum(["silo_user", "silo_group"])
+  z.enum(["silo_user", "silo_group"]),
 );
 
 /**
@@ -1220,7 +1220,7 @@ export const FleetRoleRoleAssignment = z.preprocess(
     identityId: z.string().uuid(),
     identityType: IdentityType,
     roleName: FleetRole,
-  })
+  }),
 );
 
 /**
@@ -1230,7 +1230,7 @@ export const FleetRoleRoleAssignment = z.preprocess(
  */
 export const FleetRolePolicy = z.preprocess(
   processResponseBody,
-  z.object({ roleAssignments: FleetRoleRoleAssignment.array() })
+  z.object({ roleAssignments: FleetRoleRoleAssignment.array() }),
 );
 
 /**
@@ -1247,7 +1247,7 @@ export const FloatingIp = z.preprocess(
     projectId: z.string().uuid(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -1255,7 +1255,7 @@ export const FloatingIp = z.preprocess(
  */
 export const FloatingIpParentKind = z.preprocess(
   processResponseBody,
-  z.enum(["instance"])
+  z.enum(["instance"]),
 );
 
 /**
@@ -1263,7 +1263,7 @@ export const FloatingIpParentKind = z.preprocess(
  */
 export const FloatingIpAttach = z.preprocess(
   processResponseBody,
-  z.object({ kind: FloatingIpParentKind, parent: NameOrId })
+  z.object({ kind: FloatingIpParentKind, parent: NameOrId }),
 );
 
 /**
@@ -1276,7 +1276,7 @@ export const FloatingIpCreate = z.preprocess(
     ip: z.string().ip().optional(),
     name: Name,
     pool: NameOrId.optional(),
-  })
+  }),
 );
 
 /**
@@ -1284,7 +1284,7 @@ export const FloatingIpCreate = z.preprocess(
  */
 export const FloatingIpResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: FloatingIp.array(), nextPage: z.string().optional() })
+  z.object({ items: FloatingIp.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1292,7 +1292,7 @@ export const FloatingIpResultsPage = z.preprocess(
  */
 export const FloatingIpUpdate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string().optional(), name: Name.optional() })
+  z.object({ description: z.string().optional(), name: Name.optional() }),
 );
 
 /**
@@ -1304,7 +1304,7 @@ export const Group = z.preprocess(
     displayName: z.string(),
     id: z.string().uuid(),
     siloId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -1312,7 +1312,7 @@ export const Group = z.preprocess(
  */
 export const GroupResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Group.array(), nextPage: z.string().optional() })
+  z.object({ items: Group.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1327,13 +1327,13 @@ export const Hostname = z.preprocess(
     .min(1)
     .max(253)
     .regex(
-      /^([a-zA-Z0-9]+[a-zA-Z0-9\-]*(?<!-))(\.[a-zA-Z0-9]+[a-zA-Z0-9\-]*(?<!-))*$/
-    )
+      /^([a-zA-Z0-9]+[a-zA-Z0-9\-]*(?<!-))(\.[a-zA-Z0-9]+[a-zA-Z0-9\-]*(?<!-))*$/,
+    ),
 );
 
 export const IdentityProviderType = z.preprocess(
   processResponseBody,
-  z.enum(["saml"])
+  z.enum(["saml"]),
 );
 
 /**
@@ -1348,7 +1348,7 @@ export const IdentityProvider = z.preprocess(
     providerType: IdentityProviderType,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -1356,7 +1356,10 @@ export const IdentityProvider = z.preprocess(
  */
 export const IdentityProviderResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: IdentityProvider.array(), nextPage: z.string().optional() })
+  z.object({
+    items: IdentityProvider.array(),
+    nextPage: z.string().optional(),
+  }),
 );
 
 export const IdpMetadataSource = z.preprocess(
@@ -1364,7 +1367,7 @@ export const IdpMetadataSource = z.preprocess(
   z.union([
     z.object({ type: z.enum(["url"]), url: z.string() }),
     z.object({ data: z.string(), type: z.enum(["base64_encoded_xml"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1386,7 +1389,7 @@ export const Image = z.preprocess(
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
     version: z.string(),
-  })
+  }),
 );
 
 /**
@@ -1397,7 +1400,7 @@ export const ImageSource = z.preprocess(
   z.union([
     z.object({ id: z.string().uuid(), type: z.enum(["snapshot"]) }),
     z.object({ type: z.enum(["you_can_boot_anything_as_long_as_its_alpine"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1411,7 +1414,7 @@ export const ImageCreate = z.preprocess(
     os: z.string(),
     source: ImageSource,
     version: z.string(),
-  })
+  }),
 );
 
 /**
@@ -1419,7 +1422,7 @@ export const ImageCreate = z.preprocess(
  */
 export const ImageResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Image.array(), nextPage: z.string().optional() })
+  z.object({ items: Image.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1427,7 +1430,7 @@ export const ImageResultsPage = z.preprocess(
  */
 export const ImportBlocksBulkWrite = z.preprocess(
   processResponseBody,
-  z.object({ base64EncodedData: z.string(), offset: z.number().min(0) })
+  z.object({ base64EncodedData: z.string(), offset: z.number().min(0) }),
 );
 
 /**
@@ -1435,7 +1438,7 @@ export const ImportBlocksBulkWrite = z.preprocess(
  */
 export const InstanceCpuCount = z.preprocess(
   processResponseBody,
-  z.number().min(0).max(65535)
+  z.number().min(0).max(65535),
 );
 
 /**
@@ -1456,7 +1459,7 @@ export const InstanceState = z.preprocess(
     "repairing",
     "failed",
     "destroyed",
-  ])
+  ]),
 );
 
 /**
@@ -1476,7 +1479,7 @@ export const Instance = z.preprocess(
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
     timeRunStateUpdated: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -1493,7 +1496,7 @@ export const InstanceDiskAttachment = z.preprocess(
       type: z.enum(["create"]),
     }),
     z.object({ name: Name, type: z.enum(["attach"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1507,7 +1510,7 @@ export const InstanceNetworkInterfaceCreate = z.preprocess(
     name: Name,
     subnetName: Name,
     vpcName: Name,
-  })
+  }),
 );
 
 /**
@@ -1522,7 +1525,7 @@ export const InstanceNetworkInterfaceAttachment = z.preprocess(
     }),
     z.object({ type: z.enum(["default"]) }),
     z.object({ type: z.enum(["none"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1544,7 +1547,7 @@ export const InstanceCreate = z.preprocess(
     sshPublicKeys: NameOrId.array().optional(),
     start: SafeBoolean.default(true).optional(),
     userData: z.string().default("").optional(),
-  })
+  }),
 );
 
 /**
@@ -1552,7 +1555,7 @@ export const InstanceCreate = z.preprocess(
  */
 export const InstanceMigrate = z.preprocess(
   processResponseBody,
-  z.object({ dstSledId: z.string().uuid() })
+  z.object({ dstSledId: z.string().uuid() }),
 );
 
 /**
@@ -1566,7 +1569,7 @@ export const MacAddr = z.preprocess(
     .string()
     .min(5)
     .max(17)
-    .regex(/^([0-9a-fA-F]{0,2}:){5}[0-9a-fA-F]{0,2}$/)
+    .regex(/^([0-9a-fA-F]{0,2}:){5}[0-9a-fA-F]{0,2}$/),
 );
 
 /**
@@ -1586,7 +1589,7 @@ export const InstanceNetworkInterface = z.preprocess(
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
     vpcId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -1597,7 +1600,7 @@ export const InstanceNetworkInterfaceResultsPage = z.preprocess(
   z.object({
     items: InstanceNetworkInterface.array(),
     nextPage: z.string().optional(),
-  })
+  }),
 );
 
 /**
@@ -1611,7 +1614,7 @@ export const InstanceNetworkInterfaceUpdate = z.preprocess(
     description: z.string().optional(),
     name: Name.optional(),
     primary: SafeBoolean.default(false).optional(),
-  })
+  }),
 );
 
 /**
@@ -1619,7 +1622,7 @@ export const InstanceNetworkInterfaceUpdate = z.preprocess(
  */
 export const InstanceResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Instance.array(), nextPage: z.string().optional() })
+  z.object({ items: Instance.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1630,12 +1633,12 @@ export const InstanceSerialConsoleData = z.preprocess(
   z.object({
     data: z.number().min(0).max(255).array(),
     lastByteOffset: z.number().min(0),
-  })
+  }),
 );
 
 export const IpKind = z.preprocess(
   processResponseBody,
-  z.enum(["snat", "floating", "ephemeral"])
+  z.enum(["snat", "floating", "ephemeral"]),
 );
 
 /**
@@ -1649,7 +1652,7 @@ export const IpPool = z.preprocess(
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -1657,12 +1660,12 @@ export const IpPool = z.preprocess(
  */
 export const IpPoolCreate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string(), name: Name })
+  z.object({ description: z.string(), name: Name }),
 );
 
 export const IpPoolLinkSilo = z.preprocess(
   processResponseBody,
-  z.object({ isDefault: SafeBoolean, silo: NameOrId })
+  z.object({ isDefault: SafeBoolean, silo: NameOrId }),
 );
 
 /**
@@ -1675,7 +1678,7 @@ export const Ipv4Range = z.preprocess(
   z.object({
     first: z.string().ip({ version: "v4" }),
     last: z.string().ip({ version: "v4" }),
-  })
+  }),
 );
 
 /**
@@ -1688,12 +1691,12 @@ export const Ipv6Range = z.preprocess(
   z.object({
     first: z.string().ip({ version: "v6" }),
     last: z.string().ip({ version: "v6" }),
-  })
+  }),
 );
 
 export const IpRange = z.preprocess(
   processResponseBody,
-  z.union([Ipv4Range, Ipv6Range])
+  z.union([Ipv4Range, Ipv6Range]),
 );
 
 export const IpPoolRange = z.preprocess(
@@ -1703,7 +1706,7 @@ export const IpPoolRange = z.preprocess(
     ipPoolId: z.string().uuid(),
     range: IpRange,
     timeCreated: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -1711,7 +1714,7 @@ export const IpPoolRange = z.preprocess(
  */
 export const IpPoolRangeResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: IpPoolRange.array(), nextPage: z.string().optional() })
+  z.object({ items: IpPoolRange.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1719,7 +1722,7 @@ export const IpPoolRangeResultsPage = z.preprocess(
  */
 export const IpPoolResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: IpPool.array(), nextPage: z.string().optional() })
+  z.object({ items: IpPool.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1731,7 +1734,7 @@ export const IpPoolSiloLink = z.preprocess(
     ipPoolId: z.string().uuid(),
     isDefault: SafeBoolean,
     siloId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -1739,12 +1742,12 @@ export const IpPoolSiloLink = z.preprocess(
  */
 export const IpPoolSiloLinkResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: IpPoolSiloLink.array(), nextPage: z.string().optional() })
+  z.object({ items: IpPoolSiloLink.array(), nextPage: z.string().optional() }),
 );
 
 export const IpPoolSiloUpdate = z.preprocess(
   processResponseBody,
-  z.object({ isDefault: SafeBoolean })
+  z.object({ isDefault: SafeBoolean }),
 );
 
 /**
@@ -1752,7 +1755,7 @@ export const IpPoolSiloUpdate = z.preprocess(
  */
 export const IpPoolUpdate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string().optional(), name: Name.optional() })
+  z.object({ description: z.string().optional(), name: Name.optional() }),
 );
 
 /**
@@ -1766,7 +1769,7 @@ export const L4PortRange = z.preprocess(
     .string()
     .min(1)
     .max(11)
-    .regex(/^[0-9]{1,5}(-[0-9]{1,5})?$/)
+    .regex(/^[0-9]{1,5}(-[0-9]{1,5})?$/),
 );
 
 /**
@@ -1774,7 +1777,7 @@ export const L4PortRange = z.preprocess(
  */
 export const LinkFec = z.preprocess(
   processResponseBody,
-  z.enum(["firecode", "none", "rs"])
+  z.enum(["firecode", "none", "rs"]),
 );
 
 /**
@@ -1782,7 +1785,7 @@ export const LinkFec = z.preprocess(
  */
 export const LldpServiceConfigCreate = z.preprocess(
   processResponseBody,
-  z.object({ enabled: SafeBoolean, lldpConfig: NameOrId.optional() })
+  z.object({ enabled: SafeBoolean, lldpConfig: NameOrId.optional() }),
 );
 
 /**
@@ -1800,7 +1803,7 @@ export const LinkSpeed = z.preprocess(
     "speed100_g",
     "speed200_g",
     "speed400_g",
-  ])
+  ]),
 );
 
 /**
@@ -1814,7 +1817,7 @@ export const LinkConfigCreate = z.preprocess(
     lldp: LldpServiceConfigCreate,
     mtu: z.number().min(0).max(65535),
     speed: LinkSpeed,
-  })
+  }),
 );
 
 /**
@@ -1826,7 +1829,7 @@ export const LldpServiceConfig = z.preprocess(
     enabled: SafeBoolean,
     id: z.string().uuid(),
     lldpConfigId: z.string().uuid().optional(),
-  })
+  }),
 );
 
 /**
@@ -1840,7 +1843,7 @@ export const LoopbackAddress = z.preprocess(
     id: z.string().uuid(),
     rackId: z.string().uuid(),
     switchLocation: z.string(),
-  })
+  }),
 );
 
 /**
@@ -1855,7 +1858,7 @@ export const LoopbackAddressCreate = z.preprocess(
     mask: z.number().min(0).max(255),
     rackId: z.string().uuid(),
     switchLocation: Name,
-  })
+  }),
 );
 
 /**
@@ -1863,7 +1866,7 @@ export const LoopbackAddressCreate = z.preprocess(
  */
 export const LoopbackAddressResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: LoopbackAddress.array(), nextPage: z.string().optional() })
+  z.object({ items: LoopbackAddress.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1871,7 +1874,7 @@ export const LoopbackAddressResultsPage = z.preprocess(
  */
 export const Measurement = z.preprocess(
   processResponseBody,
-  z.object({ datum: Datum, timestamp: z.coerce.date() })
+  z.object({ datum: Datum, timestamp: z.coerce.date() }),
 );
 
 /**
@@ -1879,7 +1882,7 @@ export const Measurement = z.preprocess(
  */
 export const MeasurementResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Measurement.array(), nextPage: z.string().optional() })
+  z.object({ items: Measurement.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -1891,7 +1894,7 @@ export const NetworkInterfaceKind = z.preprocess(
     z.object({ id: z.string().uuid(), type: z.enum(["instance"]) }),
     z.object({ id: z.string().uuid(), type: z.enum(["service"]) }),
     z.object({ id: z.string().uuid(), type: z.enum(["probe"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -1899,7 +1902,7 @@ export const NetworkInterfaceKind = z.preprocess(
  */
 export const Vni = z.preprocess(
   processResponseBody,
-  z.number().min(0).max(4294967295)
+  z.number().min(0).max(4294967295),
 );
 
 /**
@@ -1917,7 +1920,7 @@ export const NetworkInterface = z.preprocess(
     slot: z.number().min(0).max(255),
     subnet: IpNet,
     vni: Vni,
-  })
+  }),
 );
 
 /**
@@ -1932,7 +1935,7 @@ export const Password = z.preprocess(processResponseBody, z.string().max(512));
  */
 export const PhysicalDiskKind = z.preprocess(
   processResponseBody,
-  z.enum(["m2", "u2"])
+  z.enum(["m2", "u2"]),
 );
 
 /**
@@ -1951,7 +1954,7 @@ export const PhysicalDisk = z.preprocess(
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
     vendor: z.string(),
-  })
+  }),
 );
 
 /**
@@ -1959,14 +1962,14 @@ export const PhysicalDisk = z.preprocess(
  */
 export const PhysicalDiskResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: PhysicalDisk.array(), nextPage: z.string().optional() })
+  z.object({ items: PhysicalDisk.array(), nextPage: z.string().optional() }),
 );
 
 export const PingStatus = z.preprocess(processResponseBody, z.enum(["ok"]));
 
 export const Ping = z.preprocess(
   processResponseBody,
-  z.object({ status: PingStatus })
+  z.object({ status: PingStatus }),
 );
 
 /**
@@ -1981,7 +1984,7 @@ export const Probe = z.preprocess(
     sled: z.string().uuid(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -1994,7 +1997,7 @@ export const ProbeCreate = z.preprocess(
     ipPool: NameOrId.optional(),
     name: Name,
     sled: z.string().uuid(),
-  })
+  }),
 );
 
 export const ProbeExternalIp = z.preprocess(
@@ -2004,7 +2007,7 @@ export const ProbeExternalIp = z.preprocess(
     ip: z.string().ip(),
     kind: IpKind,
     lastPort: z.number().min(0).max(65535),
-  })
+  }),
 );
 
 export const ProbeInfo = z.preprocess(
@@ -2015,7 +2018,7 @@ export const ProbeInfo = z.preprocess(
     interface: NetworkInterface,
     name: Name,
     sled: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -2023,7 +2026,7 @@ export const ProbeInfo = z.preprocess(
  */
 export const ProbeInfoResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: ProbeInfo.array(), nextPage: z.string().optional() })
+  z.object({ items: ProbeInfo.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2037,7 +2040,7 @@ export const Project = z.preprocess(
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2045,7 +2048,7 @@ export const Project = z.preprocess(
  */
 export const ProjectCreate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string(), name: Name })
+  z.object({ description: z.string(), name: Name }),
 );
 
 /**
@@ -2053,12 +2056,12 @@ export const ProjectCreate = z.preprocess(
  */
 export const ProjectResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Project.array(), nextPage: z.string().optional() })
+  z.object({ items: Project.array(), nextPage: z.string().optional() }),
 );
 
 export const ProjectRole = z.preprocess(
   processResponseBody,
-  z.enum(["admin", "collaborator", "viewer"])
+  z.enum(["admin", "collaborator", "viewer"]),
 );
 
 /**
@@ -2072,7 +2075,7 @@ export const ProjectRoleRoleAssignment = z.preprocess(
     identityId: z.string().uuid(),
     identityType: IdentityType,
     roleName: ProjectRole,
-  })
+  }),
 );
 
 /**
@@ -2082,7 +2085,7 @@ export const ProjectRoleRoleAssignment = z.preprocess(
  */
 export const ProjectRolePolicy = z.preprocess(
   processResponseBody,
-  z.object({ roleAssignments: ProjectRoleRoleAssignment.array() })
+  z.object({ roleAssignments: ProjectRoleRoleAssignment.array() }),
 );
 
 /**
@@ -2090,7 +2093,7 @@ export const ProjectRolePolicy = z.preprocess(
  */
 export const ProjectUpdate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string().optional(), name: Name.optional() })
+  z.object({ description: z.string().optional(), name: Name.optional() }),
 );
 
 /**
@@ -2102,7 +2105,7 @@ export const Rack = z.preprocess(
     id: z.string().uuid(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2110,7 +2113,7 @@ export const Rack = z.preprocess(
  */
 export const RackResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Rack.array(), nextPage: z.string().optional() })
+  z.object({ items: Rack.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2123,7 +2126,7 @@ export const RoleName = z.preprocess(
   z
     .string()
     .max(63)
-    .regex(/[a-z-]+\.[a-z-]+/)
+    .regex(/[a-z-]+\.[a-z-]+/),
 );
 
 /**
@@ -2131,7 +2134,7 @@ export const RoleName = z.preprocess(
  */
 export const Role = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string(), name: RoleName })
+  z.object({ description: z.string(), name: RoleName }),
 );
 
 /**
@@ -2139,7 +2142,7 @@ export const Role = z.preprocess(
  */
 export const RoleResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Role.array(), nextPage: z.string().optional() })
+  z.object({ items: Role.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2151,7 +2154,7 @@ export const Route = z.preprocess(
     dst: IpNet,
     gw: z.string().ip(),
     vid: z.number().min(0).max(65535).optional(),
-  })
+  }),
 );
 
 /**
@@ -2159,7 +2162,7 @@ export const Route = z.preprocess(
  */
 export const RouteConfig = z.preprocess(
   processResponseBody,
-  z.object({ routes: Route.array() })
+  z.object({ routes: Route.array() }),
 );
 
 /**
@@ -2180,7 +2183,7 @@ export const SamlIdentityProvider = z.preprocess(
     technicalContactEmail: z.string(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2199,7 +2202,7 @@ export const SamlIdentityProviderCreate = z.preprocess(
     sloUrl: z.string(),
     spClientId: z.string(),
     technicalContactEmail: z.string(),
-  })
+  }),
 );
 
 /**
@@ -2207,7 +2210,7 @@ export const SamlIdentityProviderCreate = z.preprocess(
  */
 export const SiloIdentityMode = z.preprocess(
   processResponseBody,
-  z.enum(["saml_jit", "local_only"])
+  z.enum(["saml_jit", "local_only"]),
 );
 
 /**
@@ -2224,12 +2227,12 @@ export const Silo = z.preprocess(
     identityMode: SiloIdentityMode,
     mappedFleetRoles: z.record(
       z.string().min(1),
-      FleetRole.array().refine(...uniqueItems)
+      FleetRole.array().refine(...uniqueItems),
     ),
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2237,7 +2240,7 @@ export const Silo = z.preprocess(
  */
 export const SiloQuotasCreate = z.preprocess(
   processResponseBody,
-  z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount })
+  z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount }),
 );
 
 /**
@@ -2256,7 +2259,7 @@ export const SiloCreate = z.preprocess(
     name: Name,
     quotas: SiloQuotasCreate,
     tlsCertificates: CertificateCreate.array(),
-  })
+  }),
 );
 
 /**
@@ -2271,7 +2274,7 @@ export const SiloIpPool = z.preprocess(
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2279,7 +2282,7 @@ export const SiloIpPool = z.preprocess(
  */
 export const SiloIpPoolResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: SiloIpPool.array(), nextPage: z.string().optional() })
+  z.object({ items: SiloIpPool.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2292,7 +2295,7 @@ export const SiloQuotas = z.preprocess(
     memory: ByteCount,
     siloId: z.string().uuid(),
     storage: ByteCount,
-  })
+  }),
 );
 
 /**
@@ -2300,7 +2303,7 @@ export const SiloQuotas = z.preprocess(
  */
 export const SiloQuotasResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: SiloQuotas.array(), nextPage: z.string().optional() })
+  z.object({ items: SiloQuotas.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2312,7 +2315,7 @@ export const SiloQuotasUpdate = z.preprocess(
     cpus: z.number().optional(),
     memory: ByteCount.optional(),
     storage: ByteCount.optional(),
-  })
+  }),
 );
 
 /**
@@ -2320,12 +2323,12 @@ export const SiloQuotasUpdate = z.preprocess(
  */
 export const SiloResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Silo.array(), nextPage: z.string().optional() })
+  z.object({ items: Silo.array(), nextPage: z.string().optional() }),
 );
 
 export const SiloRole = z.preprocess(
   processResponseBody,
-  z.enum(["admin", "collaborator", "viewer"])
+  z.enum(["admin", "collaborator", "viewer"]),
 );
 
 /**
@@ -2339,7 +2342,7 @@ export const SiloRoleRoleAssignment = z.preprocess(
     identityId: z.string().uuid(),
     identityType: IdentityType,
     roleName: SiloRole,
-  })
+  }),
 );
 
 /**
@@ -2349,7 +2352,7 @@ export const SiloRoleRoleAssignment = z.preprocess(
  */
 export const SiloRolePolicy = z.preprocess(
   processResponseBody,
-  z.object({ roleAssignments: SiloRoleRoleAssignment.array() })
+  z.object({ roleAssignments: SiloRoleRoleAssignment.array() }),
 );
 
 /**
@@ -2357,7 +2360,7 @@ export const SiloRolePolicy = z.preprocess(
  */
 export const VirtualResourceCounts = z.preprocess(
   processResponseBody,
-  z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount })
+  z.object({ cpus: z.number(), memory: ByteCount, storage: ByteCount }),
 );
 
 /**
@@ -2370,7 +2373,7 @@ export const SiloUtilization = z.preprocess(
     provisioned: VirtualResourceCounts,
     siloId: z.string().uuid(),
     siloName: Name,
-  })
+  }),
 );
 
 /**
@@ -2378,7 +2381,7 @@ export const SiloUtilization = z.preprocess(
  */
 export const SiloUtilizationResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: SiloUtilization.array(), nextPage: z.string().optional() })
+  z.object({ items: SiloUtilization.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2388,7 +2391,7 @@ export const SiloUtilizationResultsPage = z.preprocess(
  */
 export const SledProvisionPolicy = z.preprocess(
   processResponseBody,
-  z.enum(["provisionable", "non_provisionable"])
+  z.enum(["provisionable", "non_provisionable"]),
 );
 
 /**
@@ -2402,7 +2405,7 @@ export const SledPolicy = z.preprocess(
       provisionPolicy: SledProvisionPolicy,
     }),
     z.object({ kind: z.enum(["expunged"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -2410,7 +2413,7 @@ export const SledPolicy = z.preprocess(
  */
 export const SledState = z.preprocess(
   processResponseBody,
-  z.enum(["active", "decommissioned"])
+  z.enum(["active", "decommissioned"]),
 );
 
 /**
@@ -2428,7 +2431,7 @@ export const Sled = z.preprocess(
     timeModified: z.coerce.date(),
     usableHardwareThreads: z.number().min(0).max(4294967295),
     usablePhysicalRam: ByteCount,
-  })
+  }),
 );
 
 /**
@@ -2448,7 +2451,7 @@ export const SledInstance = z.preprocess(
     state: InstanceState,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2456,7 +2459,7 @@ export const SledInstance = z.preprocess(
  */
 export const SledInstanceResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: SledInstance.array(), nextPage: z.string().optional() })
+  z.object({ items: SledInstance.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2464,7 +2467,7 @@ export const SledInstanceResultsPage = z.preprocess(
  */
 export const SledProvisionPolicyParams = z.preprocess(
   processResponseBody,
-  z.object({ state: SledProvisionPolicy })
+  z.object({ state: SledProvisionPolicy }),
 );
 
 /**
@@ -2472,7 +2475,7 @@ export const SledProvisionPolicyParams = z.preprocess(
  */
 export const SledProvisionPolicyResponse = z.preprocess(
   processResponseBody,
-  z.object({ newState: SledProvisionPolicy, oldState: SledProvisionPolicy })
+  z.object({ newState: SledProvisionPolicy, oldState: SledProvisionPolicy }),
 );
 
 /**
@@ -2480,12 +2483,12 @@ export const SledProvisionPolicyResponse = z.preprocess(
  */
 export const SledResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Sled.array(), nextPage: z.string().optional() })
+  z.object({ items: Sled.array(), nextPage: z.string().optional() }),
 );
 
 export const SnapshotState = z.preprocess(
   processResponseBody,
-  z.enum(["creating", "ready", "faulted", "destroyed"])
+  z.enum(["creating", "ready", "faulted", "destroyed"]),
 );
 
 /**
@@ -2503,7 +2506,7 @@ export const Snapshot = z.preprocess(
     state: SnapshotState,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2511,7 +2514,7 @@ export const Snapshot = z.preprocess(
  */
 export const SnapshotCreate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string(), disk: NameOrId, name: Name })
+  z.object({ description: z.string(), disk: NameOrId, name: Name }),
 );
 
 /**
@@ -2519,7 +2522,7 @@ export const SnapshotCreate = z.preprocess(
  */
 export const SnapshotResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Snapshot.array(), nextPage: z.string().optional() })
+  z.object({ items: Snapshot.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2535,7 +2538,7 @@ export const SshKey = z.preprocess(
     siloUserId: z.string().uuid(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2543,7 +2546,7 @@ export const SshKey = z.preprocess(
  */
 export const SshKeyCreate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string(), name: Name, publicKey: z.string() })
+  z.object({ description: z.string(), name: Name, publicKey: z.string() }),
 );
 
 /**
@@ -2551,7 +2554,7 @@ export const SshKeyCreate = z.preprocess(
  */
 export const SshKeyResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: SshKey.array(), nextPage: z.string().optional() })
+  z.object({ items: SshKey.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2565,7 +2568,7 @@ export const Switch = z.preprocess(
     rackId: z.string().uuid(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2573,7 +2576,7 @@ export const Switch = z.preprocess(
  */
 export const SwitchInterfaceKind2 = z.preprocess(
   processResponseBody,
-  z.enum(["primary", "vlan", "loopback"])
+  z.enum(["primary", "vlan", "loopback"]),
 );
 
 /**
@@ -2587,7 +2590,7 @@ export const SwitchInterfaceConfig = z.preprocess(
     kind: SwitchInterfaceKind2,
     portSettingsId: z.string().uuid(),
     v6Enabled: SafeBoolean,
-  })
+  }),
 );
 
 /**
@@ -2599,7 +2602,7 @@ export const SwitchInterfaceKind = z.preprocess(
     z.object({ type: z.enum(["primary"]) }),
     z.object({ type: z.enum(["vlan"]), vid: z.number().min(0).max(65535) }),
     z.object({ type: z.enum(["loopback"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -2607,7 +2610,7 @@ export const SwitchInterfaceKind = z.preprocess(
  */
 export const SwitchInterfaceConfigCreate = z.preprocess(
   processResponseBody,
-  z.object({ kind: SwitchInterfaceKind, v6Enabled: SafeBoolean })
+  z.object({ kind: SwitchInterfaceKind, v6Enabled: SafeBoolean }),
 );
 
 /**
@@ -2621,7 +2624,7 @@ export const SwitchPort = z.preprocess(
     portSettingsId: z.string().uuid().optional(),
     rackId: z.string().uuid(),
     switchLocation: z.string(),
-  })
+  }),
 );
 
 /**
@@ -2634,7 +2637,7 @@ export const SwitchPortAddressConfig = z.preprocess(
     addressLotBlockId: z.string().uuid(),
     interfaceName: z.string(),
     portSettingsId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -2642,7 +2645,7 @@ export const SwitchPortAddressConfig = z.preprocess(
  */
 export const SwitchPortApplySettings = z.preprocess(
   processResponseBody,
-  z.object({ portSettings: NameOrId })
+  z.object({ portSettings: NameOrId }),
 );
 
 /**
@@ -2655,7 +2658,7 @@ export const SwitchPortBgpPeerConfig = z.preprocess(
     bgpConfigId: z.string().uuid(),
     interfaceName: z.string(),
     portSettingsId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -2663,7 +2666,7 @@ export const SwitchPortBgpPeerConfig = z.preprocess(
  */
 export const SwitchPortGeometry2 = z.preprocess(
   processResponseBody,
-  z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
+  z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"]),
 );
 
 /**
@@ -2671,7 +2674,10 @@ export const SwitchPortGeometry2 = z.preprocess(
  */
 export const SwitchPortConfig = z.preprocess(
   processResponseBody,
-  z.object({ geometry: SwitchPortGeometry2, portSettingsId: z.string().uuid() })
+  z.object({
+    geometry: SwitchPortGeometry2,
+    portSettingsId: z.string().uuid(),
+  }),
 );
 
 /**
@@ -2679,7 +2685,7 @@ export const SwitchPortConfig = z.preprocess(
  */
 export const SwitchPortGeometry = z.preprocess(
   processResponseBody,
-  z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
+  z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"]),
 );
 
 /**
@@ -2687,7 +2693,7 @@ export const SwitchPortGeometry = z.preprocess(
  */
 export const SwitchPortConfigCreate = z.preprocess(
   processResponseBody,
-  z.object({ geometry: SwitchPortGeometry })
+  z.object({ geometry: SwitchPortGeometry }),
 );
 
 /**
@@ -2700,7 +2706,7 @@ export const SwitchPortLinkConfig = z.preprocess(
     lldpServiceConfigId: z.string().uuid(),
     mtu: z.number().min(0).max(65535),
     portSettingsId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -2708,7 +2714,7 @@ export const SwitchPortLinkConfig = z.preprocess(
  */
 export const SwitchPortResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: SwitchPort.array(), nextPage: z.string().optional() })
+  z.object({ items: SwitchPort.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2722,7 +2728,7 @@ export const SwitchPortRouteConfig = z.preprocess(
     interfaceName: z.string(),
     portSettingsId: z.string().uuid(),
     vlanId: z.number().min(0).max(65535).optional(),
-  })
+  }),
 );
 
 /**
@@ -2736,7 +2742,7 @@ export const SwitchPortSettings = z.preprocess(
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2754,7 +2760,7 @@ export const SwitchPortSettingsCreate = z.preprocess(
     name: Name,
     portConfig: SwitchPortConfigCreate,
     routes: z.record(z.string().min(1), RouteConfig),
-  })
+  }),
 );
 
 /**
@@ -2765,7 +2771,7 @@ export const SwitchPortSettingsGroups = z.preprocess(
   z.object({
     portSettingsGroupId: z.string().uuid(),
     portSettingsId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -2776,7 +2782,7 @@ export const SwitchPortSettingsResultsPage = z.preprocess(
   z.object({
     items: SwitchPortSettings.array(),
     nextPage: z.string().optional(),
-  })
+  }),
 );
 
 /**
@@ -2787,7 +2793,7 @@ export const SwitchVlanInterfaceConfig = z.preprocess(
   z.object({
     interfaceConfigId: z.string().uuid(),
     vlanId: z.number().min(0).max(65535),
-  })
+  }),
 );
 
 /**
@@ -2806,7 +2812,7 @@ export const SwitchPortSettingsView = z.preprocess(
     routes: SwitchPortRouteConfig.array(),
     settings: SwitchPortSettings,
     vlanInterfaces: SwitchVlanInterfaceConfig.array(),
-  })
+  }),
 );
 
 /**
@@ -2814,7 +2820,7 @@ export const SwitchPortSettingsView = z.preprocess(
  */
 export const SwitchResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Switch.array(), nextPage: z.string().optional() })
+  z.object({ items: Switch.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2826,7 +2832,7 @@ export const UninitializedSled = z.preprocess(
     baseboard: Baseboard,
     cubby: z.number().min(0).max(65535),
     rackId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -2834,7 +2840,7 @@ export const UninitializedSled = z.preprocess(
  */
 export const UninitializedSledId = z.preprocess(
   processResponseBody,
-  z.object({ part: z.string(), serial: z.string() })
+  z.object({ part: z.string(), serial: z.string() }),
 );
 
 /**
@@ -2845,7 +2851,7 @@ export const UninitializedSledResultsPage = z.preprocess(
   z.object({
     items: UninitializedSled.array(),
     nextPage: z.string().optional(),
-  })
+  }),
 );
 
 /**
@@ -2857,7 +2863,7 @@ export const User = z.preprocess(
     displayName: z.string(),
     id: z.string().uuid(),
     siloId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -2873,7 +2879,7 @@ export const UserBuiltin = z.preprocess(
     name: Name,
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2881,7 +2887,7 @@ export const UserBuiltin = z.preprocess(
  */
 export const UserBuiltinResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: UserBuiltin.array(), nextPage: z.string().optional() })
+  z.object({ items: UserBuiltin.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2896,8 +2902,8 @@ export const UserId = z.preprocess(
     .min(1)
     .max(63)
     .regex(
-      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z]([a-zA-Z0-9-]*[a-zA-Z0-9]+)?$/
-    )
+      /^(?![0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$)^[a-z]([a-zA-Z0-9-]*[a-zA-Z0-9]+)?$/,
+    ),
 );
 
 /**
@@ -2908,7 +2914,7 @@ export const UserPassword = z.preprocess(
   z.union([
     z.object({ mode: z.enum(["password"]), value: Password }),
     z.object({ mode: z.enum(["login_disallowed"]) }),
-  ])
+  ]),
 );
 
 /**
@@ -2916,7 +2922,7 @@ export const UserPassword = z.preprocess(
  */
 export const UserCreate = z.preprocess(
   processResponseBody,
-  z.object({ externalId: UserId, password: UserPassword })
+  z.object({ externalId: UserId, password: UserPassword }),
 );
 
 /**
@@ -2924,7 +2930,7 @@ export const UserCreate = z.preprocess(
  */
 export const UserResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: User.array(), nextPage: z.string().optional() })
+  z.object({ items: User.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -2932,7 +2938,7 @@ export const UserResultsPage = z.preprocess(
  */
 export const UsernamePasswordCredentials = z.preprocess(
   processResponseBody,
-  z.object({ password: Password, username: UserId })
+  z.object({ password: Password, username: UserId }),
 );
 
 /**
@@ -2943,7 +2949,7 @@ export const Utilization = z.preprocess(
   z.object({
     capacity: VirtualResourceCounts,
     provisioned: VirtualResourceCounts,
-  })
+  }),
 );
 
 /**
@@ -2961,7 +2967,7 @@ export const Vpc = z.preprocess(
     systemRouterId: z.string().uuid(),
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
-  })
+  }),
 );
 
 /**
@@ -2974,17 +2980,17 @@ export const VpcCreate = z.preprocess(
     dnsName: Name,
     ipv6Prefix: Ipv6Net.optional(),
     name: Name,
-  })
+  }),
 );
 
 export const VpcFirewallRuleAction = z.preprocess(
   processResponseBody,
-  z.enum(["allow", "deny"])
+  z.enum(["allow", "deny"]),
 );
 
 export const VpcFirewallRuleDirection = z.preprocess(
   processResponseBody,
-  z.enum(["inbound", "outbound"])
+  z.enum(["inbound", "outbound"]),
 );
 
 /**
@@ -2998,7 +3004,7 @@ export const VpcFirewallRuleHostFilter = z.preprocess(
     z.object({ type: z.enum(["instance"]), value: Name }),
     z.object({ type: z.enum(["ip"]), value: z.string().ip() }),
     z.object({ type: z.enum(["ip_net"]), value: IpNet }),
-  ])
+  ]),
 );
 
 /**
@@ -3006,7 +3012,7 @@ export const VpcFirewallRuleHostFilter = z.preprocess(
  */
 export const VpcFirewallRuleProtocol = z.preprocess(
   processResponseBody,
-  z.enum(["TCP", "UDP", "ICMP"])
+  z.enum(["TCP", "UDP", "ICMP"]),
 );
 
 /**
@@ -3018,12 +3024,12 @@ export const VpcFirewallRuleFilter = z.preprocess(
     hosts: VpcFirewallRuleHostFilter.array().optional(),
     ports: L4PortRange.array().optional(),
     protocols: VpcFirewallRuleProtocol.array().optional(),
-  })
+  }),
 );
 
 export const VpcFirewallRuleStatus = z.preprocess(
   processResponseBody,
-  z.enum(["disabled", "enabled"])
+  z.enum(["disabled", "enabled"]),
 );
 
 /**
@@ -3037,7 +3043,7 @@ export const VpcFirewallRuleTarget = z.preprocess(
     z.object({ type: z.enum(["instance"]), value: Name }),
     z.object({ type: z.enum(["ip"]), value: z.string().ip() }),
     z.object({ type: z.enum(["ip_net"]), value: IpNet }),
-  ])
+  ]),
 );
 
 /**
@@ -3058,7 +3064,7 @@ export const VpcFirewallRule = z.preprocess(
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
     vpcId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -3075,7 +3081,7 @@ export const VpcFirewallRuleUpdate = z.preprocess(
     priority: z.number().min(0).max(65535),
     status: VpcFirewallRuleStatus,
     targets: VpcFirewallRuleTarget.array(),
-  })
+  }),
 );
 
 /**
@@ -3083,7 +3089,7 @@ export const VpcFirewallRuleUpdate = z.preprocess(
  */
 export const VpcFirewallRuleUpdateParams = z.preprocess(
   processResponseBody,
-  z.object({ rules: VpcFirewallRuleUpdate.array() })
+  z.object({ rules: VpcFirewallRuleUpdate.array() }),
 );
 
 /**
@@ -3091,7 +3097,7 @@ export const VpcFirewallRuleUpdateParams = z.preprocess(
  */
 export const VpcFirewallRules = z.preprocess(
   processResponseBody,
-  z.object({ rules: VpcFirewallRule.array() })
+  z.object({ rules: VpcFirewallRule.array() }),
 );
 
 /**
@@ -3099,7 +3105,7 @@ export const VpcFirewallRules = z.preprocess(
  */
 export const VpcResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: Vpc.array(), nextPage: z.string().optional() })
+  z.object({ items: Vpc.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -3116,7 +3122,7 @@ export const VpcSubnet = z.preprocess(
     timeCreated: z.coerce.date(),
     timeModified: z.coerce.date(),
     vpcId: z.string().uuid(),
-  })
+  }),
 );
 
 /**
@@ -3129,7 +3135,7 @@ export const VpcSubnetCreate = z.preprocess(
     ipv4Block: Ipv4Net,
     ipv6Block: Ipv6Net.optional(),
     name: Name,
-  })
+  }),
 );
 
 /**
@@ -3137,7 +3143,7 @@ export const VpcSubnetCreate = z.preprocess(
  */
 export const VpcSubnetResultsPage = z.preprocess(
   processResponseBody,
-  z.object({ items: VpcSubnet.array(), nextPage: z.string().optional() })
+  z.object({ items: VpcSubnet.array(), nextPage: z.string().optional() }),
 );
 
 /**
@@ -3145,7 +3151,7 @@ export const VpcSubnetResultsPage = z.preprocess(
  */
 export const VpcSubnetUpdate = z.preprocess(
   processResponseBody,
-  z.object({ description: z.string().optional(), name: Name.optional() })
+  z.object({ description: z.string().optional(), name: Name.optional() }),
 );
 
 /**
@@ -3157,7 +3163,7 @@ export const VpcUpdate = z.preprocess(
     description: z.string().optional(),
     dnsName: Name.optional(),
     name: Name.optional(),
-  })
+  }),
 );
 
 /**
@@ -3165,12 +3171,12 @@ export const VpcUpdate = z.preprocess(
  */
 export const NameOrIdSortMode = z.preprocess(
   processResponseBody,
-  z.enum(["name_ascending", "name_descending", "id_ascending"])
+  z.enum(["name_ascending", "name_descending", "id_ascending"]),
 );
 
 export const DiskMetricName = z.preprocess(
   processResponseBody,
-  z.enum(["activated", "flush", "read", "read_bytes", "write", "write_bytes"])
+  z.enum(["activated", "flush", "read", "read_bytes", "write", "write_bytes"]),
 );
 
 /**
@@ -3178,7 +3184,7 @@ export const DiskMetricName = z.preprocess(
  */
 export const PaginationOrder = z.preprocess(
   processResponseBody,
-  z.enum(["ascending", "descending"])
+  z.enum(["ascending", "descending"]),
 );
 
 /**
@@ -3188,7 +3194,7 @@ export const PaginationOrder = z.preprocess(
  */
 export const IdSortMode = z.preprocess(
   processResponseBody,
-  z.enum(["id_ascending"])
+  z.enum(["id_ascending"]),
 );
 
 export const SystemMetricName = z.preprocess(
@@ -3197,7 +3203,7 @@ export const SystemMetricName = z.preprocess(
     "virtual_disk_space_provisioned",
     "cpus_provisioned",
     "ram_provisioned",
-  ])
+  ]),
 );
 
 /**
@@ -3207,7 +3213,7 @@ export const SystemMetricName = z.preprocess(
  */
 export const NameSortMode = z.preprocess(
   processResponseBody,
-  z.enum(["name_ascending"])
+  z.enum(["name_ascending"]),
 );
 
 export const DeviceAuthRequestParams = z.preprocess(
@@ -3215,7 +3221,7 @@ export const DeviceAuthRequestParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const DeviceAuthConfirmParams = z.preprocess(
@@ -3223,7 +3229,7 @@ export const DeviceAuthConfirmParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const DeviceAccessTokenParams = z.preprocess(
@@ -3231,7 +3237,7 @@ export const DeviceAccessTokenParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ProbeListParams = z.preprocess(
@@ -3244,7 +3250,7 @@ export const ProbeListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const ProbeCreateParams = z.preprocess(
@@ -3254,7 +3260,7 @@ export const ProbeCreateParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const ProbeViewParams = z.preprocess(
@@ -3266,7 +3272,7 @@ export const ProbeViewParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const ProbeDeleteParams = z.preprocess(
@@ -3278,7 +3284,7 @@ export const ProbeDeleteParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const LoginSamlParams = z.preprocess(
@@ -3289,7 +3295,7 @@ export const LoginSamlParams = z.preprocess(
       siloName: Name,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const CertificateListParams = z.preprocess(
@@ -3301,7 +3307,7 @@ export const CertificateListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const CertificateCreateParams = z.preprocess(
@@ -3309,7 +3315,7 @@ export const CertificateCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const CertificateViewParams = z.preprocess(
@@ -3319,7 +3325,7 @@ export const CertificateViewParams = z.preprocess(
       certificate: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const CertificateDeleteParams = z.preprocess(
@@ -3329,7 +3335,7 @@ export const CertificateDeleteParams = z.preprocess(
       certificate: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const DiskListParams = z.preprocess(
@@ -3342,7 +3348,7 @@ export const DiskListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const DiskCreateParams = z.preprocess(
@@ -3352,7 +3358,7 @@ export const DiskCreateParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const DiskViewParams = z.preprocess(
@@ -3364,7 +3370,7 @@ export const DiskViewParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const DiskDeleteParams = z.preprocess(
@@ -3376,7 +3382,7 @@ export const DiskDeleteParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const DiskBulkWriteImportParams = z.preprocess(
@@ -3388,7 +3394,7 @@ export const DiskBulkWriteImportParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const DiskBulkWriteImportStartParams = z.preprocess(
@@ -3400,7 +3406,7 @@ export const DiskBulkWriteImportStartParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const DiskBulkWriteImportStopParams = z.preprocess(
@@ -3412,7 +3418,7 @@ export const DiskBulkWriteImportStopParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const DiskFinalizeImportParams = z.preprocess(
@@ -3424,7 +3430,7 @@ export const DiskFinalizeImportParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const DiskMetricsListParams = z.preprocess(
@@ -3442,7 +3448,7 @@ export const DiskMetricsListParams = z.preprocess(
       startTime: z.coerce.date().optional(),
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const FloatingIpListParams = z.preprocess(
@@ -3455,7 +3461,7 @@ export const FloatingIpListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const FloatingIpCreateParams = z.preprocess(
@@ -3465,7 +3471,7 @@ export const FloatingIpCreateParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const FloatingIpViewParams = z.preprocess(
@@ -3477,7 +3483,7 @@ export const FloatingIpViewParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const FloatingIpUpdateParams = z.preprocess(
@@ -3489,7 +3495,7 @@ export const FloatingIpUpdateParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const FloatingIpDeleteParams = z.preprocess(
@@ -3501,7 +3507,7 @@ export const FloatingIpDeleteParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const FloatingIpAttachParams = z.preprocess(
@@ -3513,7 +3519,7 @@ export const FloatingIpAttachParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const FloatingIpDetachParams = z.preprocess(
@@ -3525,7 +3531,7 @@ export const FloatingIpDetachParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const GroupListParams = z.preprocess(
@@ -3537,7 +3543,7 @@ export const GroupListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const GroupViewParams = z.preprocess(
@@ -3547,7 +3553,7 @@ export const GroupViewParams = z.preprocess(
       groupId: z.string().uuid(),
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ImageListParams = z.preprocess(
@@ -3560,7 +3566,7 @@ export const ImageListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const ImageCreateParams = z.preprocess(
@@ -3570,7 +3576,7 @@ export const ImageCreateParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const ImageViewParams = z.preprocess(
@@ -3582,7 +3588,7 @@ export const ImageViewParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const ImageDeleteParams = z.preprocess(
@@ -3594,7 +3600,7 @@ export const ImageDeleteParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const ImageDemoteParams = z.preprocess(
@@ -3606,7 +3612,7 @@ export const ImageDemoteParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const ImagePromoteParams = z.preprocess(
@@ -3618,7 +3624,7 @@ export const ImagePromoteParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceListParams = z.preprocess(
@@ -3631,7 +3637,7 @@ export const InstanceListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceCreateParams = z.preprocess(
@@ -3641,7 +3647,7 @@ export const InstanceCreateParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const InstanceViewParams = z.preprocess(
@@ -3653,7 +3659,7 @@ export const InstanceViewParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceDeleteParams = z.preprocess(
@@ -3665,7 +3671,7 @@ export const InstanceDeleteParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceDiskListParams = z.preprocess(
@@ -3680,7 +3686,7 @@ export const InstanceDiskListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceDiskAttachParams = z.preprocess(
@@ -3692,7 +3698,7 @@ export const InstanceDiskAttachParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceDiskDetachParams = z.preprocess(
@@ -3704,7 +3710,7 @@ export const InstanceDiskDetachParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceExternalIpListParams = z.preprocess(
@@ -3716,7 +3722,7 @@ export const InstanceExternalIpListParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceEphemeralIpAttachParams = z.preprocess(
@@ -3728,7 +3734,7 @@ export const InstanceEphemeralIpAttachParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceEphemeralIpDetachParams = z.preprocess(
@@ -3740,7 +3746,7 @@ export const InstanceEphemeralIpDetachParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceMigrateParams = z.preprocess(
@@ -3752,7 +3758,7 @@ export const InstanceMigrateParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceRebootParams = z.preprocess(
@@ -3764,7 +3770,7 @@ export const InstanceRebootParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceSerialConsoleParams = z.preprocess(
@@ -3779,7 +3785,7 @@ export const InstanceSerialConsoleParams = z.preprocess(
       mostRecent: z.number().min(0).optional(),
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceSerialConsoleStreamParams = z.preprocess(
@@ -3792,7 +3798,7 @@ export const InstanceSerialConsoleStreamParams = z.preprocess(
       mostRecent: z.number().min(0).optional(),
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceSshPublicKeyListParams = z.preprocess(
@@ -3807,7 +3813,7 @@ export const InstanceSshPublicKeyListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceStartParams = z.preprocess(
@@ -3819,7 +3825,7 @@ export const InstanceStartParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceStopParams = z.preprocess(
@@ -3831,7 +3837,7 @@ export const InstanceStopParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const ProjectIpPoolListParams = z.preprocess(
@@ -3843,7 +3849,7 @@ export const ProjectIpPoolListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const ProjectIpPoolViewParams = z.preprocess(
@@ -3853,7 +3859,7 @@ export const ProjectIpPoolViewParams = z.preprocess(
       pool: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const LoginLocalParams = z.preprocess(
@@ -3863,7 +3869,7 @@ export const LoginLocalParams = z.preprocess(
       siloName: Name,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const LogoutParams = z.preprocess(
@@ -3871,7 +3877,7 @@ export const LogoutParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const CurrentUserViewParams = z.preprocess(
@@ -3879,7 +3885,7 @@ export const CurrentUserViewParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const CurrentUserGroupsParams = z.preprocess(
@@ -3891,7 +3897,7 @@ export const CurrentUserGroupsParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const CurrentUserSshKeyListParams = z.preprocess(
@@ -3903,7 +3909,7 @@ export const CurrentUserSshKeyListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const CurrentUserSshKeyCreateParams = z.preprocess(
@@ -3911,7 +3917,7 @@ export const CurrentUserSshKeyCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const CurrentUserSshKeyViewParams = z.preprocess(
@@ -3921,7 +3927,7 @@ export const CurrentUserSshKeyViewParams = z.preprocess(
       sshKey: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const CurrentUserSshKeyDeleteParams = z.preprocess(
@@ -3931,7 +3937,7 @@ export const CurrentUserSshKeyDeleteParams = z.preprocess(
       sshKey: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloMetricParams = z.preprocess(
@@ -3948,7 +3954,7 @@ export const SiloMetricParams = z.preprocess(
       startTime: z.coerce.date().optional(),
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceNetworkInterfaceListParams = z.preprocess(
@@ -3962,7 +3968,7 @@ export const InstanceNetworkInterfaceListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceNetworkInterfaceCreateParams = z.preprocess(
@@ -3973,7 +3979,7 @@ export const InstanceNetworkInterfaceCreateParams = z.preprocess(
       instance: NameOrId,
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceNetworkInterfaceViewParams = z.preprocess(
@@ -3986,7 +3992,7 @@ export const InstanceNetworkInterfaceViewParams = z.preprocess(
       instance: NameOrId.optional(),
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceNetworkInterfaceUpdateParams = z.preprocess(
@@ -3999,7 +4005,7 @@ export const InstanceNetworkInterfaceUpdateParams = z.preprocess(
       instance: NameOrId.optional(),
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
@@ -4012,7 +4018,7 @@ export const InstanceNetworkInterfaceDeleteParams = z.preprocess(
       instance: NameOrId.optional(),
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const PingParams = z.preprocess(
@@ -4020,7 +4026,7 @@ export const PingParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const PolicyViewParams = z.preprocess(
@@ -4028,7 +4034,7 @@ export const PolicyViewParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const PolicyUpdateParams = z.preprocess(
@@ -4036,7 +4042,7 @@ export const PolicyUpdateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ProjectListParams = z.preprocess(
@@ -4048,7 +4054,7 @@ export const ProjectListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const ProjectCreateParams = z.preprocess(
@@ -4056,7 +4062,7 @@ export const ProjectCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ProjectViewParams = z.preprocess(
@@ -4066,7 +4072,7 @@ export const ProjectViewParams = z.preprocess(
       project: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ProjectUpdateParams = z.preprocess(
@@ -4076,7 +4082,7 @@ export const ProjectUpdateParams = z.preprocess(
       project: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ProjectDeleteParams = z.preprocess(
@@ -4086,7 +4092,7 @@ export const ProjectDeleteParams = z.preprocess(
       project: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ProjectPolicyViewParams = z.preprocess(
@@ -4096,7 +4102,7 @@ export const ProjectPolicyViewParams = z.preprocess(
       project: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const ProjectPolicyUpdateParams = z.preprocess(
@@ -4106,7 +4112,7 @@ export const ProjectPolicyUpdateParams = z.preprocess(
       project: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SnapshotListParams = z.preprocess(
@@ -4119,7 +4125,7 @@ export const SnapshotListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SnapshotCreateParams = z.preprocess(
@@ -4129,7 +4135,7 @@ export const SnapshotCreateParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const SnapshotViewParams = z.preprocess(
@@ -4141,7 +4147,7 @@ export const SnapshotViewParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const SnapshotDeleteParams = z.preprocess(
@@ -4153,7 +4159,7 @@ export const SnapshotDeleteParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const PhysicalDiskListParams = z.preprocess(
@@ -4165,7 +4171,7 @@ export const PhysicalDiskListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const RackListParams = z.preprocess(
@@ -4177,7 +4183,7 @@ export const RackListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const RackViewParams = z.preprocess(
@@ -4187,7 +4193,7 @@ export const RackViewParams = z.preprocess(
       rackId: z.string().uuid(),
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SledListParams = z.preprocess(
@@ -4199,7 +4205,7 @@ export const SledListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SledAddParams = z.preprocess(
@@ -4207,7 +4213,7 @@ export const SledAddParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SledViewParams = z.preprocess(
@@ -4217,7 +4223,7 @@ export const SledViewParams = z.preprocess(
       sledId: z.string().uuid(),
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SledPhysicalDiskListParams = z.preprocess(
@@ -4231,7 +4237,7 @@ export const SledPhysicalDiskListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SledInstanceListParams = z.preprocess(
@@ -4245,7 +4251,7 @@ export const SledInstanceListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SledSetProvisionPolicyParams = z.preprocess(
@@ -4255,7 +4261,7 @@ export const SledSetProvisionPolicyParams = z.preprocess(
       sledId: z.string().uuid(),
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SledListUninitializedParams = z.preprocess(
@@ -4266,7 +4272,7 @@ export const SledListUninitializedParams = z.preprocess(
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingSwitchPortListParams = z.preprocess(
@@ -4279,7 +4285,7 @@ export const NetworkingSwitchPortListParams = z.preprocess(
       sortBy: IdSortMode.optional(),
       switchPortId: z.string().uuid().optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingSwitchPortApplySettingsParams = z.preprocess(
@@ -4292,7 +4298,7 @@ export const NetworkingSwitchPortApplySettingsParams = z.preprocess(
       rackId: z.string().uuid(),
       switchLocation: Name,
     }),
-  })
+  }),
 );
 
 export const NetworkingSwitchPortClearSettingsParams = z.preprocess(
@@ -4305,7 +4311,7 @@ export const NetworkingSwitchPortClearSettingsParams = z.preprocess(
       rackId: z.string().uuid(),
       switchLocation: Name,
     }),
-  })
+  }),
 );
 
 export const SwitchListParams = z.preprocess(
@@ -4317,7 +4323,7 @@ export const SwitchListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SwitchViewParams = z.preprocess(
@@ -4327,7 +4333,7 @@ export const SwitchViewParams = z.preprocess(
       switchId: z.string().uuid(),
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloIdentityProviderListParams = z.preprocess(
@@ -4340,7 +4346,7 @@ export const SiloIdentityProviderListParams = z.preprocess(
       silo: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const LocalIdpUserCreateParams = z.preprocess(
@@ -4350,7 +4356,7 @@ export const LocalIdpUserCreateParams = z.preprocess(
     query: z.object({
       silo: NameOrId,
     }),
-  })
+  }),
 );
 
 export const LocalIdpUserDeleteParams = z.preprocess(
@@ -4362,7 +4368,7 @@ export const LocalIdpUserDeleteParams = z.preprocess(
     query: z.object({
       silo: NameOrId,
     }),
-  })
+  }),
 );
 
 export const LocalIdpUserSetPasswordParams = z.preprocess(
@@ -4374,7 +4380,7 @@ export const LocalIdpUserSetPasswordParams = z.preprocess(
     query: z.object({
       silo: NameOrId,
     }),
-  })
+  }),
 );
 
 export const SamlIdentityProviderCreateParams = z.preprocess(
@@ -4384,7 +4390,7 @@ export const SamlIdentityProviderCreateParams = z.preprocess(
     query: z.object({
       silo: NameOrId,
     }),
-  })
+  }),
 );
 
 export const SamlIdentityProviderViewParams = z.preprocess(
@@ -4396,7 +4402,7 @@ export const SamlIdentityProviderViewParams = z.preprocess(
     query: z.object({
       silo: NameOrId,
     }),
-  })
+  }),
 );
 
 export const IpPoolListParams = z.preprocess(
@@ -4408,7 +4414,7 @@ export const IpPoolListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const IpPoolCreateParams = z.preprocess(
@@ -4416,7 +4422,7 @@ export const IpPoolCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolViewParams = z.preprocess(
@@ -4426,7 +4432,7 @@ export const IpPoolViewParams = z.preprocess(
       pool: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolUpdateParams = z.preprocess(
@@ -4436,7 +4442,7 @@ export const IpPoolUpdateParams = z.preprocess(
       pool: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolDeleteParams = z.preprocess(
@@ -4446,7 +4452,7 @@ export const IpPoolDeleteParams = z.preprocess(
       pool: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolRangeListParams = z.preprocess(
@@ -4459,7 +4465,7 @@ export const IpPoolRangeListParams = z.preprocess(
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
     }),
-  })
+  }),
 );
 
 export const IpPoolRangeAddParams = z.preprocess(
@@ -4469,7 +4475,7 @@ export const IpPoolRangeAddParams = z.preprocess(
       pool: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolRangeRemoveParams = z.preprocess(
@@ -4479,7 +4485,7 @@ export const IpPoolRangeRemoveParams = z.preprocess(
       pool: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolSiloListParams = z.preprocess(
@@ -4493,7 +4499,7 @@ export const IpPoolSiloListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const IpPoolSiloLinkParams = z.preprocess(
@@ -4503,7 +4509,7 @@ export const IpPoolSiloLinkParams = z.preprocess(
       pool: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolSiloUpdateParams = z.preprocess(
@@ -4514,7 +4520,7 @@ export const IpPoolSiloUpdateParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolSiloUnlinkParams = z.preprocess(
@@ -4525,7 +4531,7 @@ export const IpPoolSiloUnlinkParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolServiceViewParams = z.preprocess(
@@ -4533,7 +4539,7 @@ export const IpPoolServiceViewParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolServiceRangeListParams = z.preprocess(
@@ -4544,7 +4550,7 @@ export const IpPoolServiceRangeListParams = z.preprocess(
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
     }),
-  })
+  }),
 );
 
 export const IpPoolServiceRangeAddParams = z.preprocess(
@@ -4552,7 +4558,7 @@ export const IpPoolServiceRangeAddParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const IpPoolServiceRangeRemoveParams = z.preprocess(
@@ -4560,7 +4566,7 @@ export const IpPoolServiceRangeRemoveParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SystemMetricParams = z.preprocess(
@@ -4577,7 +4583,7 @@ export const SystemMetricParams = z.preprocess(
       startTime: z.coerce.date().optional(),
       silo: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingAddressLotListParams = z.preprocess(
@@ -4589,7 +4595,7 @@ export const NetworkingAddressLotListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingAddressLotCreateParams = z.preprocess(
@@ -4597,7 +4603,7 @@ export const NetworkingAddressLotCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingAddressLotDeleteParams = z.preprocess(
@@ -4607,7 +4613,7 @@ export const NetworkingAddressLotDeleteParams = z.preprocess(
       addressLot: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingAddressLotBlockListParams = z.preprocess(
@@ -4621,7 +4627,7 @@ export const NetworkingAddressLotBlockListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingBfdDisableParams = z.preprocess(
@@ -4629,7 +4635,7 @@ export const NetworkingBfdDisableParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingBfdEnableParams = z.preprocess(
@@ -4637,7 +4643,7 @@ export const NetworkingBfdEnableParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingBfdStatusParams = z.preprocess(
@@ -4645,7 +4651,7 @@ export const NetworkingBfdStatusParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingBgpConfigListParams = z.preprocess(
@@ -4658,7 +4664,7 @@ export const NetworkingBgpConfigListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingBgpConfigCreateParams = z.preprocess(
@@ -4666,7 +4672,7 @@ export const NetworkingBgpConfigCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingBgpConfigDeleteParams = z.preprocess(
@@ -4676,7 +4682,7 @@ export const NetworkingBgpConfigDeleteParams = z.preprocess(
     query: z.object({
       nameOrId: NameOrId,
     }),
-  })
+  }),
 );
 
 export const NetworkingBgpAnnounceSetListParams = z.preprocess(
@@ -4686,7 +4692,7 @@ export const NetworkingBgpAnnounceSetListParams = z.preprocess(
     query: z.object({
       nameOrId: NameOrId,
     }),
-  })
+  }),
 );
 
 export const NetworkingBgpAnnounceSetCreateParams = z.preprocess(
@@ -4694,7 +4700,7 @@ export const NetworkingBgpAnnounceSetCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingBgpAnnounceSetDeleteParams = z.preprocess(
@@ -4704,7 +4710,7 @@ export const NetworkingBgpAnnounceSetDeleteParams = z.preprocess(
     query: z.object({
       nameOrId: NameOrId,
     }),
-  })
+  }),
 );
 
 export const NetworkingBgpImportedRoutesIpv4Params = z.preprocess(
@@ -4714,7 +4720,7 @@ export const NetworkingBgpImportedRoutesIpv4Params = z.preprocess(
     query: z.object({
       asn: z.number().min(0).max(4294967295),
     }),
-  })
+  }),
 );
 
 export const NetworkingBgpStatusParams = z.preprocess(
@@ -4722,7 +4728,7 @@ export const NetworkingBgpStatusParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingLoopbackAddressListParams = z.preprocess(
@@ -4734,7 +4740,7 @@ export const NetworkingLoopbackAddressListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingLoopbackAddressCreateParams = z.preprocess(
@@ -4742,7 +4748,7 @@ export const NetworkingLoopbackAddressCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingLoopbackAddressDeleteParams = z.preprocess(
@@ -4755,7 +4761,7 @@ export const NetworkingLoopbackAddressDeleteParams = z.preprocess(
       switchLocation: Name,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingSwitchPortSettingsListParams = z.preprocess(
@@ -4768,7 +4774,7 @@ export const NetworkingSwitchPortSettingsListParams = z.preprocess(
       portSettings: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingSwitchPortSettingsCreateParams = z.preprocess(
@@ -4776,7 +4782,7 @@ export const NetworkingSwitchPortSettingsCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const NetworkingSwitchPortSettingsDeleteParams = z.preprocess(
@@ -4786,7 +4792,7 @@ export const NetworkingSwitchPortSettingsDeleteParams = z.preprocess(
     query: z.object({
       portSettings: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const NetworkingSwitchPortSettingsViewParams = z.preprocess(
@@ -4796,7 +4802,7 @@ export const NetworkingSwitchPortSettingsViewParams = z.preprocess(
       port: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SystemPolicyViewParams = z.preprocess(
@@ -4804,7 +4810,7 @@ export const SystemPolicyViewParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SystemPolicyUpdateParams = z.preprocess(
@@ -4812,7 +4818,7 @@ export const SystemPolicyUpdateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const RoleListParams = z.preprocess(
@@ -4823,7 +4829,7 @@ export const RoleListParams = z.preprocess(
       limit: z.number().min(1).max(4294967295).optional(),
       pageToken: z.string().optional(),
     }),
-  })
+  }),
 );
 
 export const RoleViewParams = z.preprocess(
@@ -4833,7 +4839,7 @@ export const RoleViewParams = z.preprocess(
       roleName: z.string(),
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SystemQuotasListParams = z.preprocess(
@@ -4845,7 +4851,7 @@ export const SystemQuotasListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SiloListParams = z.preprocess(
@@ -4857,7 +4863,7 @@ export const SiloListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SiloCreateParams = z.preprocess(
@@ -4865,7 +4871,7 @@ export const SiloCreateParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloViewParams = z.preprocess(
@@ -4875,7 +4881,7 @@ export const SiloViewParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloDeleteParams = z.preprocess(
@@ -4885,7 +4891,7 @@ export const SiloDeleteParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloIpPoolListParams = z.preprocess(
@@ -4899,7 +4905,7 @@ export const SiloIpPoolListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SiloPolicyViewParams = z.preprocess(
@@ -4909,7 +4915,7 @@ export const SiloPolicyViewParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloPolicyUpdateParams = z.preprocess(
@@ -4919,7 +4925,7 @@ export const SiloPolicyUpdateParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloQuotasViewParams = z.preprocess(
@@ -4929,7 +4935,7 @@ export const SiloQuotasViewParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloQuotasUpdateParams = z.preprocess(
@@ -4939,7 +4945,7 @@ export const SiloQuotasUpdateParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloUserListParams = z.preprocess(
@@ -4952,7 +4958,7 @@ export const SiloUserListParams = z.preprocess(
       silo: NameOrId.optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SiloUserViewParams = z.preprocess(
@@ -4964,7 +4970,7 @@ export const SiloUserViewParams = z.preprocess(
     query: z.object({
       silo: NameOrId,
     }),
-  })
+  }),
 );
 
 export const UserBuiltinListParams = z.preprocess(
@@ -4976,7 +4982,7 @@ export const UserBuiltinListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const UserBuiltinViewParams = z.preprocess(
@@ -4986,7 +4992,7 @@ export const UserBuiltinViewParams = z.preprocess(
       user: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const SiloUtilizationListParams = z.preprocess(
@@ -4998,7 +5004,7 @@ export const SiloUtilizationListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const SiloUtilizationViewParams = z.preprocess(
@@ -5008,7 +5014,7 @@ export const SiloUtilizationViewParams = z.preprocess(
       silo: NameOrId,
     }),
     query: z.object({}),
-  })
+  }),
 );
 
 export const UserListParams = z.preprocess(
@@ -5021,7 +5027,7 @@ export const UserListParams = z.preprocess(
       pageToken: z.string().optional(),
       sortBy: IdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const UtilizationViewParams = z.preprocess(
@@ -5029,7 +5035,7 @@ export const UtilizationViewParams = z.preprocess(
   z.object({
     path: z.object({}),
     query: z.object({}),
-  })
+  }),
 );
 
 export const VpcFirewallRulesViewParams = z.preprocess(
@@ -5040,7 +5046,7 @@ export const VpcFirewallRulesViewParams = z.preprocess(
       project: NameOrId.optional(),
       vpc: NameOrId,
     }),
-  })
+  }),
 );
 
 export const VpcFirewallRulesUpdateParams = z.preprocess(
@@ -5051,7 +5057,7 @@ export const VpcFirewallRulesUpdateParams = z.preprocess(
       project: NameOrId.optional(),
       vpc: NameOrId,
     }),
-  })
+  }),
 );
 
 export const VpcSubnetListParams = z.preprocess(
@@ -5065,7 +5071,7 @@ export const VpcSubnetListParams = z.preprocess(
       sortBy: NameOrIdSortMode.optional(),
       vpc: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcSubnetCreateParams = z.preprocess(
@@ -5076,7 +5082,7 @@ export const VpcSubnetCreateParams = z.preprocess(
       project: NameOrId.optional(),
       vpc: NameOrId,
     }),
-  })
+  }),
 );
 
 export const VpcSubnetViewParams = z.preprocess(
@@ -5089,7 +5095,7 @@ export const VpcSubnetViewParams = z.preprocess(
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcSubnetUpdateParams = z.preprocess(
@@ -5102,7 +5108,7 @@ export const VpcSubnetUpdateParams = z.preprocess(
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcSubnetDeleteParams = z.preprocess(
@@ -5115,7 +5121,7 @@ export const VpcSubnetDeleteParams = z.preprocess(
       project: NameOrId.optional(),
       vpc: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
@@ -5131,7 +5137,7 @@ export const VpcSubnetListNetworkInterfacesParams = z.preprocess(
       sortBy: NameOrIdSortMode.optional(),
       vpc: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcListParams = z.preprocess(
@@ -5144,7 +5150,7 @@ export const VpcListParams = z.preprocess(
       project: NameOrId.optional(),
       sortBy: NameOrIdSortMode.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcCreateParams = z.preprocess(
@@ -5154,7 +5160,7 @@ export const VpcCreateParams = z.preprocess(
     query: z.object({
       project: NameOrId,
     }),
-  })
+  }),
 );
 
 export const VpcViewParams = z.preprocess(
@@ -5166,7 +5172,7 @@ export const VpcViewParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcUpdateParams = z.preprocess(
@@ -5178,7 +5184,7 @@ export const VpcUpdateParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );
 
 export const VpcDeleteParams = z.preprocess(
@@ -5190,5 +5196,5 @@ export const VpcDeleteParams = z.preprocess(
     query: z.object({
       project: NameOrId.optional(),
     }),
-  })
+  }),
 );

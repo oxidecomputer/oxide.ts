@@ -56,12 +56,12 @@ function replacer(_key: string, value: any) {
 
 function encodeQueryParam(key: string, value: unknown) {
   return `${encodeURIComponent(camelToSnake(key))}=${encodeURIComponent(
-    replacer(key, value)
+    replacer(key, value),
   )}`;
 }
 
 export async function handleResponse<Data>(
-  response: Response
+  response: Response,
 ): Promise<ApiResult<Data>> {
   const respText = await response.text();
 
@@ -176,7 +176,7 @@ export function toQueryString(rawQuery?: QueryParams): string {
     .map(([key, value]) =>
       Array.isArray(value)
         ? value.map((item) => encodeQueryParam(key, item)).join("&")
-        : encodeQueryParam(key, value)
+        : encodeQueryParam(key, value),
     )
     .join("&");
   return qs ? "?" + qs : "";
