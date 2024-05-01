@@ -12,7 +12,7 @@
     "node": ">=18"
   },
   "tsup": {
-    "entry": ["index.ts"],
+    "entry": ["src/index.ts"],
     "shims": true
   },
   "scripts": {
