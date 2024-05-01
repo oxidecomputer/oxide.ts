@@ -18,11 +18,16 @@
     "require": "./dist/index.cjs"
   },
   "bin": {
-    "openapi-gen-ts": "./dist/index.cjs"
+    "openapi-gen-ts": "dist/index.cjs"
   },
   "tsup": {
-    "entry": ["src/index.ts"],
-    "format": ["cjs", "esm"],
+    "entry": [
+      "src/index.ts"
+    ],
+    "format": [
+      "cjs",
+      "esm"
+    ],
     "shims": true
   },
   "scripts": {
