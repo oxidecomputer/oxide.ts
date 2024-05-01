@@ -1,17 +1,18 @@
 {
-  "name": "@oxide/api",
-  "version": "0.0.1",
-  "description": "The official JavaScript and TypeScript client SDK for interacting with the Oxide API",
+  "name": "@oxide/openapi-gen-ts",
+  "version": "0.1.0",
+  "description": "OpenAPI client generator used to generate Oxide TypeScript SDK",
   "keywords": [
     "oxide",
     "oxide.ts",
-    "oxide computer",
-    "oxide sdk"
+    "oxide sdk",
+    "OpenAPI client generator"
   ],
   "engines": {
     "node": ">=18"
   },
   "scripts": {
+    "build": "tsup index.ts",
     "lint": "eslint .",
     "pretest": "../../tools/gen.sh",
     "test": "vitest",
@@ -34,6 +35,7 @@
     "swagger-parser": "^10.0.3",
     "ts-pattern": "^4.0.5",
     "tsafe": "^1.1.1",
+    "tsup": "^8.0.2",
     "tsx": "^4.7.1",
     "type-fest": "^3.1.0",
     "typescript": "^5.2.2",
