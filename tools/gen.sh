@@ -11,7 +11,7 @@ set -o pipefail
 
 ROOT_DIR="$(dirname "$0")/.."
 OMICRON_SHA=$(cat "$ROOT_DIR/OMICRON_VERSION")
-DEST_DIR="$ROOT_DIR/packages/api"
+DEST_DIR="$ROOT_DIR/packages/api/src"
 
 SPEC_URL="https://raw.githubusercontent.com/oxidecomputer/omicron/$OMICRON_SHA/openapi/nexus.json"
 SPEC_FILE="./spec.json"

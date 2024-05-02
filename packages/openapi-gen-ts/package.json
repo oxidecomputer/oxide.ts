@@ -38,8 +38,13 @@
     "test:ui": "vitest --ui",
     "tsc": "tsc"
   },
-  "author": "",
+  "author": "Oxide Computer Company",
   "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxidecomputer/oxide.ts.git"
+  },
+  "homepage": "https://github.com/oxidecomputer/oxide.ts#readme",
   "optionalDependencies": {
     "zod": "^3.20"
   },

@@ -1,0 +1,46 @@
+{
+  "name": "@oxide/api",
+  "version": "0.1.0-alpha.0",
+  "description": "TypeScript client for the Oxide API",
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "main": "./dist/Api.js",
+  "exports": {
+    "import": "./dist/Api.js",
+    "require": "./dist/Api.cjs"
+  },
+  "scripts": {
+    "build": "tsup --dts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxidecomputer/oxide.ts.git"
+  },
+  "keywords": [
+    "oxide",
+    "oxide.ts",
+    "oxide sdk"
+  ],
+  "author": "Oxide Computer Company",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/oxidecomputer/oxide.ts/issues"
+  },
+  "homepage": "https://github.com/oxidecomputer/oxide.ts#readme",
+  "devDependencies": {
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5"
+  },
+  "tsup": {
+    "entry": [
+      "src/Api.ts"
+    ],
+    "format": [
+      "cjs",
+      "esm"
+    ]
+  }
+}
