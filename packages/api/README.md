@@ -1,7 +1,5 @@
 # Oxide TypeScript SDK
 
-TBD
-
 ## Usage
 
 ### Installation
@@ -10,7 +8,7 @@ TBD
 npm install @oxide/api
 ```
 
-### Get API token
+### Getting an API token
 
 The easiest way to get a device token is to use the CLI.
 
