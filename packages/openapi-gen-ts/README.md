@@ -16,9 +16,9 @@ the client as-is during generation. We generate several distinct pieces:
 
 | File                                        | Description                                                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [`Api.ts`](client/Api.ts)                   | A [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)-based TS client to the Oxide API |
-| [`validate.ts`](client/validate.ts)         | [Zod](https://github.com/colinhacks/zod) validators for API request and response types                 |
-| [`msw-handlers.ts`](client/msw-handlers.ts) | Helpers used to build a mock API with [Mock Service Worker](https://mswjs.io/) in the console repo     |
+| [`Api.ts`](../api/src/Api.ts)                   | A [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)-based TS client to the Oxide API |
+| [`validate.ts`](../api/src/validate.ts)         | [Zod](https://github.com/colinhacks/zod) validators for API request and response types                 |
+| [`msw-handlers.ts`](../api/src/msw-handlers.ts) | Helpers used to build a mock API with [Mock Service Worker](https://mswjs.io/) in the console repo     |
 
 
 ## Why a custom generator?
