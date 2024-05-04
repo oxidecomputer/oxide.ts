@@ -34,7 +34,7 @@
   "scripts": {
     "build": "tsup-node && mkdir -p dist/static/ && cp src/client/static/util.ts dist/static/ && cp src/client/static/http-client.ts dist/static/",
     "lint": "eslint .",
-    "pretest": "../../tools/gen.sh",
+    "pretest": "../tools/gen.sh",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "tsc": "tsc"

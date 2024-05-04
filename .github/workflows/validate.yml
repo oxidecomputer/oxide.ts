@@ -19,16 +19,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "18"
-      - working-directory: "./packages/openapi-gen-ts"
+      - working-directory: "./oxide-openapi-gen-ts"
         run: npm install
       - name: Generate client
         run: "./tools/gen.sh"
       - name: Typecheck
-        working-directory: "./packages/openapi-gen-ts"
+        working-directory: "./oxide-openapi-gen-ts"
         run: npm run tsc
       - name: Lint
-        working-directory: "./packages/openapi-gen-ts"
+        working-directory: "./oxide-openapi-gen-ts"
         run: npm run lint
       - name: Test
-        working-directory: "./packages/openapi-gen-ts"
+        working-directory: "./oxide-openapi-gen-ts"
         run: npm test run

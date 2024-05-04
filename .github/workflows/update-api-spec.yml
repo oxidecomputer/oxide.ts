@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "18"
-      - working-directory: "./packages/openapi-gen-ts"
+      - working-directory: "./oxide-openapi-gen-ts"
         run: 'npm install'
       - run: ./tools/gen.sh
       - uses: EndBug/add-and-commit@v9

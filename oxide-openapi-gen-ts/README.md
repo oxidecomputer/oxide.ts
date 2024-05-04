@@ -40,7 +40,7 @@ one, so writing one was easier than existing generators made it look.
 ./tools/gen.sh
 ```
 
-The TypeScript client code will be written to `packages/api/src`.
+The TypeScript client code will be written to `oxide-api/src`.
 
 ## Publishing to npm
 

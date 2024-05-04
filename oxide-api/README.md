@@ -41,13 +41,16 @@ const result = await api.methods.projectList({})
 
 if (result.type === "success") {
   console.log(result.data.items.map((p) => p.name))
-} else if (result.type === "error") {
-  console.log(result.data.errorCode)
-  console.log(result.data.message)
-} else { // result.type === client_error
-  console.log(result.error)
 }
 ```
+
+## How does it all work?
+
+### Methods
+
+### Request bodies
+
+### Responses: `ApiResult<T>`
 
 ## Other stuff in the package
 

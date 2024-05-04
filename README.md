@@ -9,12 +9,12 @@ any other specs and is unlikely to handle them well.
 
 |Package| Description|
 |---|---|
-| [`@oxide/openapi-gen-ts`](./packages/openapi-gen-ts) | TypeScript OpenAPI client generator |
-| [`@oxide/api`](./packages/api) | The client generated for the Omicron commit specified in `OMICRON_VERSION` |
+| [`@oxide/openapi-gen-ts`](./oxide-openapi-gen-ts) | TypeScript OpenAPI client generator |
+| [`@oxide/api`](./oxide-api) | The client generated for the Omicron commit specified in `OMICRON_VERSION` |
 
 ## Using the API client
 
-See the [README](./package/api/README.md) for the `@oxide/api` package.
+See the [README](./oxide-api/README.md) for the `@oxide/api` package.
 
 ## Contributing
 
