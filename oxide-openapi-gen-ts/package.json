@@ -1,6 +1,6 @@
 {
   "name": "@oxide/openapi-gen-ts",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "OpenAPI client generator used to generate Oxide TypeScript SDK",
   "keywords": [
     "oxide",
@@ -33,6 +33,7 @@
   },
   "scripts": {
     "build": "tsup-node && mkdir -p dist/static/ && cp src/client/static/util.ts dist/static/ && cp src/client/static/http-client.ts dist/static/",
+    "fmt": "prettier --write .",
     "lint": "eslint .",
     "pretest": "../tools/gen.sh",
     "test": "vitest",
