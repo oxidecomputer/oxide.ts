@@ -15,6 +15,7 @@ import { generateMSWHandlers } from "./client/msw-handlers";
 import { generateTypeTests } from "./client/type-tests";
 import { generateZodValidators } from "./client/zodValidators";
 import { resolve } from "node:path";
+import { existsSync } from "node:fs";
 import parseArgs from "minimist";
 
 function helpAndExit(msg?: string): never {
@@ -47,16 +48,26 @@ function parseFeatures(featuresArg: string | undefined) {
       helpAndExit(`Unrecognized feature '${feature}'.`);
     }
   }
+
+  const validated = features as Feature[];
+
   return {
-    zod: features.includes("zod"),
-    msw: features.includes("msw"),
-    typetests: features.includes("typetests"),
+    zod: validated.includes("zod"),
+    msw: validated.includes("msw"),
+    typetests: validated.includes("typetests"),
   };
 }
 
 async function generate(specFile: string, destDir: string, features: Features) {
   // destination directory is resolved relative to CWD
   const destDirAbs = resolve(process.cwd(), destDir);
+
+  if (!existsSync(destDirAbs)) {
+    throw new Error(`Error: destination directory does not exist.
+  Argument given: ${destDirAbs}
+  Resolved path:  ${destDirAbs}
+`);
+  }
 
   const rawSpec = await SwaggerParser.parse(specFile);
   if (!("openapi" in rawSpec) || !rawSpec.openapi.startsWith("3.0")) {

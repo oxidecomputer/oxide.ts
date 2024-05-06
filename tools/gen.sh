@@ -19,5 +19,5 @@ SPEC_FILE="./spec.json"
 # TODO: we could get rid of this DL if a test didn't rely on it
 curl --fail "$SPEC_URL" -o $SPEC_FILE
 
-npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR
-npx prettier --write --log-level error "$DEST_DIR"
+npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR --features zod,msw,typetests
+npx prettier@3.2.5 --write --log-level error "$DEST_DIR"

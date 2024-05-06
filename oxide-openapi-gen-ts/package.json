@@ -1,6 +1,6 @@
 {
   "name": "@oxide/openapi-gen-ts",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "OpenAPI client generator used to generate Oxide TypeScript SDK",
   "keywords": [
     "oxide",
