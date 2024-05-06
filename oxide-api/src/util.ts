@@ -31,7 +31,7 @@ export const isObjectOrArray = (o: unknown) =>
 export const mapObj =
   (
     kf: (k: string) => string,
-    vf: (k: string | undefined, v: unknown) => unknown = (k, v) => v
+    vf: (k: string | undefined, v: unknown) => unknown = (k, v) => v,
   ) =>
   (o: unknown): unknown => {
     if (!isObjectOrArray(o)) return o;

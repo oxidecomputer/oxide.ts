@@ -1,0 +1,75 @@
+{
+  "name": "@oxide/openapi-gen-ts",
+  "version": "0.1.13",
+  "description": "OpenAPI client generator used to generate Oxide TypeScript SDK",
+  "keywords": [
+    "oxide",
+    "oxide.ts",
+    "oxide sdk",
+    "OpenAPI client generator"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "bin": {
+    "openapi-gen-ts": "dist/index.cjs"
+  },
+  "tsup": {
+    "clean": true,
+    "entry": [
+      "src/index.ts"
+    ],
+    "format": [
+      "cjs",
+      "esm"
+    ],
+    "shims": true
+  },
+  "scripts": {
+    "build": "tsup-node && mkdir -p dist/static/ && cp src/client/static/util.ts dist/static/ && cp src/client/static/http-client.ts dist/static/",
+    "fmt": "prettier --write .",
+    "lint": "eslint .",
+    "pretest": "../tools/gen.sh",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "tsc": "tsc"
+  },
+  "author": "Oxide Computer Company",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxidecomputer/oxide.ts.git"
+  },
+  "homepage": "https://github.com/oxidecomputer/oxide.ts#readme",
+  "optionalDependencies": {
+    "zod": "^3.20"
+  },
+  "dependencies": {
+    "minimist": "^1.2.8",
+    "prettier": "2.7.1",
+    "swagger-parser": "^10.0.3",
+    "ts-pattern": "^4.0.5"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^18.7.20",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "eslint": "^8.55.0",
+    "msw": "^2.0.9",
+    "openapi-types": "^12.0.2",
+    "tsafe": "^1.1.1",
+    "tsup": "^8.0.2",
+    "tsx": "^4.7.1",
+    "type-fest": "^3.1.0",
+    "typescript": "^5.2.2",
+    "vitest": "^1.4.0",
+    "zod": "3.21.1"
+  }
+}

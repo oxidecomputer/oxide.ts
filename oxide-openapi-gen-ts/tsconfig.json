@@ -14,5 +14,5 @@
     "strict": true,
     "target": "ES2020",
     "types": ["vite/client", "vitest/importMeta"]
-  },
+  }
 }

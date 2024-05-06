@@ -1204,7 +1204,7 @@ export interface MSWHandlers {
 function validateParams<S extends ZodSchema>(
   schema: S,
   req: Request,
-  pathParams: PathParams
+  pathParams: PathParams,
 ) {
   const rawParams = new URLSearchParams(new URL(req.url).search);
   const params: [string, unknown][] = [];
@@ -1234,7 +1234,7 @@ const handler =
   (
     handler: MSWHandlers[keyof MSWHandlers],
     paramSchema: ZodSchema | null,
-    bodySchema: ZodSchema | null
+    bodySchema: ZodSchema | null,
   ) =>
   async ({
     request: req,
@@ -1300,323 +1300,335 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
   return [
     http.post(
       "/device/auth",
-      handler(handlers["deviceAuthRequest"], null, null)
+      handler(handlers["deviceAuthRequest"], null, null),
     ),
     http.post(
       "/device/confirm",
-      handler(handlers["deviceAuthConfirm"], null, schema.DeviceAuthVerify)
+      handler(handlers["deviceAuthConfirm"], null, schema.DeviceAuthVerify),
     ),
     http.post(
       "/device/token",
-      handler(handlers["deviceAccessToken"], null, null)
+      handler(handlers["deviceAccessToken"], null, null),
     ),
     http.get(
       "/experimental/v1/probes",
-      handler(handlers["probeList"], schema.ProbeListParams, null)
+      handler(handlers["probeList"], schema.ProbeListParams, null),
     ),
     http.post(
       "/experimental/v1/probes",
       handler(
         handlers["probeCreate"],
         schema.ProbeCreateParams,
-        schema.ProbeCreate
-      )
+        schema.ProbeCreate,
+      ),
     ),
     http.get(
       "/experimental/v1/probes/:probe",
-      handler(handlers["probeView"], schema.ProbeViewParams, null)
+      handler(handlers["probeView"], schema.ProbeViewParams, null),
     ),
     http.delete(
       "/experimental/v1/probes/:probe",
-      handler(handlers["probeDelete"], schema.ProbeDeleteParams, null)
+      handler(handlers["probeDelete"], schema.ProbeDeleteParams, null),
     ),
     http.post(
       "/login/:siloName/saml/:providerName",
-      handler(handlers["loginSaml"], schema.LoginSamlParams, null)
+      handler(handlers["loginSaml"], schema.LoginSamlParams, null),
     ),
     http.get(
       "/v1/certificates",
-      handler(handlers["certificateList"], schema.CertificateListParams, null)
+      handler(handlers["certificateList"], schema.CertificateListParams, null),
     ),
     http.post(
       "/v1/certificates",
-      handler(handlers["certificateCreate"], null, schema.CertificateCreate)
+      handler(handlers["certificateCreate"], null, schema.CertificateCreate),
     ),
     http.get(
       "/v1/certificates/:certificate",
-      handler(handlers["certificateView"], schema.CertificateViewParams, null)
+      handler(handlers["certificateView"], schema.CertificateViewParams, null),
     ),
     http.delete(
       "/v1/certificates/:certificate",
       handler(
         handlers["certificateDelete"],
         schema.CertificateDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/disks",
-      handler(handlers["diskList"], schema.DiskListParams, null)
+      handler(handlers["diskList"], schema.DiskListParams, null),
     ),
     http.post(
       "/v1/disks",
       handler(
         handlers["diskCreate"],
         schema.DiskCreateParams,
-        schema.DiskCreate
-      )
+        schema.DiskCreate,
+      ),
     ),
     http.get(
       "/v1/disks/:disk",
-      handler(handlers["diskView"], schema.DiskViewParams, null)
+      handler(handlers["diskView"], schema.DiskViewParams, null),
     ),
     http.delete(
       "/v1/disks/:disk",
-      handler(handlers["diskDelete"], schema.DiskDeleteParams, null)
+      handler(handlers["diskDelete"], schema.DiskDeleteParams, null),
     ),
     http.post(
       "/v1/disks/:disk/bulk-write",
       handler(
         handlers["diskBulkWriteImport"],
         schema.DiskBulkWriteImportParams,
-        schema.ImportBlocksBulkWrite
-      )
+        schema.ImportBlocksBulkWrite,
+      ),
     ),
     http.post(
       "/v1/disks/:disk/bulk-write-start",
       handler(
         handlers["diskBulkWriteImportStart"],
         schema.DiskBulkWriteImportStartParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/disks/:disk/bulk-write-stop",
       handler(
         handlers["diskBulkWriteImportStop"],
         schema.DiskBulkWriteImportStopParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/disks/:disk/finalize",
       handler(
         handlers["diskFinalizeImport"],
         schema.DiskFinalizeImportParams,
-        schema.FinalizeDisk
-      )
+        schema.FinalizeDisk,
+      ),
     ),
     http.get(
       "/v1/disks/:disk/metrics/:metric",
-      handler(handlers["diskMetricsList"], schema.DiskMetricsListParams, null)
+      handler(handlers["diskMetricsList"], schema.DiskMetricsListParams, null),
     ),
     http.get(
       "/v1/floating-ips",
-      handler(handlers["floatingIpList"], schema.FloatingIpListParams, null)
+      handler(handlers["floatingIpList"], schema.FloatingIpListParams, null),
     ),
     http.post(
       "/v1/floating-ips",
       handler(
         handlers["floatingIpCreate"],
         schema.FloatingIpCreateParams,
-        schema.FloatingIpCreate
-      )
+        schema.FloatingIpCreate,
+      ),
     ),
     http.get(
       "/v1/floating-ips/:floatingIp",
-      handler(handlers["floatingIpView"], schema.FloatingIpViewParams, null)
+      handler(handlers["floatingIpView"], schema.FloatingIpViewParams, null),
     ),
     http.put(
       "/v1/floating-ips/:floatingIp",
       handler(
         handlers["floatingIpUpdate"],
         schema.FloatingIpUpdateParams,
-        schema.FloatingIpUpdate
-      )
+        schema.FloatingIpUpdate,
+      ),
     ),
     http.delete(
       "/v1/floating-ips/:floatingIp",
-      handler(handlers["floatingIpDelete"], schema.FloatingIpDeleteParams, null)
+      handler(
+        handlers["floatingIpDelete"],
+        schema.FloatingIpDeleteParams,
+        null,
+      ),
     ),
     http.post(
       "/v1/floating-ips/:floatingIp/attach",
       handler(
         handlers["floatingIpAttach"],
         schema.FloatingIpAttachParams,
-        schema.FloatingIpAttach
-      )
+        schema.FloatingIpAttach,
+      ),
     ),
     http.post(
       "/v1/floating-ips/:floatingIp/detach",
-      handler(handlers["floatingIpDetach"], schema.FloatingIpDetachParams, null)
+      handler(
+        handlers["floatingIpDetach"],
+        schema.FloatingIpDetachParams,
+        null,
+      ),
     ),
     http.get(
       "/v1/groups",
-      handler(handlers["groupList"], schema.GroupListParams, null)
+      handler(handlers["groupList"], schema.GroupListParams, null),
     ),
     http.get(
       "/v1/groups/:groupId",
-      handler(handlers["groupView"], schema.GroupViewParams, null)
+      handler(handlers["groupView"], schema.GroupViewParams, null),
     ),
     http.get(
       "/v1/images",
-      handler(handlers["imageList"], schema.ImageListParams, null)
+      handler(handlers["imageList"], schema.ImageListParams, null),
     ),
     http.post(
       "/v1/images",
       handler(
         handlers["imageCreate"],
         schema.ImageCreateParams,
-        schema.ImageCreate
-      )
+        schema.ImageCreate,
+      ),
     ),
     http.get(
       "/v1/images/:image",
-      handler(handlers["imageView"], schema.ImageViewParams, null)
+      handler(handlers["imageView"], schema.ImageViewParams, null),
     ),
     http.delete(
       "/v1/images/:image",
-      handler(handlers["imageDelete"], schema.ImageDeleteParams, null)
+      handler(handlers["imageDelete"], schema.ImageDeleteParams, null),
     ),
     http.post(
       "/v1/images/:image/demote",
-      handler(handlers["imageDemote"], schema.ImageDemoteParams, null)
+      handler(handlers["imageDemote"], schema.ImageDemoteParams, null),
     ),
     http.post(
       "/v1/images/:image/promote",
-      handler(handlers["imagePromote"], schema.ImagePromoteParams, null)
+      handler(handlers["imagePromote"], schema.ImagePromoteParams, null),
     ),
     http.get(
       "/v1/instances",
-      handler(handlers["instanceList"], schema.InstanceListParams, null)
+      handler(handlers["instanceList"], schema.InstanceListParams, null),
     ),
     http.post(
       "/v1/instances",
       handler(
         handlers["instanceCreate"],
         schema.InstanceCreateParams,
-        schema.InstanceCreate
-      )
+        schema.InstanceCreate,
+      ),
     ),
     http.get(
       "/v1/instances/:instance",
-      handler(handlers["instanceView"], schema.InstanceViewParams, null)
+      handler(handlers["instanceView"], schema.InstanceViewParams, null),
     ),
     http.delete(
       "/v1/instances/:instance",
-      handler(handlers["instanceDelete"], schema.InstanceDeleteParams, null)
+      handler(handlers["instanceDelete"], schema.InstanceDeleteParams, null),
     ),
     http.get(
       "/v1/instances/:instance/disks",
-      handler(handlers["instanceDiskList"], schema.InstanceDiskListParams, null)
+      handler(
+        handlers["instanceDiskList"],
+        schema.InstanceDiskListParams,
+        null,
+      ),
     ),
     http.post(
       "/v1/instances/:instance/disks/attach",
       handler(
         handlers["instanceDiskAttach"],
         schema.InstanceDiskAttachParams,
-        schema.DiskPath
-      )
+        schema.DiskPath,
+      ),
     ),
     http.post(
       "/v1/instances/:instance/disks/detach",
       handler(
         handlers["instanceDiskDetach"],
         schema.InstanceDiskDetachParams,
-        schema.DiskPath
-      )
+        schema.DiskPath,
+      ),
     ),
     http.get(
       "/v1/instances/:instance/external-ips",
       handler(
         handlers["instanceExternalIpList"],
         schema.InstanceExternalIpListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/instances/:instance/external-ips/ephemeral",
       handler(
         handlers["instanceEphemeralIpAttach"],
         schema.InstanceEphemeralIpAttachParams,
-        schema.EphemeralIpCreate
-      )
+        schema.EphemeralIpCreate,
+      ),
     ),
     http.delete(
       "/v1/instances/:instance/external-ips/ephemeral",
       handler(
         handlers["instanceEphemeralIpDetach"],
         schema.InstanceEphemeralIpDetachParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/instances/:instance/migrate",
       handler(
         handlers["instanceMigrate"],
         schema.InstanceMigrateParams,
-        schema.InstanceMigrate
-      )
+        schema.InstanceMigrate,
+      ),
     ),
     http.post(
       "/v1/instances/:instance/reboot",
-      handler(handlers["instanceReboot"], schema.InstanceRebootParams, null)
+      handler(handlers["instanceReboot"], schema.InstanceRebootParams, null),
     ),
     http.get(
       "/v1/instances/:instance/serial-console",
       handler(
         handlers["instanceSerialConsole"],
         schema.InstanceSerialConsoleParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/instances/:instance/serial-console/stream",
       handler(
         handlers["instanceSerialConsoleStream"],
         schema.InstanceSerialConsoleStreamParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/instances/:instance/ssh-public-keys",
       handler(
         handlers["instanceSshPublicKeyList"],
         schema.InstanceSshPublicKeyListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/instances/:instance/start",
-      handler(handlers["instanceStart"], schema.InstanceStartParams, null)
+      handler(handlers["instanceStart"], schema.InstanceStartParams, null),
     ),
     http.post(
       "/v1/instances/:instance/stop",
-      handler(handlers["instanceStop"], schema.InstanceStopParams, null)
+      handler(handlers["instanceStop"], schema.InstanceStopParams, null),
     ),
     http.get(
       "/v1/ip-pools",
       handler(
         handlers["projectIpPoolList"],
         schema.ProjectIpPoolListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/ip-pools/:pool",
       handler(
         handlers["projectIpPoolView"],
         schema.ProjectIpPoolViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/login/:siloName/local",
       handler(
         handlers["loginLocal"],
         schema.LoginLocalParams,
-        schema.UsernamePasswordCredentials
-      )
+        schema.UsernamePasswordCredentials,
+      ),
     ),
     http.post("/v1/logout", handler(handlers["logout"], null, null)),
     http.get("/v1/me", handler(handlers["currentUserView"], null, null)),
@@ -1625,706 +1637,722 @@ export function makeHandlers(handlers: MSWHandlers): HttpHandler[] {
       handler(
         handlers["currentUserGroups"],
         schema.CurrentUserGroupsParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/me/ssh-keys",
       handler(
         handlers["currentUserSshKeyList"],
         schema.CurrentUserSshKeyListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/me/ssh-keys",
-      handler(handlers["currentUserSshKeyCreate"], null, schema.SshKeyCreate)
+      handler(handlers["currentUserSshKeyCreate"], null, schema.SshKeyCreate),
     ),
     http.get(
       "/v1/me/ssh-keys/:sshKey",
       handler(
         handlers["currentUserSshKeyView"],
         schema.CurrentUserSshKeyViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.delete(
       "/v1/me/ssh-keys/:sshKey",
       handler(
         handlers["currentUserSshKeyDelete"],
         schema.CurrentUserSshKeyDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/metrics/:metricName",
-      handler(handlers["siloMetric"], schema.SiloMetricParams, null)
+      handler(handlers["siloMetric"], schema.SiloMetricParams, null),
     ),
     http.get(
       "/v1/network-interfaces",
       handler(
         handlers["instanceNetworkInterfaceList"],
         schema.InstanceNetworkInterfaceListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/network-interfaces",
       handler(
         handlers["instanceNetworkInterfaceCreate"],
         schema.InstanceNetworkInterfaceCreateParams,
-        schema.InstanceNetworkInterfaceCreate
-      )
+        schema.InstanceNetworkInterfaceCreate,
+      ),
     ),
     http.get(
       "/v1/network-interfaces/:interface",
       handler(
         handlers["instanceNetworkInterfaceView"],
         schema.InstanceNetworkInterfaceViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.put(
       "/v1/network-interfaces/:interface",
       handler(
         handlers["instanceNetworkInterfaceUpdate"],
         schema.InstanceNetworkInterfaceUpdateParams,
-        schema.InstanceNetworkInterfaceUpdate
-      )
+        schema.InstanceNetworkInterfaceUpdate,
+      ),
     ),
     http.delete(
       "/v1/network-interfaces/:interface",
       handler(
         handlers["instanceNetworkInterfaceDelete"],
         schema.InstanceNetworkInterfaceDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get("/v1/ping", handler(handlers["ping"], null, null)),
     http.get("/v1/policy", handler(handlers["policyView"], null, null)),
     http.put(
       "/v1/policy",
-      handler(handlers["policyUpdate"], null, schema.SiloRolePolicy)
+      handler(handlers["policyUpdate"], null, schema.SiloRolePolicy),
     ),
     http.get(
       "/v1/projects",
-      handler(handlers["projectList"], schema.ProjectListParams, null)
+      handler(handlers["projectList"], schema.ProjectListParams, null),
     ),
     http.post(
       "/v1/projects",
-      handler(handlers["projectCreate"], null, schema.ProjectCreate)
+      handler(handlers["projectCreate"], null, schema.ProjectCreate),
     ),
     http.get(
       "/v1/projects/:project",
-      handler(handlers["projectView"], schema.ProjectViewParams, null)
+      handler(handlers["projectView"], schema.ProjectViewParams, null),
     ),
     http.put(
       "/v1/projects/:project",
       handler(
         handlers["projectUpdate"],
         schema.ProjectUpdateParams,
-        schema.ProjectUpdate
-      )
+        schema.ProjectUpdate,
+      ),
     ),
     http.delete(
       "/v1/projects/:project",
-      handler(handlers["projectDelete"], schema.ProjectDeleteParams, null)
+      handler(handlers["projectDelete"], schema.ProjectDeleteParams, null),
     ),
     http.get(
       "/v1/projects/:project/policy",
       handler(
         handlers["projectPolicyView"],
         schema.ProjectPolicyViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.put(
       "/v1/projects/:project/policy",
       handler(
         handlers["projectPolicyUpdate"],
         schema.ProjectPolicyUpdateParams,
-        schema.ProjectRolePolicy
-      )
+        schema.ProjectRolePolicy,
+      ),
     ),
     http.get(
       "/v1/snapshots",
-      handler(handlers["snapshotList"], schema.SnapshotListParams, null)
+      handler(handlers["snapshotList"], schema.SnapshotListParams, null),
     ),
     http.post(
       "/v1/snapshots",
       handler(
         handlers["snapshotCreate"],
         schema.SnapshotCreateParams,
-        schema.SnapshotCreate
-      )
+        schema.SnapshotCreate,
+      ),
     ),
     http.get(
       "/v1/snapshots/:snapshot",
-      handler(handlers["snapshotView"], schema.SnapshotViewParams, null)
+      handler(handlers["snapshotView"], schema.SnapshotViewParams, null),
     ),
     http.delete(
       "/v1/snapshots/:snapshot",
-      handler(handlers["snapshotDelete"], schema.SnapshotDeleteParams, null)
+      handler(handlers["snapshotDelete"], schema.SnapshotDeleteParams, null),
     ),
     http.get(
       "/v1/system/hardware/disks",
-      handler(handlers["physicalDiskList"], schema.PhysicalDiskListParams, null)
+      handler(
+        handlers["physicalDiskList"],
+        schema.PhysicalDiskListParams,
+        null,
+      ),
     ),
     http.get(
       "/v1/system/hardware/racks",
-      handler(handlers["rackList"], schema.RackListParams, null)
+      handler(handlers["rackList"], schema.RackListParams, null),
     ),
     http.get(
       "/v1/system/hardware/racks/:rackId",
-      handler(handlers["rackView"], schema.RackViewParams, null)
+      handler(handlers["rackView"], schema.RackViewParams, null),
     ),
     http.get(
       "/v1/system/hardware/sleds",
-      handler(handlers["sledList"], schema.SledListParams, null)
+      handler(handlers["sledList"], schema.SledListParams, null),
     ),
     http.post(
       "/v1/system/hardware/sleds",
-      handler(handlers["sledAdd"], null, schema.UninitializedSledId)
+      handler(handlers["sledAdd"], null, schema.UninitializedSledId),
     ),
     http.get(
       "/v1/system/hardware/sleds/:sledId",
-      handler(handlers["sledView"], schema.SledViewParams, null)
+      handler(handlers["sledView"], schema.SledViewParams, null),
     ),
     http.get(
       "/v1/system/hardware/sleds/:sledId/disks",
       handler(
         handlers["sledPhysicalDiskList"],
         schema.SledPhysicalDiskListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/hardware/sleds/:sledId/instances",
-      handler(handlers["sledInstanceList"], schema.SledInstanceListParams, null)
+      handler(
+        handlers["sledInstanceList"],
+        schema.SledInstanceListParams,
+        null,
+      ),
     ),
     http.put(
       "/v1/system/hardware/sleds/:sledId/provision-policy",
       handler(
         handlers["sledSetProvisionPolicy"],
         schema.SledSetProvisionPolicyParams,
-        schema.SledProvisionPolicyParams
-      )
+        schema.SledProvisionPolicyParams,
+      ),
     ),
     http.get(
       "/v1/system/hardware/sleds-uninitialized",
       handler(
         handlers["sledListUninitialized"],
         schema.SledListUninitializedParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/hardware/switch-port",
       handler(
         handlers["networkingSwitchPortList"],
         schema.NetworkingSwitchPortListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/hardware/switch-port/:port/settings",
       handler(
         handlers["networkingSwitchPortApplySettings"],
         schema.NetworkingSwitchPortApplySettingsParams,
-        schema.SwitchPortApplySettings
-      )
+        schema.SwitchPortApplySettings,
+      ),
     ),
     http.delete(
       "/v1/system/hardware/switch-port/:port/settings",
       handler(
         handlers["networkingSwitchPortClearSettings"],
         schema.NetworkingSwitchPortClearSettingsParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/hardware/switches",
-      handler(handlers["switchList"], schema.SwitchListParams, null)
+      handler(handlers["switchList"], schema.SwitchListParams, null),
     ),
     http.get(
       "/v1/system/hardware/switches/:switchId",
-      handler(handlers["switchView"], schema.SwitchViewParams, null)
+      handler(handlers["switchView"], schema.SwitchViewParams, null),
     ),
     http.get(
       "/v1/system/identity-providers",
       handler(
         handlers["siloIdentityProviderList"],
         schema.SiloIdentityProviderListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/identity-providers/local/users",
       handler(
         handlers["localIdpUserCreate"],
         schema.LocalIdpUserCreateParams,
-        schema.UserCreate
-      )
+        schema.UserCreate,
+      ),
     ),
     http.delete(
       "/v1/system/identity-providers/local/users/:userId",
       handler(
         handlers["localIdpUserDelete"],
         schema.LocalIdpUserDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/identity-providers/local/users/:userId/set-password",
       handler(
         handlers["localIdpUserSetPassword"],
         schema.LocalIdpUserSetPasswordParams,
-        schema.UserPassword
-      )
+        schema.UserPassword,
+      ),
     ),
     http.post(
       "/v1/system/identity-providers/saml",
       handler(
         handlers["samlIdentityProviderCreate"],
         schema.SamlIdentityProviderCreateParams,
-        schema.SamlIdentityProviderCreate
-      )
+        schema.SamlIdentityProviderCreate,
+      ),
     ),
     http.get(
       "/v1/system/identity-providers/saml/:provider",
       handler(
         handlers["samlIdentityProviderView"],
         schema.SamlIdentityProviderViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/ip-pools",
-      handler(handlers["ipPoolList"], schema.IpPoolListParams, null)
+      handler(handlers["ipPoolList"], schema.IpPoolListParams, null),
     ),
     http.post(
       "/v1/system/ip-pools",
-      handler(handlers["ipPoolCreate"], null, schema.IpPoolCreate)
+      handler(handlers["ipPoolCreate"], null, schema.IpPoolCreate),
     ),
     http.get(
       "/v1/system/ip-pools/:pool",
-      handler(handlers["ipPoolView"], schema.IpPoolViewParams, null)
+      handler(handlers["ipPoolView"], schema.IpPoolViewParams, null),
     ),
     http.put(
       "/v1/system/ip-pools/:pool",
       handler(
         handlers["ipPoolUpdate"],
         schema.IpPoolUpdateParams,
-        schema.IpPoolUpdate
-      )
+        schema.IpPoolUpdate,
+      ),
     ),
     http.delete(
       "/v1/system/ip-pools/:pool",
-      handler(handlers["ipPoolDelete"], schema.IpPoolDeleteParams, null)
+      handler(handlers["ipPoolDelete"], schema.IpPoolDeleteParams, null),
     ),
     http.get(
       "/v1/system/ip-pools/:pool/ranges",
-      handler(handlers["ipPoolRangeList"], schema.IpPoolRangeListParams, null)
+      handler(handlers["ipPoolRangeList"], schema.IpPoolRangeListParams, null),
     ),
     http.post(
       "/v1/system/ip-pools/:pool/ranges/add",
       handler(
         handlers["ipPoolRangeAdd"],
         schema.IpPoolRangeAddParams,
-        schema.IpRange
-      )
+        schema.IpRange,
+      ),
     ),
     http.post(
       "/v1/system/ip-pools/:pool/ranges/remove",
       handler(
         handlers["ipPoolRangeRemove"],
         schema.IpPoolRangeRemoveParams,
-        schema.IpRange
-      )
+        schema.IpRange,
+      ),
     ),
     http.get(
       "/v1/system/ip-pools/:pool/silos",
-      handler(handlers["ipPoolSiloList"], schema.IpPoolSiloListParams, null)
+      handler(handlers["ipPoolSiloList"], schema.IpPoolSiloListParams, null),
     ),
     http.post(
       "/v1/system/ip-pools/:pool/silos",
       handler(
         handlers["ipPoolSiloLink"],
         schema.IpPoolSiloLinkParams,
-        schema.IpPoolLinkSilo
-      )
+        schema.IpPoolLinkSilo,
+      ),
     ),
     http.put(
       "/v1/system/ip-pools/:pool/silos/:silo",
       handler(
         handlers["ipPoolSiloUpdate"],
         schema.IpPoolSiloUpdateParams,
-        schema.IpPoolSiloUpdate
-      )
+        schema.IpPoolSiloUpdate,
+      ),
     ),
     http.delete(
       "/v1/system/ip-pools/:pool/silos/:silo",
-      handler(handlers["ipPoolSiloUnlink"], schema.IpPoolSiloUnlinkParams, null)
+      handler(
+        handlers["ipPoolSiloUnlink"],
+        schema.IpPoolSiloUnlinkParams,
+        null,
+      ),
     ),
     http.get(
       "/v1/system/ip-pools-service",
-      handler(handlers["ipPoolServiceView"], null, null)
+      handler(handlers["ipPoolServiceView"], null, null),
     ),
     http.get(
       "/v1/system/ip-pools-service/ranges",
       handler(
         handlers["ipPoolServiceRangeList"],
         schema.IpPoolServiceRangeListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/ip-pools-service/ranges/add",
-      handler(handlers["ipPoolServiceRangeAdd"], null, schema.IpRange)
+      handler(handlers["ipPoolServiceRangeAdd"], null, schema.IpRange),
     ),
     http.post(
       "/v1/system/ip-pools-service/ranges/remove",
-      handler(handlers["ipPoolServiceRangeRemove"], null, schema.IpRange)
+      handler(handlers["ipPoolServiceRangeRemove"], null, schema.IpRange),
     ),
     http.get(
       "/v1/system/metrics/:metricName",
-      handler(handlers["systemMetric"], schema.SystemMetricParams, null)
+      handler(handlers["systemMetric"], schema.SystemMetricParams, null),
     ),
     http.get(
       "/v1/system/networking/address-lot",
       handler(
         handlers["networkingAddressLotList"],
         schema.NetworkingAddressLotListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/networking/address-lot",
       handler(
         handlers["networkingAddressLotCreate"],
         null,
-        schema.AddressLotCreate
-      )
+        schema.AddressLotCreate,
+      ),
     ),
     http.delete(
       "/v1/system/networking/address-lot/:addressLot",
       handler(
         handlers["networkingAddressLotDelete"],
         schema.NetworkingAddressLotDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/networking/address-lot/:addressLot/blocks",
       handler(
         handlers["networkingAddressLotBlockList"],
         schema.NetworkingAddressLotBlockListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/networking/bfd-disable",
-      handler(handlers["networkingBfdDisable"], null, schema.BfdSessionDisable)
+      handler(handlers["networkingBfdDisable"], null, schema.BfdSessionDisable),
     ),
     http.post(
       "/v1/system/networking/bfd-enable",
-      handler(handlers["networkingBfdEnable"], null, schema.BfdSessionEnable)
+      handler(handlers["networkingBfdEnable"], null, schema.BfdSessionEnable),
     ),
     http.get(
       "/v1/system/networking/bfd-status",
-      handler(handlers["networkingBfdStatus"], null, null)
+      handler(handlers["networkingBfdStatus"], null, null),
     ),
     http.get(
       "/v1/system/networking/bgp",
       handler(
         handlers["networkingBgpConfigList"],
         schema.NetworkingBgpConfigListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/networking/bgp",
       handler(
         handlers["networkingBgpConfigCreate"],
         null,
-        schema.BgpConfigCreate
-      )
+        schema.BgpConfigCreate,
+      ),
     ),
     http.delete(
       "/v1/system/networking/bgp",
       handler(
         handlers["networkingBgpConfigDelete"],
         schema.NetworkingBgpConfigDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/networking/bgp-announce",
       handler(
         handlers["networkingBgpAnnounceSetList"],
         schema.NetworkingBgpAnnounceSetListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/networking/bgp-announce",
       handler(
         handlers["networkingBgpAnnounceSetCreate"],
         null,
-        schema.BgpAnnounceSetCreate
-      )
+        schema.BgpAnnounceSetCreate,
+      ),
     ),
     http.delete(
       "/v1/system/networking/bgp-announce",
       handler(
         handlers["networkingBgpAnnounceSetDelete"],
         schema.NetworkingBgpAnnounceSetDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/networking/bgp-routes-ipv4",
       handler(
         handlers["networkingBgpImportedRoutesIpv4"],
         schema.NetworkingBgpImportedRoutesIpv4Params,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/networking/bgp-status",
-      handler(handlers["networkingBgpStatus"], null, null)
+      handler(handlers["networkingBgpStatus"], null, null),
     ),
     http.get(
       "/v1/system/networking/loopback-address",
       handler(
         handlers["networkingLoopbackAddressList"],
         schema.NetworkingLoopbackAddressListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/networking/loopback-address",
       handler(
         handlers["networkingLoopbackAddressCreate"],
         null,
-        schema.LoopbackAddressCreate
-      )
+        schema.LoopbackAddressCreate,
+      ),
     ),
     http.delete(
       "/v1/system/networking/loopback-address/:rackId/:switchLocation/:address/:subnetMask",
       handler(
         handlers["networkingLoopbackAddressDelete"],
         schema.NetworkingLoopbackAddressDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/networking/switch-port-settings",
       handler(
         handlers["networkingSwitchPortSettingsList"],
         schema.NetworkingSwitchPortSettingsListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.post(
       "/v1/system/networking/switch-port-settings",
       handler(
         handlers["networkingSwitchPortSettingsCreate"],
         null,
-        schema.SwitchPortSettingsCreate
-      )
+        schema.SwitchPortSettingsCreate,
+      ),
     ),
     http.delete(
       "/v1/system/networking/switch-port-settings",
       handler(
         handlers["networkingSwitchPortSettingsDelete"],
         schema.NetworkingSwitchPortSettingsDeleteParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/networking/switch-port-settings/:port",
       handler(
         handlers["networkingSwitchPortSettingsView"],
         schema.NetworkingSwitchPortSettingsViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/policy",
-      handler(handlers["systemPolicyView"], null, null)
+      handler(handlers["systemPolicyView"], null, null),
     ),
     http.put(
       "/v1/system/policy",
-      handler(handlers["systemPolicyUpdate"], null, schema.FleetRolePolicy)
+      handler(handlers["systemPolicyUpdate"], null, schema.FleetRolePolicy),
     ),
     http.get(
       "/v1/system/roles",
-      handler(handlers["roleList"], schema.RoleListParams, null)
+      handler(handlers["roleList"], schema.RoleListParams, null),
     ),
     http.get(
       "/v1/system/roles/:roleName",
-      handler(handlers["roleView"], schema.RoleViewParams, null)
+      handler(handlers["roleView"], schema.RoleViewParams, null),
     ),
     http.get(
       "/v1/system/silo-quotas",
-      handler(handlers["systemQuotasList"], schema.SystemQuotasListParams, null)
+      handler(
+        handlers["systemQuotasList"],
+        schema.SystemQuotasListParams,
+        null,
+      ),
     ),
     http.get(
       "/v1/system/silos",
-      handler(handlers["siloList"], schema.SiloListParams, null)
+      handler(handlers["siloList"], schema.SiloListParams, null),
     ),
     http.post(
       "/v1/system/silos",
-      handler(handlers["siloCreate"], null, schema.SiloCreate)
+      handler(handlers["siloCreate"], null, schema.SiloCreate),
     ),
     http.get(
       "/v1/system/silos/:silo",
-      handler(handlers["siloView"], schema.SiloViewParams, null)
+      handler(handlers["siloView"], schema.SiloViewParams, null),
     ),
     http.delete(
       "/v1/system/silos/:silo",
-      handler(handlers["siloDelete"], schema.SiloDeleteParams, null)
+      handler(handlers["siloDelete"], schema.SiloDeleteParams, null),
     ),
     http.get(
       "/v1/system/silos/:silo/ip-pools",
-      handler(handlers["siloIpPoolList"], schema.SiloIpPoolListParams, null)
+      handler(handlers["siloIpPoolList"], schema.SiloIpPoolListParams, null),
     ),
     http.get(
       "/v1/system/silos/:silo/policy",
-      handler(handlers["siloPolicyView"], schema.SiloPolicyViewParams, null)
+      handler(handlers["siloPolicyView"], schema.SiloPolicyViewParams, null),
     ),
     http.put(
       "/v1/system/silos/:silo/policy",
       handler(
         handlers["siloPolicyUpdate"],
         schema.SiloPolicyUpdateParams,
-        schema.SiloRolePolicy
-      )
+        schema.SiloRolePolicy,
+      ),
     ),
     http.get(
       "/v1/system/silos/:silo/quotas",
-      handler(handlers["siloQuotasView"], schema.SiloQuotasViewParams, null)
+      handler(handlers["siloQuotasView"], schema.SiloQuotasViewParams, null),
     ),
     http.put(
       "/v1/system/silos/:silo/quotas",
       handler(
         handlers["siloQuotasUpdate"],
         schema.SiloQuotasUpdateParams,
-        schema.SiloQuotasUpdate
-      )
+        schema.SiloQuotasUpdate,
+      ),
     ),
     http.get(
       "/v1/system/users",
-      handler(handlers["siloUserList"], schema.SiloUserListParams, null)
+      handler(handlers["siloUserList"], schema.SiloUserListParams, null),
     ),
     http.get(
       "/v1/system/users/:userId",
-      handler(handlers["siloUserView"], schema.SiloUserViewParams, null)
+      handler(handlers["siloUserView"], schema.SiloUserViewParams, null),
     ),
     http.get(
       "/v1/system/users-builtin",
-      handler(handlers["userBuiltinList"], schema.UserBuiltinListParams, null)
+      handler(handlers["userBuiltinList"], schema.UserBuiltinListParams, null),
     ),
     http.get(
       "/v1/system/users-builtin/:user",
-      handler(handlers["userBuiltinView"], schema.UserBuiltinViewParams, null)
+      handler(handlers["userBuiltinView"], schema.UserBuiltinViewParams, null),
     ),
     http.get(
       "/v1/system/utilization/silos",
       handler(
         handlers["siloUtilizationList"],
         schema.SiloUtilizationListParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/system/utilization/silos/:silo",
       handler(
         handlers["siloUtilizationView"],
         schema.SiloUtilizationViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/users",
-      handler(handlers["userList"], schema.UserListParams, null)
+      handler(handlers["userList"], schema.UserListParams, null),
     ),
     http.get(
       "/v1/utilization",
-      handler(handlers["utilizationView"], null, null)
+      handler(handlers["utilizationView"], null, null),
     ),
     http.get(
       "/v1/vpc-firewall-rules",
       handler(
         handlers["vpcFirewallRulesView"],
         schema.VpcFirewallRulesViewParams,
-        null
-      )
+        null,
+      ),
     ),
     http.put(
       "/v1/vpc-firewall-rules",
       handler(
         handlers["vpcFirewallRulesUpdate"],
         schema.VpcFirewallRulesUpdateParams,
-        schema.VpcFirewallRuleUpdateParams
-      )
+        schema.VpcFirewallRuleUpdateParams,
+      ),
     ),
     http.get(
       "/v1/vpc-subnets",
-      handler(handlers["vpcSubnetList"], schema.VpcSubnetListParams, null)
+      handler(handlers["vpcSubnetList"], schema.VpcSubnetListParams, null),
     ),
     http.post(
       "/v1/vpc-subnets",
       handler(
         handlers["vpcSubnetCreate"],
         schema.VpcSubnetCreateParams,
-        schema.VpcSubnetCreate
-      )
+        schema.VpcSubnetCreate,
+      ),
     ),
     http.get(
       "/v1/vpc-subnets/:subnet",
-      handler(handlers["vpcSubnetView"], schema.VpcSubnetViewParams, null)
+      handler(handlers["vpcSubnetView"], schema.VpcSubnetViewParams, null),
     ),
     http.put(
       "/v1/vpc-subnets/:subnet",
       handler(
         handlers["vpcSubnetUpdate"],
         schema.VpcSubnetUpdateParams,
-        schema.VpcSubnetUpdate
-      )
+        schema.VpcSubnetUpdate,
+      ),
     ),
     http.delete(
       "/v1/vpc-subnets/:subnet",
-      handler(handlers["vpcSubnetDelete"], schema.VpcSubnetDeleteParams, null)
+      handler(handlers["vpcSubnetDelete"], schema.VpcSubnetDeleteParams, null),
     ),
     http.get(
       "/v1/vpc-subnets/:subnet/network-interfaces",
       handler(
         handlers["vpcSubnetListNetworkInterfaces"],
         schema.VpcSubnetListNetworkInterfacesParams,
-        null
-      )
+        null,
+      ),
     ),
     http.get(
       "/v1/vpcs",
-      handler(handlers["vpcList"], schema.VpcListParams, null)
+      handler(handlers["vpcList"], schema.VpcListParams, null),
     ),
     http.post(
       "/v1/vpcs",
-      handler(handlers["vpcCreate"], schema.VpcCreateParams, schema.VpcCreate)
+      handler(handlers["vpcCreate"], schema.VpcCreateParams, schema.VpcCreate),
     ),
     http.get(
       "/v1/vpcs/:vpc",
-      handler(handlers["vpcView"], schema.VpcViewParams, null)
+      handler(handlers["vpcView"], schema.VpcViewParams, null),
     ),
     http.put(
       "/v1/vpcs/:vpc",
-      handler(handlers["vpcUpdate"], schema.VpcUpdateParams, schema.VpcUpdate)
+      handler(handlers["vpcUpdate"], schema.VpcUpdateParams, schema.VpcUpdate),
     ),
     http.delete(
       "/v1/vpcs/:vpc",
-      handler(handlers["vpcDelete"], schema.VpcDeleteParams, null)
+      handler(handlers["vpcDelete"], schema.VpcDeleteParams, null),
     ),
   ];
 }
