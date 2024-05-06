@@ -15,8 +15,46 @@ import { generateMSWHandlers } from "./client/msw-handlers";
 import { generateTypeTests } from "./client/type-tests";
 import { generateZodValidators } from "./client/zodValidators";
 import { resolve } from "node:path";
+import parseArgs from "minimist";
 
-async function generate(specFile: string, destDir: string) {
+function helpAndExit(msg?: string): never {
+  if (msg) console.log("Error: " + msg + "\n");
+  console.log("Usage:");
+  console.log("  gen <specFile> <destDir> [options]\n");
+  console.log("Options:");
+  console.log(
+    "  --features       Comma-separated list of features to generate. Default: none.",
+  );
+  console.log(`                   Allowed values: ${ALL_FEATURES.join(", ")}`);
+  console.log("  -h, --help       Show this help message and exit\n");
+  console.log("Example:");
+  console.log("  gen nexus-json generated-client --features zod,msw");
+  process.exit(1);
+}
+
+type Feature = "zod" | "msw" | "typetests";
+const ALL_FEATURES: Feature[] = ["zod", "msw", "typetests"];
+type Features = Record<Feature, boolean>;
+
+function parseFeatures(featuresArg: string | undefined) {
+  const features =
+    typeof featuresArg === "string"
+      ? featuresArg.split(",").map((f) => f.trim())
+      : [];
+
+  for (const feature of features) {
+    if (!ALL_FEATURES.includes(feature as Feature)) {
+      helpAndExit(`Unrecognized feature '${feature}'.`);
+    }
+  }
+  return {
+    zod: features.includes("zod"),
+    msw: features.includes("msw"),
+    typetests: features.includes("typetests"),
+  };
+}
+
+async function generate(specFile: string, destDir: string, features: Features) {
   // destination directory is resolved relative to CWD
   const destDirAbs = resolve(process.cwd(), destDir);
 
@@ -31,21 +69,27 @@ async function generate(specFile: string, destDir: string) {
 
   copyStaticFiles(destDirAbs);
   generateApi(spec, destDirAbs);
-  generateZodValidators(spec, destDirAbs);
-  // TODO: make conditional - we only want generated for testing purpose
-  generateTypeTests(spec, destDirAbs);
-  generateMSWHandlers(spec, destDirAbs);
+  if (features.typetests) generateTypeTests(spec, destDirAbs);
+  if (features.msw) generateMSWHandlers(spec, destDirAbs);
+  // msw requires zod
+  if (features.zod || features.msw) generateZodValidators(spec, destDirAbs);
 }
 
-function helpAndExit(msg: string): never {
-  console.log(msg);
-  console.log("\nUsage: gen <specFile> <destDir>");
-  process.exit(1);
-}
+////////////////////////////////////
+// actually do the thing
+////////////////////////////////////
 
-const [specFile, destDir] = process.argv.slice(2);
+const args = parseArgs(process.argv.slice(2), {
+  string: ["features"],
+  alias: { h: "help" },
+});
 
+if (args.help) helpAndExit();
+
+const [specFile, destDir] = args._;
 if (!specFile) helpAndExit(`Missing <specFile>`);
 if (!destDir) helpAndExit(`Missing <destdir>`);
 
-generate(specFile, destDir);
+const features = parseFeatures(args.features);
+
+generate(specFile, destDir, features);
