@@ -24,7 +24,7 @@ function helpAndExit(msg?: string): never {
   console.log("  gen <specFile> <destDir> [options]\n");
   console.log("Options:");
   console.log(
-    "  --features       Comma-separated list of features to generate. Default: none.",
+    "  --features       Comma-separated list of features to generate. Default: none."
   );
   console.log(`                   Allowed values: ${ALL_FEATURES.join(", ")}`);
   console.log("  -h, --help       Show this help message and exit\n");
