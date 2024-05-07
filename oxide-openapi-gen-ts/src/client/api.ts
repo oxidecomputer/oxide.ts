@@ -256,7 +256,9 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       }
 
       if (queryParams.length > 0) {
-        w(`query?: ${queryParamsType(methodNameType)},`);
+        w0("query");
+        if (!queryParams.some((p) => p.required)) w0("?");
+        w(`: ${queryParamsType(methodNameType)},`);
       }
       if (bodyType) w(`body: ${bodyType},`);
       w("},");
