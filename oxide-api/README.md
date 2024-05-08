@@ -30,14 +30,14 @@ not a special variable for the TypeScript SDK (it is for the CLI).
 ### Example
 
 ```ts
-import { Api } from "@oxide/api"
+import Oxide from "@oxide/api"
 
-const api = new Api({
+const oxide = new Oxide({
   host: "https://my-oxide-rack.com",
   token: process.env.OXIDE_TOKEN,
 })
 
-const result = await api.methods.projectList({})
+const result = await oxide.methods.projectList({})
 
 if (result.type === "success") {
   console.log(result.data.items.map((p) => p.name))
