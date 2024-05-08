@@ -12,8 +12,7 @@ npm version <bump-type>
 # now commit and push that because we don't want to publish things that aren't
 # on github
 
-# now build and publish
-npm run build # runs tsup and outputs in dist
+# now build and publish (prepublish step runs build)
 npm publish
 ```
 
