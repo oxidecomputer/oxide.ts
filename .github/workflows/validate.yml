@@ -19,16 +19,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "18"
+      - working-directory: "./oxide-api"
+        run: npm install
+      - name: Typecheck client
+        working-directory: "./oxide-api"
+        run: npm run tsc
       - working-directory: "./oxide-openapi-gen-ts"
         run: npm install
+      # TODO: this probably doesn't make sense anymore, it should be done already
       - name: Generate client
         run: "./tools/gen.sh"
-      - name: Typecheck
+      - name: Typecheck generator
         working-directory: "./oxide-openapi-gen-ts"
         run: npm run tsc
-      - name: Lint
+      - name: Lint generator
         working-directory: "./oxide-openapi-gen-ts"
         run: npm run lint
-      - name: Test
+      - name: Test generator
         working-directory: "./oxide-openapi-gen-ts"
         run: npm test run
