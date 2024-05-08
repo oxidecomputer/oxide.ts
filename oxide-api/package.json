@@ -8,14 +8,8 @@
   "type": "module",
   "main": "./dist/Api.js",
   "exports": {
-    ".": {
-      "import": "./dist/Api.js",
-      "require": "./dist/Api.cjs"
-    },
-    "./validate": {
-      "import": "./dist/validate.js",
-      "require": "./dist/validate.cjs"
-    }
+    "import": "./dist/Api.js",
+    "require": "./dist/Api.cjs"
   },
   "scripts": {
     "build": "tsup --dts",
@@ -44,8 +38,7 @@
   "tsup": {
     "clean": true,
     "entry": [
-      "src/Api.ts",
-      "src/validate.ts"
+      "src/Api.ts"
     ],
     "format": [
       "cjs",
