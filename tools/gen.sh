@@ -19,7 +19,8 @@ SPEC_FILE="./spec.json"
 # TODO: we could get rid of this DL if a test didn't rely on it
 curl --fail "$SPEC_URL" -o $SPEC_FILE
 
+rm -f oxide-api/src/* # remove after we add --clean flag to generator
+
 # note no features, API client only
-rm oxide-api/src/*
 npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR
 npx prettier@3.2.5 --write --log-level error "$DEST_DIR"

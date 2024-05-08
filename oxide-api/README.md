@@ -51,11 +51,3 @@ if (result.type === "success") {
 ### Request bodies
 
 ### Responses: `ApiResult<T>`
-
-## Other stuff in the package
-
-Most likely nobody but us wants this, and we should take it out of the npm package.
-
-### Mock Service Worker API skeleton
-
-### Zod validators
