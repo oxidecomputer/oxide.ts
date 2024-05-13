@@ -207,7 +207,7 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
   w("type EmptyObj = Record<string, never>;");
 
-  w(`export default class Api extends HttpClient {
+  w(`export class Api extends HttpClient {
        methods = {`);
 
   for (const { conf, opId, method, path } of iterPathConfig(spec.paths)) {
@@ -331,6 +331,8 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   }
 
   w(`  }
-     }`);
+     }
+
+   export default Api;`);
   out.end();
 }

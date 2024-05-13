@@ -4175,7 +4175,7 @@ export type ApiListMethods = Pick<
 >;
 
 type EmptyObj = Record<string, never>;
-export default class Api extends HttpClient {
+export class Api extends HttpClient {
   methods = {
     /**
      * Start an OAuth 2.0 Device Authorization Grant
@@ -6990,3 +6990,5 @@ export default class Api extends HttpClient {
     },
   };
 }
+
+export default Api;
