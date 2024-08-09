@@ -16,12 +16,10 @@ export const schemaToTypes = makeSchemaGenerator({
     }
   },
   enum(schema, { w0, w }) {
-    if (schema.enum!.length === 1) {
-      return w0(JSON.stringify(schema.enum![0]));
-    }
-    for (const arm of schema.enum!) {
-      w(`| ${JSON.stringify(arm)}`);
-    }
+    schema.enum!.forEach((arm, i) => {
+      if (i > 0) w0("| ");
+      w(JSON.stringify(arm));
+    });
   },
   boolean(_, { w0 }) {
     w0(`boolean`);
@@ -77,7 +75,7 @@ export const schemaToTypes = makeSchemaGenerator({
       if ("description" in s) {
         io.w(`/** ${s.description} */`);
       }
-      io.w0("|");
+      io.w0("| ");
       schemaToTypes(s, io);
       io.w("");
     }
