@@ -2067,7 +2067,7 @@ export type IpPoolUtilization = {
 /**
  * A range of IP ports
  *
- * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
+ * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port.
  */
 export type L4PortRange = string;
 
@@ -3557,9 +3557,9 @@ export type UserBuiltinResultsPage = {
 };
 
 /**
- * A name unique within the parent collection
+ * A username for a local-only user
  *
- * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID, but they may contain a UUID. They can be at most 63 characters long.
+ * Usernames must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Usernames cannot be a UUID, but they may contain a UUID. They can be at most 63 characters long.
  */
 export type UserId = string;
 
@@ -3672,12 +3672,12 @@ export type VpcFirewallRuleHostFilter =
 export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
 
 /**
- * Filter for a firewall rule. A given packet must match every field that is present for the rule to apply to it. A packet matches a field if any entry in that field matches the packet.
+ * Filters reduce the scope of a firewall rule. Without filters, the rule applies to all packets to the targets (or from the targets, if it's an outbound rule). With multiple filters, the rule applies only to packets matching ALL filters. The maximum number of each type of filter is 256.
  */
 export type VpcFirewallRuleFilter = {
-  /** If present, the sources (if incoming) or destinations (if outgoing) this rule applies to. */
+  /** If present, host filters match the "other end" of traffic from the target’s perspective: for an inbound rule, they match the source of traffic. For an outbound rule, they match the destination. */
   hosts?: VpcFirewallRuleHostFilter[];
-  /** If present, the destination ports this rule applies to. */
+  /** If present, the destination ports or port ranges this rule applies to. */
   ports?: L4PortRange[];
   /** If present, the networking protocols this rule applies to. */
   protocols?: VpcFirewallRuleProtocol[];
@@ -3686,7 +3686,7 @@ export type VpcFirewallRuleFilter = {
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
 
 /**
- * A `VpcFirewallRuleTarget` is used to specify the set of `Instance`s to which a firewall rule applies.
+ * A `VpcFirewallRuleTarget` is used to specify the set of instances to which a firewall rule applies. You can target instances directly by name, or specify a VPC, VPC subnet, IP, or IP subnet, which will apply the rule to traffic going to all matching instances. Targets are additive: the rule applies to instances matching ANY target.
  */
 export type VpcFirewallRuleTarget =
   /** The rule applies to all instances in the VPC */
@@ -3704,29 +3704,29 @@ export type VpcFirewallRuleTarget =
  * A single rule in a VPC firewall
  */
 export type VpcFirewallRule = {
-  /** whether traffic matching the rule should be allowed or dropped */
+  /** Whether traffic matching the rule should be allowed or dropped */
   action: VpcFirewallRuleAction;
   /** human-readable free-form text about a resource */
   description: string;
-  /** whether this rule is for incoming or outgoing traffic */
+  /** Whether this rule is for incoming or outgoing traffic */
   direction: VpcFirewallRuleDirection;
-  /** reductions on the scope of the rule */
+  /** Reductions on the scope of the rule */
   filters: VpcFirewallRuleFilter;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
-  /** the relative priority of this rule */
+  /** The relative priority of this rule */
   priority: number;
-  /** whether this rule is in effect */
+  /** Whether this rule is in effect */
   status: VpcFirewallRuleStatus;
-  /** list of sets of instances that the rule applies to */
+  /** Determine the set of instances that the rule applies to */
   targets: VpcFirewallRuleTarget[];
   /** timestamp when this resource was created */
   timeCreated: Date;
   /** timestamp when this resource was last modified */
   timeModified: Date;
-  /** the VPC to which this rule belongs */
+  /** The VPC to which this rule belongs */
   vpcId: string;
 };
 
@@ -3734,26 +3734,26 @@ export type VpcFirewallRule = {
  * A single rule in a VPC firewall
  */
 export type VpcFirewallRuleUpdate = {
-  /** whether traffic matching the rule should be allowed or dropped */
+  /** Whether traffic matching the rule should be allowed or dropped */
   action: VpcFirewallRuleAction;
-  /** human-readable free-form text about a resource */
+  /** Human-readable free-form text about a resource */
   description: string;
-  /** whether this rule is for incoming or outgoing traffic */
+  /** Whether this rule is for incoming or outgoing traffic */
   direction: VpcFirewallRuleDirection;
-  /** reductions on the scope of the rule */
+  /** Reductions on the scope of the rule */
   filters: VpcFirewallRuleFilter;
-  /** name of the rule, unique to this VPC */
+  /** Name of the rule, unique to this VPC */
   name: Name;
-  /** the relative priority of this rule */
+  /** The relative priority of this rule */
   priority: number;
-  /** whether this rule is in effect */
+  /** Whether this rule is in effect */
   status: VpcFirewallRuleStatus;
-  /** list of sets of instances that the rule applies to */
+  /** Determine the set of instances that the rule applies to */
   targets: VpcFirewallRuleTarget[];
 };
 
 /**
- * Updateable properties of a `Vpc`'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
+ * Updated list of firewall rules. Will replace all existing rules.
  */
 export type VpcFirewallRuleUpdateParams = { rules: VpcFirewallRuleUpdate[] };
 
