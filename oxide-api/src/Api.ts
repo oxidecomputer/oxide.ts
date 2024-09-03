@@ -387,6 +387,14 @@ export type BgpConfigResultsPage = {
 };
 
 /**
+ * The current status of a BGP peer.
+ */
+export type BgpExported = {
+  /** Exported routes indexed by peer address. */
+  exports: Record<string, Ipv4Net[]>;
+};
+
+/**
  * A route imported from a BGP peer.
  */
 export type BgpImportedRouteIpv4 = {
@@ -1854,11 +1862,6 @@ If not provided, all SSH public keys from the user's profile will be sent. If an
 };
 
 /**
- * Migration parameters for an `Instance`
- */
-export type InstanceMigrate = { dstSledId: string };
-
-/**
  * A MAC address
  *
  * A Media Access Control address, in EUI-48 format
@@ -2085,13 +2088,23 @@ export type LinkFec =
   | "rs";
 
 /**
- * The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
+ * The LLDP configuration associated with a port.
  */
-export type LldpServiceConfigCreate = {
+export type LldpLinkConfigCreate = {
+  /** The LLDP chassis identifier TLV. */
+  chassisId?: string;
   /** Whether or not LLDP is enabled. */
   enabled: boolean;
-  /** A reference to the LLDP configuration used. Must not be `None` when `enabled` is `true`. */
-  lldpConfig?: NameOrId;
+  /** The LLDP link description TLV. */
+  linkDescription?: string;
+  /** The LLDP link name TLV. */
+  linkName?: string;
+  /** The LLDP management IP TLV. */
+  managementIp?: string;
+  /** The LLDP system description TLV. */
+  systemDescription?: string;
+  /** The LLDP system name TLV. */
+  systemName?: string;
 };
 
 /**
@@ -2134,7 +2147,7 @@ export type LinkConfigCreate = {
   /** The forward error correction mode of the link. */
   fec: LinkFec;
   /** The link-layer discovery protocol (LLDP) configuration for the link. */
-  lldp: LldpServiceConfigCreate;
+  lldp: LldpLinkConfigCreate;
   /** Maximum transmission unit for the link. */
   mtu: number;
   /** The speed of the link. */
@@ -2144,13 +2157,23 @@ export type LinkConfigCreate = {
 /**
  * A link layer discovery protocol (LLDP) service configuration.
  */
-export type LldpServiceConfig = {
+export type LldpLinkConfig = {
+  /** The LLDP chassis identifier TLV. */
+  chassisId?: string;
   /** Whether or not the LLDP service is enabled. */
   enabled: boolean;
   /** The id of this LLDP service instance. */
   id: string;
-  /** The link-layer discovery protocol configuration for this service. */
-  lldpConfigId?: string;
+  /** The LLDP link description TLV. */
+  linkDescription?: string;
+  /** The LLDP link name TLV. */
+  linkName?: string;
+  /** The LLDP management IP TLV. */
+  managementIp?: IpNet;
+  /** The LLDP system description TLV. */
+  systemDescription?: string;
+  /** The LLDP system name TLV. */
+  systemName?: string;
 };
 
 /**
@@ -2258,6 +2281,60 @@ export type NetworkInterface = {
 };
 
 /**
+ * List of data values for one timeseries.
+ *
+ * Each element is an option, where `None` represents a missing sample.
+ */
+export type ValueArray =
+  | { type: "integer"; values: number[] }
+  | { type: "double"; values: number[] }
+  | { type: "boolean"; values: boolean[] }
+  | { type: "string"; values: string[] }
+  | { type: "integer_distribution"; values: Distributionint64[] }
+  | { type: "double_distribution"; values: Distributiondouble[] };
+
+/**
+ * A single list of values, for one dimension of a timeseries.
+ */
+export type Values = {
+  /** The type of this metric. */
+  metricType: MetricType;
+  /** The data values. */
+  values: ValueArray;
+};
+
+/**
+ * Timepoints and values for one timeseries.
+ */
+export type Points = {
+  startTimes?: Date[];
+  timestamps: Date[];
+  values: Values[];
+};
+
+/**
+ * A timeseries contains a timestamped set of values from one source.
+ *
+ * This includes the typed key-value pairs that uniquely identify it, and the set of timestamps and data values from it.
+ */
+export type Timeseries = { fields: Record<string, FieldValue>; points: Points };
+
+/**
+ * A table represents one or more timeseries with the same schema.
+ *
+ * A table is the result of an OxQL query. It contains a name, usually the name of the timeseries schema from which the data is derived, and any number of timeseries, which contain the actual data.
+ */
+export type Table = { name: string; timeseries: Record<string, Timeseries> };
+
+/**
+ * The result of a successful OxQL query.
+ */
+export type OxqlQueryResult = {
+  /** Tables resulting from the query, each containing timeseries. */
+  tables: Table[];
+};
+
+/**
  * A password used to authenticate a user
  *
  * Passwords may be subject to additional constraints.
@@ -2333,33 +2410,6 @@ export type PingStatus = "ok";
 export type Ping = {
   /** Whether the external API is reachable. Will always be Ok if the endpoint returns anything at all. */
   status: PingStatus;
-};
-
-/**
- * List of data values for one timeseries.
- *
- * Each element is an option, where `None` represents a missing sample.
- */
-export type ValueArray =
-  | { type: "integer"; values: number[] }
-  | { type: "double"; values: number[] }
-  | { type: "boolean"; values: boolean[] }
-  | { type: "string"; values: string[] }
-  | { type: "integer_distribution"; values: Distributionint64[] }
-  | { type: "double_distribution"; values: Distributiondouble[] };
-
-/**
- * A single list of values, for one dimension of a timeseries.
- */
-export type Values = { metricType: MetricType; values: ValueArray };
-
-/**
- * Timepoints and values for one timeseries.
- */
-export type Points = {
-  startTimes?: Date[];
-  timestamps: Date[];
-  values: Values[];
 };
 
 /**
@@ -2527,6 +2577,8 @@ export type Route = {
   dst: IpNet;
   /** The route gateway. */
   gw: string;
+  /** Local preference for route. Higher preference indictes precedence within and across protocols. */
+  localPref?: number;
   /** VLAN id the gateway is reachable over. */
   vid?: number;
 };
@@ -3284,7 +3336,7 @@ export type SwitchPortLinkConfig = {
   /** The name of this link. */
   linkName: string;
   /** The link-layer discovery protocol service configuration id for this link. */
-  lldpServiceConfigId: string;
+  lldpLinkConfigId?: string;
   /** The maximum transmission unit for this link. */
   mtu: number;
   /** The port settings this link configuration belongs to. */
@@ -3313,6 +3365,8 @@ export type SwitchPortRouteConfig = {
   gw: IpNet;
   /** The interface name this route configuration is assigned to. */
   interfaceName: string;
+  /** Local preference indicating priority within and across protocols. */
+  localPref?: number;
   /** The port settings object this route configuration belongs to. */
   portSettingsId: string;
   /** The VLAN identifier for the route. Use this if the gateway is reachable over an 802.1Q tagged L2 segment. */
@@ -3398,7 +3452,7 @@ export type SwitchPortSettingsView = {
   /** Layer 3 interface settings. */
   interfaces: SwitchInterfaceConfig[];
   /** Link-layer discovery protocol (LLDP) settings. */
-  linkLldp: LldpServiceConfig[];
+  linkLldp: LldpLinkConfig[];
   /** Layer 2 link settings. */
   links: SwitchPortLinkConfig[];
   /** Layer 1 physical port settings. */
@@ -3420,20 +3474,6 @@ export type SwitchResultsPage = {
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
-
-/**
- * A timeseries contains a timestamped set of values from one source.
- *
- * This includes the typed key-value pairs that uniquely identify it, and the set of timestamps and data values from it.
- */
-export type Timeseries = { fields: Record<string, FieldValue>; points: Points };
-
-/**
- * A table represents one or more timeseries with the same schema.
- *
- * A table is the result of an OxQL query. It contains a name, usually the name of the timeseries schema from which the data is derived, and any number of timeseries, which contain the actual data.
- */
-export type Table = { name: string; timeseries: Record<string, Timeseries> };
 
 /**
  * Text descriptions for the target and metric of a timeseries.
@@ -3463,9 +3503,16 @@ export type Units =
   | "bytes"
   | "seconds"
   | "nanoseconds"
+  | "volts"
+  | "amps"
+  | "watts"
+  | "degrees_celsius"
 
   /** No meaningful units, e.g. a dimensionless quanity. */
-  | "none";
+  | "none"
+
+  /** Rotations per minute. */
+  | "rpm";
 
 /**
  * The schema for a timeseries.
@@ -4228,14 +4275,6 @@ export interface InstanceEphemeralIpDetachQueryParams {
   project?: NameOrId;
 }
 
-export interface InstanceMigratePathParams {
-  instance: NameOrId;
-}
-
-export interface InstanceMigrateQueryParams {
-  project?: NameOrId;
-}
-
 export interface InstanceRebootPathParams {
   instance: NameOrId;
 }
@@ -4686,10 +4725,17 @@ export interface NetworkingBgpConfigDeleteQueryParams {
 }
 
 export interface NetworkingBgpAnnounceSetListQueryParams {
+  limit?: number;
+  nameOrId?: NameOrId;
+  pageToken?: string;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface NetworkingBgpAnnounceSetDeletePathParams {
   nameOrId: NameOrId;
 }
 
-export interface NetworkingBgpAnnounceSetDeleteQueryParams {
+export interface NetworkingBgpAnnouncementListPathParams {
   nameOrId: NameOrId;
 }
 
@@ -5047,6 +5093,7 @@ export type ApiListMethods = Pick<
   | "networkingAddressLotBlockList"
   | "networkingBgpConfigList"
   | "networkingBgpAnnounceSetList"
+  | "networkingBgpAnnouncementList"
   | "networkingLoopbackAddressList"
   | "networkingSwitchPortSettingsList"
   | "roleList"
@@ -5853,29 +5900,6 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/v1/instances/${path.instance}/external-ips/ephemeral`,
         method: "DELETE",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Migrate an instance
-     */
-    instanceMigrate: (
-      {
-        path,
-        query = {},
-        body,
-      }: {
-        path: InstanceMigratePathParams;
-        query?: InstanceMigrateQueryParams;
-        body: InstanceMigrate;
-      },
-      params: FetchParams = {},
-    ) => {
-      return this.request<Instance>({
-        path: `/v1/instances/${path.instance}/migrate`,
-        method: "POST",
-        body,
         query,
         ...params,
       });
@@ -7230,14 +7254,14 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Get originated routes for a BGP configuration
+     * List BGP announce sets
      */
     networkingBgpAnnounceSetList: (
-      { query }: { query: NetworkingBgpAnnounceSetListQueryParams },
+      { query = {} }: { query?: NetworkingBgpAnnounceSetListQueryParams },
       params: FetchParams = {},
     ) => {
-      return this.request<BgpAnnouncement[]>({
-        path: `/v1/system/networking/bgp-announce`,
+      return this.request<BgpAnnounceSet[]>({
+        path: `/v1/system/networking/bgp-announce-set`,
         method: "GET",
         query,
         ...params,
@@ -7251,7 +7275,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<BgpAnnounceSet>({
-        path: `/v1/system/networking/bgp-announce`,
+        path: `/v1/system/networking/bgp-announce-set`,
         method: "PUT",
         body,
         ...params,
@@ -7261,13 +7285,35 @@ export class Api extends HttpClient {
      * Delete BGP announce set
      */
     networkingBgpAnnounceSetDelete: (
-      { query }: { query: NetworkingBgpAnnounceSetDeleteQueryParams },
+      { path }: { path: NetworkingBgpAnnounceSetDeletePathParams },
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/v1/system/networking/bgp-announce`,
+        path: `/v1/system/networking/bgp-announce-set/${path.nameOrId}`,
         method: "DELETE",
-        query,
+        ...params,
+      });
+    },
+    /**
+     * Get originated routes for a specified BGP announce set
+     */
+    networkingBgpAnnouncementList: (
+      { path }: { path: NetworkingBgpAnnouncementListPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<BgpAnnouncement[]>({
+        path: `/v1/system/networking/bgp-announce-set/${path.nameOrId}/announcement`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Get BGP exported routes
+     */
+    networkingBgpExported: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<BgpExported>({
+        path: `/v1/system/networking/bgp-exported`,
+        method: "GET",
         ...params,
       });
     },
@@ -7690,7 +7736,7 @@ export class Api extends HttpClient {
       { body }: { body: TimeseriesQuery },
       params: FetchParams = {},
     ) => {
-      return this.request<Table[]>({
+      return this.request<OxqlQueryResult>({
         path: `/v1/timeseries/query`,
         method: "POST",
         body,
