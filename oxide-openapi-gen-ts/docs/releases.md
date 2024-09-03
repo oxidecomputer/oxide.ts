@@ -15,9 +15,9 @@ npm version <bump-type>
 # now build and publish (prepublish step runs build)
 npm publish
 
-# (optional) add a tag representing the release
+# (optional) add a tag representing the release. 
 # note v10 is not allowed by npm because it parses as semver
-npm public --tag rel10
+npm dist-tag add @oxide/api@0.4.0 rel10
 ```
 
 ## Generating the client in this repo
