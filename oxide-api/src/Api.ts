@@ -19,31 +19,6 @@ export type {
 } from "./http-client";
 
 /**
- * An IPv4 subnet
- *
- * An IPv4 subnet, including prefix and prefix length
- */
-export type Ipv4Net = string;
-
-/**
- * An IPv6 subnet
- *
- * An IPv6 subnet, including prefix and subnet mask
- */
-export type Ipv6Net = string;
-
-export type IpNet = Ipv4Net | Ipv6Net;
-
-/**
- * A name unique within the parent collection
- *
- * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID, but they may contain a UUID. They can be at most 63 characters long.
- */
-export type Name = string;
-
-export type NameOrId = string | Name;
-
-/**
  * An address tied to an address lot.
  */
 export type Address = {
@@ -62,16 +37,6 @@ export type AddressConfig = {
   /** The set of addresses assigned to the port configuration. */
   addresses: Address[];
 };
-
-/**
- * The kind associated with an address lot.
- */
-export type AddressLotKind =
-  /** Infrastructure address lots are used for network infrastructure like addresses assigned to rack switches. */
-  | "infra"
-
-  /** Pool address lots are used by IP pools. */
-  | "pool";
 
 /**
  * Represents an address lot object, containing the id of the lot that can be used in other API calls.
@@ -146,6 +111,16 @@ export type AddressLotCreateResponse = {
 };
 
 /**
+ * The kind associated with an address lot.
+ */
+export type AddressLotKind =
+  /** Infrastructure address lots are used for network infrastructure like addresses assigned to rack switches. */
+  | "infra"
+
+  /** Pool address lots are used by IP pools. */
+  | "pool";
+
+/**
  * A single page of results
  */
 export type AddressLotResultsPage = {
@@ -155,28 +130,6 @@ export type AddressLotResultsPage = {
   nextPage?: string;
 };
 
-export type BgpMessageHistory = Record<string, unknown>;
-
-/**
- * Identifies switch physical location
- */
-export type SwitchLocation =
-  /** Switch in upper slot */
-  | "switch0"
-
-  /** Switch in lower slot */
-  | "switch1";
-
-/**
- * BGP message history for a particular switch.
- */
-export type SwitchBgpHistory = {
-  /** Message history indexed by peer address. */
-  history: Record<string, BgpMessageHistory>;
-  /** Switch this message history is associated with. */
-  switch: SwitchLocation;
-};
-
 /**
  * BGP message history for rack switches.
  */
@@ -184,17 +137,6 @@ export type AggregateBgpMessageHistory = {
   /** BGP history organized by switch. */
   switchHistories: SwitchBgpHistory[];
 };
-
-/**
- * Description of source IPs allowed to reach rack services.
- */
-export type AllowedSourceIps =
-  /** Allow traffic from any external IP address. */
-  | { allow: "any" }
-  /** Restrict access to a specific set of source IP addresses or subnets.
-
-All others are prevented from reaching rack services. */
-  | { allow: "list"; ips: IpNet[] };
 
 /**
  * Allowlist of IPs or subnets that can make requests to user-facing services.
@@ -215,6 +157,17 @@ export type AllowListUpdate = {
   /** The new list of allowed source IPs. */
   allowedIps: AllowedSourceIps;
 };
+
+/**
+ * Description of source IPs allowed to reach rack services.
+ */
+export type AllowedSourceIps =
+  /** Allow traffic from any external IP address. */
+  | { allow: "any" }
+  /** Restrict access to a specific set of source IP addresses or subnets.
+
+All others are prevented from reaching rack services. */
+  | { allow: "list"; ips: IpNet[] };
 
 /**
  * Authorization scope for a timeseries.
@@ -312,16 +265,6 @@ export type BgpAnnounceSet = {
 };
 
 /**
- * A BGP announcement tied to a particular address lot block.
- */
-export type BgpAnnouncementCreate = {
-  /** Address lot this announcement is drawn from. */
-  addressLotBlock: NameOrId;
-  /** The network being announced. */
-  network: IpNet;
-};
-
-/**
  * Parameters for creating a named set of BGP announcements.
  */
 export type BgpAnnounceSetCreate = {
@@ -340,6 +283,16 @@ export type BgpAnnouncement = {
   /** The id of the set this announcement is a part of. */
   announceSetId: string;
   /** The IP network being announced. */
+  network: IpNet;
+};
+
+/**
+ * A BGP announcement tied to a particular address lot block.
+ */
+export type BgpAnnouncementCreate = {
+  /** Address lot this announcement is drawn from. */
+  addressLotBlock: NameOrId;
+  /** The network being announced. */
   network: IpNet;
 };
 
@@ -408,12 +361,7 @@ export type BgpImportedRouteIpv4 = {
   switch: SwitchLocation;
 };
 
-/**
- * Define policy relating to the import and export of prefixes from a BGP peer.
- */
-export type ImportExportPolicy =
-  /** Do not perform any filtering. */
-  { type: "no_filtering" } | { type: "allow"; value: IpNet[] };
+export type BgpMessageHistory = Record<string, unknown>;
 
 /**
  * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
@@ -743,11 +691,6 @@ export type BlockSize = 512 | 2048 | 4096;
 export type ByteCount = number;
 
 /**
- * The service intended to use this certificate.
- */
-export type ServiceUsingCertificate = "external_api";
-
-/**
  * View of a Certificate
  */
 export type Certificate = {
@@ -825,344 +768,37 @@ export type CurrentUser = {
 };
 
 /**
- * Structure for estimating the p-quantile of a population.
- *
- * This is based on the P² algorithm for estimating quantiles using constant space.
- *
- * The algorithm consists of maintaining five markers: the minimum, the p/2-, p-, and (1 + p)/2 quantiles, and the maximum.
+ * A `Datum` is a single sampled data point from a metric.
  */
-export type Quantile = {
-  /** The desired marker positions. */
-  desiredMarkerPositions: number[];
-  /** The heights of the markers. */
-  markerHeights: number[];
-  /** The positions of the markers.
-
-We track sample size in the 5th position, as useful observations won't start until we've filled the heights at the 6th sample anyway This does deviate from the paper, but it's a more useful representation that works according to the paper's algorithm. */
-  markerPositions: number[];
-  /** The p value for the quantile. */
-  p: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramint8 = {
-  /** The bins of the histogram. */
-  bins: Binint8[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramuint8 = {
-  /** The bins of the histogram. */
-  bins: Binuint8[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramint16 = {
-  /** The bins of the histogram. */
-  bins: Binint16[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramuint16 = {
-  /** The bins of the histogram. */
-  bins: Binuint16[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramint32 = {
-  /** The bins of the histogram. */
-  bins: Binint32[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramuint32 = {
-  /** The bins of the histogram. */
-  bins: Binuint32[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramint64 = {
-  /** The bins of the histogram. */
-  bins: Binint64[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramuint64 = {
-  /** The bins of the histogram. */
-  bins: Binuint64[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramfloat = {
-  /** The bins of the histogram. */
-  bins: Binfloat[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
-
-/**
- * Histogram metric
- *
- * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
- *
- * Note that any gaps, unsorted bins, or non-finite values will result in an error.
- */
-export type Histogramdouble = {
-  /** The bins of the histogram. */
-  bins: Bindouble[];
-  /** The maximum value of all samples in the histogram. */
-  max: number;
-  /** The minimum value of all samples in the histogram. */
-  min: number;
-  /** The total number of samples in the histogram. */
-  nSamples: number;
-  /** p50 Quantile */
-  p50: Quantile;
-  /** p95 Quantile */
-  p90: Quantile;
-  /** p99 Quantile */
-  p99: Quantile;
-  /** M2 for Welford's algorithm for variance calculation.
-
-Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
-  squaredMean: number;
-  /** The start time of the histogram. */
-  startTime: Date;
-  /** The sum of all samples in the histogram. */
-  sumOfSamples: number;
-};
+export type Datum =
+  | { datum: boolean; type: "bool" }
+  | { datum: number; type: "i8" }
+  | { datum: number; type: "u8" }
+  | { datum: number; type: "i16" }
+  | { datum: number; type: "u16" }
+  | { datum: number; type: "i32" }
+  | { datum: number; type: "u32" }
+  | { datum: number; type: "i64" }
+  | { datum: number; type: "u64" }
+  | { datum: number; type: "f32" }
+  | { datum: number; type: "f64" }
+  | { datum: string; type: "string" }
+  | { datum: number[]; type: "bytes" }
+  | { datum: Cumulativeint64; type: "cumulative_i64" }
+  | { datum: Cumulativeuint64; type: "cumulative_u64" }
+  | { datum: Cumulativefloat; type: "cumulative_f32" }
+  | { datum: Cumulativedouble; type: "cumulative_f64" }
+  | { datum: Histogramint8; type: "histogram_i8" }
+  | { datum: Histogramuint8; type: "histogram_u8" }
+  | { datum: Histogramint16; type: "histogram_i16" }
+  | { datum: Histogramuint16; type: "histogram_u16" }
+  | { datum: Histogramint32; type: "histogram_i32" }
+  | { datum: Histogramuint32; type: "histogram_u32" }
+  | { datum: Histogramint64; type: "histogram_i64" }
+  | { datum: Histogramuint64; type: "histogram_u64" }
+  | { datum: Histogramfloat; type: "histogram_f32" }
+  | { datum: Histogramdouble; type: "histogram_f64" }
+  | { datum: MissingDatum; type: "missing" };
 
 /**
  * The type of an individual datum of a metric.
@@ -1196,41 +832,6 @@ export type DatumType =
   | "histogram_f32"
   | "histogram_f64";
 
-export type MissingDatum = { datumType: DatumType; startTime?: Date };
-
-/**
- * A `Datum` is a single sampled data point from a metric.
- */
-export type Datum =
-  | { datum: boolean; type: "bool" }
-  | { datum: number; type: "i8" }
-  | { datum: number; type: "u8" }
-  | { datum: number; type: "i16" }
-  | { datum: number; type: "u16" }
-  | { datum: number; type: "i32" }
-  | { datum: number; type: "u32" }
-  | { datum: number; type: "i64" }
-  | { datum: number; type: "u64" }
-  | { datum: number; type: "f32" }
-  | { datum: number; type: "f64" }
-  | { datum: string; type: "string" }
-  | { datum: number[]; type: "bytes" }
-  | { datum: Cumulativeint64; type: "cumulative_i64" }
-  | { datum: Cumulativeuint64; type: "cumulative_u64" }
-  | { datum: Cumulativefloat; type: "cumulative_f32" }
-  | { datum: Cumulativedouble; type: "cumulative_f64" }
-  | { datum: Histogramint8; type: "histogram_i8" }
-  | { datum: Histogramuint8; type: "histogram_u8" }
-  | { datum: Histogramint16; type: "histogram_i16" }
-  | { datum: Histogramuint16; type: "histogram_u16" }
-  | { datum: Histogramint32; type: "histogram_i32" }
-  | { datum: Histogramuint32; type: "histogram_u32" }
-  | { datum: Histogramint64; type: "histogram_i64" }
-  | { datum: Histogramuint64; type: "histogram_u64" }
-  | { datum: Histogramfloat; type: "histogram_f32" }
-  | { datum: Histogramdouble; type: "histogram_f64" }
-  | { datum: MissingDatum; type: "missing" };
-
 export type DerEncodedKeyPair = {
   /** request signing private key (base64 encoded der file) */
   privateKey: string;
@@ -1249,6 +850,75 @@ export type DeviceAuthRequest = { clientId: string };
 export type DeviceAuthVerify = { userCode: string };
 
 export type Digest = { type: "sha256"; value: string };
+
+/**
+ * View of a Disk
+ */
+export type Disk = {
+  blockSize: ByteCount;
+  /** human-readable free-form text about a resource */
+  description: string;
+  devicePath: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** ID of image from which disk was created, if any */
+  imageId?: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  projectId: string;
+  size: ByteCount;
+  /** ID of snapshot from which disk was created, if any */
+  snapshotId?: string;
+  state: DiskState;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create-time parameters for a `Disk`
+ */
+export type DiskCreate = {
+  description: string;
+  /** initial source for this disk */
+  diskSource: DiskSource;
+  name: Name;
+  /** total size of the Disk in bytes */
+  size: ByteCount;
+};
+
+export type DiskPath = {
+  /** Name or ID of the disk */
+  disk: NameOrId;
+};
+
+/**
+ * A single page of results
+ */
+export type DiskResultsPage = {
+  /** list of items on this page of results */
+  items: Disk[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Different sources for a disk
+ */
+export type DiskSource =
+  /** Create a blank disk */
+  | {
+      /** size of blocks for this Disk. valid values are: 512, 2048, or 4096 */
+      blockSize: BlockSize;
+      type: "blank";
+    }
+  /** Create a disk from a disk snapshot */
+  | { snapshotId: string; type: "snapshot" }
+  /** Create a disk from an image */
+  | { imageId: string; type: "image" }
+  /** Create a blank disk that will accept bulk writes or pull blocks from an external source. */
+  | { blockSize: BlockSize; type: "importing_blocks" };
 
 /**
  * State of a Disk
@@ -1278,75 +948,6 @@ export type DiskState =
   | { state: "destroyed" }
   /** Disk is unavailable */
   | { state: "faulted" };
-
-/**
- * View of a Disk
- */
-export type Disk = {
-  blockSize: ByteCount;
-  /** human-readable free-form text about a resource */
-  description: string;
-  devicePath: string;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  /** ID of image from which disk was created, if any */
-  imageId?: string;
-  /** unique, mutable, user-controlled identifier for each resource */
-  name: Name;
-  projectId: string;
-  size: ByteCount;
-  /** ID of snapshot from which disk was created, if any */
-  snapshotId?: string;
-  state: DiskState;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-};
-
-/**
- * Different sources for a disk
- */
-export type DiskSource =
-  /** Create a blank disk */
-  | {
-      /** size of blocks for this Disk. valid values are: 512, 2048, or 4096 */
-      blockSize: BlockSize;
-      type: "blank";
-    }
-  /** Create a disk from a disk snapshot */
-  | { snapshotId: string; type: "snapshot" }
-  /** Create a disk from an image */
-  | { imageId: string; type: "image" }
-  /** Create a blank disk that will accept bulk writes or pull blocks from an external source. */
-  | { blockSize: BlockSize; type: "importing_blocks" };
-
-/**
- * Create-time parameters for a `Disk`
- */
-export type DiskCreate = {
-  description: string;
-  /** initial source for this disk */
-  diskSource: DiskSource;
-  name: Name;
-  /** total size of the Disk in bytes */
-  size: ByteCount;
-};
-
-export type DiskPath = {
-  /** Name or ID of the disk */
-  disk: NameOrId;
-};
-
-/**
- * A single page of results
- */
-export type DiskResultsPage = {
-  /** list of items on this page of results */
-  items: Disk[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
-};
 
 /**
  * A distribution is a sequence of bins and counts in those bins, and some statistical information tracked to compute the mean, standard deviation, and quantile estimates.
@@ -1437,6 +1038,21 @@ export type ExternalIpResultsPage = {
 };
 
 /**
+ * The name and type information for a field of a timeseries schema.
+ */
+export type FieldSchema = {
+  description: string;
+  fieldType: FieldType;
+  name: string;
+  source: FieldSource;
+};
+
+/**
+ * The source from which a field is derived, the target or metric.
+ */
+export type FieldSource = "target" | "metric";
+
+/**
  * The `FieldType` identifies the data type of a target or metric field.
  */
 export type FieldType =
@@ -1452,21 +1068,6 @@ export type FieldType =
   | "ip_addr"
   | "uuid"
   | "bool";
-
-/**
- * The source from which a field is derived, the target or metric.
- */
-export type FieldSource = "target" | "metric";
-
-/**
- * The name and type information for a field of a timeseries schema.
- */
-export type FieldSchema = {
-  description: string;
-  fieldType: FieldType;
-  name: string;
-  source: FieldSource;
-};
 
 /**
  * The `FieldValue` contains the value of a target or metric field.
@@ -1496,9 +1097,14 @@ export type FinalizeDisk = {
 export type FleetRole = "admin" | "collaborator" | "viewer";
 
 /**
- * Describes what kind of identity is described by an id
+ * Policy for a particular resource
+ *
+ * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
  */
-export type IdentityType = "silo_user" | "silo_group";
+export type FleetRolePolicy = {
+  /** Roles directly assigned on this resource */
+  roleAssignments: FleetRoleRoleAssignment[];
+};
 
 /**
  * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
@@ -1509,16 +1115,6 @@ export type FleetRoleRoleAssignment = {
   identityId: string;
   identityType: IdentityType;
   roleName: FleetRole;
-};
-
-/**
- * Policy for a particular resource
- *
- * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
- */
-export type FleetRolePolicy = {
-  /** Roles directly assigned on this resource */
-  roleAssignments: FleetRoleRoleAssignment[];
 };
 
 /**
@@ -1546,11 +1142,6 @@ export type FloatingIp = {
 };
 
 /**
- * The type of resource that a floating IP is attached to
- */
-export type FloatingIpParentKind = "instance";
-
-/**
  * Parameters for attaching a floating IP address to another resource
  */
 export type FloatingIpAttach = {
@@ -1571,6 +1162,11 @@ export type FloatingIpCreate = {
   /** The parent IP pool that a floating IP is pulled from. If unset, the default pool is selected. */
   pool?: NameOrId;
 };
+
+/**
+ * The type of resource that a floating IP is attached to
+ */
+export type FloatingIpParentKind = "instance";
 
 /**
  * A single page of results
@@ -1609,13 +1205,331 @@ export type GroupResultsPage = {
 };
 
 /**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramdouble = {
+  /** The bins of the histogram. */
+  bins: Bindouble[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramfloat = {
+  /** The bins of the histogram. */
+  bins: Binfloat[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramint16 = {
+  /** The bins of the histogram. */
+  bins: Binint16[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramint32 = {
+  /** The bins of the histogram. */
+  bins: Binint32[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramint64 = {
+  /** The bins of the histogram. */
+  bins: Binint64[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramint8 = {
+  /** The bins of the histogram. */
+  bins: Binint8[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramuint16 = {
+  /** The bins of the histogram. */
+  bins: Binuint16[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramuint32 = {
+  /** The bins of the histogram. */
+  bins: Binuint32[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramuint64 = {
+  /** The bins of the histogram. */
+  bins: Binuint64[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
+ * Histogram metric
+ *
+ * A histogram maintains the count of any number of samples, over a set of bins. Bins are specified on construction via their _left_ edges, inclusive. There can't be any "gaps" in the bins, and an additional bin may be added to the left, right, or both so that the bins extend to the entire range of the support.
+ *
+ * Note that any gaps, unsorted bins, or non-finite values will result in an error.
+ */
+export type Histogramuint8 = {
+  /** The bins of the histogram. */
+  bins: Binuint8[];
+  /** The maximum value of all samples in the histogram. */
+  max: number;
+  /** The minimum value of all samples in the histogram. */
+  min: number;
+  /** The total number of samples in the histogram. */
+  nSamples: number;
+  /** p50 Quantile */
+  p50: Quantile;
+  /** p95 Quantile */
+  p90: Quantile;
+  /** p99 Quantile */
+  p99: Quantile;
+  /** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+  squaredMean: number;
+  /** The start time of the histogram. */
+  startTime: Date;
+  /** The sum of all samples in the histogram. */
+  sumOfSamples: number;
+};
+
+/**
  * An RFC-1035-compliant hostname
  *
  * A hostname identifies a host on a network, and is usually a dot-delimited sequence of labels, where each label contains only letters, digits, or the hyphen. See RFCs 1035 and 952 for more details.
  */
 export type Hostname = string;
-
-export type IdentityProviderType = "saml";
 
 /**
  * View of an Identity Provider
@@ -1644,6 +1558,13 @@ export type IdentityProviderResultsPage = {
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
+
+export type IdentityProviderType = "saml";
+
+/**
+ * Describes what kind of identity is described by an id
+ */
+export type IdentityType = "silo_user" | "silo_group";
 
 export type IdpMetadataSource =
   | { type: "url"; url: string }
@@ -1680,14 +1601,6 @@ export type Image = {
 };
 
 /**
- * The source of the underlying image.
- */
-export type ImageSource =
-  | { id: string; type: "snapshot" }
-  /** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
-  | { type: "you_can_boot_anything_as_long_as_its_alpine" };
-
-/**
  * Create-time parameters for an `Image`
  */
 export type ImageCreate = {
@@ -1712,6 +1625,14 @@ export type ImageResultsPage = {
 };
 
 /**
+ * The source of the underlying image.
+ */
+export type ImageSource =
+  | { id: string; type: "snapshot" }
+  /** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
+  | { type: "you_can_boot_anything_as_long_as_its_alpine" };
+
+/**
  * Parameters for importing blocks with a bulk write
  */
 export type ImportBlocksBulkWrite = {
@@ -1720,45 +1641,11 @@ export type ImportBlocksBulkWrite = {
 };
 
 /**
- * The number of CPUs in an Instance
+ * Define policy relating to the import and export of prefixes from a BGP peer.
  */
-export type InstanceCpuCount = number;
-
-/**
- * Running state of an Instance (primarily: booted or stopped)
- *
- * This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
- */
-export type InstanceState =
-  /** The instance is being created. */
-  | "creating"
-
-  /** The instance is currently starting up. */
-  | "starting"
-
-  /** The instance is currently running. */
-  | "running"
-
-  /** The instance has been requested to stop and a transition to "Stopped" is imminent. */
-  | "stopping"
-
-  /** The instance is currently stopped. */
-  | "stopped"
-
-  /** The instance is in the process of rebooting - it will remain in the "rebooting" state until the VM is starting once more. */
-  | "rebooting"
-
-  /** The instance is in the process of migrating - it will remain in the "migrating" state until the migration process is complete and the destination propolis is ready to continue execution. */
-  | "migrating"
-
-  /** The instance is attempting to recover from a failure. */
-  | "repairing"
-
-  /** The instance has encountered a failure. */
-  | "failed"
-
-  /** The instance has been deleted. */
-  | "destroyed";
+export type ImportExportPolicy =
+  /** Do not perform any filtering. */
+  { type: "no_filtering" } | { type: "allow"; value: IpNet[] };
 
 /**
  * View of an Instance
@@ -1787,52 +1674,9 @@ export type Instance = {
 };
 
 /**
- * Describe the instance's disks at creation time
+ * The number of CPUs in an Instance
  */
-export type InstanceDiskAttachment =
-  /** During instance creation, create and attach disks */
-  | {
-      description: string;
-      /** initial source for this disk */
-      diskSource: DiskSource;
-      name: Name;
-      /** total size of the Disk in bytes */
-      size: ByteCount;
-      type: "create";
-    }
-  /** During instance creation, attach this disk */
-  | {
-      /** A disk name to attach */
-      name: Name;
-      type: "attach";
-    };
-
-/**
- * Create-time parameters for an `InstanceNetworkInterface`
- */
-export type InstanceNetworkInterfaceCreate = {
-  description: string;
-  /** The IP address for the interface. One will be auto-assigned if not provided. */
-  ip?: string;
-  name: Name;
-  /** The VPC Subnet in which to create the interface. */
-  subnetName: Name;
-  /** The VPC in which to create the interface. */
-  vpcName: Name;
-};
-
-/**
- * Describes an attachment of an `InstanceNetworkInterface` to an `Instance`, at the time the instance is created.
- */
-export type InstanceNetworkInterfaceAttachment =
-  /** Create one or more `InstanceNetworkInterface`s for the `Instance`.
-
-If more than one interface is provided, then the first will be designated the primary interface for the instance. */
-  | { params: InstanceNetworkInterfaceCreate[]; type: "create" }
-  /** The default networking configuration for an instance is to create a single primary interface with an automatically-assigned IP address. The IP will be pulled from the Project's default VPC / VPC Subnet. */
-  | { type: "default" }
-  /** No network interfaces at all will be created for the instance. */
-  | { type: "none" };
+export type InstanceCpuCount = number;
 
 /**
  * Create-time parameters for an `Instance`
@@ -1862,11 +1706,25 @@ If not provided, all SSH public keys from the user's profile will be sent. If an
 };
 
 /**
- * A MAC address
- *
- * A Media Access Control address, in EUI-48 format
+ * Describe the instance's disks at creation time
  */
-export type MacAddr = string;
+export type InstanceDiskAttachment =
+  /** During instance creation, create and attach disks */
+  | {
+      description: string;
+      /** initial source for this disk */
+      diskSource: DiskSource;
+      name: Name;
+      /** total size of the Disk in bytes */
+      size: ByteCount;
+      type: "create";
+    }
+  /** During instance creation, attach this disk */
+  | {
+      /** A disk name to attach */
+      name: Name;
+      type: "attach";
+    };
 
 /**
  * An `InstanceNetworkInterface` represents a virtual network interface device attached to an instance.
@@ -1896,6 +1754,33 @@ export type InstanceNetworkInterface = {
   transitIps?: IpNet[];
   /** The VPC to which the interface belongs. */
   vpcId: string;
+};
+
+/**
+ * Describes an attachment of an `InstanceNetworkInterface` to an `Instance`, at the time the instance is created.
+ */
+export type InstanceNetworkInterfaceAttachment =
+  /** Create one or more `InstanceNetworkInterface`s for the `Instance`.
+
+If more than one interface is provided, then the first will be designated the primary interface for the instance. */
+  | { params: InstanceNetworkInterfaceCreate[]; type: "create" }
+  /** The default networking configuration for an instance is to create a single primary interface with an automatically-assigned IP address. The IP will be pulled from the Project's default VPC / VPC Subnet. */
+  | { type: "default" }
+  /** No network interfaces at all will be created for the instance. */
+  | { type: "none" };
+
+/**
+ * Create-time parameters for an `InstanceNetworkInterface`
+ */
+export type InstanceNetworkInterfaceCreate = {
+  description: string;
+  /** The IP address for the interface. One will be auto-assigned if not provided. */
+  ip?: string;
+  name: Name;
+  /** The VPC Subnet in which to create the interface. */
+  subnetName: Name;
+  /** The VPC in which to create the interface. */
+  vpcName: Name;
 };
 
 /**
@@ -1947,6 +1832,44 @@ export type InstanceSerialConsoleData = {
 };
 
 /**
+ * Running state of an Instance (primarily: booted or stopped)
+ *
+ * This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
+ */
+export type InstanceState =
+  /** The instance is being created. */
+  | "creating"
+
+  /** The instance is currently starting up. */
+  | "starting"
+
+  /** The instance is currently running. */
+  | "running"
+
+  /** The instance has been requested to stop and a transition to "Stopped" is imminent. */
+  | "stopping"
+
+  /** The instance is currently stopped. */
+  | "stopped"
+
+  /** The instance is in the process of rebooting - it will remain in the "rebooting" state until the VM is starting once more. */
+  | "rebooting"
+
+  /** The instance is in the process of migrating - it will remain in the "migrating" state until the migration process is complete and the destination propolis is ready to continue execution. */
+  | "migrating"
+
+  /** The instance is attempting to recover from a failure. */
+  | "repairing"
+
+  /** The instance has encountered a failure. */
+  | "failed"
+
+  /** The instance has been deleted. */
+  | "destroyed";
+
+export type IpNet = Ipv4Net | Ipv6Net;
+
+/**
  * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
  */
 export type IpPool = {
@@ -1972,22 +1895,6 @@ export type IpPoolLinkSilo = {
   isDefault: boolean;
   silo: NameOrId;
 };
-
-/**
- * A non-decreasing IPv4 address range, inclusive of both ends.
- *
- * The first address must be less than or equal to the last address.
- */
-export type Ipv4Range = { first: string; last: string };
-
-/**
- * A non-decreasing IPv6 address range, inclusive of both ends.
- *
- * The first address must be less than or equal to the last address.
- */
-export type Ipv6Range = { first: string; last: string };
-
-export type IpRange = Ipv4Range | Ipv6Range;
 
 export type IpPoolRange = {
   id: string;
@@ -2046,12 +1953,49 @@ export type IpPoolSiloUpdate = {
  */
 export type IpPoolUpdate = { description?: string; name?: Name };
 
+export type IpPoolUtilization = {
+  /** Number of allocated and total available IPv4 addresses in pool */
+  ipv4: Ipv4Utilization;
+  /** Number of allocated and total available IPv6 addresses in pool */
+  ipv6: Ipv6Utilization;
+};
+
+export type IpRange = Ipv4Range | Ipv6Range;
+
+/**
+ * An IPv4 subnet
+ *
+ * An IPv4 subnet, including prefix and prefix length
+ */
+export type Ipv4Net = string;
+
+/**
+ * A non-decreasing IPv4 address range, inclusive of both ends.
+ *
+ * The first address must be less than or equal to the last address.
+ */
+export type Ipv4Range = { first: string; last: string };
+
 export type Ipv4Utilization = {
   /** The number of IPv4 addresses allocated from this pool */
   allocated: number;
   /** The total number of IPv4 addresses in the pool, i.e., the sum of the lengths of the IPv4 ranges. Unlike IPv6 capacity, can be a 32-bit integer because there are only 2^32 IPv4 addresses. */
   capacity: number;
 };
+
+/**
+ * An IPv6 subnet
+ *
+ * An IPv6 subnet, including prefix and subnet mask
+ */
+export type Ipv6Net = string;
+
+/**
+ * A non-decreasing IPv6 address range, inclusive of both ends.
+ *
+ * The first address must be less than or equal to the last address.
+ */
+export type Ipv6Range = { first: string; last: string };
 
 export type Ipv6Utilization = {
   /** The number of IPv6 addresses allocated from this pool. A 128-bit integer string to match the capacity field. */
@@ -2060,19 +2004,28 @@ export type Ipv6Utilization = {
   capacity: string;
 };
 
-export type IpPoolUtilization = {
-  /** Number of allocated and total available IPv4 addresses in pool */
-  ipv4: Ipv4Utilization;
-  /** Number of allocated and total available IPv6 addresses in pool */
-  ipv6: Ipv6Utilization;
-};
-
 /**
  * A range of IP ports
  *
  * An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port.
  */
 export type L4PortRange = string;
+
+/**
+ * Switch link configuration.
+ */
+export type LinkConfigCreate = {
+  /** Whether or not to set autonegotiation */
+  autoneg: boolean;
+  /** The forward error correction mode of the link. */
+  fec: LinkFec;
+  /** The link-layer discovery protocol (LLDP) configuration for the link. */
+  lldp: LldpLinkConfigCreate;
+  /** Maximum transmission unit for the link. */
+  mtu: number;
+  /** The speed of the link. */
+  speed: LinkSpeed;
+};
 
 /**
  * The forward error correction mode of a link.
@@ -2086,26 +2039,6 @@ export type LinkFec =
 
   /** Reed-Solomon forward error correction. */
   | "rs";
-
-/**
- * The LLDP configuration associated with a port.
- */
-export type LldpLinkConfigCreate = {
-  /** The LLDP chassis identifier TLV. */
-  chassisId?: string;
-  /** Whether or not LLDP is enabled. */
-  enabled: boolean;
-  /** The LLDP link description TLV. */
-  linkDescription?: string;
-  /** The LLDP link name TLV. */
-  linkName?: string;
-  /** The LLDP management IP TLV. */
-  managementIp?: string;
-  /** The LLDP system description TLV. */
-  systemDescription?: string;
-  /** The LLDP system name TLV. */
-  systemName?: string;
-};
 
 /**
  * The speed of a link.
@@ -2139,22 +2072,6 @@ export type LinkSpeed =
   | "speed400_g";
 
 /**
- * Switch link configuration.
- */
-export type LinkConfigCreate = {
-  /** Whether or not to set autonegotiation */
-  autoneg: boolean;
-  /** The forward error correction mode of the link. */
-  fec: LinkFec;
-  /** The link-layer discovery protocol (LLDP) configuration for the link. */
-  lldp: LldpLinkConfigCreate;
-  /** Maximum transmission unit for the link. */
-  mtu: number;
-  /** The speed of the link. */
-  speed: LinkSpeed;
-};
-
-/**
  * A link layer discovery protocol (LLDP) service configuration.
  */
 export type LldpLinkConfig = {
@@ -2170,6 +2087,26 @@ export type LldpLinkConfig = {
   linkName?: string;
   /** The LLDP management IP TLV. */
   managementIp?: IpNet;
+  /** The LLDP system description TLV. */
+  systemDescription?: string;
+  /** The LLDP system name TLV. */
+  systemName?: string;
+};
+
+/**
+ * The LLDP configuration associated with a port.
+ */
+export type LldpLinkConfigCreate = {
+  /** The LLDP chassis identifier TLV. */
+  chassisId?: string;
+  /** Whether or not LLDP is enabled. */
+  enabled: boolean;
+  /** The LLDP link description TLV. */
+  linkDescription?: string;
+  /** The LLDP link name TLV. */
+  linkName?: string;
+  /** The LLDP management IP TLV. */
+  managementIp?: string;
   /** The LLDP system description TLV. */
   systemDescription?: string;
   /** The LLDP system name TLV. */
@@ -2221,6 +2158,13 @@ export type LoopbackAddressResultsPage = {
 };
 
 /**
+ * A MAC address
+ *
+ * A Media Access Control address, in EUI-48 format
+ */
+export type MacAddr = string;
+
+/**
  * A `Measurement` is a timestamped datum from a single metric
  */
 export type Measurement = { datum: Datum; timestamp: Date };
@@ -2248,21 +2192,16 @@ export type MetricType =
   /** The value represents an accumulation between two points in time. */
   | "cumulative";
 
-/**
- * The type of network interface
- */
-export type NetworkInterfaceKind =
-  /** A vNIC attached to a guest instance */
-  | { id: string; type: "instance" }
-  /** A vNIC associated with an internal service */
-  | { id: string; type: "service" }
-  /** A vNIC associated with a probe */
-  | { id: string; type: "probe" };
+export type MissingDatum = { datumType: DatumType; startTime?: Date };
 
 /**
- * A Geneve Virtual Network Identifier
+ * A name unique within the parent collection
+ *
+ * Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID, but they may contain a UUID. They can be at most 63 characters long.
  */
-export type Vni = number;
+export type Name = string;
+
+export type NameOrId = string | Name;
 
 /**
  * Information required to construct a virtual network interface
@@ -2281,50 +2220,15 @@ export type NetworkInterface = {
 };
 
 /**
- * List of data values for one timeseries.
- *
- * Each element is an option, where `None` represents a missing sample.
+ * The type of network interface
  */
-export type ValueArray =
-  | { type: "integer"; values: number[] }
-  | { type: "double"; values: number[] }
-  | { type: "boolean"; values: boolean[] }
-  | { type: "string"; values: string[] }
-  | { type: "integer_distribution"; values: Distributionint64[] }
-  | { type: "double_distribution"; values: Distributiondouble[] };
-
-/**
- * A single list of values, for one dimension of a timeseries.
- */
-export type Values = {
-  /** The type of this metric. */
-  metricType: MetricType;
-  /** The data values. */
-  values: ValueArray;
-};
-
-/**
- * Timepoints and values for one timeseries.
- */
-export type Points = {
-  startTimes?: Date[];
-  timestamps: Date[];
-  values: Values[];
-};
-
-/**
- * A timeseries contains a timestamped set of values from one source.
- *
- * This includes the typed key-value pairs that uniquely identify it, and the set of timestamps and data values from it.
- */
-export type Timeseries = { fields: Record<string, FieldValue>; points: Points };
-
-/**
- * A table represents one or more timeseries with the same schema.
- *
- * A table is the result of an OxQL query. It contains a name, usually the name of the timeseries schema from which the data is derived, and any number of timeseries, which contain the actual data.
- */
-export type Table = { name: string; timeseries: Record<string, Timeseries> };
+export type NetworkInterfaceKind =
+  /** A vNIC attached to a guest instance */
+  | { id: string; type: "instance" }
+  /** A vNIC associated with an internal service */
+  | { id: string; type: "service" }
+  /** A vNIC associated with a probe */
+  | { id: string; type: "probe" };
 
 /**
  * The result of a successful OxQL query.
@@ -2340,36 +2244,6 @@ export type OxqlQueryResult = {
  * Passwords may be subject to additional constraints.
  */
 export type Password = string;
-
-/**
- * Describes the form factor of physical disks.
- */
-export type PhysicalDiskKind = "m2" | "u2";
-
-/**
- * The operator-defined policy of a physical disk.
- */
-export type PhysicalDiskPolicy =
-  /** The operator has indicated that the disk is in-service. */
-  | { kind: "in_service" }
-  /** The operator has indicated that the disk has been permanently removed from service.
-
-This is a terminal state: once a particular disk ID is expunged, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.)
-
-An expunged disk is always non-provisionable. */
-  | { kind: "expunged" };
-
-/**
- * The current state of the disk, as determined by Nexus.
- */
-export type PhysicalDiskState =
-  /** The disk is currently active, and has resources allocated on it. */
-  | "active"
-
-  /** The disk has been permanently removed from service.
-
-This is a terminal state: once a particular disk ID is decommissioned, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.) */
-  | "decommissioned";
 
 /**
  * View of a Physical Disk
@@ -2396,6 +2270,24 @@ export type PhysicalDisk = {
 };
 
 /**
+ * Describes the form factor of physical disks.
+ */
+export type PhysicalDiskKind = "m2" | "u2";
+
+/**
+ * The operator-defined policy of a physical disk.
+ */
+export type PhysicalDiskPolicy =
+  /** The operator has indicated that the disk is in-service. */
+  | { kind: "in_service" }
+  /** The operator has indicated that the disk has been permanently removed from service.
+
+This is a terminal state: once a particular disk ID is expunged, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.)
+
+An expunged disk is always non-provisionable. */
+  | { kind: "expunged" };
+
+/**
  * A single page of results
  */
 export type PhysicalDiskResultsPage = {
@@ -2405,11 +2297,32 @@ export type PhysicalDiskResultsPage = {
   nextPage?: string;
 };
 
-export type PingStatus = "ok";
+/**
+ * The current state of the disk, as determined by Nexus.
+ */
+export type PhysicalDiskState =
+  /** The disk is currently active, and has resources allocated on it. */
+  | "active"
+
+  /** The disk has been permanently removed from service.
+
+This is a terminal state: once a particular disk ID is decommissioned, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.) */
+  | "decommissioned";
 
 export type Ping = {
   /** Whether the external API is reachable. Will always be Ok if the endpoint returns anything at all. */
   status: PingStatus;
+};
+
+export type PingStatus = "ok";
+
+/**
+ * Timepoints and values for one timeseries.
+ */
+export type Points = {
+  startTimes?: Date[];
+  timestamps: Date[];
+  values: Values[];
 };
 
 /**
@@ -2439,14 +2352,14 @@ export type ProbeCreate = {
   sled: string;
 };
 
-export type ProbeExternalIpKind = "snat" | "floating" | "ephemeral";
-
 export type ProbeExternalIp = {
   firstPort: number;
   ip: string;
   kind: ProbeExternalIpKind;
   lastPort: number;
 };
+
+export type ProbeExternalIpKind = "snat" | "floating" | "ephemeral";
 
 export type ProbeInfo = {
   externalIps: ProbeExternalIp[];
@@ -2500,6 +2413,16 @@ export type ProjectResultsPage = {
 export type ProjectRole = "admin" | "collaborator" | "viewer";
 
 /**
+ * Policy for a particular resource
+ *
+ * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
+ */
+export type ProjectRolePolicy = {
+  /** Roles directly assigned on this resource */
+  roleAssignments: ProjectRoleRoleAssignment[];
+};
+
+/**
  * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
  *
  * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
@@ -2511,19 +2434,29 @@ export type ProjectRoleRoleAssignment = {
 };
 
 /**
- * Policy for a particular resource
- *
- * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
- */
-export type ProjectRolePolicy = {
-  /** Roles directly assigned on this resource */
-  roleAssignments: ProjectRoleRoleAssignment[];
-};
-
-/**
  * Updateable properties of a `Project`
  */
 export type ProjectUpdate = { description?: string; name?: Name };
+
+/**
+ * Structure for estimating the p-quantile of a population.
+ *
+ * This is based on the P² algorithm for estimating quantiles using constant space.
+ *
+ * The algorithm consists of maintaining five markers: the minimum, the p/2-, p-, and (1 + p)/2 quantiles, and the maximum.
+ */
+export type Quantile = {
+  /** The desired marker positions. */
+  desiredMarkerPositions: number[];
+  /** The heights of the markers. */
+  markerHeights: number[];
+  /** The positions of the markers.
+
+We track sample size in the 5th position, as useful observations won't start until we've filled the heights at the 6th sample anyway This does deviate from the paper, but it's a more useful representation that works according to the paper's algorithm. */
+  markerPositions: number[];
+  /** The p value for the quantile. */
+  p: number;
+};
 
 /**
  * View of an Rack
@@ -2548,16 +2481,16 @@ export type RackResultsPage = {
 };
 
 /**
+ * View of a Role
+ */
+export type Role = { description: string; name: RoleName };
+
+/**
  * A name for a built-in role
  *
  * Role names consist of two string components separated by dot (".").
  */
 export type RoleName = string;
-
-/**
- * View of a Role
- */
-export type Role = { description: string; name: RoleName };
 
 /**
  * A single page of results
@@ -2624,32 +2557,6 @@ export type RouteTarget =
   | { type: "drop" };
 
 /**
- * The kind of a `RouterRoute`
- *
- * The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
- */
-export type RouterRouteKind =
-  /** Determines the default destination of traffic, such as whether it goes to the internet or not.
-
-`Destination: An Internet Gateway` `Modifiable: true` */
-  | "default"
-
-  /** Automatically added for each VPC Subnet in the VPC
-
-`Destination: A VPC Subnet` `Modifiable: false` */
-  | "vpc_subnet"
-
-  /** Automatically added when VPC peering is established
-
-`Destination: A different VPC` `Modifiable: false` */
-  | "vpc_peering"
-
-  /** Created by a user; see `RouteTarget`
-
-`Destination: User defined` `Modifiable: true` */
-  | "custom";
-
-/**
  * A route defines a rule that governs where traffic should be sent based on its destination.
  */
 export type RouterRoute = {
@@ -2684,6 +2591,32 @@ export type RouterRouteCreate = {
   /** The location that matched packets should be forwarded to. */
   target: RouteTarget;
 };
+
+/**
+ * The kind of a `RouterRoute`
+ *
+ * The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
+ */
+export type RouterRouteKind =
+  /** Determines the default destination of traffic, such as whether it goes to the internet or not.
+
+`Destination: An Internet Gateway` `Modifiable: true` */
+  | "default"
+
+  /** Automatically added for each VPC Subnet in the VPC
+
+`Destination: A VPC Subnet` `Modifiable: false` */
+  | "vpc_subnet"
+
+  /** Automatically added when VPC peering is established
+
+`Destination: A different VPC` `Modifiable: false` */
+  | "vpc_peering"
+
+  /** Created by a user; see `RouteTarget`
+
+`Destination: User defined` `Modifiable: true` */
+  | "custom";
 
 /**
  * A single page of results
@@ -2762,14 +2695,9 @@ export type SamlIdentityProviderCreate = {
 };
 
 /**
- * Describes how identities are managed and users are authenticated in this Silo
+ * The service intended to use this certificate.
  */
-export type SiloIdentityMode =
-  /** Users are authenticated with SAML using an external authentication provider.  The system updates information about users and groups only during successful authentication (i.e,. "JIT provisioning" of users and groups). */
-  | "saml_jit"
-
-  /** The system is the source of truth about users.  There is no linkage to an external authentication provider or identity provider. */
-  | "local_only";
+export type ServiceUsingCertificate = "external_api";
 
 /**
  * View of a Silo
@@ -2798,18 +2726,6 @@ The default is that no Fleet roles are conferred by any Silo roles unless there'
 };
 
 /**
- * The amount of provisionable resources for a Silo
- */
-export type SiloQuotasCreate = {
-  /** The amount of virtual CPUs available for running instances in the Silo */
-  cpus: number;
-  /** The amount of RAM (in bytes) available for running instances in the Silo */
-  memory: ByteCount;
-  /** The amount of storage (in bytes) available for disks or snapshots */
-  storage: ByteCount;
-};
-
-/**
  * Create-time parameters for a `Silo`
  */
 export type SiloCreate = {
@@ -2830,6 +2746,16 @@ The default is that no Fleet roles are conferred by any Silo roles unless there'
   /** Initial TLS certificates to be used for the new Silo's console and API endpoints.  These should be valid for the Silo's DNS name(s). */
   tlsCertificates: CertificateCreate[];
 };
+
+/**
+ * Describes how identities are managed and users are authenticated in this Silo
+ */
+export type SiloIdentityMode =
+  /** Users are authenticated with SAML using an external authentication provider.  The system updates information about users and groups only during successful authentication (i.e,. "JIT provisioning" of users and groups). */
+  | "saml_jit"
+
+  /** The system is the source of truth about users.  There is no linkage to an external authentication provider or identity provider. */
+  | "local_only";
 
 /**
  * An IP pool in the context of a silo
@@ -2873,6 +2799,18 @@ export type SiloQuotas = {
 };
 
 /**
+ * The amount of provisionable resources for a Silo
+ */
+export type SiloQuotasCreate = {
+  /** The amount of virtual CPUs available for running instances in the Silo */
+  cpus: number;
+  /** The amount of RAM (in bytes) available for running instances in the Silo */
+  memory: ByteCount;
+  /** The amount of storage (in bytes) available for disks or snapshots */
+  storage: ByteCount;
+};
+
+/**
  * A single page of results
  */
 export type SiloQuotasResultsPage = {
@@ -2907,17 +2845,6 @@ export type SiloResultsPage = {
 export type SiloRole = "admin" | "collaborator" | "viewer";
 
 /**
- * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
- *
- * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
- */
-export type SiloRoleRoleAssignment = {
-  identityId: string;
-  identityType: IdentityType;
-  roleName: SiloRole;
-};
-
-/**
  * Policy for a particular resource
  *
  * Note that the Policy only describes access granted explicitly for this resource.  The policies of parent resources can also cause a user to have access to this resource.
@@ -2928,15 +2855,14 @@ export type SiloRolePolicy = {
 };
 
 /**
- * A collection of resource counts used to describe capacity and utilization
+ * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
+ *
+ * The resource is not part of this structure.  Rather, `RoleAssignment`s are put into a `Policy` and that Policy is applied to a particular resource.
  */
-export type VirtualResourceCounts = {
-  /** Number of virtual CPUs */
-  cpus: number;
-  /** Amount of memory in bytes */
-  memory: ByteCount;
-  /** Amount of disk storage in bytes */
-  storage: ByteCount;
+export type SiloRoleRoleAssignment = {
+  identityId: string;
+  identityType: IdentityType;
+  roleName: SiloRole;
 };
 
 /**
@@ -2960,47 +2886,6 @@ export type SiloUtilizationResultsPage = {
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
-
-/**
- * The operator-defined provision policy of a sled.
- *
- * This controls whether new resources are going to be provisioned on this sled.
- */
-export type SledProvisionPolicy =
-  /** New resources will be provisioned on this sled. */
-  | "provisionable"
-
-  /** New resources will not be provisioned on this sled. However, if the sled is currently in service, existing resources will continue to be on this sled unless manually migrated off. */
-  | "non_provisionable";
-
-/**
- * The operator-defined policy of a sled.
- */
-export type SledPolicy =
-  /** The operator has indicated that the sled is in-service. */
-  | {
-      kind: "in_service";
-      /** Determines whether new resources can be provisioned onto the sled. */
-      provisionPolicy: SledProvisionPolicy;
-    }
-  /** The operator has indicated that the sled has been permanently removed from service.
-
-This is a terminal state: once a particular sled ID is expunged, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new sled.)
-
-An expunged sled is always non-provisionable. */
-  | { kind: "expunged" };
-
-/**
- * The current state of the sled, as determined by Nexus.
- */
-export type SledState =
-  /** The sled is currently active, and has resources allocated on it. */
-  | "active"
-
-  /** The sled has been permanently removed from service.
-
-This is a terminal state: once a particular sled ID is decommissioned, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new sled.) */
-  | "decommissioned";
 
 /**
  * An operator's view of a Sled.
@@ -3061,6 +2946,35 @@ export type SledInstanceResultsPage = {
 };
 
 /**
+ * The operator-defined policy of a sled.
+ */
+export type SledPolicy =
+  /** The operator has indicated that the sled is in-service. */
+  | {
+      kind: "in_service";
+      /** Determines whether new resources can be provisioned onto the sled. */
+      provisionPolicy: SledProvisionPolicy;
+    }
+  /** The operator has indicated that the sled has been permanently removed from service.
+
+This is a terminal state: once a particular sled ID is expunged, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new sled.)
+
+An expunged sled is always non-provisionable. */
+  | { kind: "expunged" };
+
+/**
+ * The operator-defined provision policy of a sled.
+ *
+ * This controls whether new resources are going to be provisioned on this sled.
+ */
+export type SledProvisionPolicy =
+  /** New resources will be provisioned on this sled. */
+  | "provisionable"
+
+  /** New resources will not be provisioned on this sled. However, if the sled is currently in service, existing resources will continue to be on this sled unless manually migrated off. */
+  | "non_provisionable";
+
+/**
  * Parameters for `sled_set_provision_policy`.
  */
 export type SledProvisionPolicyParams = {
@@ -3088,7 +3002,17 @@ export type SledResultsPage = {
   nextPage?: string;
 };
 
-export type SnapshotState = "creating" | "ready" | "faulted" | "destroyed";
+/**
+ * The current state of the sled, as determined by Nexus.
+ */
+export type SledState =
+  /** The sled is currently active, and has resources allocated on it. */
+  | "active"
+
+  /** The sled has been permanently removed from service.
+
+This is a terminal state: once a particular sled ID is decommissioned, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new sled.) */
+  | "decommissioned";
 
 /**
  * View of a Snapshot
@@ -3129,6 +3053,8 @@ export type SnapshotResultsPage = {
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
 };
+
+export type SnapshotState = "creating" | "ready" | "faulted" | "destroyed";
 
 /**
  * View of an SSH Key
@@ -3186,17 +3112,14 @@ export type Switch = {
 };
 
 /**
- * Describes the kind of an switch interface.
+ * BGP message history for a particular switch.
  */
-export type SwitchInterfaceKind2 =
-  /** Primary interfaces are associated with physical links. There is exactly one primary interface per physical link. */
-  | "primary"
-
-  /** VLAN interfaces allow physical interfaces to be multiplexed onto multiple logical links, each distinguished by a 12-bit 802.1Q Ethernet tag. */
-  | "vlan"
-
-  /** Loopback interfaces are anchors for IP addresses that are not specific to any particular port. */
-  | "loopback";
+export type SwitchBgpHistory = {
+  /** Message history indexed by peer address. */
+  history: Record<string, BgpMessageHistory>;
+  /** Switch this message history is associated with. */
+  switch: SwitchLocation;
+};
 
 /**
  * A switch port interface configuration for a port settings object.
@@ -3211,6 +3134,16 @@ export type SwitchInterfaceConfig = {
   /** The port settings object this switch interface configuration belongs to. */
   portSettingsId: string;
   /** Whether or not IPv6 is enabled on this interface. */
+  v6Enabled: boolean;
+};
+
+/**
+ * A layer-3 switch interface configuration. When IPv6 is enabled, a link local address will be created for the interface.
+ */
+export type SwitchInterfaceConfigCreate = {
+  /** What kind of switch interface this configuration represents. */
+  kind: SwitchInterfaceKind;
+  /** Whether or not IPv6 is enabled. */
   v6Enabled: boolean;
 };
 
@@ -3230,16 +3163,29 @@ export type SwitchInterfaceKind =
   | { type: "loopback" };
 
 /**
- * A layer-3 switch interface configuration. When IPv6 is enabled, a link local address will be created for the interface.
+ * Describes the kind of an switch interface.
  */
-export type SwitchInterfaceConfigCreate = {
-  /** What kind of switch interface this configuration represents. */
-  kind: SwitchInterfaceKind;
-  /** Whether or not IPv6 is enabled. */
-  v6Enabled: boolean;
-};
+export type SwitchInterfaceKind2 =
+  /** Primary interfaces are associated with physical links. There is exactly one primary interface per physical link. */
+  | "primary"
+
+  /** VLAN interfaces allow physical interfaces to be multiplexed onto multiple logical links, each distinguished by a 12-bit 802.1Q Ethernet tag. */
+  | "vlan"
+
+  /** Loopback interfaces are anchors for IP addresses that are not specific to any particular port. */
+  | "loopback";
 
 export type SwitchLinkState = Record<string, unknown>;
+
+/**
+ * Identifies switch physical location
+ */
+export type SwitchLocation =
+  /** Switch in upper slot */
+  | "switch0"
+
+  /** Switch in lower slot */
+  | "switch1";
 
 /**
  * A switch port represents a physical external port on a rack switch.
@@ -3282,19 +3228,6 @@ export type SwitchPortApplySettings = {
 };
 
 /**
- * The link geometry associated with a switch port.
- */
-export type SwitchPortGeometry2 =
-  /** The port contains a single QSFP28 link with four lanes. */
-  | "qsfp28x1"
-
-  /** The port contains two QSFP28 links each with two lanes. */
-  | "qsfp28x2"
-
-  /** The port contains four SFP28 links each with one lane. */
-  | "sfp28x4";
-
-/**
  * A physical port configuration for a port settings object.
  */
 export type SwitchPortConfig = {
@@ -3302,6 +3235,14 @@ export type SwitchPortConfig = {
   geometry: SwitchPortGeometry2;
   /** The id of the port settings object this configuration belongs to. */
   portSettingsId: string;
+};
+
+/**
+ * Physical switch port configuration.
+ */
+export type SwitchPortConfigCreate = {
+  /** Link geometry for the switch port. */
+  geometry: SwitchPortGeometry;
 };
 
 /**
@@ -3318,12 +3259,17 @@ export type SwitchPortGeometry =
   | "sfp28x4";
 
 /**
- * Physical switch port configuration.
+ * The link geometry associated with a switch port.
  */
-export type SwitchPortConfigCreate = {
-  /** Link geometry for the switch port. */
-  geometry: SwitchPortGeometry;
-};
+export type SwitchPortGeometry2 =
+  /** The port contains a single QSFP28 link with four lanes. */
+  | "qsfp28x1"
+
+  /** The port contains two QSFP28 links each with two lanes. */
+  | "qsfp28x2"
+
+  /** The port contains four SFP28 links each with one lane. */
+  | "sfp28x4";
 
 /**
  * A link configuration for a port settings object.
@@ -3430,16 +3376,6 @@ export type SwitchPortSettingsResultsPage = {
 };
 
 /**
- * A switch port VLAN interface configuration for a port settings object.
- */
-export type SwitchVlanInterfaceConfig = {
-  /** The switch interface configuration this VLAN interface configuration belongs to. */
-  interfaceConfigId: string;
-  /** The virtual network id for this interface that is used for producing and consuming 802.1Q Ethernet tags. This field has a maximum value of 4095 as 802.1Q tags are twelve bits. */
-  vlanId: number;
-};
-
-/**
  * This structure contains all port settings information in one place. It's a convenience data structure for getting a complete view of a particular port's settings.
  */
 export type SwitchPortSettingsView = {
@@ -3476,6 +3412,30 @@ export type SwitchResultsPage = {
 };
 
 /**
+ * A switch port VLAN interface configuration for a port settings object.
+ */
+export type SwitchVlanInterfaceConfig = {
+  /** The switch interface configuration this VLAN interface configuration belongs to. */
+  interfaceConfigId: string;
+  /** The virtual network id for this interface that is used for producing and consuming 802.1Q Ethernet tags. This field has a maximum value of 4095 as 802.1Q tags are twelve bits. */
+  vlanId: number;
+};
+
+/**
+ * A table represents one or more timeseries with the same schema.
+ *
+ * A table is the result of an OxQL query. It contains a name, usually the name of the timeseries schema from which the data is derived, and any number of timeseries, which contain the actual data.
+ */
+export type Table = { name: string; timeseries: Record<string, Timeseries> };
+
+/**
+ * A timeseries contains a timestamped set of values from one source.
+ *
+ * This includes the typed key-value pairs that uniquely identify it, and the set of timestamps and data values from it.
+ */
+export type Timeseries = { fields: Record<string, FieldValue>; points: Points };
+
+/**
  * Text descriptions for the target and metric of a timeseries.
  */
 export type TimeseriesDescription = { metric: string; target: string };
@@ -3494,25 +3454,6 @@ export type TimeseriesQuery = {
   /** A timeseries query string, written in the Oximeter query language. */
   query: string;
 };
-
-/**
- * Measurement units for timeseries samples.
- */
-export type Units =
-  | "count"
-  | "bytes"
-  | "seconds"
-  | "nanoseconds"
-  | "volts"
-  | "amps"
-  | "watts"
-  | "degrees_celsius"
-
-  /** No meaningful units, e.g. a dimensionless quanity. */
-  | "none"
-
-  /** Rotations per minute. */
-  | "rpm";
 
 /**
  * The schema for a timeseries.
@@ -3565,6 +3506,25 @@ export type UninitializedSledResultsPage = {
 };
 
 /**
+ * Measurement units for timeseries samples.
+ */
+export type Units =
+  | "count"
+  | "bytes"
+  | "seconds"
+  | "nanoseconds"
+  | "volts"
+  | "amps"
+  | "watts"
+  | "degrees_celsius"
+
+  /** No meaningful units, e.g. a dimensionless quanity. */
+  | "none"
+
+  /** Rotations per minute. */
+  | "rpm";
+
+/**
  * View of a User
  */
 export type User = {
@@ -3604,6 +3564,16 @@ export type UserBuiltinResultsPage = {
 };
 
 /**
+ * Create-time parameters for a `User`
+ */
+export type UserCreate = {
+  /** username used to log in */
+  externalId: UserId;
+  /** how to set the user's login password */
+  password: UserPassword;
+};
+
+/**
  * A username for a local-only user
  *
  * Usernames must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Usernames cannot be a UUID, but they may contain a UUID. They can be at most 63 characters long.
@@ -3618,16 +3588,6 @@ export type UserPassword =
   | { mode: "password"; value: Password }
   /** Invalidates any current password (disabling password authentication) */
   | { mode: "login_disallowed" };
-
-/**
- * Create-time parameters for a `User`
- */
-export type UserCreate = {
-  /** username used to log in */
-  externalId: UserId;
-  /** how to set the user's login password */
-  password: UserPassword;
-};
 
 /**
  * A single page of results
@@ -3656,6 +3616,46 @@ export type Utilization = {
   /** Accounts for resources allocated to running instances or storage allocated via disks or snapshots Note that CPU and memory resources associated with a stopped instances are not counted here whereas associated disks will still be counted */
   provisioned: VirtualResourceCounts;
 };
+
+/**
+ * List of data values for one timeseries.
+ *
+ * Each element is an option, where `None` represents a missing sample.
+ */
+export type ValueArray =
+  | { type: "integer"; values: number[] }
+  | { type: "double"; values: number[] }
+  | { type: "boolean"; values: boolean[] }
+  | { type: "string"; values: string[] }
+  | { type: "integer_distribution"; values: Distributionint64[] }
+  | { type: "double_distribution"; values: Distributiondouble[] };
+
+/**
+ * A single list of values, for one dimension of a timeseries.
+ */
+export type Values = {
+  /** The type of this metric. */
+  metricType: MetricType;
+  /** The data values. */
+  values: ValueArray;
+};
+
+/**
+ * A collection of resource counts used to describe capacity and utilization
+ */
+export type VirtualResourceCounts = {
+  /** Number of virtual CPUs */
+  cpus: number;
+  /** Amount of memory in bytes */
+  memory: ByteCount;
+  /** Amount of disk storage in bytes */
+  storage: ByteCount;
+};
+
+/**
+ * A Geneve Virtual Network Identifier
+ */
+export type Vni = number;
 
 /**
  * View of a VPC
@@ -3694,59 +3694,6 @@ All IPv6 subnets created from this VPC must be taken from this range, which shou
   name: Name;
 };
 
-export type VpcFirewallRuleAction = "allow" | "deny";
-
-export type VpcFirewallRuleDirection = "inbound" | "outbound";
-
-/**
- * The `VpcFirewallRuleHostFilter` is used to filter traffic on the basis of its source or destination host.
- */
-export type VpcFirewallRuleHostFilter =
-  /** The rule applies to traffic from/to all instances in the VPC */
-  | { type: "vpc"; value: Name }
-  /** The rule applies to traffic from/to all instances in the VPC Subnet */
-  | { type: "subnet"; value: Name }
-  /** The rule applies to traffic from/to this specific instance */
-  | { type: "instance"; value: Name }
-  /** The rule applies to traffic from/to a specific IP address */
-  | { type: "ip"; value: string }
-  /** The rule applies to traffic from/to a specific IP subnet */
-  | { type: "ip_net"; value: IpNet };
-
-/**
- * The protocols that may be specified in a firewall rule's filter
- */
-export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
-
-/**
- * Filters reduce the scope of a firewall rule. Without filters, the rule applies to all packets to the targets (or from the targets, if it's an outbound rule). With multiple filters, the rule applies only to packets matching ALL filters. The maximum number of each type of filter is 256.
- */
-export type VpcFirewallRuleFilter = {
-  /** If present, host filters match the "other end" of traffic from the target’s perspective: for an inbound rule, they match the source of traffic. For an outbound rule, they match the destination. */
-  hosts?: VpcFirewallRuleHostFilter[];
-  /** If present, the destination ports or port ranges this rule applies to. */
-  ports?: L4PortRange[];
-  /** If present, the networking protocols this rule applies to. */
-  protocols?: VpcFirewallRuleProtocol[];
-};
-
-export type VpcFirewallRuleStatus = "disabled" | "enabled";
-
-/**
- * A `VpcFirewallRuleTarget` is used to specify the set of instances to which a firewall rule applies. You can target instances directly by name, or specify a VPC, VPC subnet, IP, or IP subnet, which will apply the rule to traffic going to all matching instances. Targets are additive: the rule applies to instances matching ANY target.
- */
-export type VpcFirewallRuleTarget =
-  /** The rule applies to all instances in the VPC */
-  | { type: "vpc"; value: Name }
-  /** The rule applies to all instances in the VPC Subnet */
-  | { type: "subnet"; value: Name }
-  /** The rule applies to this specific instance */
-  | { type: "instance"; value: Name }
-  /** The rule applies to a specific IP address */
-  | { type: "ip"; value: string }
-  /** The rule applies to a specific IP subnet */
-  | { type: "ip_net"; value: IpNet };
-
 /**
  * A single rule in a VPC firewall
  */
@@ -3776,6 +3723,59 @@ export type VpcFirewallRule = {
   /** The VPC to which this rule belongs */
   vpcId: string;
 };
+
+export type VpcFirewallRuleAction = "allow" | "deny";
+
+export type VpcFirewallRuleDirection = "inbound" | "outbound";
+
+/**
+ * Filters reduce the scope of a firewall rule. Without filters, the rule applies to all packets to the targets (or from the targets, if it's an outbound rule). With multiple filters, the rule applies only to packets matching ALL filters. The maximum number of each type of filter is 256.
+ */
+export type VpcFirewallRuleFilter = {
+  /** If present, host filters match the "other end" of traffic from the target’s perspective: for an inbound rule, they match the source of traffic. For an outbound rule, they match the destination. */
+  hosts?: VpcFirewallRuleHostFilter[];
+  /** If present, the destination ports or port ranges this rule applies to. */
+  ports?: L4PortRange[];
+  /** If present, the networking protocols this rule applies to. */
+  protocols?: VpcFirewallRuleProtocol[];
+};
+
+/**
+ * The `VpcFirewallRuleHostFilter` is used to filter traffic on the basis of its source or destination host.
+ */
+export type VpcFirewallRuleHostFilter =
+  /** The rule applies to traffic from/to all instances in the VPC */
+  | { type: "vpc"; value: Name }
+  /** The rule applies to traffic from/to all instances in the VPC Subnet */
+  | { type: "subnet"; value: Name }
+  /** The rule applies to traffic from/to this specific instance */
+  | { type: "instance"; value: Name }
+  /** The rule applies to traffic from/to a specific IP address */
+  | { type: "ip"; value: string }
+  /** The rule applies to traffic from/to a specific IP subnet */
+  | { type: "ip_net"; value: IpNet };
+
+/**
+ * The protocols that may be specified in a firewall rule's filter
+ */
+export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
+
+export type VpcFirewallRuleStatus = "disabled" | "enabled";
+
+/**
+ * A `VpcFirewallRuleTarget` is used to specify the set of instances to which a firewall rule applies. You can target instances directly by name, or specify a VPC, VPC subnet, IP, or IP subnet, which will apply the rule to traffic going to all matching instances. Targets are additive: the rule applies to instances matching ANY target.
+ */
+export type VpcFirewallRuleTarget =
+  /** The rule applies to all instances in the VPC */
+  | { type: "vpc"; value: Name }
+  /** The rule applies to all instances in the VPC Subnet */
+  | { type: "subnet"; value: Name }
+  /** The rule applies to this specific instance */
+  | { type: "instance"; value: Name }
+  /** The rule applies to a specific IP address */
+  | { type: "ip"; value: string }
+  /** The rule applies to a specific IP subnet */
+  | { type: "ip_net"; value: IpNet };
 
 /**
  * A single rule in a VPC firewall
@@ -3819,8 +3819,6 @@ export type VpcResultsPage = {
   nextPage?: string;
 };
 
-export type VpcRouterKind = "system" | "custom";
-
 /**
  * A VPC router defines a series of rules that indicate where traffic should be sent depending on its destination.
  */
@@ -3844,6 +3842,8 @@ export type VpcRouter = {
  * Create-time parameters for a `VpcRouter`
  */
 export type VpcRouterCreate = { description: string; name: Name };
+
+export type VpcRouterKind = "system" | "custom";
 
 /**
  * A single page of results
