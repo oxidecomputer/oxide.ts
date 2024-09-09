@@ -21,7 +21,7 @@ export const getSortedSchemas = (spec: OpenAPIV3.Document) => {
     Object.keys(spec.components?.schemas || {}).map((name) => [
       name,
       JSON.stringify(spec.components!.schemas![name])
-        .match(/#\/components\/schemas\/[a-zA-Z0-9\.\-_]+$/g)
+        .match(/#\/components\/schemas\/[a-zA-Z0-9.\-_]+$/g)
         ?.map((s) => s.replace("#/components/schemas/", "")),
     ])
   );
