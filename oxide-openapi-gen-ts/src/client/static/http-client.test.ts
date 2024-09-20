@@ -8,7 +8,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { handleResponse, mergeParams } from "./http-client";
+import { fetchWithRetry, handleResponse, mergeParams } from "./http-client";
 import { describe, expect, it } from "vitest";
 
 const headers = { "Content-Type": "application/json" };
@@ -16,6 +16,41 @@ const headers = { "Content-Type": "application/json" };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const json = (body: any, status = 200) =>
   new Response(JSON.stringify(body), { status, headers });
+
+describe("fetchWithRetry", () => {
+  it("retries request when handler returns true", async () => {
+    const retryLimit = 1
+    let retries = 0
+    const retryHandler = () => {
+      if (retries >= retryLimit) {
+        return false
+      } else {
+        retries += 1
+        return true
+      }
+    }
+
+    try {
+      await fetchWithRetry(() => { throw new Error("unimplemented") }, "empty_url", {}, retryHandler)
+    } catch {
+      // Throw away any errors we receive, we are only interested in ensuring the retry handler
+      // gets called and that retries terminate
+    }
+
+    expect(retries).toEqual(1)
+  });
+
+  it("rethrows error when handler returns false", async () => {
+    const retryHandler = () => false
+
+    try {
+      await fetchWithRetry(() => { throw new Error("unimplemented") }, "empty_url", {}, retryHandler)
+      throw new Error("Unreachable. This is a bug")
+    } catch (err: any) {
+      expect(err.message).toEqual("unimplemented")
+    }
+  });
+});
 
 describe("handleResponse", () => {
   it("handles success", async () => {
