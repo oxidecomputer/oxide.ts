@@ -117,11 +117,11 @@ export interface FullParams extends FetchParams {
   method?: string;
 }
 
-export type RetryHandler = (
+export type RetryHandler = (err: any) => boolean;
+export type RetryHandlerFactory = (
   url: RequestInfo | URL,
   init: RequestInit,
-  err: any,
-) => boolean;
+) => RetryHandler;
 
 export interface ApiConfig {
   /**
@@ -131,14 +131,14 @@ export interface ApiConfig {
   host?: string;
   token?: string;
   baseParams?: FetchParams;
-  retryHandler?: RetryHandler;
+  retryHandler?: RetryHandlerFactory;
 }
 
 export class HttpClient {
   host: string;
   token?: string;
   baseParams: FetchParams;
-  retryHandler: RetryHandler;
+  retryHandler: RetryHandlerFactory;
 
   constructor({
     host = "",
@@ -154,7 +154,7 @@ export class HttpClient {
       headers.append("Authorization", `Bearer ${token}`);
     }
     this.baseParams = mergeParams({ headers }, baseParams);
-    this.retryHandler = retryHandler ? retryHandler : () => false;
+    this.retryHandler = retryHandler ? retryHandler : () => () => false;
   }
 
   public async request<Data>({
@@ -169,7 +169,7 @@ export class HttpClient {
       ...mergeParams(this.baseParams, fetchParams),
       body: JSON.stringify(snakeify(body), replacer),
     };
-    return fetchWithRetry(fetch, url, init, this.retryHandler);
+    return fetchWithRetry(fetch, url, init, this.retryHandler(url, init));
   }
 }
 
@@ -182,7 +182,7 @@ export async function fetchWithRetry<Data>(
   try {
     return handleResponse(await fetch(url, init));
   } catch (err) {
-    if (retry(url, init, err)) {
+    if (retry(err)) {
       return await fetchWithRetry(fetch, url, init, retry);
     }
 
