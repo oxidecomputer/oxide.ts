@@ -31,7 +31,7 @@ export const isObjectOrArray = (o: unknown) =>
 export const mapObj =
   (
     kf: (k: string) => string,
-    vf: (k: string | undefined, v: unknown) => unknown = (k, v) => v,
+    vf: (k: string | undefined, v: unknown) => unknown = (_k, v) => v,
   ) =>
   (o: unknown): unknown => {
     if (!isObjectOrArray(o)) return o;
@@ -45,8 +45,14 @@ export const mapObj =
     return newObj;
   };
 
-export const parseIfDate = (k: string | undefined, v: unknown) => {
-  if (typeof v === "string" && (k?.startsWith("time_") || k === "timestamp")) {
+const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$/;
+
+/**
+ * Use regex to recognize a likely date and then attempt to parse it. Original
+ * value is passed through if either step fails.
+ */
+export const parseIfDate = (_k: string | undefined, v: unknown) => {
+  if (typeof v === "string" && isoDateRegex.test(v)) {
     const d = new Date(v);
     if (isNaN(d.getTime())) return v;
     return d;

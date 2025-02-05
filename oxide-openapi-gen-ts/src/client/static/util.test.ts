@@ -46,7 +46,7 @@ test("isObjectOrArray", () => {
 describe("mapObj", () => {
   const fn = mapObj(
     (k) => k + "_",
-    (k, v) => (typeof v === "number" ? v * 2 : v)
+    (_k, v) => (typeof v === "number" ? v * 2 : v)
   );
 
   it("leaves non-objects alone", () => {
@@ -78,33 +78,23 @@ test("processResponseBody", () => {
 });
 
 describe("parseIfDate", () => {
-  it("passes through non-date values", () => {
-    expect(parseIfDate("abc", 123)).toEqual(123);
-    expect(parseIfDate("abc", "def")).toEqual("def");
+  it.each([
+    123,
+    "def",
+    // missing 0   ↓   here
+    "2021-05-03T05:3:05Z",
+  ])("passes through non-date value %s", (v) => {
+    expect(parseIfDate("abc", v)).toEqual(v);
+    expect(parseIfDate("time_created", v)).toEqual(v);
   });
 
-  const timestamp = 1643092429315;
-  const dateStr = new Date(timestamp).toISOString();
+  it("parses values that pass the regex for dates", () => {
+    const timestamp = 1643092429315;
+    const dateStr = new Date(timestamp).toISOString();
 
-  it("doesn't parse dates if key doesn't start with time_", () => {
-    expect(parseIfDate("abc", dateStr)).toEqual(dateStr);
-  });
-
-  it("parses dates if key starts with time_", () => {
     const value = parseIfDate("time_whatever", dateStr);
     expect(value).toBeInstanceOf(Date);
     expect((value as Date).getTime()).toEqual(timestamp);
-  });
-
-  it("parses dates if key = 'timestamp'", () => {
-    const value = parseIfDate("timestamp", dateStr);
-    expect(value).toBeInstanceOf(Date);
-    expect((value as Date).getTime()).toEqual(timestamp);
-  });
-
-  it("passes through values that fail to parse as dates", () => {
-    const value = parseIfDate("time_whatever", "blah");
-    expect(value).toEqual("blah");
   });
 });
 
