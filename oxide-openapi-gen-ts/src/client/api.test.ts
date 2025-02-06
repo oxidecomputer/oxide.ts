@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { genTransformResponse } from "./api";
+import { type OpenAPIV3 } from "openapi-types";
 
 const projectSchema = {
   description: "View of a Project",
@@ -65,9 +66,15 @@ const noTransforms = {
   required: ["description", "id", "name"],
 };
 
+const spec: OpenAPIV3.Document = {
+  openapi: "",
+  info: { title: "", version: "" },
+  paths: {},
+};
+
 describe("generateTransformFunction", () => {
   it("handles timestamps at top level", () => {
-    expect(genTransformResponse(projectSchema)).toMatchInlineSnapshot(`
+    expect(genTransformResponse(spec, projectSchema)).toMatchInlineSnapshot(`
       "(o) => {
       o.time_created = new Date(o.time_created)
       o.time_modified = new Date(o.time_modified)
@@ -76,6 +83,6 @@ describe("generateTransformFunction", () => {
   });
 
   it("returns null when there are no transforms to make", () => {
-    expect(genTransformResponse(noTransforms)).toEqual(undefined);
+    expect(genTransformResponse(spec, noTransforms)).toEqual(undefined);
   });
 });

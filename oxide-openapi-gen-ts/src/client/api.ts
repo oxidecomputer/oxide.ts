@@ -22,7 +22,7 @@ import {
   snakeToPascal,
 } from "../util";
 import { initIO } from "../io";
-import type { Schema } from "../schema/base";
+import { refToSchemaName, type Schema } from "../schema/base";
 import {
   contentRef,
   docComment,
@@ -281,9 +281,9 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       // insert transformResponse if necessary
       const schema = spec.components!.schemas![successType];
       if (schema && "properties" in schema && schema.properties) {
-        const transformResponse = genTransformResponse(schema);
+        const transformResponse = genTransformResponse(spec, schema);
         if (transformResponse) {
-          w0("transformResponse: " + genTransformResponse(schema) + ",");
+          w0("transformResponse: " + genTransformResponse(spec, schema) + ",");
         }
       }
     }
@@ -351,8 +351,11 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
 // TODO: special case for the common transform function that just does the
 // created and modified timestamps, could save a lot of lines
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function genTransformResponse(schema: any): string | undefined {
+export function genTransformResponse(
+  spec: OpenAPIV3.Document,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  schema: any
+): string | undefined {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function recurse(schema: any, path: string): string | undefined {
     if (schema.type === "object") {
@@ -367,10 +370,12 @@ export function genTransformResponse(schema: any): string | undefined {
 
       return properties.join("\n");
     } else if (schema.type === "array") {
-      const itemPath = path ? `${path}[]` : "[]";
-      const transformCode = recurse(schema.items, itemPath);
+      const transformCode = recurse(schema.items, "");
       return transformCode
-        ? `o.${path}.map((item: any) => ${transformCode})`
+        ? `o.${path}.map((o: any) => {
+  ${transformCode}
+  return o
+})`
         : undefined;
     } else if (schema.type === "string") {
       if (schema.format === "date-time") {
@@ -378,6 +383,10 @@ export function genTransformResponse(schema: any): string | undefined {
       } else if (schema.format === "uint128") {
         return `BigInt(o.${path})`;
       }
+    } else if ("$ref" in schema) {
+      const schemaName = refToSchemaName(schema.$ref);
+      const _schema = spec.components!.schemas![schemaName];
+      return recurse(_schema, path);
     }
     return undefined;
   }

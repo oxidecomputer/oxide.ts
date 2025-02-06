@@ -5239,6 +5239,13 @@ export class Api extends HttpClient {
         path: `/v1/certificates`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -5301,6 +5308,13 @@ export class Api extends HttpClient {
         path: `/v1/disks`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -5464,6 +5478,12 @@ export class Api extends HttpClient {
         path: `/v1/disks/${path.disk}/metrics/${path.metric}`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.timestamp = new Date(o.timestamp);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -5478,6 +5498,13 @@ export class Api extends HttpClient {
         path: `/v1/floating-ips`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -5660,6 +5687,13 @@ export class Api extends HttpClient {
         path: `/v1/images`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -5776,6 +5810,14 @@ export class Api extends HttpClient {
         path: `/v1/instances`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            o.time_run_state_updated = new Date(o.time_run_state_updated);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -5858,6 +5900,13 @@ export class Api extends HttpClient {
         path: `/v1/instances/${path.instance}/disks`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6037,6 +6086,13 @@ export class Api extends HttpClient {
         path: `/v1/instances/${path.instance}/ssh-public-keys`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6095,6 +6151,13 @@ export class Api extends HttpClient {
         path: `/v1/ip-pools`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6177,6 +6240,13 @@ export class Api extends HttpClient {
         path: `/v1/me/ssh-keys`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6242,6 +6312,12 @@ export class Api extends HttpClient {
         path: `/v1/metrics/${path.metricName}`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.timestamp = new Date(o.timestamp);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6256,6 +6332,13 @@ export class Api extends HttpClient {
         path: `/v1/network-interfaces`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6400,6 +6483,13 @@ export class Api extends HttpClient {
         path: `/v1/projects`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6510,6 +6600,13 @@ export class Api extends HttpClient {
         path: `/v1/snapshots`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6584,6 +6681,13 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/disks`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6615,6 +6719,13 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/racks`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6646,6 +6757,13 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/sleds`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6697,6 +6815,13 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/sleds/${path.sledId}/disks`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6717,6 +6842,13 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/sleds/${path.sledId}/instances`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6842,6 +6974,13 @@ export class Api extends HttpClient {
         path: `/v1/system/hardware/switches`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6873,6 +7012,13 @@ export class Api extends HttpClient {
         path: `/v1/system/identity-providers`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -6997,6 +7143,13 @@ export class Api extends HttpClient {
         path: `/v1/system/ip-pools`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7083,6 +7236,12 @@ export class Api extends HttpClient {
         path: `/v1/system/ip-pools/${path.pool}/ranges`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7216,6 +7375,12 @@ export class Api extends HttpClient {
         path: `/v1/system/ip-pools-service/ranges`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7264,6 +7429,12 @@ export class Api extends HttpClient {
         path: `/v1/system/metrics/${path.metricName}`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.timestamp = new Date(o.timestamp);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7278,6 +7449,13 @@ export class Api extends HttpClient {
         path: `/v1/system/networking/address-lot`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7409,6 +7587,13 @@ export class Api extends HttpClient {
         path: `/v1/system/networking/bgp`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7602,6 +7787,13 @@ export class Api extends HttpClient {
         path: `/v1/system/networking/switch-port-settings`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7722,6 +7914,13 @@ export class Api extends HttpClient {
         path: `/v1/system/silos`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7784,6 +7983,13 @@ export class Api extends HttpClient {
         path: `/v1/system/silos/${path.silo}/ip-pools`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7889,6 +8095,13 @@ export class Api extends HttpClient {
         path: `/v1/system/users-builtin`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7961,6 +8174,12 @@ export class Api extends HttpClient {
         path: `/v1/timeseries/schema`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.created = new Date(o.created);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -7999,6 +8218,13 @@ export class Api extends HttpClient {
         path: `/v1/vpc-firewall-rules`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.rules = o.rules.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -8020,6 +8246,13 @@ export class Api extends HttpClient {
         method: "PUT",
         body,
         query,
+        transformResponse: (o) => {
+          o.rules = o.rules.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -8034,6 +8267,13 @@ export class Api extends HttpClient {
         path: `/v1/vpc-router-routes`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -8141,6 +8381,13 @@ export class Api extends HttpClient {
         path: `/v1/vpc-routers`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -8245,6 +8492,13 @@ export class Api extends HttpClient {
         path: `/v1/vpc-subnets`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -8355,6 +8609,13 @@ export class Api extends HttpClient {
         path: `/v1/vpc-subnets/${path.subnet}/network-interfaces`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
@@ -8369,6 +8630,13 @@ export class Api extends HttpClient {
         path: `/v1/vpcs`,
         method: "GET",
         query,
+        transformResponse: (o) => {
+          o.items = o.items.map((o: any) => {
+            o.time_created = new Date(o.time_created);
+            o.time_modified = new Date(o.time_modified);
+            return o;
+          });
+        },
         ...params,
       });
     },
