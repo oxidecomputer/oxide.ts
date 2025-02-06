@@ -276,6 +276,18 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     if (queryParams.length > 0) {
       w("  query,");
     }
+
+    if (successType) {
+      // insert transformResponse if necessary
+      const schema = spec.components!.schemas![successType];
+      if (schema && "properties" in schema && schema.properties) {
+        const transformResponse = genTransformResponse(schema);
+        if (transformResponse) {
+          w0("transformResponse: " + genTransformResponse(schema) + ",");
+        }
+      }
+    }
+
     w(`  ...params,
          })
       },`);
@@ -335,4 +347,44 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
    export default Api;`);
   out.end();
+}
+
+// TODO: special case for the common transform function that just does the
+// created and modified timestamps, could save a lot of lines
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function genTransformResponse(schema: any): string | undefined {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function recurse(schema: any, path: string): string | undefined {
+    if (schema.type === "object") {
+      const properties = Object.entries(schema.properties || {})
+        .map(([key, propSchema]) => {
+          const propPath = path ? `${path}.${key}` : key;
+          const transformCode = recurse(propSchema, propPath);
+          return transformCode ? `o.${key} = ${transformCode}` : undefined;
+        })
+        .filter((x) => x);
+      if (properties.length === 0) return undefined;
+
+      return properties.join("\n");
+    } else if (schema.type === "array") {
+      const itemPath = path ? `${path}[]` : "[]";
+      const transformCode = recurse(schema.items, itemPath);
+      return transformCode
+        ? `o.${path}.map((item: any) => ${transformCode})`
+        : undefined;
+    } else if (schema.type === "string") {
+      if (schema.format === "date-time") {
+        return `new Date(o.${path})`;
+      } else if (schema.format === "uint128") {
+        return `BigInt(o.${path})`;
+      }
+    }
+    return undefined;
+  }
+
+  const transformCode = recurse(schema, "");
+  if (!transformCode) return undefined;
+  return `(o) => {
+${transformCode}
+}`;
 }

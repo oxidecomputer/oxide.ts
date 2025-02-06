@@ -43,7 +43,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
     import type { SnakeCasedPropertiesDeep as Snakify, Promisable } from "type-fest";
     import { type ZodSchema } from "zod";
     import type * as Api from "./Api";
-    import { snakeify } from "./util";
+    import { snakeifyKeys } from "./util";
     import * as schema from "./validate";
 
     type HandlerResult<T> = Json<T> | StrictResponse<Json<T>>;
@@ -90,10 +90,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
         ? `body: Json<Api.${bodyType}>,`
         : "";
     const pathParams = conf.parameters?.filter(
-      (param) => "name" in param && param.schema && param.in === "path",
+      (param) => "name" in param && param.schema && param.in === "path"
     );
     const queryParams = conf.parameters?.filter(
-      (param) => "name" in param && param.schema && param.in === "query",
+      (param) => "name" in param && param.schema && param.in === "query"
     );
     const pathParamsType = pathParams?.length
       ? `path: Api.${snakeToPascal(opId)}PathParams,`
@@ -159,7 +159,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
         let body = undefined
         if (bodySchema) {
           const rawBody = await req.json()
-          const result = bodySchema.transform(snakeify).safeParse(rawBody);
+          const result = bodySchema.transform(snakeifyKeys).safeParse(rawBody);
           if (!result.success) {
             const message = 'Zod error for body: ' + JSON.stringify(result.error)
             return json({ error_code: 'InvalidRequest', message }, { status: 400 })
@@ -222,8 +222,8 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
 
     w(
       `http.${method}('${formatPath(
-        path,
-      )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`,
+        path
+      )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`
     );
   }
   w(`]}`);

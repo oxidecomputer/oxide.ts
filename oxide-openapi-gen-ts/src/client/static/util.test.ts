@@ -7,12 +7,11 @@
  */
 
 import {
+  camelifyKeys,
   camelToSnake,
   isObjectOrArray,
   mapObj,
-  parseIfDate,
-  processResponseBody,
-  snakeify,
+  snakeifyKeys,
   snakeToCamel,
   uniqueItems,
 } from "./util";
@@ -60,8 +59,8 @@ describe("mapObj", () => {
   });
 });
 
-test("processResponseBody", () => {
-  expect(processResponseBody({})).toEqual({});
+test("camelifyKeys", () => {
+  expect(camelifyKeys({})).toEqual({});
 
   const date = new Date();
   const dateStr = date.toISOString();
@@ -70,45 +69,14 @@ test("processResponseBody", () => {
     another_prop: "abc",
     time_created: dateStr,
   };
-  expect(processResponseBody(resp)).toMatchObject({
+  expect(camelifyKeys(resp)).toMatchObject({
     id: "big-uuid",
     anotherProp: "abc",
-    timeCreated: expect.any(Date),
+    timeCreated: dateStr,
   });
 });
 
-describe("parseIfDate", () => {
-  it("passes through non-date values", () => {
-    expect(parseIfDate("abc", 123)).toEqual(123);
-    expect(parseIfDate("abc", "def")).toEqual("def");
-  });
-
-  const timestamp = 1643092429315;
-  const dateStr = new Date(timestamp).toISOString();
-
-  it("doesn't parse dates if key doesn't start with time_", () => {
-    expect(parseIfDate("abc", dateStr)).toEqual(dateStr);
-  });
-
-  it("parses dates if key starts with time_", () => {
-    const value = parseIfDate("time_whatever", dateStr);
-    expect(value).toBeInstanceOf(Date);
-    expect((value as Date).getTime()).toEqual(timestamp);
-  });
-
-  it("parses dates if key = 'timestamp'", () => {
-    const value = parseIfDate("timestamp", dateStr);
-    expect(value).toBeInstanceOf(Date);
-    expect((value as Date).getTime()).toEqual(timestamp);
-  });
-
-  it("passes through values that fail to parse as dates", () => {
-    const value = parseIfDate("time_whatever", "blah");
-    expect(value).toEqual("blah");
-  });
-});
-
-test("snakeify", () => {
+test("snakeifyKeys", () => {
   const obj = {
     id: "vpc-id",
     timeCreated: new Date(Date.UTC(2021, 0, 1)).toISOString(),
@@ -119,7 +87,7 @@ test("snakeify", () => {
       weAreSerious: "xyz",
     },
   };
-  expect(snakeify(obj)).toMatchInlineSnapshot(`
+  expect(snakeifyKeys(obj)).toMatchInlineSnapshot(`
     {
       "id": "vpc-id",
       "nested_obj": {
