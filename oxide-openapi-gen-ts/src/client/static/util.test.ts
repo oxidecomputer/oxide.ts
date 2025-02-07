@@ -90,17 +90,14 @@ describe("parseIfDate", () => {
     expect(parseIfDate("abc", dateStr)).toEqual(dateStr);
   });
 
-  it("parses dates if key starts with time_", () => {
-    const value = parseIfDate("time_whatever", dateStr);
-    expect(value).toBeInstanceOf(Date);
-    expect((value as Date).getTime()).toEqual(timestamp);
-  });
-
-  it("parses dates if key = 'timestamp'", () => {
-    const value = parseIfDate("timestamp", dateStr);
-    expect(value).toBeInstanceOf(Date);
-    expect((value as Date).getTime()).toEqual(timestamp);
-  });
+  it.each(["time_whatever", "auto_thing_expiration", "timestamp"])(
+    "parses dates if key is '%s'",
+    (key) => {
+      const value = parseIfDate(key, dateStr);
+      expect(value).toBeInstanceOf(Date);
+      expect((value as Date).getTime()).toEqual(timestamp);
+    }
+  );
 
   it("passes through values that fail to parse as dates", () => {
     const value = parseIfDate("time_whatever", "blah");
