@@ -103,6 +103,22 @@ describe("parseIfDate", () => {
     const value = parseIfDate("time_whatever", "blah");
     expect(value).toEqual("blah");
   });
+
+  it.each([
+    "2023-01-01T12:00:00Z",
+    "2023-01-01T12:00:00.1Z",
+    "2023-01-01T12:00:00.12Z",
+    "2023-01-01T12:00:00.123Z",
+    "2023-01-01T12:00:00.1234Z",
+    "2023-01-01T12:00:00.12345Z",
+    "2023-01-01T12:00:00.123456Z",
+    "2023-01-01T12:00:00.123456789Z",
+    "2023-01-01T12:00:00.123456789123Z",
+    "2023-01-01T12:00:00.123456789123123Z",
+  ])("parses dates with fractional digits: %s", (dateString) => {
+    const value = parseIfDate("time_whatever", dateString);
+    expect(value).toBeInstanceOf(Date);
+  });
 });
 
 test("snakeify", () => {
