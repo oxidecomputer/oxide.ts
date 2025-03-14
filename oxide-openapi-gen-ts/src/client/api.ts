@@ -12,8 +12,6 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 import type { OpenAPIV3 } from "openapi-types";
-import { OpenAPIV3 as O } from "openapi-types";
-const HttpMethods = O.HttpMethods;
 import {
   extractDoc,
   pathToTemplateStr,
@@ -156,53 +154,6 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       }
       w("}\n");
     }
-  }
-
-  const operations = Object.values(spec.paths)
-    .map((handlers) =>
-      Object.entries(handlers!)
-        .filter(([method]) => method.toUpperCase() in HttpMethods)
-        .map(([_, conf]) => conf)
-    )
-    .flat()
-    .filter((handler) => {
-      return (
-        !!handler && typeof handler === "object" && "operationId" in handler
-      );
-    });
-
-  // TODO: Fix this type
-  const ops = operations as Exclude<
-    typeof operations[number],
-    | string
-    | (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
-    | OpenAPIV3.ServerObject[]
-  >[];
-
-  const idRoutes = ops.filter((op) => op.operationId?.endsWith("view_by_id"));
-  if (idRoutes.length > 0) {
-    w(
-      "export type ApiViewByIdMethods = Pick<InstanceType<typeof Api>['methods'], "
-    );
-    w0(
-      `${idRoutes
-        .map((op) => `'${snakeToCamel(op.operationId!)}'`)
-        .join(" | ")}`
-    );
-    w(">\n");
-  }
-
-  const listRoutes = ops.filter((op) => op.operationId?.match(/_list(_v1)?$/));
-  if (listRoutes.length > 0) {
-    w(
-      "export type ApiListMethods = Pick<InstanceType<typeof Api>['methods'], "
-    );
-    w0(
-      `${listRoutes
-        .map((op) => `'${snakeToCamel(op.operationId!)}'`)
-        .join(" | ")}`
-    );
-    w(">\n");
   }
 
   w("type EmptyObj = Record<string, never>;");

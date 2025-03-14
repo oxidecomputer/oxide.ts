@@ -5059,58 +5059,6 @@ export interface VpcDeleteQueryParams {
   project?: NameOrId;
 }
 
-export type ApiListMethods = Pick<
-  InstanceType<typeof Api>["methods"],
-  | "probeList"
-  | "certificateList"
-  | "diskList"
-  | "diskMetricsList"
-  | "floatingIpList"
-  | "groupList"
-  | "imageList"
-  | "instanceList"
-  | "instanceDiskList"
-  | "instanceExternalIpList"
-  | "instanceSshPublicKeyList"
-  | "projectIpPoolList"
-  | "currentUserSshKeyList"
-  | "instanceNetworkInterfaceList"
-  | "projectList"
-  | "snapshotList"
-  | "physicalDiskList"
-  | "rackList"
-  | "sledList"
-  | "sledPhysicalDiskList"
-  | "sledInstanceList"
-  | "networkingSwitchPortList"
-  | "switchList"
-  | "siloIdentityProviderList"
-  | "ipPoolList"
-  | "ipPoolRangeList"
-  | "ipPoolSiloList"
-  | "ipPoolServiceRangeList"
-  | "networkingAddressLotList"
-  | "networkingAddressLotBlockList"
-  | "networkingBgpConfigList"
-  | "networkingBgpAnnounceSetList"
-  | "networkingBgpAnnouncementList"
-  | "networkingLoopbackAddressList"
-  | "networkingSwitchPortSettingsList"
-  | "roleList"
-  | "systemQuotasList"
-  | "siloList"
-  | "siloIpPoolList"
-  | "siloUserList"
-  | "userBuiltinList"
-  | "siloUtilizationList"
-  | "timeseriesSchemaList"
-  | "userList"
-  | "vpcRouterRouteList"
-  | "vpcRouterList"
-  | "vpcSubnetList"
-  | "vpcList"
->;
-
 type EmptyObj = Record<string, never>;
 export class Api extends HttpClient {
   methods = {
