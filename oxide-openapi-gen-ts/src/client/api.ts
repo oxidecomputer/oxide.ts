@@ -158,40 +158,6 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     }
   }
 
-  const operations = Object.values(spec.paths)
-    .map((handlers) =>
-      Object.entries(handlers!)
-        .filter(([method]) => method.toUpperCase() in HttpMethods)
-        .map(([_, conf]) => conf)
-    )
-    .flat()
-    .filter((handler) => {
-      return (
-        !!handler && typeof handler === "object" && "operationId" in handler
-      );
-    });
-
-  // TODO: Fix this type
-  const ops = operations as Exclude<
-    typeof operations[number],
-    | string
-    | (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
-    | OpenAPIV3.ServerObject[]
-  >[];
-
-  const idRoutes = ops.filter((op) => op.operationId?.endsWith("view_by_id"));
-  if (idRoutes.length > 0) {
-    w(
-      "export type ApiViewByIdMethods = Pick<InstanceType<typeof Api>['methods'], "
-    );
-    w0(
-      `${idRoutes
-        .map((op) => `'${snakeToCamel(op.operationId!)}'`)
-        .join(" | ")}`
-    );
-    w(">\n");
-  }
-
   w("type EmptyObj = Record<string, never>;");
 
   w(`export class Api extends HttpClient {
