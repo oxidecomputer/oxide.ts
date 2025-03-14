@@ -12,8 +12,6 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 import type { OpenAPIV3 } from "openapi-types";
-import { OpenAPIV3 as O } from "openapi-types";
-const HttpMethods = O.HttpMethods;
 import {
   extractDoc,
   pathToTemplateStr,
