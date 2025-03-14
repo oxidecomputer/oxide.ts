@@ -192,19 +192,6 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     w(">\n");
   }
 
-  const listRoutes = ops.filter((op) => op.operationId?.match(/_list(_v1)?$/));
-  if (listRoutes.length > 0) {
-    w(
-      "export type ApiListMethods = Pick<InstanceType<typeof Api>['methods'], "
-    );
-    w0(
-      `${listRoutes
-        .map((op) => `'${snakeToCamel(op.operationId!)}'`)
-        .join(" | ")}`
-    );
-    w(">\n");
-  }
-
   w("type EmptyObj = Record<string, never>;");
 
   w(`export class Api extends HttpClient {
