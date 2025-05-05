@@ -155,6 +155,129 @@ export type AddressLotResultsPage = {
   nextPage?: string;
 };
 
+/**
+ * Describes the scope of affinity for the purposes of co-location.
+ */
+export type FailureDomain = "sled";
+
+/**
+ * Affinity policy used to describe "what to do when a request cannot be satisfied"
+ *
+ * Used for both Affinity and Anti-Affinity Groups
+ */
+export type AffinityPolicy =
+  /** If the affinity request cannot be satisfied, allow it anyway.
+
+This enables a "best-effort" attempt to satisfy the affinity policy. */
+  | "allow"
+
+  /** If the affinity request cannot be satisfied, fail explicitly. */
+  | "fail";
+
+/**
+ * View of an Affinity Group
+ */
+export type AffinityGroup = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  failureDomain: FailureDomain;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  policy: AffinityPolicy;
+  projectId: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create-time parameters for an `AffinityGroup`
+ */
+export type AffinityGroupCreate = {
+  description: string;
+  failureDomain: FailureDomain;
+  name: Name;
+  policy: AffinityPolicy;
+};
+
+export type TypedUuidForInstanceKind = string;
+
+/**
+ * Running state of an Instance (primarily: booted or stopped)
+ *
+ * This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
+ */
+export type InstanceState =
+  /** The instance is being created. */
+  | "creating"
+
+  /** The instance is currently starting up. */
+  | "starting"
+
+  /** The instance is currently running. */
+  | "running"
+
+  /** The instance has been requested to stop and a transition to "Stopped" is imminent. */
+  | "stopping"
+
+  /** The instance is currently stopped. */
+  | "stopped"
+
+  /** The instance is in the process of rebooting - it will remain in the "rebooting" state until the VM is starting once more. */
+  | "rebooting"
+
+  /** The instance is in the process of migrating - it will remain in the "migrating" state until the migration process is complete and the destination propolis is ready to continue execution. */
+  | "migrating"
+
+  /** The instance is attempting to recover from a failure. */
+  | "repairing"
+
+  /** The instance has encountered a failure. */
+  | "failed"
+
+  /** The instance has been deleted. */
+  | "destroyed";
+
+/**
+ * A member of an Affinity Group
+ *
+ * Membership in a group is not exclusive - members may belong to multiple affinity / anti-affinity groups.
+ *
+ * Affinity Groups can contain up to 32 members.
+ */
+export type AffinityGroupMember = {
+  type: "instance";
+  value: { id: TypedUuidForInstanceKind; name: Name; runState: InstanceState };
+};
+
+/**
+ * A single page of results
+ */
+export type AffinityGroupMemberResultsPage = {
+  /** list of items on this page of results */
+  items: AffinityGroupMember[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * A single page of results
+ */
+export type AffinityGroupResultsPage = {
+  /** list of items on this page of results */
+  items: AffinityGroup[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Updateable properties of an `AffinityGroup`
+ */
+export type AffinityGroupUpdate = { description?: string; name?: Name };
+
 export type BgpMessageHistory = Record<string, unknown>;
 
 /**
@@ -215,6 +338,72 @@ export type AllowListUpdate = {
   /** The new list of allowed source IPs. */
   allowedIps: AllowedSourceIps;
 };
+
+/**
+ * View of an Anti-Affinity Group
+ */
+export type AntiAffinityGroup = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  failureDomain: FailureDomain;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  policy: AffinityPolicy;
+  projectId: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create-time parameters for an `AntiAffinityGroup`
+ */
+export type AntiAffinityGroupCreate = {
+  description: string;
+  failureDomain: FailureDomain;
+  name: Name;
+  policy: AffinityPolicy;
+};
+
+/**
+ * A member of an Anti-Affinity Group
+ *
+ * Membership in a group is not exclusive - members may belong to multiple affinity / anti-affinity groups.
+ *
+ * Anti-Affinity Groups can contain up to 32 members.
+ */
+export type AntiAffinityGroupMember = {
+  type: "instance";
+  value: { id: TypedUuidForInstanceKind; name: Name; runState: InstanceState };
+};
+
+/**
+ * A single page of results
+ */
+export type AntiAffinityGroupMemberResultsPage = {
+  /** list of items on this page of results */
+  items: AntiAffinityGroupMember[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * A single page of results
+ */
+export type AntiAffinityGroupResultsPage = {
+  /** list of items on this page of results */
+  items: AntiAffinityGroup[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * Updateable properties of an `AntiAffinityGroup`
+ */
+export type AntiAffinityGroupUpdate = { description?: string; name?: Name };
 
 /**
  * Authorization scope for a timeseries.
@@ -1232,7 +1421,7 @@ export type Datum =
   | { datum: MissingDatum; type: "missing" };
 
 export type DerEncodedKeyPair = {
-  /** request signing private key (base64 encoded der file) */
+  /** request signing RSA private key in PKCS#1 format (base64 encoded der file) */
   privateKey: string;
   /** request signing public certificate (base64 encoded der file) */
   publicCert: string;
@@ -1326,10 +1515,10 @@ export type DiskSource =
  */
 export type DiskCreate = {
   description: string;
-  /** initial source for this disk */
+  /** The initial source for this disk */
   diskSource: DiskSource;
   name: Name;
-  /** total size of the Disk in bytes */
+  /** The total size of the Disk (in bytes) */
   size: ByteCount;
 };
 
@@ -1682,10 +1871,7 @@ export type Image = {
 /**
  * The source of the underlying image.
  */
-export type ImageSource =
-  | { id: string; type: "snapshot" }
-  /** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
-  | { type: "you_can_boot_anything_as_long_as_its_alpine" };
+export type ImageSource = { id: string; type: "snapshot" };
 
 /**
  * Create-time parameters for an `Image`
@@ -1720,50 +1906,36 @@ export type ImportBlocksBulkWrite = {
 };
 
 /**
+ * A policy determining when an instance should be automatically restarted by the control plane.
+ */
+export type InstanceAutoRestartPolicy =
+  /** The instance should not be automatically restarted by the control plane if it fails. */
+  | "never"
+
+  /** If this instance is running and unexpectedly fails (e.g. due to a host software crash or unexpected host reboot), the control plane will make a best-effort attempt to restart it. The control plane may choose not to restart the instance to preserve the overall availability of the system. */
+  | "best_effort";
+
+/**
  * The number of CPUs in an Instance
  */
 export type InstanceCpuCount = number;
 
 /**
- * Running state of an Instance (primarily: booted or stopped)
- *
- * This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
- */
-export type InstanceState =
-  /** The instance is being created. */
-  | "creating"
-
-  /** The instance is currently starting up. */
-  | "starting"
-
-  /** The instance is currently running. */
-  | "running"
-
-  /** The instance has been requested to stop and a transition to "Stopped" is imminent. */
-  | "stopping"
-
-  /** The instance is currently stopped. */
-  | "stopped"
-
-  /** The instance is in the process of rebooting - it will remain in the "rebooting" state until the VM is starting once more. */
-  | "rebooting"
-
-  /** The instance is in the process of migrating - it will remain in the "migrating" state until the migration process is complete and the destination propolis is ready to continue execution. */
-  | "migrating"
-
-  /** The instance is attempting to recover from a failure. */
-  | "repairing"
-
-  /** The instance has encountered a failure. */
-  | "failed"
-
-  /** The instance has been deleted. */
-  | "destroyed";
-
-/**
  * View of an Instance
  */
 export type Instance = {
+  /** The time at which the auto-restart cooldown period for this instance completes, permitting it to be automatically restarted again. If the instance enters the `Failed` state, it will not be restarted until after this time.
+
+If this is not present, then either the instance has never been automatically restarted, or the cooldown period has already expired, allowing the instance to be restarted immediately if it fails. */
+  autoRestartCooldownExpiration?: Date;
+  /** `true` if this instance's auto-restart policy will permit the control plane to automatically restart it if it enters the `Failed` state. */
+  autoRestartEnabled: boolean;
+  /** The auto-restart policy configured for this instance, or `null` if no explicit policy has been configured.
+
+This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, the control plane will use the default policy when determining whether or not to automatically restart this instance, which may or may not allow it to be restarted. The value of the `auto_restart_enabled` field indicates whether the instance will be auto-restarted, based on its current policy or the default if it has no configured policy. */
+  autoRestartPolicy?: InstanceAutoRestartPolicy;
+  /** the ID of the disk used to boot this Instance, if a specific one is assigned. */
+  bootDiskId?: string;
   /** human-readable free-form text about a resource */
   description: string;
   /** RFC1035-compliant hostname for the Instance. */
@@ -1781,6 +1953,10 @@ export type Instance = {
   runState: InstanceState;
   /** timestamp when this resource was created */
   timeCreated: Date;
+  /** The timestamp of the most recent time this instance was automatically restarted by the control plane.
+
+If this is not present, then this instance has not been automatically restarted. */
+  timeLastAutoRestarted?: Date;
   /** timestamp when this resource was last modified */
   timeModified: Date;
   timeRunStateUpdated: Date;
@@ -1793,10 +1969,10 @@ export type InstanceDiskAttachment =
   /** During instance creation, create and attach disks */
   | {
       description: string;
-      /** initial source for this disk */
+      /** The initial source for this disk */
       diskSource: DiskSource;
       name: Name;
-      /** total size of the Disk in bytes */
+      /** The total size of the Disk (in bytes) */
       size: ByteCount;
       type: "create";
     }
@@ -1838,6 +2014,20 @@ If more than one interface is provided, then the first will be designated the pr
  * Create-time parameters for an `Instance`
  */
 export type InstanceCreate = {
+  /** Anti-Affinity groups which this instance should be added. */
+  antiAffinityGroups?: NameOrId[];
+  /** The auto-restart policy for this instance.
+
+This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, no auto-restart policy will be explicitly configured for this instance, and the control plane will select the default policy when determining whether the instance can be automatically restarted.
+
+Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
+  autoRestartPolicy?: InstanceAutoRestartPolicy;
+  /** The disk this instance should boot into. This disk can either be attached if it already exists, or created, if it should be a new disk.
+
+It is strongly recommended to either provide a boot disk at instance creation, or update the instance after creation to set a boot disk.
+
+An instance without an explicit boot disk can be booted: the options are as managed by UEFI, and as controlled by the guest OS, but with some risk.  If this instance later has a disk attached or detached, it is possible that boot options can end up reordered, with the intended boot disk moved after the EFI shell in boot priority. This may result in an instance that only boots to the EFI shell until the desired disk is set as an explicit boot disk and the instance rebooted. */
+  bootDisk?: InstanceDiskAttachment;
   description: string;
   /** The disks to be created or attached for this instance. */
   disks?: InstanceDiskAttachment[];
@@ -1845,9 +2035,12 @@ export type InstanceCreate = {
 
 By default, all instances have outbound connectivity, but no inbound connectivity. These external addresses can be used to provide a fixed, known IP address for making inbound connections to the instance. */
   externalIps?: ExternalIpCreate[];
+  /** The hostname to be assigned to the instance */
   hostname: Hostname;
+  /** The amount of RAM (in bytes) to be allocated to the instance */
   memory: ByteCount;
   name: Name;
+  /** The number of vCPUs to be allocated to the instance */
   ncpus: InstanceCpuCount;
   /** The network interfaces to be created for this instance. */
   networkInterfaces?: InstanceNetworkInterfaceAttachment;
@@ -1944,6 +2137,137 @@ export type InstanceSerialConsoleData = {
   data: number[];
   /** The absolute offset since boot (suitable for use as `byte_offset` in a subsequent request) of the last byte returned in `data`. */
   lastByteOffset: number;
+};
+
+/**
+ * Parameters of an `Instance` that can be reconfigured after creation.
+ */
+export type InstanceUpdate = {
+  /** Sets the auto-restart policy for this instance.
+
+This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, any explicitly configured auto-restart policy will be unset, and the control plane will select the default policy when determining whether the instance can be automatically restarted.
+
+Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
+  autoRestartPolicy?: InstanceAutoRestartPolicy;
+  /** Name or ID of the disk the instance should be instructed to boot from.
+
+If not provided, unset the instance's boot disk. */
+  bootDisk?: NameOrId;
+  /** The amount of memory to assign to this instance. */
+  memory: ByteCount;
+  /** The number of CPUs to assign to this instance. */
+  ncpus: InstanceCpuCount;
+};
+
+/**
+ * An internet gateway provides a path between VPC networks and external networks.
+ */
+export type InternetGateway = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+  /** The VPC to which the gateway belongs. */
+  vpcId: string;
+};
+
+/**
+ * Create-time parameters for an `InternetGateway`
+ */
+export type InternetGatewayCreate = { description: string; name: Name };
+
+/**
+ * An IP address that is attached to an internet gateway
+ */
+export type InternetGatewayIpAddress = {
+  /** The associated IP address, */
+  address: string;
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** The associated internet gateway. */
+  internetGatewayId: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create-time identity-related parameters
+ */
+export type InternetGatewayIpAddressCreate = {
+  address: string;
+  description: string;
+  name: Name;
+};
+
+/**
+ * A single page of results
+ */
+export type InternetGatewayIpAddressResultsPage = {
+  /** list of items on this page of results */
+  items: InternetGatewayIpAddress[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * An IP pool that is attached to an internet gateway
+ */
+export type InternetGatewayIpPool = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** The associated internet gateway. */
+  internetGatewayId: string;
+  /** The associated IP pool. */
+  ipPoolId: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create-time identity-related parameters
+ */
+export type InternetGatewayIpPoolCreate = {
+  description: string;
+  ipPool: NameOrId;
+  name: Name;
+};
+
+/**
+ * A single page of results
+ */
+export type InternetGatewayIpPoolResultsPage = {
+  /** list of items on this page of results */
+  items: InternetGatewayIpPool[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
+/**
+ * A single page of results
+ */
+export type InternetGatewayResultsPage = {
+  /** list of items on this page of results */
+  items: InternetGateway[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
 };
 
 /**
@@ -2139,19 +2463,37 @@ export type LinkSpeed =
   | "speed400_g";
 
 /**
+ * Per-port tx-eq overrides.  This can be used to fine-tune the transceiver equalization settings to improve signal integrity.
+ */
+export type TxEqConfig = {
+  /** Main tap */
+  main?: number;
+  /** Post-cursor tap1 */
+  post1?: number;
+  /** Post-cursor tap2 */
+  post2?: number;
+  /** Pre-cursor tap1 */
+  pre1?: number;
+  /** Pre-cursor tap2 */
+  pre2?: number;
+};
+
+/**
  * Switch link configuration.
  */
 export type LinkConfigCreate = {
   /** Whether or not to set autonegotiation */
   autoneg: boolean;
-  /** The forward error correction mode of the link. */
-  fec: LinkFec;
+  /** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
+  fec?: LinkFec;
   /** The link-layer discovery protocol (LLDP) configuration for the link. */
   lldp: LldpLinkConfigCreate;
   /** Maximum transmission unit for the link. */
   mtu: number;
   /** The speed of the link. */
   speed: LinkSpeed;
+  /** Optional tx_eq settings */
+  txEq?: TxEqConfig;
 };
 
 /**
@@ -2174,6 +2516,40 @@ export type LldpLinkConfig = {
   systemDescription?: string;
   /** The LLDP system name TLV. */
   systemName?: string;
+};
+
+/**
+ * Information about LLDP advertisements from other network entities directly connected to a switch port.  This structure contains both metadata about when and where the neighbor was seen, as well as the specific information the neighbor was advertising.
+ */
+export type LldpNeighbor = {
+  /** The LLDP chassis identifier advertised by the neighbor */
+  chassisId: string;
+  /** Initial sighting of this LldpNeighbor */
+  firstSeen: Date;
+  /** Most recent sighting of this LldpNeighbor */
+  lastSeen: Date;
+  /** The LLDP link description advertised by the neighbor */
+  linkDescription?: string;
+  /** The LLDP link name advertised by the neighbor */
+  linkName: string;
+  /** The port on which the neighbor was seen */
+  localPort: string;
+  /** The LLDP management IP(s) advertised by the neighbor */
+  managementIp: IpNet[];
+  /** The LLDP system description advertised by the neighbor */
+  systemDescription?: string;
+  /** The LLDP system name advertised by the neighbor */
+  systemName?: string;
+};
+
+/**
+ * A single page of results
+ */
+export type LldpNeighborResultsPage = {
+  /** list of items on this page of results */
+  items: LldpNeighbor[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
 };
 
 /**
@@ -2578,7 +2954,7 @@ export type Route = {
   /** The route gateway. */
   gw: string;
   /** Local preference for route. Higher preference indictes precedence within and across protocols. */
-  localPref?: number;
+  ribPriority?: number;
   /** VLAN id the gateway is reachable over. */
   vid?: number;
 };
@@ -2592,18 +2968,18 @@ export type RouteConfig = {
 };
 
 /**
- * A `RouteDestination` is used to match traffic with a routing rule, on the destination of that traffic.
+ * A `RouteDestination` is used to match traffic with a routing rule based on the destination of that traffic.
  *
  * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
  */
 export type RouteDestination =
-  /** Route applies to traffic destined for a specific IP address */
+  /** Route applies to traffic destined for the specified IP address */
   | { type: "ip"; value: string }
-  /** Route applies to traffic destined for a specific IP subnet */
+  /** Route applies to traffic destined for the specified IP subnet */
   | { type: "ip_net"; value: IpNet }
-  /** Route applies to traffic destined for the given VPC. */
+  /** Route applies to traffic destined for the specified VPC */
   | { type: "vpc"; value: Name }
-  /** Route applies to traffic */
+  /** Route applies to traffic destined for the specified VPC subnet */
   | { type: "subnet"; value: Name };
 
 /**
@@ -2655,7 +3031,7 @@ export type RouterRouteKind =
 export type RouterRoute = {
   /** human-readable free-form text about a resource */
   description: string;
-  /** Selects which traffic this routing rule will apply to. */
+  /** Selects which traffic this routing rule will apply to */
   destination: RouteDestination;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
@@ -2663,7 +3039,7 @@ export type RouterRoute = {
   kind: RouterRouteKind;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
-  /** The location that matched packets should be forwarded to. */
+  /** The location that matched packets should be forwarded to */
   target: RouteTarget;
   /** timestamp when this resource was created */
   timeCreated: Date;
@@ -2759,6 +3135,14 @@ export type SamlIdentityProviderCreate = {
   spClientId: string;
   /** customer's technical contact for saml configuration */
   technicalContactEmail: string;
+};
+
+/**
+ * Parameters for PUT requests to `/v1/system/update/target-release`.
+ */
+export type SetTargetReleaseParams = {
+  /** Version of the system software to make the target release. */
+  systemVersion: string;
 };
 
 /**
@@ -3170,6 +3554,47 @@ export type SshKeyResultsPage = {
   nextPage?: string;
 };
 
+export type TypedUuidForSupportBundleKind = string;
+
+export type SupportBundleState =
+  /** Support Bundle still actively being collected.
+
+This is the initial state for a Support Bundle, and it will automatically transition to either "Failing" or "Active".
+
+If a user no longer wants to access a Support Bundle, they can request cancellation, which will transition to the "Destroying" state. */
+  | "collecting"
+
+  /** Support Bundle is being destroyed.
+
+Once backing storage has been freed, this bundle is destroyed. */
+  | "destroying"
+
+  /** Support Bundle was not created successfully, or was created and has lost backing storage.
+
+The record of the bundle still exists for readability, but the only valid operation on these bundles is to destroy them. */
+  | "failed"
+
+  /** Support Bundle has been processed, and is ready for usage. */
+  | "active";
+
+export type SupportBundleInfo = {
+  id: TypedUuidForSupportBundleKind;
+  reasonForCreation: string;
+  reasonForFailure?: string;
+  state: SupportBundleState;
+  timeCreated: Date;
+};
+
+/**
+ * A single page of results
+ */
+export type SupportBundleInfoResultsPage = {
+  /** list of items on this page of results */
+  items: SupportBundleInfo[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string;
+};
+
 /**
  * An operator's view of a Switch.
  */
@@ -3331,8 +3756,8 @@ export type SwitchPortConfigCreate = {
 export type SwitchPortLinkConfig = {
   /** Whether or not the link has autonegotiation enabled. */
   autoneg: boolean;
-  /** The forward error correction mode of the link. */
-  fec: LinkFec;
+  /** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
+  fec?: LinkFec;
   /** The name of this link. */
   linkName: string;
   /** The link-layer discovery protocol service configuration id for this link. */
@@ -3343,6 +3768,8 @@ export type SwitchPortLinkConfig = {
   portSettingsId: string;
   /** The configured speed of the link. */
   speed: LinkSpeed;
+  /** The tx_eq configuration id for this link. */
+  txEqConfigId?: string;
 };
 
 /**
@@ -3365,10 +3792,10 @@ export type SwitchPortRouteConfig = {
   gw: IpNet;
   /** The interface name this route configuration is assigned to. */
   interfaceName: string;
-  /** Local preference indicating priority within and across protocols. */
-  localPref?: number;
   /** The port settings object this route configuration belongs to. */
   portSettingsId: string;
+  /** RIB Priority indicating priority within and across protocols. */
+  ribPriority?: number;
   /** The VLAN identifier for the route. Use this if the gateway is reachable over an 802.1Q tagged L2 segment. */
   vlanId?: number;
 };
@@ -3461,6 +3888,8 @@ export type SwitchPortSettingsView = {
   routes: SwitchPortRouteConfig[];
   /** The primary switch port settings handle. */
   settings: SwitchPortSettings;
+  /** TX equalization settings.  These are optional, and most links will not need them. */
+  txEq: TxEqConfig[];
   /** Vlan interface settings. */
   vlanInterfaces: SwitchVlanInterfaceConfig[];
 };
@@ -3473,6 +3902,27 @@ export type SwitchResultsPage = {
   items: Switch[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string;
+};
+
+/**
+ * Source of a system software target release.
+ */
+export type TargetReleaseSource =
+  /** Unspecified or unknown source (probably MUPdate). */
+  | { type: "unspecified" }
+  /** The specified release of the rack's system software. */
+  | { type: "system_version"; version: string };
+
+/**
+ * View of a system software target release.
+ */
+export type TargetRelease = {
+  /** The target-release generation number. */
+  generation: number;
+  /** The source of the target release. */
+  releaseSource: TargetReleaseSource;
+  /** The time it was set as the target release. */
+  timeRequested: Date;
 };
 
 /**
@@ -3942,6 +4392,13 @@ export type NameOrIdSortMode =
   /** sort in increasing order of "id" */
   | "id_ascending";
 
+/**
+ * Supported set of sort modes for scanning by id only.
+ *
+ * Currently, we only support scanning in ascending order.
+ */
+export type IdSortMode = "id_ascending";
+
 export type DiskMetricName =
   | "activated"
   | "flush"
@@ -3954,13 +4411,6 @@ export type DiskMetricName =
  * The order in which the client wants to page through the requested collection
  */
 export type PaginationOrder = "ascending" | "descending";
-
-/**
- * Supported set of sort modes for scanning by id only.
- *
- * Currently, we only support scanning in ascending order.
- */
-export type IdSortMode = "id_ascending";
 
 export type SystemMetricName =
   | "virtual_disk_space_provisioned"
@@ -4001,9 +4451,191 @@ export interface ProbeDeleteQueryParams {
   project: NameOrId;
 }
 
+export interface SupportBundleListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
+export interface SupportBundleViewPathParams {
+  supportBundle: string;
+}
+
+export interface SupportBundleDeletePathParams {
+  supportBundle: string;
+}
+
+export interface SupportBundleDownloadPathParams {
+  supportBundle: string;
+}
+
+export interface SupportBundleHeadPathParams {
+  supportBundle: string;
+}
+
+export interface SupportBundleDownloadFilePathParams {
+  file: string;
+  supportBundle: string;
+}
+
+export interface SupportBundleHeadFilePathParams {
+  file: string;
+  supportBundle: string;
+}
+
+export interface SupportBundleIndexPathParams {
+  supportBundle: string;
+}
+
 export interface LoginSamlPathParams {
   providerName: Name;
   siloName: Name;
+}
+
+export interface AffinityGroupListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface AffinityGroupCreateQueryParams {
+  project: NameOrId;
+}
+
+export interface AffinityGroupViewPathParams {
+  affinityGroup: NameOrId;
+}
+
+export interface AffinityGroupViewQueryParams {
+  project?: NameOrId;
+}
+
+export interface AffinityGroupUpdatePathParams {
+  affinityGroup: NameOrId;
+}
+
+export interface AffinityGroupUpdateQueryParams {
+  project?: NameOrId;
+}
+
+export interface AffinityGroupDeletePathParams {
+  affinityGroup: NameOrId;
+}
+
+export interface AffinityGroupDeleteQueryParams {
+  project?: NameOrId;
+}
+
+export interface AffinityGroupMemberListPathParams {
+  affinityGroup: NameOrId;
+}
+
+export interface AffinityGroupMemberListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface AffinityGroupMemberInstanceViewPathParams {
+  affinityGroup: NameOrId;
+  instance: NameOrId;
+}
+
+export interface AffinityGroupMemberInstanceViewQueryParams {
+  project?: NameOrId;
+}
+
+export interface AffinityGroupMemberInstanceAddPathParams {
+  affinityGroup: NameOrId;
+  instance: NameOrId;
+}
+
+export interface AffinityGroupMemberInstanceAddQueryParams {
+  project?: NameOrId;
+}
+
+export interface AffinityGroupMemberInstanceDeletePathParams {
+  affinityGroup: NameOrId;
+  instance: NameOrId;
+}
+
+export interface AffinityGroupMemberInstanceDeleteQueryParams {
+  project?: NameOrId;
+}
+
+export interface AntiAffinityGroupListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface AntiAffinityGroupCreateQueryParams {
+  project: NameOrId;
+}
+
+export interface AntiAffinityGroupViewPathParams {
+  antiAffinityGroup: NameOrId;
+}
+
+export interface AntiAffinityGroupViewQueryParams {
+  project?: NameOrId;
+}
+
+export interface AntiAffinityGroupUpdatePathParams {
+  antiAffinityGroup: NameOrId;
+}
+
+export interface AntiAffinityGroupUpdateQueryParams {
+  project?: NameOrId;
+}
+
+export interface AntiAffinityGroupDeletePathParams {
+  antiAffinityGroup: NameOrId;
+}
+
+export interface AntiAffinityGroupDeleteQueryParams {
+  project?: NameOrId;
+}
+
+export interface AntiAffinityGroupMemberListPathParams {
+  antiAffinityGroup: NameOrId;
+}
+
+export interface AntiAffinityGroupMemberListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface AntiAffinityGroupMemberInstanceViewPathParams {
+  antiAffinityGroup: NameOrId;
+  instance: NameOrId;
+}
+
+export interface AntiAffinityGroupMemberInstanceViewQueryParams {
+  project?: NameOrId;
+}
+
+export interface AntiAffinityGroupMemberInstanceAddPathParams {
+  antiAffinityGroup: NameOrId;
+  instance: NameOrId;
+}
+
+export interface AntiAffinityGroupMemberInstanceAddQueryParams {
+  project?: NameOrId;
+}
+
+export interface AntiAffinityGroupMemberInstanceDeletePathParams {
+  antiAffinityGroup: NameOrId;
+  instance: NameOrId;
+}
+
+export interface AntiAffinityGroupMemberInstanceDeleteQueryParams {
+  project?: NameOrId;
 }
 
 export interface CertificateListQueryParams {
@@ -4216,12 +4848,42 @@ export interface InstanceViewQueryParams {
   project?: NameOrId;
 }
 
+export interface InstanceUpdatePathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceUpdateQueryParams {
+  project?: NameOrId;
+}
+
 export interface InstanceDeletePathParams {
   instance: NameOrId;
 }
 
 export interface InstanceDeleteQueryParams {
   project?: NameOrId;
+}
+
+export interface InstanceAffinityGroupListPathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceAffinityGroupListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface InstanceAntiAffinityGroupListPathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceAntiAffinityGroupListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
 }
 
 export interface InstanceDiskListPathParams {
@@ -4328,6 +4990,90 @@ export interface InstanceStopPathParams {
 
 export interface InstanceStopQueryParams {
   project?: NameOrId;
+}
+
+export interface InternetGatewayIpAddressListQueryParams {
+  gateway?: NameOrId;
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayIpAddressCreateQueryParams {
+  gateway: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayIpAddressDeletePathParams {
+  address: NameOrId;
+}
+
+export interface InternetGatewayIpAddressDeleteQueryParams {
+  cascade?: boolean;
+  gateway?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayIpPoolListQueryParams {
+  gateway?: NameOrId;
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayIpPoolCreateQueryParams {
+  gateway: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayIpPoolDeletePathParams {
+  pool: NameOrId;
+}
+
+export interface InternetGatewayIpPoolDeleteQueryParams {
+  cascade?: boolean;
+  gateway?: NameOrId;
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayListQueryParams {
+  limit?: number;
+  pageToken?: string;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayCreateQueryParams {
+  project?: NameOrId;
+  vpc: NameOrId;
+}
+
+export interface InternetGatewayViewPathParams {
+  gateway: NameOrId;
+}
+
+export interface InternetGatewayViewQueryParams {
+  project?: NameOrId;
+  vpc?: NameOrId;
+}
+
+export interface InternetGatewayDeletePathParams {
+  gateway: NameOrId;
+}
+
+export interface InternetGatewayDeleteQueryParams {
+  cascade?: boolean;
+  project?: NameOrId;
+  vpc?: NameOrId;
 }
 
 export interface ProjectIpPoolListQueryParams {
@@ -4480,6 +5226,18 @@ export interface PhysicalDiskViewPathParams {
   diskId: string;
 }
 
+export interface NetworkingSwitchPortLldpNeighborsPathParams {
+  port: Name;
+  rackId: string;
+  switchLocation: Name;
+}
+
+export interface NetworkingSwitchPortLldpNeighborsQueryParams {
+  limit?: number;
+  pageToken?: string;
+  sortBy?: IdSortMode;
+}
+
 export interface RackListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -4534,6 +5292,24 @@ export interface NetworkingSwitchPortListQueryParams {
   pageToken?: string;
   sortBy?: IdSortMode;
   switchPortId?: string;
+}
+
+export interface NetworkingSwitchPortLldpConfigViewPathParams {
+  port: Name;
+}
+
+export interface NetworkingSwitchPortLldpConfigViewQueryParams {
+  rackId: string;
+  switchLocation: Name;
+}
+
+export interface NetworkingSwitchPortLldpConfigUpdatePathParams {
+  port: Name;
+}
+
+export interface NetworkingSwitchPortLldpConfigUpdateQueryParams {
+  rackId: string;
+  switchLocation: Name;
 }
 
 export interface NetworkingSwitchPortApplySettingsPathParams {
@@ -4715,7 +5491,6 @@ export interface NetworkingAddressLotBlockListQueryParams {
 
 export interface NetworkingBgpConfigListQueryParams {
   limit?: number;
-  nameOrId?: NameOrId;
   pageToken?: string;
   sortBy?: NameOrIdSortMode;
 }
@@ -4726,17 +5501,16 @@ export interface NetworkingBgpConfigDeleteQueryParams {
 
 export interface NetworkingBgpAnnounceSetListQueryParams {
   limit?: number;
-  nameOrId?: NameOrId;
   pageToken?: string;
   sortBy?: NameOrIdSortMode;
 }
 
 export interface NetworkingBgpAnnounceSetDeletePathParams {
-  nameOrId: NameOrId;
+  announceSet: NameOrId;
 }
 
 export interface NetworkingBgpAnnouncementListPathParams {
-  nameOrId: NameOrId;
+  announceSet: NameOrId;
 }
 
 export interface NetworkingBgpMessageHistoryQueryParams {
@@ -4830,6 +5604,11 @@ export interface SiloQuotasUpdatePathParams {
   silo: NameOrId;
 }
 
+export interface SystemTimeseriesSchemaListQueryParams {
+  limit?: number;
+  pageToken?: string;
+}
+
 export interface SiloUserListQueryParams {
   limit?: number;
   pageToken?: string;
@@ -4865,9 +5644,8 @@ export interface SiloUtilizationViewPathParams {
   silo: NameOrId;
 }
 
-export interface TimeseriesSchemaListQueryParams {
-  limit?: number;
-  pageToken?: string;
+export interface TimeseriesQueryQueryParams {
+  project: NameOrId;
 }
 
 export interface UserListQueryParams {
@@ -5160,6 +5938,121 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * List all support bundles
+     */
+    supportBundleList: (
+      { query = {} }: { query?: SupportBundleListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SupportBundleInfoResultsPage>({
+        path: `/experimental/v1/system/support-bundles`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create a new support bundle
+     */
+    supportBundleCreate: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<SupportBundleInfo>({
+        path: `/experimental/v1/system/support-bundles`,
+        method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * View a support bundle
+     */
+    supportBundleView: (
+      { path }: { path: SupportBundleViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SupportBundleInfo>({
+        path: `/experimental/v1/system/support-bundles/${path.supportBundle}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Delete an existing support bundle
+     */
+    supportBundleDelete: (
+      { path }: { path: SupportBundleDeletePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/experimental/v1/system/support-bundles/${path.supportBundle}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * Download the contents of a support bundle
+     */
+    supportBundleDownload: (
+      { path }: { path: SupportBundleDownloadPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Download the metadata of a support bundle
+     */
+    supportBundleHead: (
+      { path }: { path: SupportBundleHeadPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download`,
+        method: "HEAD",
+        ...params,
+      });
+    },
+    /**
+     * Download a file within a support bundle
+     */
+    supportBundleDownloadFile: (
+      { path }: { path: SupportBundleDownloadFilePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download/${path.file}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Download the metadata of a file within the support bundle
+     */
+    supportBundleHeadFile: (
+      { path }: { path: SupportBundleHeadFilePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download/${path.file}`,
+        method: "HEAD",
+        ...params,
+      });
+    },
+    /**
+     * Download the index of a support bundle
+     */
+    supportBundleIndex: (
+      { path }: { path: SupportBundleIndexPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/index`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
      * Authenticate a user via SAML
      */
     loginSaml: (
@@ -5169,6 +6062,359 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/login/${path.siloName}/saml/${path.providerName}`,
         method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * List affinity groups
+     */
+    affinityGroupList: (
+      { query = {} }: { query?: AffinityGroupListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroupResultsPage>({
+        path: `/v1/affinity-groups`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create affinity group
+     */
+    affinityGroupCreate: (
+      {
+        query,
+        body,
+      }: { query: AffinityGroupCreateQueryParams; body: AffinityGroupCreate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroup>({
+        path: `/v1/affinity-groups`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch affinity group
+     */
+    affinityGroupView: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AffinityGroupViewPathParams;
+        query?: AffinityGroupViewQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroup>({
+        path: `/v1/affinity-groups/${path.affinityGroup}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update affinity group
+     */
+    affinityGroupUpdate: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: AffinityGroupUpdatePathParams;
+        query?: AffinityGroupUpdateQueryParams;
+        body: AffinityGroupUpdate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroup>({
+        path: `/v1/affinity-groups/${path.affinityGroup}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete affinity group
+     */
+    affinityGroupDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AffinityGroupDeletePathParams;
+        query?: AffinityGroupDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/affinity-groups/${path.affinityGroup}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List affinity group members
+     */
+    affinityGroupMemberList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AffinityGroupMemberListPathParams;
+        query?: AffinityGroupMemberListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroupMemberResultsPage>({
+        path: `/v1/affinity-groups/${path.affinityGroup}/members`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch affinity group member
+     */
+    affinityGroupMemberInstanceView: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AffinityGroupMemberInstanceViewPathParams;
+        query?: AffinityGroupMemberInstanceViewQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroupMember>({
+        path: `/v1/affinity-groups/${path.affinityGroup}/members/instance/${path.instance}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Add member to affinity group
+     */
+    affinityGroupMemberInstanceAdd: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AffinityGroupMemberInstanceAddPathParams;
+        query?: AffinityGroupMemberInstanceAddQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroupMember>({
+        path: `/v1/affinity-groups/${path.affinityGroup}/members/instance/${path.instance}`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Remove member from affinity group
+     */
+    affinityGroupMemberInstanceDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AffinityGroupMemberInstanceDeletePathParams;
+        query?: AffinityGroupMemberInstanceDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/affinity-groups/${path.affinityGroup}/members/instance/${path.instance}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List anti-affinity groups
+     */
+    antiAffinityGroupList: (
+      { query = {} }: { query?: AntiAffinityGroupListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroupResultsPage>({
+        path: `/v1/anti-affinity-groups`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create anti-affinity group
+     */
+    antiAffinityGroupCreate: (
+      {
+        query,
+        body,
+      }: {
+        query: AntiAffinityGroupCreateQueryParams;
+        body: AntiAffinityGroupCreate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroup>({
+        path: `/v1/anti-affinity-groups`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch anti-affinity group
+     */
+    antiAffinityGroupView: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AntiAffinityGroupViewPathParams;
+        query?: AntiAffinityGroupViewQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroup>({
+        path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update anti-affinity group
+     */
+    antiAffinityGroupUpdate: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: AntiAffinityGroupUpdatePathParams;
+        query?: AntiAffinityGroupUpdateQueryParams;
+        body: AntiAffinityGroupUpdate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroup>({
+        path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete anti-affinity group
+     */
+    antiAffinityGroupDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AntiAffinityGroupDeletePathParams;
+        query?: AntiAffinityGroupDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List anti-affinity group members
+     */
+    antiAffinityGroupMemberList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AntiAffinityGroupMemberListPathParams;
+        query?: AntiAffinityGroupMemberListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroupMemberResultsPage>({
+        path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch anti-affinity group member
+     */
+    antiAffinityGroupMemberInstanceView: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AntiAffinityGroupMemberInstanceViewPathParams;
+        query?: AntiAffinityGroupMemberInstanceViewQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroupMember>({
+        path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members/instance/${path.instance}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Add member to anti-affinity group
+     */
+    antiAffinityGroupMemberInstanceAdd: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AntiAffinityGroupMemberInstanceAddPathParams;
+        query?: AntiAffinityGroupMemberInstanceAddQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroupMember>({
+        path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members/instance/${path.instance}`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Remove member from anti-affinity group
+     */
+    antiAffinityGroupMemberInstanceDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AntiAffinityGroupMemberInstanceDeletePathParams;
+        query?: AntiAffinityGroupMemberInstanceDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members/instance/${path.instance}`,
+        method: "DELETE",
+        query,
         ...params,
       });
     },
@@ -5707,6 +6953,29 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Update instance
+     */
+    instanceUpdate: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: InstanceUpdatePathParams;
+        query?: InstanceUpdateQueryParams;
+        body: InstanceUpdate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<Instance>({
+        path: `/v1/instances/${path.instance}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
      * Delete instance
      */
     instanceDelete: (
@@ -5719,6 +6988,46 @@ export class Api extends HttpClient {
       return this.request<void>({
         path: `/v1/instances/${path.instance}`,
         method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List affinity groups containing instance
+     */
+    instanceAffinityGroupList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceAffinityGroupListPathParams;
+        query?: InstanceAffinityGroupListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AffinityGroupResultsPage>({
+        path: `/v1/instances/${path.instance}/affinity-groups`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List anti-affinity groups containing instance
+     */
+    instanceAntiAffinityGroupList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceAntiAffinityGroupListPathParams;
+        query?: InstanceAntiAffinityGroupListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AntiAffinityGroupResultsPage>({
+        path: `/v1/instances/${path.instance}/anti-affinity-groups`,
+        method: "GET",
         query,
         ...params,
       });
@@ -5939,6 +7248,191 @@ export class Api extends HttpClient {
       return this.request<Instance>({
         path: `/v1/instances/${path.instance}/stop`,
         method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List IP addresses attached to internet gateway
+     */
+    internetGatewayIpAddressList: (
+      { query = {} }: { query?: InternetGatewayIpAddressListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<InternetGatewayIpAddressResultsPage>({
+        path: `/v1/internet-gateway-ip-addresses`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Attach IP address to internet gateway
+     */
+    internetGatewayIpAddressCreate: (
+      {
+        query,
+        body,
+      }: {
+        query: InternetGatewayIpAddressCreateQueryParams;
+        body: InternetGatewayIpAddressCreate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<InternetGatewayIpAddress>({
+        path: `/v1/internet-gateway-ip-addresses`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Detach IP address from internet gateway
+     */
+    internetGatewayIpAddressDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InternetGatewayIpAddressDeletePathParams;
+        query?: InternetGatewayIpAddressDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/internet-gateway-ip-addresses/${path.address}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List IP pools attached to internet gateway
+     */
+    internetGatewayIpPoolList: (
+      { query = {} }: { query?: InternetGatewayIpPoolListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<InternetGatewayIpPoolResultsPage>({
+        path: `/v1/internet-gateway-ip-pools`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Attach IP pool to internet gateway
+     */
+    internetGatewayIpPoolCreate: (
+      {
+        query,
+        body,
+      }: {
+        query: InternetGatewayIpPoolCreateQueryParams;
+        body: InternetGatewayIpPoolCreate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<InternetGatewayIpPool>({
+        path: `/v1/internet-gateway-ip-pools`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Detach IP pool from internet gateway
+     */
+    internetGatewayIpPoolDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InternetGatewayIpPoolDeletePathParams;
+        query?: InternetGatewayIpPoolDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/internet-gateway-ip-pools/${path.pool}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List internet gateways
+     */
+    internetGatewayList: (
+      { query = {} }: { query?: InternetGatewayListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<InternetGatewayResultsPage>({
+        path: `/v1/internet-gateways`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create VPC internet gateway
+     */
+    internetGatewayCreate: (
+      {
+        query,
+        body,
+      }: {
+        query: InternetGatewayCreateQueryParams;
+        body: InternetGatewayCreate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<InternetGateway>({
+        path: `/v1/internet-gateways`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch internet gateway
+     */
+    internetGatewayView: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InternetGatewayViewPathParams;
+        query?: InternetGatewayViewQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<InternetGateway>({
+        path: `/v1/internet-gateways/${path.gateway}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete internet gateway
+     */
+    internetGatewayDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InternetGatewayDeletePathParams;
+        query?: InternetGatewayDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/internet-gateways/${path.gateway}`,
+        method: "DELETE",
         query,
         ...params,
       });
@@ -6416,6 +7910,26 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Fetch the LLDP neighbors seen on a switch port
+     */
+    networkingSwitchPortLldpNeighbors: (
+      {
+        path,
+        query = {},
+      }: {
+        path: NetworkingSwitchPortLldpNeighborsPathParams;
+        query?: NetworkingSwitchPortLldpNeighborsQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<LldpNeighborResultsPage>({
+        path: `/v1/system/hardware/rack-switch-port/${path.rackId}/${path.switchLocation}/${path.port}/lldp/neighbors`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List racks
      */
     rackList: (
@@ -6567,6 +8081,49 @@ export class Api extends HttpClient {
       return this.request<SwitchPortResultsPage>({
         path: `/v1/system/hardware/switch-port`,
         method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch the LLDP configuration for a switch port
+     */
+    networkingSwitchPortLldpConfigView: (
+      {
+        path,
+        query,
+      }: {
+        path: NetworkingSwitchPortLldpConfigViewPathParams;
+        query: NetworkingSwitchPortLldpConfigViewQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<LldpLinkConfig>({
+        path: `/v1/system/hardware/switch-port/${path.port}/lldp/config`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update the LLDP configuration for a switch port
+     */
+    networkingSwitchPortLldpConfigUpdate: (
+      {
+        path,
+        query,
+        body,
+      }: {
+        path: NetworkingSwitchPortLldpConfigUpdatePathParams;
+        query: NetworkingSwitchPortLldpConfigUpdateQueryParams;
+        body: LldpLinkConfig;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/hardware/switch-port/${path.port}/lldp/config`,
+        method: "POST",
+        body,
         query,
         ...params,
       });
@@ -7237,7 +8794,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/v1/system/networking/bgp-announce-set/${path.nameOrId}`,
+        path: `/v1/system/networking/bgp-announce-set/${path.announceSet}`,
         method: "DELETE",
         ...params,
       });
@@ -7250,7 +8807,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<BgpAnnouncement[]>({
-        path: `/v1/system/networking/bgp-announce-set/${path.nameOrId}/announcement`,
+        path: `/v1/system/networking/bgp-announce-set/${path.announceSet}/announcement`,
         method: "GET",
         ...params,
       });
@@ -7593,6 +9150,58 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Run timeseries query
+     */
+    systemTimeseriesQuery: (
+      { body }: { body: TimeseriesQuery },
+      params: FetchParams = {},
+    ) => {
+      return this.request<OxqlQueryResult>({
+        path: `/v1/system/timeseries/query`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * List timeseries schemas
+     */
+    systemTimeseriesSchemaList: (
+      { query = {} }: { query?: SystemTimeseriesSchemaListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<TimeseriesSchemaResultsPage>({
+        path: `/v1/system/timeseries/schemas`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Get the current target release of the rack's system software
+     */
+    targetReleaseView: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<TargetRelease>({
+        path: `/v1/system/update/target-release`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Set the current target release of the rack's system software
+     */
+    targetReleaseUpdate: (
+      { body }: { body: SetTargetReleaseParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<TargetRelease>({
+        path: `/v1/system/update/target-release`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
      * List built-in (system) users in silo
      */
     siloUserList: (
@@ -7678,29 +9287,19 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Run timeseries query
+     * Run project-scoped timeseries query
      */
     timeseriesQuery: (
-      { body }: { body: TimeseriesQuery },
+      {
+        query,
+        body,
+      }: { query: TimeseriesQueryQueryParams; body: TimeseriesQuery },
       params: FetchParams = {},
     ) => {
       return this.request<OxqlQueryResult>({
         path: `/v1/timeseries/query`,
         method: "POST",
         body,
-        ...params,
-      });
-    },
-    /**
-     * List timeseries schemas
-     */
-    timeseriesSchemaList: (
-      { query = {} }: { query?: TimeseriesSchemaListQueryParams },
-      params: FetchParams = {},
-    ) => {
-      return this.request<TimeseriesSchemaResultsPage>({
-        path: `/v1/timeseries/schema`,
-        method: "GET",
         query,
         ...params,
       });
