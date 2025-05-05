@@ -276,7 +276,7 @@ export type AffinityGroupResultsPage = {
 /**
  * Updateable properties of an `AffinityGroup`
  */
-export type AffinityGroupUpdate = { description?: string; name?: Name };
+export type AffinityGroupUpdate = { description?: string; name?: Name | null };
 
 export type BgpMessageHistory = Record<string, unknown>;
 
@@ -403,7 +403,10 @@ export type AntiAffinityGroupResultsPage = {
 /**
  * Updateable properties of an `AntiAffinityGroup`
  */
-export type AntiAffinityGroupUpdate = { description?: string; name?: Name };
+export type AntiAffinityGroupUpdate = {
+  description?: string;
+  name?: Name | null;
+};
 
 /**
  * Authorization scope for a timeseries.
@@ -562,7 +565,7 @@ export type BgpConfigCreate = {
   description: string;
   name: Name;
   /** Optional virtual routing and forwarding identifier for this BGP configuration. */
-  vrf?: Name;
+  vrf?: Name | null;
 };
 
 /**
@@ -1547,9 +1550,9 @@ export type Distributiondouble = {
   counts: number[];
   max?: number;
   min?: number;
-  p50?: Quantile;
-  p90?: Quantile;
-  p99?: Quantile;
+  p50?: Quantile | null;
+  p90?: Quantile | null;
+  p99?: Quantile | null;
   squaredMean: number;
   sumOfSamples: number;
 };
@@ -1564,9 +1567,9 @@ export type Distributionint64 = {
   counts: number[];
   max?: number;
   min?: number;
-  p50?: Quantile;
-  p90?: Quantile;
-  p99?: Quantile;
+  p50?: Quantile | null;
+  p90?: Quantile | null;
+  p99?: Quantile | null;
   squaredMean: number;
   sumOfSamples: number;
 };
@@ -1576,7 +1579,7 @@ export type Distributionint64 = {
  */
 export type EphemeralIpCreate = {
   /** Name or ID of the IP pool used to allocate an address */
-  pool?: NameOrId;
+  pool?: NameOrId | null;
 };
 
 export type ExternalIp =
@@ -1609,7 +1612,7 @@ export type ExternalIp =
  */
 export type ExternalIpCreate =
   /** An IP address providing both inbound and outbound access. The address is automatically-assigned from the provided IP Pool, or the current silo's default pool if not specified. */
-  | { pool?: NameOrId; type: "ephemeral" }
+  | { pool?: NameOrId | null; type: "ephemeral" }
   /** An IP address providing both inbound and outbound access. The address is an existing floating IP object assigned to the current project.
 
 The floating IP must not be in use by another instance or service. */
@@ -1679,7 +1682,7 @@ export type FieldValue =
  */
 export type FinalizeDisk = {
   /** If specified a snapshot of the disk will be created with the given name during finalization. If not specified, a snapshot for the disk will _not_ be created. A snapshot can be manually created once the disk transitions into the `Detached` state. */
-  snapshotName?: Name;
+  snapshotName?: Name | null;
 };
 
 export type FleetRole = "admin" | "collaborator" | "viewer";
@@ -1758,7 +1761,7 @@ export type FloatingIpCreate = {
   ip?: string;
   name: Name;
   /** The parent IP pool that a floating IP is pulled from. If unset, the default pool is selected. */
-  pool?: NameOrId;
+  pool?: NameOrId | null;
 };
 
 /**
@@ -1774,7 +1777,7 @@ export type FloatingIpResultsPage = {
 /**
  * Updateable identity-related parameters
  */
-export type FloatingIpUpdate = { description?: string; name?: Name };
+export type FloatingIpUpdate = { description?: string; name?: Name | null };
 
 /**
  * View of a Group
@@ -1849,7 +1852,7 @@ export type Image = {
   /** human-readable free-form text about a resource */
   description: string;
   /** Hash of the image contents, if applicable */
-  digest?: Digest;
+  digest?: Digest | null;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   /** unique, mutable, user-controlled identifier for each resource */
@@ -1933,7 +1936,7 @@ If this is not present, then either the instance has never been automatically re
   /** The auto-restart policy configured for this instance, or `null` if no explicit policy has been configured.
 
 This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, the control plane will use the default policy when determining whether or not to automatically restart this instance, which may or may not allow it to be restarted. The value of the `auto_restart_enabled` field indicates whether the instance will be auto-restarted, based on its current policy or the default if it has no configured policy. */
-  autoRestartPolicy?: InstanceAutoRestartPolicy;
+  autoRestartPolicy?: InstanceAutoRestartPolicy | null;
   /** the ID of the disk used to boot this Instance, if a specific one is assigned. */
   bootDiskId?: string;
   /** human-readable free-form text about a resource */
@@ -2021,13 +2024,13 @@ export type InstanceCreate = {
 This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, no auto-restart policy will be explicitly configured for this instance, and the control plane will select the default policy when determining whether the instance can be automatically restarted.
 
 Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
-  autoRestartPolicy?: InstanceAutoRestartPolicy;
+  autoRestartPolicy?: InstanceAutoRestartPolicy | null;
   /** The disk this instance should boot into. This disk can either be attached if it already exists, or created, if it should be a new disk.
 
 It is strongly recommended to either provide a boot disk at instance creation, or update the instance after creation to set a boot disk.
 
 An instance without an explicit boot disk can be booted: the options are as managed by UEFI, and as controlled by the guest OS, but with some risk.  If this instance later has a disk attached or detached, it is possible that boot options can end up reordered, with the intended boot disk moved after the EFI shell in boot priority. This may result in an instance that only boots to the EFI shell until the desired disk is set as an explicit boot disk and the instance rebooted. */
-  bootDisk?: InstanceDiskAttachment;
+  bootDisk?: InstanceDiskAttachment | null;
   description: string;
   /** The disks to be created or attached for this instance. */
   disks?: InstanceDiskAttachment[];
@@ -2108,7 +2111,7 @@ export type InstanceNetworkInterfaceResultsPage = {
  */
 export type InstanceNetworkInterfaceUpdate = {
   description?: string;
-  name?: Name;
+  name?: Name | null;
   /** Make a secondary interface the instance's primary interface.
 
 If applied to a secondary interface, that interface will become the primary on the next reboot of the instance. Note that this may have implications for routing between instances, as the new primary interface will be on a distinct subnet from the previous primary interface.
@@ -2148,11 +2151,11 @@ export type InstanceUpdate = {
 This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, any explicitly configured auto-restart policy will be unset, and the control plane will select the default policy when determining whether the instance can be automatically restarted.
 
 Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
-  autoRestartPolicy?: InstanceAutoRestartPolicy;
+  autoRestartPolicy?: InstanceAutoRestartPolicy | null;
   /** Name or ID of the disk the instance should be instructed to boot from.
 
 If not provided, unset the instance's boot disk. */
-  bootDisk?: NameOrId;
+  bootDisk?: NameOrId | null;
   /** The amount of memory to assign to this instance. */
   memory: ByteCount;
   /** The number of CPUs to assign to this instance. */
@@ -2368,7 +2371,7 @@ export type IpPoolSiloUpdate = {
 /**
  * Parameters for updating an IP Pool
  */
-export type IpPoolUpdate = { description?: string; name?: Name };
+export type IpPoolUpdate = { description?: string; name?: Name | null };
 
 export type Ipv4Utilization = {
   /** The number of IPv4 addresses allocated from this pool */
@@ -2485,7 +2488,7 @@ export type LinkConfigCreate = {
   /** Whether or not to set autonegotiation */
   autoneg: boolean;
   /** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
-  fec?: LinkFec;
+  fec?: LinkFec | null;
   /** The link-layer discovery protocol (LLDP) configuration for the link. */
   lldp: LldpLinkConfigCreate;
   /** Maximum transmission unit for the link. */
@@ -2493,7 +2496,7 @@ export type LinkConfigCreate = {
   /** The speed of the link. */
   speed: LinkSpeed;
   /** Optional tx_eq settings */
-  txEq?: TxEqConfig;
+  txEq?: TxEqConfig | null;
 };
 
 /**
@@ -2511,7 +2514,7 @@ export type LldpLinkConfig = {
   /** The LLDP link name TLV. */
   linkName?: string;
   /** The LLDP management IP TLV. */
-  managementIp?: IpNet;
+  managementIp?: IpNet | null;
   /** The LLDP system description TLV. */
   systemDescription?: string;
   /** The LLDP system name TLV. */
@@ -2666,8 +2669,8 @@ export type ValueArray =
   | { type: "double"; values: number[] }
   | { type: "boolean"; values: boolean[] }
   | { type: "string"; values: string[] }
-  | { type: "integer_distribution"; values: Distributionint64[] }
-  | { type: "double_distribution"; values: Distributiondouble[] };
+  | { type: "integer_distribution"; values: Distributionint64 | null[] }
+  | { type: "double_distribution"; values: Distributiondouble | null[] };
 
 /**
  * A single list of values, for one dimension of a timeseries.
@@ -2810,7 +2813,7 @@ export type Probe = {
  */
 export type ProbeCreate = {
   description: string;
-  ipPool?: NameOrId;
+  ipPool?: NameOrId | null;
   name: Name;
   sled: string;
 };
@@ -2899,7 +2902,7 @@ export type ProjectRolePolicy = {
 /**
  * Updateable properties of a `Project`
  */
-export type ProjectUpdate = { description?: string; name?: Name };
+export type ProjectUpdate = { description?: string; name?: Name | null };
 
 /**
  * View of an Rack
@@ -3078,7 +3081,7 @@ export type RouterRouteUpdate = {
   description?: string;
   /** Selects which traffic this routing rule will apply to. */
   destination: RouteDestination;
-  name?: Name;
+  name?: Name | null;
   /** The location that matched packets should be forwarded to. */
   target: RouteTarget;
 };
@@ -3128,7 +3131,7 @@ export type SamlIdentityProviderCreate = {
   idpMetadataSource: IdpMetadataSource;
   name: Name;
   /** request signing key pair */
-  signingKeypair?: DerEncodedKeyPair;
+  signingKeypair?: DerEncodedKeyPair | null;
   /** service provider endpoint where the idp should send log out requests */
   sloUrl: string;
   /** sp's client id */
@@ -3273,9 +3276,9 @@ export type SiloQuotasUpdate = {
   /** The amount of virtual CPUs available for running instances in the Silo */
   cpus?: number;
   /** The amount of RAM (in bytes) available for running instances in the Silo */
-  memory?: ByteCount;
+  memory?: ByteCount | null;
   /** The amount of storage (in bytes) available for disks or snapshots */
-  storage?: ByteCount;
+  storage?: ByteCount | null;
 };
 
 /**
@@ -3757,7 +3760,7 @@ export type SwitchPortLinkConfig = {
   /** Whether or not the link has autonegotiation enabled. */
   autoneg: boolean;
   /** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
-  fec?: LinkFec;
+  fec?: LinkFec | null;
   /** The name of this link. */
   linkName: string;
   /** The link-layer discovery protocol service configuration id for this link. */
@@ -3889,7 +3892,7 @@ export type SwitchPortSettingsView = {
   /** The primary switch port settings handle. */
   settings: SwitchPortSettings;
   /** TX equalization settings.  These are optional, and most links will not need them. */
-  txEq: TxEqConfig[];
+  txEq: TxEqConfig | null[];
   /** Vlan interface settings. */
   vlanInterfaces: SwitchVlanInterfaceConfig[];
 };
@@ -4140,7 +4143,7 @@ export type VpcCreate = {
   /** The IPv6 prefix for this VPC
 
 All IPv6 subnets created from this VPC must be taken from this range, which should be a Unique Local Address in the range `fd00::/48`. The default VPC Subnet will have the first `/64` range from this prefix. */
-  ipv6Prefix?: Ipv6Net;
+  ipv6Prefix?: Ipv6Net | null;
   name: Name;
 };
 
@@ -4308,7 +4311,7 @@ export type VpcRouterResultsPage = {
 /**
  * Updateable properties of a `VpcRouter`
  */
-export type VpcRouterUpdate = { description?: string; name?: Name };
+export type VpcRouterUpdate = { description?: string; name?: Name | null };
 
 /**
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionally an IPv6 subnetwork.
@@ -4341,7 +4344,7 @@ export type VpcSubnetCreate = {
   /** An optional router, used to direct packets sent from hosts in this subnet to any destination address.
 
 Custom routers apply in addition to the VPC-wide *system* router, and have higher priority than the system router for an otherwise equal-prefix-length match. */
-  customRouter?: NameOrId;
+  customRouter?: NameOrId | null;
   description: string;
   /** The IPv4 address range for this subnet.
 
@@ -4350,7 +4353,7 @@ It must be allocated from an RFC 1918 private address range, and must not overla
   /** The IPv6 address range for this subnet.
 
 It must be allocated from the RFC 4193 Unique Local Address range, with the prefix equal to the parent VPC's prefix. A random `/64` block will be assigned if one is not provided. It must not overlap with any existing subnet in the VPC. */
-  ipv6Block?: Ipv6Net;
+  ipv6Block?: Ipv6Net | null;
   name: Name;
 };
 
@@ -4369,15 +4372,19 @@ export type VpcSubnetResultsPage = {
  */
 export type VpcSubnetUpdate = {
   /** An optional router, used to direct packets sent from hosts in this subnet to any destination address. */
-  customRouter?: NameOrId;
+  customRouter?: NameOrId | null;
   description?: string;
-  name?: Name;
+  name?: Name | null;
 };
 
 /**
  * Updateable properties of a `Vpc`
  */
-export type VpcUpdate = { description?: string; dnsName?: Name; name?: Name };
+export type VpcUpdate = {
+  description?: string;
+  dnsName?: Name | null;
+  name?: Name | null;
+};
 
 /**
  * Supported set of sort modes for scanning by name or id

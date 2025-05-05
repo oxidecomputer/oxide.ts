@@ -83,7 +83,9 @@ export const schemaToTypes = makeSchemaGenerator({
   allOf(schema, io) {
     if (schema.allOf!.length === 1) {
       schemaToTypes(schema.allOf![0], io);
+      if (schema.nullable) io.w0(" | null");
     } else {
+      // note: in the nexus schema, this arm is never hit
       for (const s of schema.allOf!) {
         io.w(`& ${JSON.stringify(s)}`);
       }
