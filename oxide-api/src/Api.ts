@@ -120,7 +120,7 @@ export type AddressLotBlockResultsPage = {
   /** list of items on this page of results */
   items: AddressLotBlock[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -152,7 +152,7 @@ export type AddressLotResultsPage = {
   /** list of items on this page of results */
   items: AddressLot[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -260,7 +260,7 @@ export type AffinityGroupMemberResultsPage = {
   /** list of items on this page of results */
   items: AffinityGroupMember[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -270,13 +270,16 @@ export type AffinityGroupResultsPage = {
   /** list of items on this page of results */
   items: AffinityGroup[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
  * Updateable properties of an `AffinityGroup`
  */
-export type AffinityGroupUpdate = { description?: string; name?: Name | null };
+export type AffinityGroupUpdate = {
+  description?: string | null;
+  name?: Name | null;
+};
 
 export type BgpMessageHistory = Record<string, unknown>;
 
@@ -387,7 +390,7 @@ export type AntiAffinityGroupMemberResultsPage = {
   /** list of items on this page of results */
   items: AntiAffinityGroupMember[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -397,14 +400,14 @@ export type AntiAffinityGroupResultsPage = {
   /** list of items on this page of results */
   items: AntiAffinityGroup[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
  * Updateable properties of an `AntiAffinityGroup`
  */
 export type AntiAffinityGroupUpdate = {
-  description?: string;
+  description?: string | null;
   name?: Name | null;
 };
 
@@ -453,7 +456,7 @@ export type BfdSessionEnable = {
   /** The negotiated Control packet transmission interval, multiplied by this variable, will be the Detection Time for this session (as seen by the remote system) */
   detectionThreshold: number;
   /** Address the Oxide switch will listen on for BFD traffic. If `None` then the unspecified address (0.0.0.0 or ::) is used. */
-  local?: string;
+  local?: string | null;
   /** Select either single-hop (RFC 5881) or multi-hop (RFC 5883) */
   mode: BfdMode;
   /** Address of the remote peer to establish a BFD session with. */
@@ -479,7 +482,7 @@ export type BfdState =
 
 export type BfdStatus = {
   detectionThreshold: number;
-  local?: string;
+  local?: string | null;
   mode: BfdMode;
   peer: string;
   requiredRx: number;
@@ -552,7 +555,7 @@ export type BgpConfig = {
   /** timestamp when this resource was last modified */
   timeModified: Date;
   /** Optional virtual routing and forwarding identifier for this BGP configuration. */
-  vrf?: string;
+  vrf?: string | null;
 };
 
 /**
@@ -575,7 +578,7 @@ export type BgpConfigResultsPage = {
   /** list of items on this page of results */
   items: BgpConfig[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -638,7 +641,7 @@ export type BgpPeer = {
   /** Apply a local preference to routes received from this peer. */
   localPref?: number;
   /** Use the given key for TCP-MD5 authentication with the peer. */
-  md5AuthKey?: string;
+  md5AuthKey?: string | null;
   /** Require messages from a peer have a minimum IP time to live field. */
   minTtl?: number;
   /** Apply the provided multi-exit discriminator (MED) updates sent to the peer. */
@@ -980,7 +983,7 @@ export type CertificateResultsPage = {
   /** list of items on this page of results */
   items: Certificate[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -1482,13 +1485,13 @@ export type Disk = {
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   /** ID of image from which disk was created, if any */
-  imageId?: string;
+  imageId?: string | null;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
   projectId: string;
   size: ByteCount;
   /** ID of snapshot from which disk was created, if any */
-  snapshotId?: string;
+  snapshotId?: string | null;
   state: DiskState;
   /** timestamp when this resource was created */
   timeCreated: Date;
@@ -1537,7 +1540,7 @@ export type DiskResultsPage = {
   /** list of items on this page of results */
   items: Disk[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -1591,7 +1594,7 @@ export type ExternalIp =
       /** unique, immutable, system-controlled identifier for each resource */
       id: string;
       /** The ID of the instance that this Floating IP is attached to, if it is presently in use. */
-      instanceId?: string;
+      instanceId?: string | null;
       /** The IP address held by this resource. */
       ip: string;
       /** The ID of the IP pool this resource belongs to. */
@@ -1625,7 +1628,7 @@ export type ExternalIpResultsPage = {
   /** list of items on this page of results */
   items: ExternalIp[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -1722,7 +1725,7 @@ export type FloatingIp = {
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   /** The ID of the instance that this Floating IP is attached to, if it is presently in use. */
-  instanceId?: string;
+  instanceId?: string | null;
   /** The IP address held by this resource. */
   ip: string;
   /** The ID of the IP pool this resource belongs to. */
@@ -1758,7 +1761,7 @@ export type FloatingIpAttach = {
 export type FloatingIpCreate = {
   description: string;
   /** An IP address to reserve for use as a floating IP. This field is optional: when not set, an address will be automatically chosen from `pool`. If set, then the IP must be available in the resolved `pool`. */
-  ip?: string;
+  ip?: string | null;
   name: Name;
   /** The parent IP pool that a floating IP is pulled from. If unset, the default pool is selected. */
   pool?: NameOrId | null;
@@ -1771,13 +1774,16 @@ export type FloatingIpResultsPage = {
   /** list of items on this page of results */
   items: FloatingIp[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
  * Updateable identity-related parameters
  */
-export type FloatingIpUpdate = { description?: string; name?: Name | null };
+export type FloatingIpUpdate = {
+  description?: string | null;
+  name?: Name | null;
+};
 
 /**
  * View of a Group
@@ -1797,7 +1803,7 @@ export type GroupResultsPage = {
   /** list of items on this page of results */
   items: Group[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -1834,7 +1840,7 @@ export type IdentityProviderResultsPage = {
   /** list of items on this page of results */
   items: IdentityProvider[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type IdpMetadataSource =
@@ -1860,7 +1866,7 @@ export type Image = {
   /** The family of the operating system like Debian, Ubuntu, etc. */
   os: string;
   /** ID of the parent project if the image is a project image */
-  projectId?: string;
+  projectId?: string | null;
   /** total size in bytes */
   size: ByteCount;
   /** timestamp when this resource was created */
@@ -1897,7 +1903,7 @@ export type ImageResultsPage = {
   /** list of items on this page of results */
   items: Image[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -1938,7 +1944,7 @@ If this is not present, then either the instance has never been automatically re
 This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, the control plane will use the default policy when determining whether or not to automatically restart this instance, which may or may not allow it to be restarted. The value of the `auto_restart_enabled` field indicates whether the instance will be auto-restarted, based on its current policy or the default if it has no configured policy. */
   autoRestartPolicy?: InstanceAutoRestartPolicy | null;
   /** the ID of the disk used to boot this Instance, if a specific one is assigned. */
-  bootDiskId?: string;
+  bootDiskId?: string | null;
   /** human-readable free-form text about a resource */
   description: string;
   /** RFC1035-compliant hostname for the Instance. */
@@ -1992,7 +1998,7 @@ export type InstanceDiskAttachment =
 export type InstanceNetworkInterfaceCreate = {
   description: string;
   /** The IP address for the interface. One will be auto-assigned if not provided. */
-  ip?: string;
+  ip?: string | null;
   name: Name;
   /** The VPC Subnet in which to create the interface. */
   subnetName: Name;
@@ -2101,7 +2107,7 @@ export type InstanceNetworkInterfaceResultsPage = {
   /** list of items on this page of results */
   items: InstanceNetworkInterface[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2110,7 +2116,7 @@ export type InstanceNetworkInterfaceResultsPage = {
  * Note that modifying IP addresses for an interface is not yet supported, a new interface must be created instead.
  */
 export type InstanceNetworkInterfaceUpdate = {
-  description?: string;
+  description?: string | null;
   name?: Name | null;
   /** Make a secondary interface the instance's primary interface.
 
@@ -2129,7 +2135,7 @@ export type InstanceResultsPage = {
   /** list of items on this page of results */
   items: Instance[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2221,7 +2227,7 @@ export type InternetGatewayIpAddressResultsPage = {
   /** list of items on this page of results */
   items: InternetGatewayIpAddress[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2260,7 +2266,7 @@ export type InternetGatewayIpPoolResultsPage = {
   /** list of items on this page of results */
   items: InternetGatewayIpPool[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2270,7 +2276,7 @@ export type InternetGatewayResultsPage = {
   /** list of items on this page of results */
   items: InternetGateway[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2330,7 +2336,7 @@ export type IpPoolRangeResultsPage = {
   /** list of items on this page of results */
   items: IpPoolRange[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2340,7 +2346,7 @@ export type IpPoolResultsPage = {
   /** list of items on this page of results */
   items: IpPool[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2360,7 +2366,7 @@ export type IpPoolSiloLinkResultsPage = {
   /** list of items on this page of results */
   items: IpPoolSiloLink[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type IpPoolSiloUpdate = {
@@ -2371,7 +2377,7 @@ export type IpPoolSiloUpdate = {
 /**
  * Parameters for updating an IP Pool
  */
-export type IpPoolUpdate = { description?: string; name?: Name | null };
+export type IpPoolUpdate = { description?: string | null; name?: Name | null };
 
 export type Ipv4Utilization = {
   /** The number of IPv4 addresses allocated from this pool */
@@ -2419,19 +2425,19 @@ export type LinkFec =
  */
 export type LldpLinkConfigCreate = {
   /** The LLDP chassis identifier TLV. */
-  chassisId?: string;
+  chassisId?: string | null;
   /** Whether or not LLDP is enabled. */
   enabled: boolean;
   /** The LLDP link description TLV. */
-  linkDescription?: string;
+  linkDescription?: string | null;
   /** The LLDP link name TLV. */
-  linkName?: string;
+  linkName?: string | null;
   /** The LLDP management IP TLV. */
-  managementIp?: string;
+  managementIp?: string | null;
   /** The LLDP system description TLV. */
-  systemDescription?: string;
+  systemDescription?: string | null;
   /** The LLDP system name TLV. */
-  systemName?: string;
+  systemName?: string | null;
 };
 
 /**
@@ -2504,21 +2510,21 @@ export type LinkConfigCreate = {
  */
 export type LldpLinkConfig = {
   /** The LLDP chassis identifier TLV. */
-  chassisId?: string;
+  chassisId?: string | null;
   /** Whether or not the LLDP service is enabled. */
   enabled: boolean;
   /** The id of this LLDP service instance. */
   id: string;
   /** The LLDP link description TLV. */
-  linkDescription?: string;
+  linkDescription?: string | null;
   /** The LLDP link name TLV. */
-  linkName?: string;
+  linkName?: string | null;
   /** The LLDP management IP TLV. */
   managementIp?: IpNet | null;
   /** The LLDP system description TLV. */
-  systemDescription?: string;
+  systemDescription?: string | null;
   /** The LLDP system name TLV. */
-  systemName?: string;
+  systemName?: string | null;
 };
 
 /**
@@ -2532,7 +2538,7 @@ export type LldpNeighbor = {
   /** Most recent sighting of this LldpNeighbor */
   lastSeen: Date;
   /** The LLDP link description advertised by the neighbor */
-  linkDescription?: string;
+  linkDescription?: string | null;
   /** The LLDP link name advertised by the neighbor */
   linkName: string;
   /** The port on which the neighbor was seen */
@@ -2540,9 +2546,9 @@ export type LldpNeighbor = {
   /** The LLDP management IP(s) advertised by the neighbor */
   managementIp: IpNet[];
   /** The LLDP system description advertised by the neighbor */
-  systemDescription?: string;
+  systemDescription?: string | null;
   /** The LLDP system name advertised by the neighbor */
-  systemName?: string;
+  systemName?: string | null;
 };
 
 /**
@@ -2552,7 +2558,7 @@ export type LldpNeighborResultsPage = {
   /** list of items on this page of results */
   items: LldpNeighbor[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2596,7 +2602,7 @@ export type LoopbackAddressResultsPage = {
   /** list of items on this page of results */
   items: LoopbackAddress[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2611,7 +2617,7 @@ export type MeasurementResultsPage = {
   /** list of items on this page of results */
   items: Measurement[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2668,7 +2674,7 @@ export type ValueArray =
   | { type: "integer"; values: number[] }
   | { type: "double"; values: number[] }
   | { type: "boolean"; values: boolean[] }
-  | { type: "string"; values: string[] }
+  | { type: "string"; values: string | null[] }
   | { type: "integer_distribution"; values: Distributionint64 | null[] }
   | { type: "double_distribution"; values: Distributiondouble | null[] };
 
@@ -2764,7 +2770,7 @@ export type PhysicalDisk = {
   policy: PhysicalDiskPolicy;
   serial: string;
   /** The sled to which this disk is attached, if any. */
-  sledId?: string;
+  sledId?: string | null;
   /** The current state Nexus believes the disk to be in. */
   state: PhysicalDiskState;
   /** timestamp when this resource was created */
@@ -2781,7 +2787,7 @@ export type PhysicalDiskResultsPage = {
   /** list of items on this page of results */
   items: PhysicalDisk[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type PingStatus = "ok";
@@ -2842,7 +2848,7 @@ export type ProbeInfoResultsPage = {
   /** list of items on this page of results */
   items: ProbeInfo[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2873,7 +2879,7 @@ export type ProjectResultsPage = {
   /** list of items on this page of results */
   items: Project[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type ProjectRole = "admin" | "collaborator" | "viewer";
@@ -2902,7 +2908,7 @@ export type ProjectRolePolicy = {
 /**
  * Updateable properties of a `Project`
  */
-export type ProjectUpdate = { description?: string; name?: Name | null };
+export type ProjectUpdate = { description?: string | null; name?: Name | null };
 
 /**
  * View of an Rack
@@ -2923,7 +2929,7 @@ export type RackResultsPage = {
   /** list of items on this page of results */
   items: Rack[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -2945,7 +2951,7 @@ export type RoleResultsPage = {
   /** list of items on this page of results */
   items: Role[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3071,14 +3077,14 @@ export type RouterRouteResultsPage = {
   /** list of items on this page of results */
   items: RouterRoute[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
  * Updateable properties of a `RouterRoute`
  */
 export type RouterRouteUpdate = {
-  description?: string;
+  description?: string | null;
   /** Selects which traffic this routing rule will apply to. */
   destination: RouteDestination;
   name?: Name | null;
@@ -3095,7 +3101,7 @@ export type SamlIdentityProvider = {
   /** human-readable free-form text about a resource */
   description: string;
   /** If set, attributes with this name will be considered to denote a user's group membership, where the values will be the group names. */
-  groupAttributeName?: string;
+  groupAttributeName?: string | null;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   /** IdP's entity id */
@@ -3103,7 +3109,7 @@ export type SamlIdentityProvider = {
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
   /** Optional request signing public certificate (base64 encoded der file) */
-  publicCert?: string;
+  publicCert?: string | null;
   /** Service provider endpoint where the idp should send log out requests */
   sloUrl: string;
   /** SP's client id */
@@ -3124,7 +3130,7 @@ export type SamlIdentityProviderCreate = {
   acsUrl: string;
   description: string;
   /** If set, SAML attributes with this name will be considered to denote a user's group membership, where the attribute value(s) should be a comma-separated list of group names. */
-  groupAttributeName?: string;
+  groupAttributeName?: string | null;
   /** idp's entity id */
   idpEntityId: string;
   /** the source of an identity provider metadata descriptor */
@@ -3203,7 +3209,7 @@ export type SiloCreate = {
   /** If set, this group will be created during Silo creation and granted the "Silo Admin" role. Identity providers can assert that users belong to this group and those users can log in and further initialize the Silo.
 
 Note that if configuring a SAML based identity provider, group_attribute_name must be set for users to be considered part of a group. See `SamlIdentityProviderCreate` for more information. */
-  adminGroupName?: string;
+  adminGroupName?: string | null;
   description: string;
   discoverable: boolean;
   identityMode: SiloIdentityMode;
@@ -3243,7 +3249,7 @@ export type SiloIpPoolResultsPage = {
   /** list of items on this page of results */
   items: SiloIpPool[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3266,7 +3272,7 @@ export type SiloQuotasResultsPage = {
   /** list of items on this page of results */
   items: SiloQuotas[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3288,7 +3294,7 @@ export type SiloResultsPage = {
   /** list of items on this page of results */
   items: Silo[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type SiloRole = "admin" | "collaborator" | "viewer";
@@ -3345,7 +3351,7 @@ export type SiloUtilizationResultsPage = {
   /** list of items on this page of results */
   items: SiloUtilization[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3425,7 +3431,7 @@ export type SledInstance = {
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
   memory: number;
-  migrationId?: string;
+  migrationId?: string | null;
   name: Name;
   ncpus: number;
   projectName: Name;
@@ -3444,7 +3450,7 @@ export type SledInstanceResultsPage = {
   /** list of items on this page of results */
   items: SledInstance[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3472,7 +3478,7 @@ export type SledResultsPage = {
   /** list of items on this page of results */
   items: Sled[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type SnapshotState = "creating" | "ready" | "faulted" | "destroyed";
@@ -3514,7 +3520,7 @@ export type SnapshotResultsPage = {
   /** list of items on this page of results */
   items: Snapshot[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3554,7 +3560,7 @@ export type SshKeyResultsPage = {
   /** list of items on this page of results */
   items: SshKey[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type TypedUuidForSupportBundleKind = string;
@@ -3583,7 +3589,7 @@ The record of the bundle still exists for readability, but the only valid operat
 export type SupportBundleInfo = {
   id: TypedUuidForSupportBundleKind;
   reasonForCreation: string;
-  reasonForFailure?: string;
+  reasonForFailure?: string | null;
   state: SupportBundleState;
   timeCreated: Date;
 };
@@ -3595,7 +3601,7 @@ export type SupportBundleInfoResultsPage = {
   /** list of items on this page of results */
   items: SupportBundleInfo[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3678,7 +3684,7 @@ export type SwitchPort = {
   /** The name of this switch port. */
   portName: string;
   /** The primary settings group of this switch port. Will be `None` until this switch port is configured. */
-  portSettingsId?: string;
+  portSettingsId?: string | null;
   /** The rack this switch port belongs to. */
   rackId: string;
   /** The switch location of this switch port. */
@@ -3764,7 +3770,7 @@ export type SwitchPortLinkConfig = {
   /** The name of this link. */
   linkName: string;
   /** The link-layer discovery protocol service configuration id for this link. */
-  lldpLinkConfigId?: string;
+  lldpLinkConfigId?: string | null;
   /** The maximum transmission unit for this link. */
   mtu: number;
   /** The port settings this link configuration belongs to. */
@@ -3772,7 +3778,7 @@ export type SwitchPortLinkConfig = {
   /** The configured speed of the link. */
   speed: LinkSpeed;
   /** The tx_eq configuration id for this link. */
-  txEqConfigId?: string;
+  txEqConfigId?: string | null;
 };
 
 /**
@@ -3782,7 +3788,7 @@ export type SwitchPortResultsPage = {
   /** list of items on this page of results */
   items: SwitchPort[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3856,7 +3862,7 @@ export type SwitchPortSettingsResultsPage = {
   /** list of items on this page of results */
   items: SwitchPortSettings[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3904,7 +3910,7 @@ export type SwitchResultsPage = {
   /** list of items on this page of results */
   items: Switch[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -3990,7 +3996,7 @@ export type TimeseriesSchemaResultsPage = {
   /** list of items on this page of results */
   items: TimeseriesSchema[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -4014,7 +4020,7 @@ export type UninitializedSledResultsPage = {
   /** list of items on this page of results */
   items: UninitializedSled[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -4053,7 +4059,7 @@ export type UserBuiltinResultsPage = {
   /** list of items on this page of results */
   items: UserBuiltin[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -4089,7 +4095,7 @@ export type UserResultsPage = {
   /** list of items on this page of results */
   items: User[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -4269,7 +4275,7 @@ export type VpcResultsPage = {
   /** list of items on this page of results */
   items: Vpc[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 export type VpcRouterKind = "system" | "custom";
@@ -4305,20 +4311,23 @@ export type VpcRouterResultsPage = {
   /** list of items on this page of results */
   items: VpcRouter[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
  * Updateable properties of a `VpcRouter`
  */
-export type VpcRouterUpdate = { description?: string; name?: Name | null };
+export type VpcRouterUpdate = {
+  description?: string | null;
+  name?: Name | null;
+};
 
 /**
  * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionally an IPv6 subnetwork.
  */
 export type VpcSubnet = {
   /** ID for an attached custom router. */
-  customRouterId?: string;
+  customRouterId?: string | null;
   /** human-readable free-form text about a resource */
   description: string;
   /** unique, immutable, system-controlled identifier for each resource */
@@ -4364,7 +4373,7 @@ export type VpcSubnetResultsPage = {
   /** list of items on this page of results */
   items: VpcSubnet[];
   /** token used to fetch the next page of results (if any) */
-  nextPage?: string;
+  nextPage?: string | null;
 };
 
 /**
@@ -4373,7 +4382,7 @@ export type VpcSubnetResultsPage = {
 export type VpcSubnetUpdate = {
   /** An optional router, used to direct packets sent from hosts in this subnet to any destination address. */
   customRouter?: NameOrId | null;
-  description?: string;
+  description?: string | null;
   name?: Name | null;
 };
 
@@ -4381,7 +4390,7 @@ export type VpcSubnetUpdate = {
  * Updateable properties of a `Vpc`
  */
 export type VpcUpdate = {
-  description?: string;
+  description?: string | null;
   dnsName?: Name | null;
   name?: Name | null;
 };
@@ -4433,7 +4442,7 @@ export type NameSortMode = "name_ascending";
 
 export interface ProbeListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4460,7 +4469,7 @@ export interface ProbeDeleteQueryParams {
 
 export interface SupportBundleListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -4501,7 +4510,7 @@ export interface LoginSamlPathParams {
 
 export interface AffinityGroupListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4540,7 +4549,7 @@ export interface AffinityGroupMemberListPathParams {
 
 export interface AffinityGroupMemberListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4574,7 +4583,7 @@ export interface AffinityGroupMemberInstanceDeleteQueryParams {
 
 export interface AntiAffinityGroupListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4613,7 +4622,7 @@ export interface AntiAffinityGroupMemberListPathParams {
 
 export interface AntiAffinityGroupMemberListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4647,7 +4656,7 @@ export interface AntiAffinityGroupMemberInstanceDeleteQueryParams {
 
 export interface CertificateListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -4661,7 +4670,7 @@ export interface CertificateDeletePathParams {
 
 export interface DiskListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4727,14 +4736,14 @@ export interface DiskMetricsListQueryParams {
   endTime?: Date;
   limit?: number;
   order?: PaginationOrder;
-  pageToken?: string;
+  pageToken?: string | null;
   startTime?: Date;
   project?: NameOrId;
 }
 
 export interface FloatingIpListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4785,7 +4794,7 @@ export interface FloatingIpDetachQueryParams {
 
 export interface GroupListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -4795,7 +4804,7 @@ export interface GroupViewPathParams {
 
 export interface ImageListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4838,7 +4847,7 @@ export interface ImagePromoteQueryParams {
 
 export interface InstanceListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4877,7 +4886,7 @@ export interface InstanceAffinityGroupListPathParams {
 
 export interface InstanceAffinityGroupListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4888,7 +4897,7 @@ export interface InstanceAntiAffinityGroupListPathParams {
 
 export interface InstanceAntiAffinityGroupListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4899,7 +4908,7 @@ export interface InstanceDiskListPathParams {
 
 export interface InstanceDiskListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -4978,7 +4987,7 @@ export interface InstanceSshPublicKeyListPathParams {
 
 export interface InstanceSshPublicKeyListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -5002,7 +5011,7 @@ export interface InstanceStopQueryParams {
 export interface InternetGatewayIpAddressListQueryParams {
   gateway?: NameOrId;
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
   vpc?: NameOrId;
@@ -5028,7 +5037,7 @@ export interface InternetGatewayIpAddressDeleteQueryParams {
 export interface InternetGatewayIpPoolListQueryParams {
   gateway?: NameOrId;
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
   vpc?: NameOrId;
@@ -5053,7 +5062,7 @@ export interface InternetGatewayIpPoolDeleteQueryParams {
 
 export interface InternetGatewayListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
   vpc?: NameOrId;
@@ -5085,7 +5094,7 @@ export interface InternetGatewayDeleteQueryParams {
 
 export interface ProjectIpPoolListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5099,13 +5108,13 @@ export interface LoginLocalPathParams {
 
 export interface CurrentUserGroupsQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface CurrentUserSshKeyListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5125,7 +5134,7 @@ export interface SiloMetricQueryParams {
   endTime?: Date;
   limit?: number;
   order?: PaginationOrder;
-  pageToken?: string;
+  pageToken?: string | null;
   startTime?: Date;
   project?: NameOrId;
 }
@@ -5133,7 +5142,7 @@ export interface SiloMetricQueryParams {
 export interface InstanceNetworkInterfaceListQueryParams {
   instance?: NameOrId;
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -5172,7 +5181,7 @@ export interface InstanceNetworkInterfaceDeleteQueryParams {
 
 export interface ProjectListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5198,7 +5207,7 @@ export interface ProjectPolicyUpdatePathParams {
 
 export interface SnapshotListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -5225,7 +5234,7 @@ export interface SnapshotDeleteQueryParams {
 
 export interface PhysicalDiskListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5241,13 +5250,13 @@ export interface NetworkingSwitchPortLldpNeighborsPathParams {
 
 export interface NetworkingSwitchPortLldpNeighborsQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface RackListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5257,7 +5266,7 @@ export interface RackViewPathParams {
 
 export interface SledListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5271,7 +5280,7 @@ export interface SledPhysicalDiskListPathParams {
 
 export interface SledPhysicalDiskListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5281,7 +5290,7 @@ export interface SledInstanceListPathParams {
 
 export interface SledInstanceListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5291,14 +5300,14 @@ export interface SledSetProvisionPolicyPathParams {
 
 export interface SledListUninitializedQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
 }
 
 export interface NetworkingSwitchPortListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
-  switchPortId?: string;
+  switchPortId?: string | null;
 }
 
 export interface NetworkingSwitchPortLldpConfigViewPathParams {
@@ -5348,7 +5357,7 @@ export interface NetworkingSwitchPortStatusQueryParams {
 
 export interface SwitchListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5358,7 +5367,7 @@ export interface SwitchViewPathParams {
 
 export interface SiloIdentityProviderListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   silo?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -5397,7 +5406,7 @@ export interface SamlIdentityProviderViewQueryParams {
 
 export interface IpPoolListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5419,7 +5428,7 @@ export interface IpPoolRangeListPathParams {
 
 export interface IpPoolRangeListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
 }
 
 export interface IpPoolRangeAddPathParams {
@@ -5436,7 +5445,7 @@ export interface IpPoolSiloListPathParams {
 
 export interface IpPoolSiloListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5460,7 +5469,7 @@ export interface IpPoolUtilizationViewPathParams {
 
 export interface IpPoolServiceRangeListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
 }
 
 export interface SystemMetricPathParams {
@@ -5471,14 +5480,14 @@ export interface SystemMetricQueryParams {
   endTime?: Date;
   limit?: number;
   order?: PaginationOrder;
-  pageToken?: string;
+  pageToken?: string | null;
   startTime?: Date;
   silo?: NameOrId;
 }
 
 export interface NetworkingAddressLotListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5492,13 +5501,13 @@ export interface NetworkingAddressLotBlockListPathParams {
 
 export interface NetworkingAddressLotBlockListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface NetworkingBgpConfigListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5508,7 +5517,7 @@ export interface NetworkingBgpConfigDeleteQueryParams {
 
 export interface NetworkingBgpAnnounceSetListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5530,7 +5539,7 @@ export interface NetworkingBgpImportedRoutesIpv4QueryParams {
 
 export interface NetworkingLoopbackAddressListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5543,7 +5552,7 @@ export interface NetworkingLoopbackAddressDeletePathParams {
 
 export interface NetworkingSwitchPortSettingsListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   portSettings?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }
@@ -5558,7 +5567,7 @@ export interface NetworkingSwitchPortSettingsViewPathParams {
 
 export interface RoleListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
 }
 
 export interface RoleViewPathParams {
@@ -5567,13 +5576,13 @@ export interface RoleViewPathParams {
 
 export interface SystemQuotasListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface SiloListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5591,7 +5600,7 @@ export interface SiloIpPoolListPathParams {
 
 export interface SiloIpPoolListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5613,12 +5622,12 @@ export interface SiloQuotasUpdatePathParams {
 
 export interface SystemTimeseriesSchemaListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
 }
 
 export interface SiloUserListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   silo?: NameOrId;
   sortBy?: IdSortMode;
 }
@@ -5633,7 +5642,7 @@ export interface SiloUserViewQueryParams {
 
 export interface UserBuiltinListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameSortMode;
 }
 
@@ -5643,7 +5652,7 @@ export interface UserBuiltinViewPathParams {
 
 export interface SiloUtilizationListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
@@ -5656,9 +5665,9 @@ export interface TimeseriesQueryQueryParams {
 }
 
 export interface UserListQueryParams {
-  group?: string;
+  group?: string | null;
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
@@ -5674,7 +5683,7 @@ export interface VpcFirewallRulesUpdateQueryParams {
 
 export interface VpcRouterRouteListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   router?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5719,7 +5728,7 @@ export interface VpcRouterRouteDeleteQueryParams {
 
 export interface VpcRouterListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
   vpc?: NameOrId;
@@ -5759,7 +5768,7 @@ export interface VpcRouterDeleteQueryParams {
 
 export interface VpcSubnetListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
   vpc?: NameOrId;
@@ -5803,7 +5812,7 @@ export interface VpcSubnetListNetworkInterfacesPathParams {
 
 export interface VpcSubnetListNetworkInterfacesQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
   vpc?: NameOrId;
@@ -5811,7 +5820,7 @@ export interface VpcSubnetListNetworkInterfacesQueryParams {
 
 export interface VpcListQueryParams {
   limit?: number;
-  pageToken?: string;
+  pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
 }

@@ -24,8 +24,9 @@ export const schemaToTypes = makeSchemaGenerator({
   boolean(_, { w0 }) {
     w0(`boolean`);
   },
-  string(_, { w0 }) {
+  string(schema, { w0 }) {
     w0(`string`);
+    if (schema.nullable) w0(" | null");
   },
   date(_, { w0 }) {
     w0(`Date`);
