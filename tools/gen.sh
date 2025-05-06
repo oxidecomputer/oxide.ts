@@ -22,5 +22,5 @@ curl --fail "$SPEC_URL" -o $SPEC_FILE
 rm -f oxide-api/src/* # remove after we add --clean flag to generator
 
 # note no features, API client only
-npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR
+npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR --features zod
 npx prettier@3.2.5 --write --log-level error "$DEST_DIR"
