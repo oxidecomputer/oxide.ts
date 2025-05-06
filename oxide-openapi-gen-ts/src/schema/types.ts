@@ -44,7 +44,9 @@ export const schemaToTypes = makeSchemaGenerator({
   },
   array(schema, io) {
     const { w0 } = io;
+    w0("(");
     schemaToTypes(schema.items, io);
+    w0(")");
     w0("[]");
     if (schema.nullable) w0(" | null");
   },
@@ -79,6 +81,7 @@ export const schemaToTypes = makeSchemaGenerator({
     if (schema.oneOf!.length === 1) {
       return schemaToTypes(schema.oneOf![0], io);
     }
+    io.w0("(");
     for (const s of schema.oneOf!) {
       if ("description" in s) {
         io.w(`/** ${s.description} */`);
@@ -87,6 +90,7 @@ export const schemaToTypes = makeSchemaGenerator({
       schemaToTypes(s, io);
       io.w("");
     }
+    io.w0(")");
     if (schema.nullable) io.w0(" | null");
   },
   allOf(schema, io) {

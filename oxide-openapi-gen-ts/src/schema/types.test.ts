@@ -168,11 +168,11 @@ test("discriminated union (VpcFirewallRuleTarget)", () => {
 test("Array of nullable item (ValueArray)", () => {
   expect(genType(schemas.ValueArray)).toMatchInlineSnapshot(`
     "type X =
-      | { type: "integer"; values: number | null[] }
-      | { type: "double"; values: number | null[] }
-      | { type: "boolean"; values: boolean | null[] }
-      | { type: "string"; values: string | null[] }
-      | { type: "integer_distribution"; values: Distributionint64 | null[] }
-      | { type: "double_distribution"; values: Distributiondouble | null[] };"
+      | { type: "integer"; values: (number | null)[] }
+      | { type: "double"; values: (number | null)[] }
+      | { type: "boolean"; values: (boolean | null)[] }
+      | { type: "string"; values: (string | null)[] }
+      | { type: "integer_distribution"; values: (Distributionint64 | null)[] }
+      | { type: "double_distribution"; values: (Distributiondouble | null)[] };"
   `);
 });

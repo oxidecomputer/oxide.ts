@@ -2671,12 +2671,12 @@ export type NetworkInterface = {
  * Each element is an option, where `None` represents a missing sample.
  */
 export type ValueArray =
-  | { type: "integer"; values: number | null[] }
-  | { type: "double"; values: number | null[] }
-  | { type: "boolean"; values: boolean | null[] }
-  | { type: "string"; values: string | null[] }
-  | { type: "integer_distribution"; values: Distributionint64 | null[] }
-  | { type: "double_distribution"; values: Distributiondouble | null[] };
+  | { type: "integer"; values: (number | null)[] }
+  | { type: "double"; values: (number | null)[] }
+  | { type: "boolean"; values: (boolean | null)[] }
+  | { type: "string"; values: (string | null)[] }
+  | { type: "integer_distribution"; values: (Distributionint64 | null)[] }
+  | { type: "double_distribution"; values: (Distributiondouble | null)[] };
 
 /**
  * A single list of values, for one dimension of a timeseries.
@@ -3898,7 +3898,7 @@ export type SwitchPortSettingsView = {
   /** The primary switch port settings handle. */
   settings: SwitchPortSettings;
   /** TX equalization settings.  These are optional, and most links will not need them. */
-  txEq: TxEqConfig | null[];
+  txEq: (TxEqConfig | null)[];
   /** Vlan interface settings. */
   vlanInterfaces: SwitchVlanInterfaceConfig[];
 };
