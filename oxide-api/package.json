@@ -45,8 +45,5 @@
       "cjs",
       "esm"
     ]
-  },
-  "dependencies": {
-    "zod": "^3.24.4"
   }
 }
