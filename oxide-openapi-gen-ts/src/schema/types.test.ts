@@ -42,13 +42,13 @@ test("Disk", () => {
       /** unique, immutable, system-controlled identifier for each resource */
       id: string;
       /** ID of image from which disk was created, if any */
-      imageId?: string;
+      imageId?: string | null;
       /** unique, mutable, user-controlled identifier for each resource */
       name: Name;
       projectId: string;
       size: ByteCount;
       /** ID of snapshot from which disk was created, if any */
-      snapshotId?: string;
+      snapshotId?: string | null;
       state: DiskState;
       /** timestamp when this resource was created */
       timeCreated: Date;
@@ -70,9 +70,9 @@ test("Instance", () => {
       /** The auto-restart policy configured for this instance, or \`null\` if no explicit policy has been configured.
 
     This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is \`null\`, the control plane will use the default policy when determining whether or not to automatically restart this instance, which may or may not allow it to be restarted. The value of the \`auto_restart_enabled\` field indicates whether the instance will be auto-restarted, based on its current policy or the default if it has no configured policy. */
-      autoRestartPolicy?: InstanceAutoRestartPolicy;
+      autoRestartPolicy?: InstanceAutoRestartPolicy | null;
       /** the ID of the disk used to boot this Instance, if a specific one is assigned. */
-      bootDiskId?: string;
+      bootDiskId?: string | null;
       /** human-readable free-form text about a resource */
       description: string;
       /** RFC1035-compliant hostname for the Instance. */
@@ -118,7 +118,7 @@ test("string", () => {
       nullable: true,
       type: "string",
     })
-  ).toMatchInlineSnapshot(`"type X = string;"`);
+  ).toMatchInlineSnapshot(`"type X = string | null;"`);
 });
 
 test("oneOf to string union (AddressLotKind)", () => {
@@ -138,14 +138,14 @@ test("ResultsPage array (InternetGatewayResultsPage)", () => {
       /** list of items on this page of results */
       items: InternetGateway[];
       /** token used to fetch the next page of results (if any) */
-      nextPage?: string;
+      nextPage?: string | null;
     };"
   `);
 });
 
 test("VpcRouterUpdate", () => {
   expect(genType(schemas.VpcRouterUpdate)).toMatchInlineSnapshot(
-    `"type X = { description?: string; name?: Name };"`
+    `"type X = { description?: string | null; name?: Name | null };"`
   );
 });
 
