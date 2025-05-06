@@ -23,6 +23,7 @@ export const schemaToZod = makeSchemaGenerator({
     if ("default" in schema) {
       w0(`.default(${schema.default})`);
     }
+    if (schema.nullable) w0(".nullable()");
   },
 
   enum(schema, io) {
@@ -33,6 +34,7 @@ export const schemaToZod = makeSchemaGenerator({
     } else {
       throw new Error(`Unsupported enum type ${schema.type}`);
     }
+    if (schema.nullable) io.w0(".nullable()");
   },
 
   string(schema, { w0 }) {
@@ -62,17 +64,23 @@ export const schemaToZod = makeSchemaGenerator({
     if ("pattern" in schema) {
       w0(`.regex(${new RegExp(schema.pattern!).toString()})`);
     }
+    if (schema.nullable) w0(".nullable()");
   },
 
-  date(_, { w0 }) {
+  date(schema, { w0 }) {
     w0("z.coerce.date()");
+    if (schema.nullable) w0(".nullable()");
   },
 
-  number(_, { w0 }) {
+  number(schema, { w0 }) {
     w0("z.number()");
+    if (schema.nullable) w0(".nullable()");
   },
 
-  integer: schemaToZodInt,
+  integer(schema, io) {
+    schemaToZodInt(schema, io);
+    if (schema.nullable) io.w0(".nullable()");
+  },
 
   array(schema, io) {
     const { w0 } = io;
@@ -97,6 +105,7 @@ export const schemaToZod = makeSchemaGenerator({
         w0("z.unknown()");
       }
       w0(")");
+      if (schema.nullable) io.w0(".nullable()");
       return;
     }
 
@@ -110,6 +119,7 @@ export const schemaToZod = makeSchemaGenerator({
       w(",");
     }
     w0("})");
+    if (schema.nullable) io.w0(".nullable()");
   },
 
   oneOf(schema, io) {
@@ -118,6 +128,7 @@ export const schemaToZod = makeSchemaGenerator({
 
     if (schema.oneOf.length === 1) {
       schemaToZod(schema.oneOf[0], io);
+      if (schema.nullable) io.w0(".nullable()");
       return;
     }
 
@@ -134,6 +145,7 @@ export const schemaToZod = makeSchemaGenerator({
         (s) => (s as OpenAPIV3.SchemaObject).enum![0]
       );
       w(`z.enum([${enums.map((e) => JSON.stringify(e)).join(", ")}])`);
+      if (schema.nullable) io.w0(".nullable()");
       return;
     }
 
@@ -143,6 +155,7 @@ export const schemaToZod = makeSchemaGenerator({
       w(",");
     }
     w("])");
+    if (schema.nullable) io.w0(".nullable()");
   },
 
   allOf(schema, io) {
@@ -169,6 +182,7 @@ export const schemaToZod = makeSchemaGenerator({
     if ("default" in schema) {
       w0(`.default(${JSON.stringify(schema.default)})`);
     }
+    if (schema.nullable) io.w0(".nullable()");
   },
 
   empty({ w0 }) {
