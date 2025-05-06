@@ -52,7 +52,7 @@ export type Address = {
   /** The address lot this address is drawn from. */
   addressLot: NameOrId;
   /** Optional VLAN ID for this address */
-  vlanId?: number;
+  vlanId?: number | null;
 };
 
 /**
@@ -639,17 +639,17 @@ export type BgpPeer = {
   /** How often to send keepalive requests (seconds). */
   keepalive: number;
   /** Apply a local preference to routes received from this peer. */
-  localPref?: number;
+  localPref?: number | null;
   /** Use the given key for TCP-MD5 authentication with the peer. */
   md5AuthKey?: string | null;
   /** Require messages from a peer have a minimum IP time to live field. */
-  minTtl?: number;
+  minTtl?: number | null;
   /** Apply the provided multi-exit discriminator (MED) updates sent to the peer. */
-  multiExitDiscriminator?: number;
+  multiExitDiscriminator?: number | null;
   /** Require that a peer has a specified ASN. */
-  remoteAsn?: number;
+  remoteAsn?: number | null;
   /** Associate a VLAN ID with a peer. */
-  vlanId?: number;
+  vlanId?: number | null;
 };
 
 export type BgpPeerConfig = { peers: BgpPeer[] };
@@ -1391,7 +1391,7 @@ export type DatumType =
   | "histogram_f32"
   | "histogram_f64";
 
-export type MissingDatum = { datumType: DatumType; startTime?: Date };
+export type MissingDatum = { datumType: DatumType; startTime?: Date | null };
 
 /**
  * A `Datum` is a single sampled data point from a metric.
@@ -1551,8 +1551,8 @@ export type DiskResultsPage = {
 export type Distributiondouble = {
   bins: number[];
   counts: number[];
-  max?: number;
-  min?: number;
+  max?: number | null;
+  min?: number | null;
   p50?: Quantile | null;
   p90?: Quantile | null;
   p99?: Quantile | null;
@@ -1568,8 +1568,8 @@ export type Distributiondouble = {
 export type Distributionint64 = {
   bins: number[];
   counts: number[];
-  max?: number;
-  min?: number;
+  max?: number | null;
+  min?: number | null;
   p50?: Quantile | null;
   p90?: Quantile | null;
   p99?: Quantile | null;
@@ -1936,7 +1936,7 @@ export type Instance = {
   /** The time at which the auto-restart cooldown period for this instance completes, permitting it to be automatically restarted again. If the instance enters the `Failed` state, it will not be restarted until after this time.
 
 If this is not present, then either the instance has never been automatically restarted, or the cooldown period has already expired, allowing the instance to be restarted immediately if it fails. */
-  autoRestartCooldownExpiration?: Date;
+  autoRestartCooldownExpiration?: Date | null;
   /** `true` if this instance's auto-restart policy will permit the control plane to automatically restart it if it enters the `Failed` state. */
   autoRestartEnabled: boolean;
   /** The auto-restart policy configured for this instance, or `null` if no explicit policy has been configured.
@@ -1965,7 +1965,7 @@ This policy determines whether the instance should be automatically restarted by
   /** The timestamp of the most recent time this instance was automatically restarted by the control plane.
 
 If this is not present, then this instance has not been automatically restarted. */
-  timeLastAutoRestarted?: Date;
+  timeLastAutoRestarted?: Date | null;
   /** timestamp when this resource was last modified */
   timeModified: Date;
   timeRunStateUpdated: Date;
@@ -2056,7 +2056,7 @@ By default, all instances have outbound connectivity, but no inbound connectivit
   /** An allowlist of SSH public keys to be transferred to the instance via cloud-init during instance creation.
 
 If not provided, all SSH public keys from the user's profile will be sent. If an empty list is provided, no public keys will be transmitted to the instance. */
-  sshPublicKeys?: NameOrId[];
+  sshPublicKeys?: NameOrId[] | null;
   /** Should this instance be started upon creation; true by default. */
   start?: boolean;
   /** User data for instance initialization systems (such as cloud-init). Must be a Base64-encoded string, as specified in RFC 4648 § 4 (+ and / characters with padding). Maximum 32 KiB unencoded data. */
@@ -2476,15 +2476,15 @@ export type LinkSpeed =
  */
 export type TxEqConfig = {
   /** Main tap */
-  main?: number;
+  main?: number | null;
   /** Post-cursor tap1 */
-  post1?: number;
+  post1?: number | null;
   /** Post-cursor tap2 */
-  post2?: number;
+  post2?: number | null;
   /** Pre-cursor tap1 */
-  pre1?: number;
+  pre1?: number | null;
   /** Pre-cursor tap2 */
-  pre2?: number;
+  pre2?: number | null;
 };
 
 /**
@@ -2671,9 +2671,9 @@ export type NetworkInterface = {
  * Each element is an option, where `None` represents a missing sample.
  */
 export type ValueArray =
-  | { type: "integer"; values: number[] }
-  | { type: "double"; values: number[] }
-  | { type: "boolean"; values: boolean[] }
+  | { type: "integer"; values: number | null[] }
+  | { type: "double"; values: number | null[] }
+  | { type: "boolean"; values: boolean | null[] }
   | { type: "string"; values: string | null[] }
   | { type: "integer_distribution"; values: Distributionint64 | null[] }
   | { type: "double_distribution"; values: Distributiondouble | null[] };
@@ -2692,7 +2692,7 @@ export type Values = {
  * Timepoints and values for one timeseries.
  */
 export type Points = {
-  startTimes?: Date[];
+  startTimes?: Date[] | null;
   timestamps: Date[];
   values: Values[];
 };
@@ -2963,9 +2963,9 @@ export type Route = {
   /** The route gateway. */
   gw: string;
   /** Local preference for route. Higher preference indictes precedence within and across protocols. */
-  ribPriority?: number;
+  ribPriority?: number | null;
   /** VLAN id the gateway is reachable over. */
-  vid?: number;
+  vid?: number | null;
 };
 
 /**
@@ -3280,7 +3280,7 @@ export type SiloQuotasResultsPage = {
  */
 export type SiloQuotasUpdate = {
   /** The amount of virtual CPUs available for running instances in the Silo */
-  cpus?: number;
+  cpus?: number | null;
   /** The amount of RAM (in bytes) available for running instances in the Silo */
   memory?: ByteCount | null;
   /** The amount of storage (in bytes) available for disks or snapshots */
@@ -3704,7 +3704,7 @@ export type SwitchPortAddressConfig = {
   /** The port settings object this address configuration belongs to. */
   portSettingsId: string;
   /** An optional VLAN ID */
-  vlanId?: number;
+  vlanId?: number | null;
 };
 
 /**
@@ -3804,9 +3804,9 @@ export type SwitchPortRouteConfig = {
   /** The port settings object this route configuration belongs to. */
   portSettingsId: string;
   /** RIB Priority indicating priority within and across protocols. */
-  ribPriority?: number;
+  ribPriority?: number | null;
   /** The VLAN identifier for the route. Use this if the gateway is reachable over an 802.1Q tagged L2 segment. */
-  vlanId?: number;
+  vlanId?: number | null;
 };
 
 /**
@@ -4182,11 +4182,11 @@ export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
  */
 export type VpcFirewallRuleFilter = {
   /** If present, host filters match the "other end" of traffic from the target’s perspective: for an inbound rule, they match the source of traffic. For an outbound rule, they match the destination. */
-  hosts?: VpcFirewallRuleHostFilter[];
+  hosts?: VpcFirewallRuleHostFilter[] | null;
   /** If present, the destination ports or port ranges this rule applies to. */
-  ports?: L4PortRange[];
+  ports?: L4PortRange[] | null;
   /** If present, the networking protocols this rule applies to. */
-  protocols?: VpcFirewallRuleProtocol[];
+  protocols?: VpcFirewallRuleProtocol[] | null;
 };
 
 export type VpcFirewallRuleStatus = "disabled" | "enabled";
@@ -4441,7 +4441,7 @@ export type SystemMetricName =
 export type NameSortMode = "name_ascending";
 
 export interface ProbeListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4468,7 +4468,7 @@ export interface ProbeDeleteQueryParams {
 }
 
 export interface SupportBundleListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -4509,7 +4509,7 @@ export interface LoginSamlPathParams {
 }
 
 export interface AffinityGroupListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4548,7 +4548,7 @@ export interface AffinityGroupMemberListPathParams {
 }
 
 export interface AffinityGroupMemberListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4582,7 +4582,7 @@ export interface AffinityGroupMemberInstanceDeleteQueryParams {
 }
 
 export interface AntiAffinityGroupListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4621,7 +4621,7 @@ export interface AntiAffinityGroupMemberListPathParams {
 }
 
 export interface AntiAffinityGroupMemberListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4655,7 +4655,7 @@ export interface AntiAffinityGroupMemberInstanceDeleteQueryParams {
 }
 
 export interface CertificateListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -4669,7 +4669,7 @@ export interface CertificateDeletePathParams {
 }
 
 export interface DiskListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4734,7 +4734,7 @@ export interface DiskMetricsListPathParams {
 
 export interface DiskMetricsListQueryParams {
   endTime?: Date;
-  limit?: number;
+  limit?: number | null;
   order?: PaginationOrder;
   pageToken?: string | null;
   startTime?: Date;
@@ -4742,7 +4742,7 @@ export interface DiskMetricsListQueryParams {
 }
 
 export interface FloatingIpListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4793,7 +4793,7 @@ export interface FloatingIpDetachQueryParams {
 }
 
 export interface GroupListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -4803,7 +4803,7 @@ export interface GroupViewPathParams {
 }
 
 export interface ImageListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4846,7 +4846,7 @@ export interface ImagePromoteQueryParams {
 }
 
 export interface InstanceListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4885,7 +4885,7 @@ export interface InstanceAffinityGroupListPathParams {
 }
 
 export interface InstanceAffinityGroupListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4896,7 +4896,7 @@ export interface InstanceAntiAffinityGroupListPathParams {
 }
 
 export interface InstanceAntiAffinityGroupListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4907,7 +4907,7 @@ export interface InstanceDiskListPathParams {
 }
 
 export interface InstanceDiskListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -4966,9 +4966,9 @@ export interface InstanceSerialConsolePathParams {
 }
 
 export interface InstanceSerialConsoleQueryParams {
-  fromStart?: number;
-  maxBytes?: number;
-  mostRecent?: number;
+  fromStart?: number | null;
+  maxBytes?: number | null;
+  mostRecent?: number | null;
   project?: NameOrId;
 }
 
@@ -4977,7 +4977,7 @@ export interface InstanceSerialConsoleStreamPathParams {
 }
 
 export interface InstanceSerialConsoleStreamQueryParams {
-  mostRecent?: number;
+  mostRecent?: number | null;
   project?: NameOrId;
 }
 
@@ -4986,7 +4986,7 @@ export interface InstanceSshPublicKeyListPathParams {
 }
 
 export interface InstanceSshPublicKeyListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5010,7 +5010,7 @@ export interface InstanceStopQueryParams {
 
 export interface InternetGatewayIpAddressListQueryParams {
   gateway?: NameOrId;
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5036,7 +5036,7 @@ export interface InternetGatewayIpAddressDeleteQueryParams {
 
 export interface InternetGatewayIpPoolListQueryParams {
   gateway?: NameOrId;
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5061,7 +5061,7 @@ export interface InternetGatewayIpPoolDeleteQueryParams {
 }
 
 export interface InternetGatewayListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5093,7 +5093,7 @@ export interface InternetGatewayDeleteQueryParams {
 }
 
 export interface ProjectIpPoolListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5107,13 +5107,13 @@ export interface LoginLocalPathParams {
 }
 
 export interface CurrentUserGroupsQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface CurrentUserSshKeyListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5132,7 +5132,7 @@ export interface SiloMetricPathParams {
 
 export interface SiloMetricQueryParams {
   endTime?: Date;
-  limit?: number;
+  limit?: number | null;
   order?: PaginationOrder;
   pageToken?: string | null;
   startTime?: Date;
@@ -5141,7 +5141,7 @@ export interface SiloMetricQueryParams {
 
 export interface InstanceNetworkInterfaceListQueryParams {
   instance?: NameOrId;
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5180,7 +5180,7 @@ export interface InstanceNetworkInterfaceDeleteQueryParams {
 }
 
 export interface ProjectListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5206,7 +5206,7 @@ export interface ProjectPolicyUpdatePathParams {
 }
 
 export interface SnapshotListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5233,7 +5233,7 @@ export interface SnapshotDeleteQueryParams {
 }
 
 export interface PhysicalDiskListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5249,13 +5249,13 @@ export interface NetworkingSwitchPortLldpNeighborsPathParams {
 }
 
 export interface NetworkingSwitchPortLldpNeighborsQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface RackListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5265,7 +5265,7 @@ export interface RackViewPathParams {
 }
 
 export interface SledListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5279,7 +5279,7 @@ export interface SledPhysicalDiskListPathParams {
 }
 
 export interface SledPhysicalDiskListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5289,7 +5289,7 @@ export interface SledInstanceListPathParams {
 }
 
 export interface SledInstanceListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5299,12 +5299,12 @@ export interface SledSetProvisionPolicyPathParams {
 }
 
 export interface SledListUninitializedQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
 }
 
 export interface NetworkingSwitchPortListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
   switchPortId?: string | null;
@@ -5356,7 +5356,7 @@ export interface NetworkingSwitchPortStatusQueryParams {
 }
 
 export interface SwitchListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5366,7 +5366,7 @@ export interface SwitchViewPathParams {
 }
 
 export interface SiloIdentityProviderListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   silo?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5405,7 +5405,7 @@ export interface SamlIdentityProviderViewQueryParams {
 }
 
 export interface IpPoolListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5427,7 +5427,7 @@ export interface IpPoolRangeListPathParams {
 }
 
 export interface IpPoolRangeListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
 }
 
@@ -5444,7 +5444,7 @@ export interface IpPoolSiloListPathParams {
 }
 
 export interface IpPoolSiloListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5468,7 +5468,7 @@ export interface IpPoolUtilizationViewPathParams {
 }
 
 export interface IpPoolServiceRangeListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
 }
 
@@ -5478,7 +5478,7 @@ export interface SystemMetricPathParams {
 
 export interface SystemMetricQueryParams {
   endTime?: Date;
-  limit?: number;
+  limit?: number | null;
   order?: PaginationOrder;
   pageToken?: string | null;
   startTime?: Date;
@@ -5486,7 +5486,7 @@ export interface SystemMetricQueryParams {
 }
 
 export interface NetworkingAddressLotListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5500,13 +5500,13 @@ export interface NetworkingAddressLotBlockListPathParams {
 }
 
 export interface NetworkingAddressLotBlockListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface NetworkingBgpConfigListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5516,7 +5516,7 @@ export interface NetworkingBgpConfigDeleteQueryParams {
 }
 
 export interface NetworkingBgpAnnounceSetListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5538,7 +5538,7 @@ export interface NetworkingBgpImportedRoutesIpv4QueryParams {
 }
 
 export interface NetworkingLoopbackAddressListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5551,7 +5551,7 @@ export interface NetworkingLoopbackAddressDeletePathParams {
 }
 
 export interface NetworkingSwitchPortSettingsListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   portSettings?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5566,7 +5566,7 @@ export interface NetworkingSwitchPortSettingsViewPathParams {
 }
 
 export interface RoleListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
 }
 
@@ -5575,13 +5575,13 @@ export interface RoleViewPathParams {
 }
 
 export interface SystemQuotasListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
 export interface SiloListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5599,7 +5599,7 @@ export interface SiloIpPoolListPathParams {
 }
 
 export interface SiloIpPoolListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5621,12 +5621,12 @@ export interface SiloQuotasUpdatePathParams {
 }
 
 export interface SystemTimeseriesSchemaListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
 }
 
 export interface SiloUserListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   silo?: NameOrId;
   sortBy?: IdSortMode;
@@ -5641,7 +5641,7 @@ export interface SiloUserViewQueryParams {
 }
 
 export interface UserBuiltinListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameSortMode;
 }
@@ -5651,7 +5651,7 @@ export interface UserBuiltinViewPathParams {
 }
 
 export interface SiloUtilizationListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
@@ -5666,7 +5666,7 @@ export interface TimeseriesQueryQueryParams {
 
 export interface UserListQueryParams {
   group?: string | null;
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
@@ -5682,7 +5682,7 @@ export interface VpcFirewallRulesUpdateQueryParams {
 }
 
 export interface VpcRouterRouteListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   router?: NameOrId;
@@ -5727,7 +5727,7 @@ export interface VpcRouterRouteDeleteQueryParams {
 }
 
 export interface VpcRouterListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5767,7 +5767,7 @@ export interface VpcRouterDeleteQueryParams {
 }
 
 export interface VpcSubnetListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5811,7 +5811,7 @@ export interface VpcSubnetListNetworkInterfacesPathParams {
 }
 
 export interface VpcSubnetListNetworkInterfacesQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;
@@ -5819,7 +5819,7 @@ export interface VpcSubnetListNetworkInterfacesQueryParams {
 }
 
 export interface VpcListQueryParams {
-  limit?: number;
+  limit?: number | null;
   pageToken?: string | null;
   project?: NameOrId;
   sortBy?: NameOrIdSortMode;

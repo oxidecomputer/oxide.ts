@@ -20,27 +20,33 @@ export const schemaToTypes = makeSchemaGenerator({
       if (i > 0) w0("| ");
       w(JSON.stringify(arm));
     });
+    if (schema.nullable) w0(" | null");
   },
-  boolean(_, { w0 }) {
+  boolean(schema, { w0 }) {
     w0(`boolean`);
+    if (schema.nullable) w0(" | null");
   },
   string(schema, { w0 }) {
     w0(`string`);
     if (schema.nullable) w0(" | null");
   },
-  date(_, { w0 }) {
+  date(schema, { w0 }) {
     w0(`Date`);
+    if (schema.nullable) w0(" | null");
   },
-  number(_, { w0 }) {
+  number(schema, { w0 }) {
     w0(`number`);
+    if (schema.nullable) w0(" | null");
   },
-  integer(_, { w0 }) {
+  integer(schema, { w0 }) {
     w0(`number`);
+    if (schema.nullable) w0(" | null");
   },
   array(schema, io) {
     const { w0 } = io;
     schemaToTypes(schema.items, io);
     w0("[]");
+    if (schema.nullable) w0(" | null");
   },
   object(schema, io) {
     const { w0, w } = io;
@@ -67,6 +73,7 @@ export const schemaToTypes = makeSchemaGenerator({
       w0(",");
     }
     w0("}");
+    if (schema.nullable) w0(" | null");
   },
   oneOf(schema, io) {
     if (schema.oneOf!.length === 1) {
@@ -80,6 +87,7 @@ export const schemaToTypes = makeSchemaGenerator({
       schemaToTypes(s, io);
       io.w("");
     }
+    if (schema.nullable) io.w0(" | null");
   },
   allOf(schema, io) {
     if (schema.allOf!.length === 1) {
