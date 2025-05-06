@@ -90,7 +90,7 @@ export function iterPathConfig(paths: OpenAPIV3.Document["paths"]) {
   });
 }
 
-type Param = Omit<OpenAPIV3.ParameterObject, "schema"> &
+export type Param = Omit<OpenAPIV3.ParameterObject, "schema"> &
   Required<Pick<OpenAPIV3.ParameterObject, "schema">>;
 type ParamGroup = [pathParams: Param[], queryParams: Param[]];
 interface IterParamsResult extends PathConfig {

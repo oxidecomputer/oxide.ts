@@ -29,12 +29,13 @@ jobs:
       # TODO: this probably doesn't make sense anymore, it should be done already
       - name: Generate client
         run: "./tools/gen.sh"
-      - name: Typecheck generator
-        working-directory: "./oxide-openapi-gen-ts"
-        run: npm run tsc
       - name: Lint generator
         working-directory: "./oxide-openapi-gen-ts"
         run: npm run lint
       - name: Test generator
         working-directory: "./oxide-openapi-gen-ts"
         run: npm test run
+      # moved to the end because it relies on spec.json, which is downloaded by the tests
+      - name: Typecheck generator
+        working-directory: "./oxide-openapi-gen-ts"
+        run: npm run tsc

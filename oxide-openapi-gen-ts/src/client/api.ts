@@ -19,9 +19,10 @@ import {
   snakeToCamel,
   snakeToPascal,
 } from "../util";
-import { initIO } from "../io";
+import { type IO, initIO } from "../io";
 import type { Schema } from "../schema/base";
 import {
+  type Param,
   contentRef,
   docComment,
   getSortedSchemas,
@@ -76,6 +77,45 @@ export function copyStaticFiles(destDir: string) {
   copyFile("./static/http-client.ts", destDir);
 }
 
+export function genPathParams(
+  params: Param[],
+  opName: string,
+  schemaNames: string[],
+  io: IO
+) {
+  io.w(`export interface ${pathParamsType(opName)} {`);
+  for (const param of params) {
+    if ("description" in param.schema || "title" in param.schema) {
+      docComment(extractDoc(param.schema), schemaNames, io);
+    }
+    io.w0(`  ${processParamName(param.name)}:`);
+    schemaToTypes(param.schema, io);
+    io.w(",");
+  }
+  io.w("}\n");
+}
+
+export function genQueryParams(
+  params: Param[],
+  opName: string,
+  schemaNames: string[],
+  io: IO
+) {
+  io.w(`export interface ${queryParamsType(opName)} {`);
+  for (const param of params) {
+    if ("description" in param.schema || "title" in param.schema) {
+      docComment(extractDoc(param.schema), schemaNames, io);
+    }
+
+    io.w0(`  ${processParamName(param.name)}`);
+    if (!param.required) io.w0("?");
+    io.w0(": ");
+    schemaToTypes(param.schema, io);
+    io.w(",");
+  }
+  io.w("}\n");
+}
+
 export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
@@ -127,32 +167,11 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     const opName = snakeToPascal(opId);
     const [pathParams, queryParams] = params;
     if (pathParams.length > 0) {
-      w(`export interface ${pathParamsType(opName)} {`);
-      for (const param of pathParams) {
-        if ("description" in param.schema || "title" in param.schema) {
-          docComment(extractDoc(param.schema), schemaNames, io);
-        }
-        w0(`  ${processParamName(param.name)}:`);
-        schemaToTypes(param.schema, io);
-        w(",");
-      }
-      w("}\n");
+      genPathParams(pathParams, opName, schemaNames, io);
     }
 
     if (queryParams.length > 0) {
-      w(`export interface ${queryParamsType(opName)} {`);
-      for (const param of queryParams) {
-        if ("description" in param.schema || "title" in param.schema) {
-          docComment(extractDoc(param.schema), schemaNames, io);
-        }
-
-        w0(`  ${processParamName(param.name)}`);
-        if (!param.required) w0("?");
-        w0(": ");
-        schemaToTypes(param.schema, io);
-        w(",");
-      }
-      w("}\n");
+      genQueryParams(queryParams, opName, schemaNames, io);
     }
   }
 
