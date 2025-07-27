@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 /**
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,6 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
+/* eslint-disable */
 import type { FetchParams } from "./http-client";
 import { HttpClient, toQueryString } from "./http-client";
 

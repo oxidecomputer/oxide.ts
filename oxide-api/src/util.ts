@@ -6,6 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
+/* eslint-disable */
 export const camelToSnake = (s: string) =>
   s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 

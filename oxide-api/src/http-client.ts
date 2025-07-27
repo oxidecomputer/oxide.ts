@@ -6,6 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
+/* eslint-disable */
 import { camelToSnake, processResponseBody, snakeify, isNotNull } from "./util";
 
 /** Success responses from the API */

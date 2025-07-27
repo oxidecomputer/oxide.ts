@@ -124,17 +124,7 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   const io = initIO(out);
   const { w, w0 } = io;
 
-  w(`/* eslint-disable */
-
-    /**
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, you can obtain one at https://mozilla.org/MPL/2.0/.
-     *
-     * Copyright Oxide Computer Company
-     */
-
-    import type { FetchParams } from './http-client'
+  w(`import type { FetchParams } from './http-client'
     import { HttpClient, toQueryString } from './http-client'
 
     export type { ApiConfig, ApiResult, ErrorBody, ErrorResult, } from './http-client'
