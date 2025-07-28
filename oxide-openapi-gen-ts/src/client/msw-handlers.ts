@@ -25,14 +25,6 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
   const { w } = io;
 
   w(`
-    /**
-     * This Source Code Form is subject to the terms of the Mozilla Public
-     * License, v. 2.0. If a copy of the MPL was not distributed with this
-     * file, you can obtain one at https://mozilla.org/MPL/2.0/.
-     *
-     * Copyright Oxide Computer Company
-     */
-
     import {
       http,
       type HttpHandler,
@@ -90,10 +82,10 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
         ? `body: Json<Api.${bodyType}>,`
         : "";
     const pathParams = conf.parameters?.filter(
-      (param) => "name" in param && param.schema && param.in === "path",
+      (param) => "name" in param && param.schema && param.in === "path"
     );
     const queryParams = conf.parameters?.filter(
-      (param) => "name" in param && param.schema && param.in === "query",
+      (param) => "name" in param && param.schema && param.in === "query"
     );
     const pathParamsType = pathParams?.length
       ? `path: Api.${snakeToPascal(opId)}PathParams,`
@@ -222,8 +214,8 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
 
     w(
       `http.${method}('${formatPath(
-        path,
-      )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`,
+        path
+      )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`
     );
   }
   w(`]}`);
