@@ -7,6 +7,7 @@
  */
 
 /* eslint-disable */
+
 import type { FetchParams } from "./http-client";
 import { HttpClient, toQueryString } from "./http-client";
 

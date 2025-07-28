@@ -124,7 +124,9 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   const io = initIO(out);
   const { w, w0 } = io;
 
-  w(`import type { FetchParams } from './http-client'
+  w(`/* eslint-disable */
+
+    import type { FetchParams } from './http-client'
     import { HttpClient, toQueryString } from './http-client'
 
     export type { ApiConfig, ApiResult, ErrorBody, ErrorResult, } from './http-client'

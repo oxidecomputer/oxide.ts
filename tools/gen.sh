@@ -18,8 +18,6 @@ HEADER=$(cat <<'EOF'
  * Copyright Oxide Computer Company
  */
 
-/* eslint-disable */
-
 EOF
 )
 
@@ -40,7 +38,7 @@ npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR
 
 # prepend HEADER to Api.ts
 API_FILE="$DEST_DIR/Api.ts"
-(printf '%s\n' "$HEADER"; cat "$API_FILE") > "${API_FILE}.tmp"
+(printf '%s\n\n' "$HEADER"; cat "$API_FILE") > "${API_FILE}.tmp"
 mv "${API_FILE}.tmp" "$API_FILE"
 
 npx prettier@3.2.5 --write --log-level error "$DEST_DIR"
