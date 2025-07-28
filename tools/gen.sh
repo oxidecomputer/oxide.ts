@@ -38,9 +38,9 @@ rm -f "$DEST_DIR/*" # remove after we add --clean flag to generator
 # note no features, API client only
 npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR
 
-# prepend HEADER to all generated ts files
-for file in "$DEST_DIR"/*.ts; do
-  printf '%s\n%s' "$HEADER" "$(cat "$file")" > "$file"
-done
+# prepend HEADER to Api.ts
+API_FILE="$DEST_DIR/Api.ts"
+(printf '%s\n' "$HEADER"; cat "$API_FILE") > "${API_FILE}.tmp"
+mv "${API_FILE}.tmp" "$API_FILE"
 
 npx prettier@3.2.5 --write --log-level error "$DEST_DIR"
