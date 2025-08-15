@@ -29,7 +29,7 @@ export function generateZodValidators(
 
   w(`/* eslint-disable */
 
-  import { z, ZodType } from 'zod';
+  import { z, ZodType } from 'zod/v4';
   import { processResponseBody, uniqueItems } from './util';
 
   /**

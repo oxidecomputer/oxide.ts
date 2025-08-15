@@ -33,7 +33,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
       type PathParams,
     } from "msw";
     import type { SnakeCasedPropertiesDeep as Snakify, Promisable } from "type-fest";
-    import { type ZodSchema } from "zod";
+    import { type ZodType } from "zod/v4";
     import type * as Api from "./Api";
     import { snakeify } from "./util";
     import * as schema from "./validate";
@@ -105,7 +105,7 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
   w("}");
 
   w(`
-    function validateParams<S extends ZodSchema>(schema: S, req: Request, pathParams: PathParams) {
+    function validateParams<S extends ZodType>(schema: S, req: Request, pathParams: PathParams) {
       const rawParams = new URLSearchParams(new URL(req.url).search)
       const params: [string, unknown][] = []
 
@@ -131,7 +131,9 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
       return { paramsErr: json({ error_code, message }, { status }) }
     }
 
-    const handler = (handler: MSWHandlers[keyof MSWHandlers], paramSchema: ZodSchema | null, bodySchema: ZodSchema | null) => 
+    const handler = (handler: MSWHandlers[keyof MSWHandlers], 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      paramSchema: ZodType<any> | null, bodySchema: ZodType | null) => 
       async ({
         request: req,
         params: pathParams,

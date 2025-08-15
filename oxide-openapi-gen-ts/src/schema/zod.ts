@@ -38,33 +38,33 @@ export const schemaToZod = makeSchemaGenerator({
   },
 
   string(schema, { w0 }) {
-    w0(`z.string()`);
-
-    if ("default" in schema) {
-      w0(`.default(${JSON.stringify(schema.default)})`);
-    }
+    // Handle special formats that become standalone in Zod v4
     if (schema.format === "uuid") {
-      w0(".uuid()");
-    }
-
-    if (schema.format === "ip") {
-      w0(".ip()");
+      w0("z.uuid()");
+    } else if (schema.format === "ip") {
+      // Generic IP becomes IPv4 for backward compatibility
+      w0("z.ipv4()");
     } else if (schema.format === "ipv4") {
-      w0(".ip({ version: 'v4' })");
+      w0("z.ipv4()");
     } else if (schema.format === "ipv6") {
-      w0(".ip({ version: 'v6' })");
+      w0("z.ipv6()");
+    } else {
+      // Regular string handling
+      w0(`z.string()`);
+
+      if ("minLength" in schema) {
+        w0(`.min(${schema.minLength})`);
+      }
+      if ("maxLength" in schema) {
+        w0(`.max(${schema.maxLength})`);
+      }
+      if ("pattern" in schema) {
+        w0(`.regex(${new RegExp(schema.pattern!).toString()})`);
+      }
     }
 
-    if ("minLength" in schema) {
-      w0(`.min(${schema.minLength})`);
-    }
-    if ("maxLength" in schema) {
-      w0(`.max(${schema.maxLength})`);
-    }
-    if ("pattern" in schema) {
-      w0(`.regex(${new RegExp(schema.pattern!).toString()})`);
-    }
     if (schema.nullable) w0(".nullable()");
+    if ("default" in schema) w0(`.default(${JSON.stringify(schema.default)})`);
   },
 
   date(schema, { w0 }) {
@@ -98,7 +98,7 @@ export const schemaToZod = makeSchemaGenerator({
     const { w0, w } = io;
     // record type, which only tells us the type of the values
     if (!schema.properties || Object.keys(schema.properties).length === 0) {
-      w0("z.record(z.string().min(1),");
+      w0("z.record(z.string(),");
       if (typeof schema.additionalProperties === "object") {
         schemaToZod(schema.additionalProperties, io);
       } else {
@@ -179,14 +179,12 @@ export const schemaToZod = makeSchemaGenerator({
       w("])");
     }
 
-    if ("default" in schema) {
-      w0(`.default(${JSON.stringify(schema.default)})`);
-    }
-    if (schema.nullable) io.w0(".nullable()");
+    if (schema.nullable) w0(".nullable()");
+    if ("default" in schema) w0(`.default(${JSON.stringify(schema.default)})`);
   },
 
   empty({ w0 }) {
-    w0("z.record(z.unknown())");
+    w0("z.record(z.string(), z.unknown())");
   },
 
   default(schema) {
