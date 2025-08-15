@@ -34,7 +34,7 @@ curl --fail "$SPEC_URL" -o $SPEC_FILE
 rm -f "$DEST_DIR/*" # remove after we add --clean flag to generator
 
 # note no features, API client only
-npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR
+npx tsx "$ROOT_DIR/oxide-openapi-gen-ts/src/index.ts" $SPEC_FILE $DEST_DIR --features msw
 
 # prepend HEADER to Api.ts
 API_FILE="$DEST_DIR/Api.ts"
