@@ -61,6 +61,8 @@ export type Address = {
 export type AddressConfig = {
   /** The set of addresses assigned to the port configuration. */
   addresses: Address[];
+  /** Link to assign the addresses to. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+  linkName: Name;
 };
 
 /**
@@ -312,6 +314,218 @@ export type AggregateBgpMessageHistory = {
 };
 
 /**
+ * An alert class.
+ */
+export type AlertClass = {
+  /** A description of what this alert class represents. */
+  description: string;
+  /** The name of the alert class. */
+  name: string;
+};
+
+/**
+ * A single page of results
+ */
+export type AlertClassResultsPage = {
+  /** list of items on this page of results */
+  items: AlertClass[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+export type TypedUuidForAlertKind = string;
+
+/**
+ * The response received from a webhook receiver endpoint.
+ */
+export type WebhookDeliveryResponse = {
+  /** The response time of the webhook endpoint, in milliseconds. */
+  durationMs: number;
+  /** The HTTP status code returned from the webhook endpoint. */
+  status: number;
+};
+
+export type WebhookDeliveryAttemptResult =
+  /** The webhook event has been delivered successfully. */
+  | "succeeded"
+
+  /** A webhook request was sent to the endpoint, and it returned a HTTP error status code indicating an error. */
+  | "failed_http_error"
+
+  /** The webhook request could not be sent to the receiver endpoint. */
+  | "failed_unreachable"
+
+  /** A connection to the receiver endpoint was successfully established, but no response was received within the delivery timeout. */
+  | "failed_timeout";
+
+/**
+ * An individual delivery attempt for a webhook event.
+ *
+ * This represents a single HTTP request that was sent to the receiver, and its outcome.
+ */
+export type WebhookDeliveryAttempt = {
+  /** The attempt number. */
+  attempt: number;
+  response?: WebhookDeliveryResponse | null;
+  /** The outcome of this delivery attempt: either the event was delivered successfully, or the request failed for one of several reasons. */
+  result: WebhookDeliveryAttemptResult;
+  /** The time at which the webhook delivery was attempted. */
+  timeSent: Date;
+};
+
+/**
+ * A list of attempts to deliver an alert to a receiver.
+ *
+ * The type of the delivery attempt model depends on the receiver type, as it may contain information specific to that delivery mechanism. For example, webhook delivery attempts contain the HTTP status code of the webhook request.
+ */
+export type AlertDeliveryAttempts = { webhook: WebhookDeliveryAttempt[] };
+
+export type TypedUuidForAlertReceiverKind = string;
+
+/**
+ * The state of a webhook delivery attempt.
+ */
+export type AlertDeliveryState =
+  /** The webhook event has not yet been delivered successfully.
+
+Either no delivery attempts have yet been performed, or the delivery has failed at least once but has retries remaining. */
+  | "pending"
+
+  /** The webhook event has been delivered successfully. */
+  | "delivered"
+
+  /** The webhook delivery attempt has failed permanently and will not be retried again. */
+  | "failed";
+
+/**
+ * The reason an alert was delivered
+ */
+export type AlertDeliveryTrigger =
+  /** Delivery was triggered by the alert itself. */
+  | "alert"
+
+  /** Delivery was triggered by a request to resend the alert. */
+  | "resend"
+
+  /** This delivery is a liveness probe. */
+  | "probe";
+
+/**
+ * A delivery of a webhook event.
+ */
+export type AlertDelivery = {
+  /** The event class. */
+  alertClass: string;
+  /** The UUID of the event. */
+  alertId: TypedUuidForAlertKind;
+  /** Individual attempts to deliver this webhook event, and their outcomes. */
+  attempts: AlertDeliveryAttempts;
+  /** The UUID of this delivery attempt. */
+  id: string;
+  /** The UUID of the alert receiver that this event was delivered to. */
+  receiverId: TypedUuidForAlertReceiverKind;
+  /** The state of this delivery. */
+  state: AlertDeliveryState;
+  /** The time at which this delivery began (i.e. the event was dispatched to the receiver). */
+  timeStarted: Date;
+  /** Why this delivery was performed. */
+  trigger: AlertDeliveryTrigger;
+};
+
+export type AlertDeliveryId = { deliveryId: string };
+
+/**
+ * A single page of results
+ */
+export type AlertDeliveryResultsPage = {
+  /** list of items on this page of results */
+  items: AlertDelivery[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
+ * Data describing the result of an alert receiver liveness probe attempt.
+ */
+export type AlertProbeResult = {
+  /** The outcome of the probe delivery. */
+  probe: AlertDelivery;
+  /** If the probe request succeeded, and resending failed deliveries on success was requested, the number of new delivery attempts started. Otherwise, if the probe did not succeed, or resending failed deliveries was not requested, this is null.
+
+Note that this may be 0, if there were no events found which had not been delivered successfully to this receiver. */
+  resendsStarted?: number | null;
+};
+
+/**
+ * A view of a shared secret key assigned to a webhook receiver.
+ *
+ * Once a secret is created, the value of the secret is not available in the API, as it must remain secret. Instead, secrets are referenced by their unique IDs assigned when they are created.
+ */
+export type WebhookSecret = {
+  /** The public unique ID of the secret. */
+  id: string;
+  /** The UTC timestamp at which this secret was created. */
+  timeCreated: Date;
+};
+
+/**
+ * The possible alert delivery mechanisms for an alert receiver.
+ */
+export type AlertReceiverKind = {
+  /** The URL that webhook notification requests are sent to. */
+  endpoint: string;
+  kind: "webhook";
+  secrets: WebhookSecret[];
+};
+
+/**
+ * A webhook event class subscription
+ *
+ * A webhook event class subscription matches either a single event class exactly, or a glob pattern including wildcards that may match multiple event classes
+ */
+export type AlertSubscription = string;
+
+/**
+ * The configuration for an alert receiver.
+ */
+export type AlertReceiver = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** Configuration specific to the kind of alert receiver that this is. */
+  kind: AlertReceiverKind;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** The list of alert classes to which this receiver is subscribed. */
+  subscriptions: AlertSubscription[];
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * A single page of results
+ */
+export type AlertReceiverResultsPage = {
+  /** list of items on this page of results */
+  items: AlertReceiver[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+export type AlertSubscriptionCreate = {
+  /** The event class pattern to subscribe to. */
+  subscription: AlertSubscription;
+};
+
+export type AlertSubscriptionCreated = {
+  /** The new subscription added to the receiver. */
+  subscription: AlertSubscription;
+};
+
+/**
  * Description of source IPs allowed to reach rack services.
  */
 export type AllowedSourceIps =
@@ -409,6 +623,81 @@ export type AntiAffinityGroupResultsPage = {
 export type AntiAffinityGroupUpdate = {
   description?: string | null;
   name?: Name | null;
+};
+
+/**
+ * An identifier for an artifact.
+ */
+export type ArtifactId = {
+  /** The kind of artifact this is. */
+  kind: string;
+  /** The artifact's name. */
+  name: string;
+  /** The artifact's version. */
+  version: string;
+};
+
+export type AuditLogEntryActor =
+  | { kind: "user_builtin"; userBuiltinId: string }
+  | { kind: "silo_user"; siloId: string; siloUserId: string }
+  | { kind: "unauthenticated" };
+
+/**
+ * Result of an audit log entry
+ */
+export type AuditLogEntryResult =
+  /** The operation completed successfully */
+  | {
+      /** HTTP status code */
+      httpStatusCode: number;
+      kind: "success";
+    }
+  /** The operation failed */
+  | {
+      errorCode?: string | null;
+      errorMessage: string;
+      /** HTTP status code */
+      httpStatusCode: number;
+      kind: "error";
+    }
+  /** After the logged operation completed, our attempt to write the result to the audit log failed, so it was automatically marked completed later by a background job. This does not imply that the operation itself timed out or failed, only our attempts to log its result. */
+  | { kind: "unknown" };
+
+/**
+ * Audit log entry
+ */
+export type AuditLogEntry = {
+  actor: AuditLogEntryActor;
+  /** How the user authenticated the request. Possible values are "session_cookie" and "access_token". Optional because it will not be defined on unauthenticated requests like login attempts. */
+  authMethod?: string | null;
+  /** Unique identifier for the audit log entry */
+  id: string;
+  /** API endpoint ID, e.g., `project_create` */
+  operationId: string;
+  /** Request ID for tracing requests through the system */
+  requestId: string;
+  /** URI of the request, truncated to 512 characters. Will only include host and scheme for HTTP/2 requests. For HTTP/1.1, the URI will consist of only the path and query. */
+  requestUri: string;
+  /** Result of the operation */
+  result: AuditLogEntryResult;
+  /** IP address that made the request */
+  sourceIp: string;
+  /** Time operation completed */
+  timeCompleted: Date;
+  /** When the request was received */
+  timeStarted: Date;
+  /** User agent string from the request, truncated to 256 characters. */
+  userAgent?: string | null;
+};
+
+/**
+ * A single page of results
+ */
+export type AuditLogEntryResultsPage = {
+  /** list of items on this page of results */
+  items: AuditLogEntry[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
 };
 
 /**
@@ -635,7 +924,7 @@ export type BgpPeer = {
   /** How long to hold a peer in idle before attempting a new session (seconds). */
   idleHoldTime: number;
   /** The name of interface to peer on. This is relative to the port configuration this BGP peer configuration is a part of. For example this value could be phy0 to refer to a primary physical interface. Or it could be vlan47 to refer to a VLAN interface. */
-  interfaceName: string;
+  interfaceName: Name;
   /** How often to send keepalive requests (seconds). */
   keepalive: number;
   /** Apply a local preference to routes received from this peer. */
@@ -652,7 +941,11 @@ export type BgpPeer = {
   vlanId?: number | null;
 };
 
-export type BgpPeerConfig = { peers: BgpPeer[] };
+export type BgpPeerConfig = {
+  /** Link that the peer is reachable on. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+  linkName: Name;
+  peers: BgpPeer[];
+};
 
 /**
  * The current state of a BGP peer.
@@ -982,6 +1275,26 @@ export type CertificateCreate = {
 export type CertificateResultsPage = {
   /** list of items on this page of results */
   items: Certificate[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
+ * View of a console session
+ */
+export type ConsoleSession = {
+  /** A unique, immutable, system-controlled identifier for the session */
+  id: string;
+  timeCreated: Date;
+  timeLastUsed: Date;
+};
+
+/**
+ * A single page of results
+ */
+export type ConsoleSessionResultsPage = {
+  /** list of items on this page of results */
+  items: ConsoleSession[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string | null;
 };
@@ -1433,13 +1746,38 @@ export type DerEncodedKeyPair = {
   publicCert: string;
 };
 
+/**
+ * View of a device access token
+ */
+export type DeviceAccessToken = {
+  /** A unique, immutable, system-controlled identifier for the token. Note that this ID is not the bearer token itself, which starts with "oxide-token-" */
+  id: string;
+  timeCreated: Date;
+  /** Expiration timestamp. A null value means the token does not automatically expire. */
+  timeExpires?: Date | null;
+};
+
 export type DeviceAccessTokenRequest = {
   clientId: string;
   deviceCode: string;
   grantType: string;
 };
 
-export type DeviceAuthRequest = { clientId: string };
+/**
+ * A single page of results
+ */
+export type DeviceAccessTokenResultsPage = {
+  /** list of items on this page of results */
+  items: DeviceAccessToken[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+export type DeviceAuthRequest = {
+  clientId: string;
+  /** Optional lifetime for the access token in seconds. If not specified, the silo's max TTL will be used (if set). */
+  ttlSeconds?: number | null;
+};
 
 export type DeviceAuthVerify = { userCode: string };
 
@@ -1581,12 +1919,26 @@ export type Distributionint64 = {
  * Parameters for creating an ephemeral IP address for an instance.
  */
 export type EphemeralIpCreate = {
-  /** Name or ID of the IP pool used to allocate an address */
+  /** Name or ID of the IP pool used to allocate an address. If unspecified, the default IP pool will be used. */
   pool?: NameOrId | null;
 };
 
 export type ExternalIp =
-  | { ip: string; kind: "ephemeral" }
+  /** A source NAT IP address.
+
+SNAT addresses are ephemeral addresses used only for outbound connectivity. */
+  | {
+      /** The first usable port within the IP address. */
+      firstPort: number;
+      /** The IP address. */
+      ip: string;
+      /** ID of the IP Pool from which the address is taken. */
+      ipPoolId: string;
+      kind: "snat";
+      /** The last usable port within the IP address. */
+      lastPort: number;
+    }
+  | { ip: string; ipPoolId: string; kind: "ephemeral" }
   /** A Floating IP is a well-known IP address which can be attached and detached from instances. */
   | {
       /** human-readable free-form text about a resource */
@@ -1614,7 +1966,7 @@ export type ExternalIp =
  * Parameters for creating an external IP address for instances.
  */
 export type ExternalIpCreate =
-  /** An IP address providing both inbound and outbound access. The address is automatically-assigned from the provided IP Pool, or the current silo's default pool if not specified. */
+  /** An IP address providing both inbound and outbound access. The address is automatically assigned from the provided IP pool or the default IP pool if not specified. */
   | { pool?: NameOrId | null; type: "ephemeral" }
   /** An IP address providing both inbound and outbound access. The address is an existing floating IP object assigned to the current project.
 
@@ -1812,6 +2164,13 @@ export type GroupResultsPage = {
  * A hostname identifies a host on a network, and is usually a dot-delimited sequence of labels, where each label contains only letters, digits, or the hyphen. See RFCs 1035 and 952 for more details.
  */
 export type Hostname = string;
+
+/**
+ * A range of ICMP(v6) types or codes
+ *
+ * An inclusive-inclusive range of ICMP(v6) types or codes. The second value may be omitted to represent a single parameter.
+ */
+export type IcmpParamRange = string;
 
 export type IdentityProviderType = "saml";
 
@@ -2031,14 +2390,20 @@ This policy determines whether the instance should be automatically restarted by
 
 Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
   autoRestartPolicy?: InstanceAutoRestartPolicy | null;
-  /** The disk this instance should boot into. This disk can either be attached if it already exists, or created, if it should be a new disk.
+  /** The disk the instance is configured to boot from.
 
-It is strongly recommended to either provide a boot disk at instance creation, or update the instance after creation to set a boot disk.
+This disk can either be attached if it already exists or created along with the instance.
 
-An instance without an explicit boot disk can be booted: the options are as managed by UEFI, and as controlled by the guest OS, but with some risk.  If this instance later has a disk attached or detached, it is possible that boot options can end up reordered, with the intended boot disk moved after the EFI shell in boot priority. This may result in an instance that only boots to the EFI shell until the desired disk is set as an explicit boot disk and the instance rebooted. */
+Specifying a boot disk is optional but recommended to ensure predictable boot behavior. The boot disk can be set during instance creation or later if the instance is stopped. The boot disk counts against the disk attachment limit.
+
+An instance that does not have a boot disk set will use the boot options specified in its UEFI settings, which are controlled by both the instance's UEFI firmware and the guest operating system. Boot options can change as disks are attached and detached, which may result in an instance that only boots to the EFI shell until a boot disk is set. */
   bootDisk?: InstanceDiskAttachment | null;
   description: string;
-  /** The disks to be created or attached for this instance. */
+  /** A list of disks to be attached to the instance.
+
+Disk attachments of type "create" will be created, while those of type "attach" must already exist.
+
+The order of this list does not guarantee a boot order for the instance. Use the boot_disk attribute to specify a boot disk. When boot_disk is specified it will count against the disk attachment limit. */
   disks?: InstanceDiskAttachment[];
   /** The external IP addresses provided to this instance.
 
@@ -2167,6 +2532,11 @@ If not provided, unset the instance's boot disk. */
   /** The number of CPUs to assign to this instance. */
   ncpus: InstanceCpuCount;
 };
+
+export type InterfaceNum =
+  | { unknown: number }
+  | { ifIndex: number }
+  | { portNumber: number };
 
 /**
  * An internet gateway provides a path between VPC networks and external networks.
@@ -2491,17 +2861,19 @@ export type TxEqConfig = {
  * Switch link configuration.
  */
 export type LinkConfigCreate = {
-  /** Whether or not to set autonegotiation */
+  /** Whether or not to set autonegotiation. */
   autoneg: boolean;
   /** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
   fec?: LinkFec | null;
+  /** Link name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+  linkName: Name;
   /** The link-layer discovery protocol (LLDP) configuration for the link. */
   lldp: LldpLinkConfigCreate;
   /** Maximum transmission unit for the link. */
   mtu: number;
   /** The speed of the link. */
   speed: LinkSpeed;
-  /** Optional tx_eq settings */
+  /** Optional tx_eq settings. */
   txEq?: TxEqConfig | null;
 };
 
@@ -2520,11 +2892,19 @@ export type LldpLinkConfig = {
   /** The LLDP link name TLV. */
   linkName?: string | null;
   /** The LLDP management IP TLV. */
-  managementIp?: IpNet | null;
+  managementIp?: string | null;
   /** The LLDP system description TLV. */
   systemDescription?: string | null;
   /** The LLDP system name TLV. */
   systemName?: string | null;
+};
+
+export type NetworkAddress = { ipAddr: string } | { iEEE802: number[] };
+
+export type ManagementAddress = {
+  addr: NetworkAddress;
+  interfaceNum: InterfaceNum;
+  oid?: number[] | null;
 };
 
 /**
@@ -2544,7 +2924,7 @@ export type LldpNeighbor = {
   /** The port on which the neighbor was seen */
   localPort: string;
   /** The LLDP management IP(s) advertised by the neighbor */
-  managementIp: IpNet[];
+  managementIp: ManagementAddress[];
   /** The LLDP system description advertised by the neighbor */
   systemDescription?: string | null;
   /** The LLDP system name advertised by the neighbor */
@@ -2933,28 +3313,6 @@ export type RackResultsPage = {
 };
 
 /**
- * A name for a built-in role
- *
- * Role names consist of two string components separated by dot (".").
- */
-export type RoleName = string;
-
-/**
- * View of a Role
- */
-export type Role = { description: string; name: RoleName };
-
-/**
- * A single page of results
- */
-export type RoleResultsPage = {
-  /** list of items on this page of results */
-  items: Role[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string | null;
-};
-
-/**
  * A route to a destination network through a gateway address.
  */
 export type Route = {
@@ -2962,7 +3320,7 @@ export type Route = {
   dst: IpNet;
   /** The route gateway. */
   gw: string;
-  /** Local preference for route. Higher preference indictes precedence within and across protocols. */
+  /** Route RIB priority. Higher priority indicates precedence within and across protocols. */
   ribPriority?: number | null;
   /** VLAN id the gateway is reachable over. */
   vid?: number | null;
@@ -2972,6 +3330,8 @@ export type Route = {
  * Route configuration data associated with a switch port configuration.
  */
 export type RouteConfig = {
+  /** Link name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+  linkName: Name;
   /** The set of routes assigned to a switch port. */
   routes: Route[];
 };
@@ -3147,6 +3507,14 @@ export type SamlIdentityProviderCreate = {
 };
 
 /**
+ * Configuration of inbound ICMP allowed by API services.
+ */
+export type ServiceIcmpConfig = {
+  /** When enabled, Nexus is able to receive ICMP Destination Unreachable type 3 (port unreachable) and type 4 (fragmentation needed), Redirect, and Time Exceeded messages. These enable Nexus to perform Path MTU discovery and better cope with fragmentation issues. Otherwise all inbound ICMP traffic will be dropped. */
+  enabled: boolean;
+};
+
+/**
  * Parameters for PUT requests to `/v1/system/update/target-release`.
  */
 export type SetTargetReleaseParams = {
@@ -3188,6 +3556,23 @@ The default is that no Fleet roles are conferred by any Silo roles unless there'
   timeCreated: Date;
   /** timestamp when this resource was last modified */
   timeModified: Date;
+};
+
+/**
+ * View of silo authentication settings
+ */
+export type SiloAuthSettings = {
+  /** Maximum lifetime of a device token in seconds. If set to null, users will be able to create tokens that do not expire. */
+  deviceTokenMaxTtlSeconds?: number | null;
+  siloId: string;
+};
+
+/**
+ * Updateable properties of a silo's settings.
+ */
+export type SiloAuthSettingsUpdate = {
+  /** Maximum lifetime of a device token in seconds. If set to null, users will be able to create tokens that do not expire. */
+  deviceTokenMaxTtlSeconds: number | null;
 };
 
 /**
@@ -3384,7 +3769,7 @@ An expunged sled is always non-provisionable. */
   | { kind: "expunged" };
 
 /**
- * The current state of the sled, as determined by Nexus.
+ * The current state of the sled.
  */
 export type SledState =
   /** The sled is currently active, and has resources allocated on it. */
@@ -3406,7 +3791,7 @@ export type Sled = {
   policy: SledPolicy;
   /** The rack to which this Sled is currently attached */
   rackId: string;
-  /** The current state Nexus believes the sled to be in. */
+  /** The current state of the sled. */
   state: SledState;
   /** timestamp when this resource was created */
   timeCreated: Date;
@@ -3563,6 +3948,11 @@ export type SshKeyResultsPage = {
   nextPage?: string | null;
 };
 
+export type SupportBundleCreate = {
+  /** User comment for the support bundle */
+  userComment?: string | null;
+};
+
 export type TypedUuidForSupportBundleKind = string;
 
 export type SupportBundleState =
@@ -3592,6 +3982,7 @@ export type SupportBundleInfo = {
   reasonForFailure?: string | null;
   state: SupportBundleState;
   timeCreated: Date;
+  userComment?: string | null;
 };
 
 /**
@@ -3602,6 +3993,11 @@ export type SupportBundleInfoResultsPage = {
   items: SupportBundleInfo[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string | null;
+};
+
+export type SupportBundleUpdate = {
+  /** User comment for the support bundle */
+  userComment?: string | null;
 };
 
 /**
@@ -3639,7 +4035,7 @@ export type SwitchInterfaceConfig = {
   /** A unique identifier for this switch interface. */
   id: string;
   /** The name of this switch interface. */
-  interfaceName: string;
+  interfaceName: Name;
   /** The switch interface kind. */
   kind: SwitchInterfaceKind2;
   /** The port settings object this switch interface configuration belongs to. */
@@ -3669,6 +4065,8 @@ export type SwitchInterfaceKind =
 export type SwitchInterfaceConfigCreate = {
   /** What kind of switch interface this configuration represents. */
   kind: SwitchInterfaceKind;
+  /** Link name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+  linkName: Name;
   /** Whether or not IPv6 is enabled. */
   v6Enabled: boolean;
 };
@@ -3682,7 +4080,7 @@ export type SwitchPort = {
   /** The id of the switch port. */
   id: string;
   /** The name of this switch port. */
-  portName: string;
+  portName: Name;
   /** The primary settings group of this switch port. Will be `None` until this switch port is configured. */
   portSettingsId?: string | null;
   /** The rack this switch port belongs to. */
@@ -3694,13 +4092,17 @@ export type SwitchPort = {
 /**
  * An IP address configuration for a port settings object.
  */
-export type SwitchPortAddressConfig = {
+export type SwitchPortAddressView = {
   /** The IP address and prefix. */
   address: IpNet;
   /** The id of the address lot block this address is drawn from. */
   addressLotBlockId: string;
+  /** The id of the address lot this address is drawn from. */
+  addressLotId: string;
+  /** The name of the address lot this address is drawn from. */
+  addressLotName: Name;
   /** The interface name this address belongs to. */
-  interfaceName: string;
+  interfaceName: Name;
   /** The port settings object this address configuration belongs to. */
   portSettingsId: string;
   /** An optional VLAN ID */
@@ -3760,6 +4162,22 @@ export type SwitchPortConfigCreate = {
 };
 
 /**
+ * Per-port tx-eq overrides.  This can be used to fine-tune the transceiver equalization settings to improve signal integrity.
+ */
+export type TxEqConfig2 = {
+  /** Main tap */
+  main?: number | null;
+  /** Post-cursor tap1 */
+  post1?: number | null;
+  /** Post-cursor tap2 */
+  post2?: number | null;
+  /** Pre-cursor tap1 */
+  pre1?: number | null;
+  /** Pre-cursor tap2 */
+  pre2?: number | null;
+};
+
+/**
  * A link configuration for a port settings object.
  */
 export type SwitchPortLinkConfig = {
@@ -3768,17 +4186,17 @@ export type SwitchPortLinkConfig = {
   /** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
   fec?: LinkFec | null;
   /** The name of this link. */
-  linkName: string;
-  /** The link-layer discovery protocol service configuration id for this link. */
-  lldpLinkConfigId?: string | null;
+  linkName: Name;
+  /** The link-layer discovery protocol service configuration for this link. */
+  lldpLinkConfig?: LldpLinkConfig | null;
   /** The maximum transmission unit for this link. */
   mtu: number;
   /** The port settings this link configuration belongs to. */
   portSettingsId: string;
   /** The configured speed of the link. */
   speed: LinkSpeed;
-  /** The tx_eq configuration id for this link. */
-  txEqConfigId?: string | null;
+  /** The tx_eq configuration for this link. */
+  txEqConfig?: TxEqConfig2 | null;
 };
 
 /**
@@ -3798,51 +4216,15 @@ export type SwitchPortRouteConfig = {
   /** The route's destination network. */
   dst: IpNet;
   /** The route's gateway address. */
-  gw: IpNet;
+  gw: string;
   /** The interface name this route configuration is assigned to. */
-  interfaceName: string;
+  interfaceName: Name;
   /** The port settings object this route configuration belongs to. */
   portSettingsId: string;
-  /** RIB Priority indicating priority within and across protocols. */
+  /** Route RIB priority. Higher priority indicates precedence within and across protocols. */
   ribPriority?: number | null;
   /** The VLAN identifier for the route. Use this if the gateway is reachable over an 802.1Q tagged L2 segment. */
   vlanId?: number | null;
-};
-
-/**
- * A switch port settings identity whose id may be used to view additional details.
- */
-export type SwitchPortSettings = {
-  /** human-readable free-form text about a resource */
-  description: string;
-  /** unique, immutable, system-controlled identifier for each resource */
-  id: string;
-  /** unique, mutable, user-controlled identifier for each resource */
-  name: Name;
-  /** timestamp when this resource was created */
-  timeCreated: Date;
-  /** timestamp when this resource was last modified */
-  timeModified: Date;
-};
-
-/**
- * Parameters for creating switch port settings. Switch port settings are the central data structure for setting up external networking. Switch port settings include link, interface, route, address and dynamic network protocol configuration.
- */
-export type SwitchPortSettingsCreate = {
-  /** Addresses indexed by interface name. */
-  addresses: Record<string, AddressConfig>;
-  /** BGP peers indexed by interface name. */
-  bgpPeers: Record<string, BgpPeerConfig>;
-  description: string;
-  groups: NameOrId[];
-  /** Interfaces indexed by link name. */
-  interfaces: Record<string, SwitchInterfaceConfigCreate>;
-  /** Links indexed by phy name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
-  links: Record<string, LinkConfigCreate>;
-  name: Name;
-  portConfig: SwitchPortConfigCreate;
-  /** Routes indexed by interface name. */
-  routes: Record<string, RouteConfig>;
 };
 
 /**
@@ -3853,16 +4235,6 @@ export type SwitchPortSettingsGroups = {
   portSettingsGroupId: string;
   /** The id of a port settings object referencing a port settings group. */
   portSettingsId: string;
-};
-
-/**
- * A single page of results
- */
-export type SwitchPortSettingsResultsPage = {
-  /** list of items on this page of results */
-  items: SwitchPortSettings[];
-  /** token used to fetch the next page of results (if any) */
-  nextPage?: string | null;
 };
 
 /**
@@ -3878,29 +4250,79 @@ export type SwitchVlanInterfaceConfig = {
 /**
  * This structure contains all port settings information in one place. It's a convenience data structure for getting a complete view of a particular port's settings.
  */
-export type SwitchPortSettingsView = {
+export type SwitchPortSettings = {
   /** Layer 3 IP address settings. */
-  addresses: SwitchPortAddressConfig[];
+  addresses: SwitchPortAddressView[];
   /** BGP peer settings. */
   bgpPeers: BgpPeer[];
+  /** human-readable free-form text about a resource */
+  description: string;
   /** Switch port settings included from other switch port settings groups. */
   groups: SwitchPortSettingsGroups[];
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
   /** Layer 3 interface settings. */
   interfaces: SwitchInterfaceConfig[];
-  /** Link-layer discovery protocol (LLDP) settings. */
-  linkLldp: LldpLinkConfig[];
   /** Layer 2 link settings. */
   links: SwitchPortLinkConfig[];
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
   /** Layer 1 physical port settings. */
   port: SwitchPortConfig;
   /** IP route settings. */
   routes: SwitchPortRouteConfig[];
-  /** The primary switch port settings handle. */
-  settings: SwitchPortSettings;
-  /** TX equalization settings.  These are optional, and most links will not need them. */
-  txEq: (TxEqConfig | null)[];
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
   /** Vlan interface settings. */
   vlanInterfaces: SwitchVlanInterfaceConfig[];
+};
+
+/**
+ * Parameters for creating switch port settings. Switch port settings are the central data structure for setting up external networking. Switch port settings include link, interface, route, address and dynamic network protocol configuration.
+ */
+export type SwitchPortSettingsCreate = {
+  /** Address configurations. */
+  addresses: AddressConfig[];
+  /** BGP peer configurations. */
+  bgpPeers?: BgpPeerConfig[];
+  description: string;
+  groups?: NameOrId[];
+  /** Interface configurations. */
+  interfaces?: SwitchInterfaceConfigCreate[];
+  /** Link configurations. */
+  links: LinkConfigCreate[];
+  name: Name;
+  portConfig: SwitchPortConfigCreate;
+  /** Route configurations. */
+  routes?: RouteConfig[];
+};
+
+/**
+ * A switch port settings identity whose id may be used to view additional details.
+ */
+export type SwitchPortSettingsIdentity = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * A single page of results
+ */
+export type SwitchPortSettingsIdentityResultsPage = {
+  /** list of items on this page of results */
+  items: SwitchPortSettingsIdentity[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
 };
 
 /**
@@ -4000,6 +4422,84 @@ export type TimeseriesSchemaResultsPage = {
 };
 
 /**
+ * Metadata about an individual TUF artifact.
+ *
+ * Found within a `TufRepoDescription`.
+ */
+export type TufArtifactMeta = {
+  /** The hash of the artifact. */
+  hash: string;
+  /** The artifact ID. */
+  id: ArtifactId;
+  /** Contents of the `SIGN` field of a Hubris archive caboose, i.e., an identifier for the set of valid signing keys. Currently only applicable to RoT image and bootloader artifacts, where it will be an LPC55 Root Key Table Hash (RKTH). */
+  sign?: number[] | null;
+  /** The size of the artifact in bytes. */
+  size: number;
+};
+
+/**
+ * Metadata about a TUF repository.
+ *
+ * Found within a `TufRepoDescription`.
+ */
+export type TufRepoMeta = {
+  /** The file name of the repository.
+
+This is purely used for debugging and may not always be correct (e.g. with wicket, we read the file contents from stdin so we don't know the correct file name). */
+  fileName: string;
+  /** The hash of the repository.
+
+This is a slight abuse of `ArtifactHash`, since that's the hash of individual artifacts within the repository. However, we use it here for convenience. */
+  hash: string;
+  /** The system version in artifacts.json. */
+  systemVersion: string;
+  /** The version of the targets role. */
+  targetsRoleVersion: number;
+  /** The time until which the repo is valid. */
+  validUntil: Date;
+};
+
+/**
+ * A description of an uploaded TUF repository.
+ */
+export type TufRepoDescription = {
+  /** Information about the artifacts present in the repository. */
+  artifacts: TufArtifactMeta[];
+  /** Information about the repository. */
+  repo: TufRepoMeta;
+};
+
+/**
+ * Data about a successful TUF repo get from Nexus.
+ */
+export type TufRepoGetResponse = {
+  /** The description of the repository. */
+  description: TufRepoDescription;
+};
+
+/**
+ * Status of a TUF repo import.
+ *
+ * Part of `TufRepoInsertResponse`.
+ */
+export type TufRepoInsertStatus =
+  /** The repository already existed in the database. */
+  | "already_exists"
+
+  /** The repository did not exist, and was inserted into the database. */
+  | "inserted";
+
+/**
+ * Data about a successful TUF repo import into Nexus.
+ */
+export type TufRepoInsertResponse = {
+  /** The repository as present in the database. */
+  recorded: TufRepoDescription;
+  /** Whether this repository already existed or is new. */
+  status: TufRepoInsertStatus;
+};
+
+/**
  * A sled that has not been added to an initialized rack yet
  */
 export type UninitializedSled = {
@@ -4019,6 +4519,28 @@ export type UninitializedSledId = { part: string; serial: string };
 export type UninitializedSledResultsPage = {
   /** list of items on this page of results */
   items: UninitializedSled[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
+ * Trusted root role used by the update system to verify update repositories.
+ */
+export type UpdatesTrustRoot = {
+  /** The UUID of this trusted root role. */
+  id: string;
+  /** The trusted root role itself, a JSON document as described by The Update Framework. */
+  rootRole: Record<string, unknown>;
+  /** Time the trusted root role was added. */
+  timeCreated: Date;
+};
+
+/**
+ * A single page of results
+ */
+export type UpdatesTrustRootResultsPage = {
+  /** list of items on this page of results */
+  items: UpdatesTrustRoot[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string | null;
 };
@@ -4153,6 +4675,11 @@ All IPv6 subnets created from this VPC must be taken from this range, which shou
   name: Name;
 };
 
+export type VpcFirewallIcmpFilter = {
+  code?: IcmpParamRange | null;
+  icmpType: number;
+};
+
 export type VpcFirewallRuleAction = "allow" | "deny";
 
 export type VpcFirewallRuleDirection = "inbound" | "outbound";
@@ -4175,7 +4702,10 @@ export type VpcFirewallRuleHostFilter =
 /**
  * The protocols that may be specified in a firewall rule's filter
  */
-export type VpcFirewallRuleProtocol = "TCP" | "UDP" | "ICMP";
+export type VpcFirewallRuleProtocol =
+  | { type: "tcp" }
+  | { type: "udp" }
+  | { type: "icmp"; value: VpcFirewallIcmpFilter | null };
 
 /**
  * Filters reduce the scope of a firewall rule. Without filters, the rule applies to all packets to the targets (or from the targets, if it's an outbound rule). With multiple filters, the rule applies only to packets matching ALL filters. The maximum number of each type of filter is 256.
@@ -4261,7 +4791,7 @@ export type VpcFirewallRuleUpdate = {
 /**
  * Updated list of firewall rules. Will replace all existing rules.
  */
-export type VpcFirewallRuleUpdateParams = { rules: VpcFirewallRuleUpdate[] };
+export type VpcFirewallRuleUpdateParams = { rules?: VpcFirewallRuleUpdate[] };
 
 /**
  * Collection of a Vpc's firewall rules
@@ -4396,6 +4926,63 @@ export type VpcUpdate = {
 };
 
 /**
+ * Create-time identity-related parameters
+ */
+export type WebhookCreate = {
+  description: string;
+  /** The URL that webhook notification requests should be sent to */
+  endpoint: string;
+  name: Name;
+  /** A non-empty list of secret keys used to sign webhook payloads. */
+  secrets: string[];
+  /** A list of webhook event class subscriptions.
+
+If this list is empty or is not included in the request body, the webhook will not be subscribed to any events. */
+  subscriptions?: AlertSubscription[];
+};
+
+/**
+ * The configuration for a webhook alert receiver.
+ */
+export type WebhookReceiver = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** The URL that webhook notification requests are sent to. */
+  endpoint: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  secrets: WebhookSecret[];
+  /** The list of alert classes to which this receiver is subscribed. */
+  subscriptions: AlertSubscription[];
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Parameters to update a webhook configuration.
+ */
+export type WebhookReceiverUpdate = {
+  description?: string | null;
+  /** The URL that webhook notification requests should be sent to */
+  endpoint?: string | null;
+  name?: Name | null;
+};
+
+export type WebhookSecretCreate = {
+  /** The value of the shared secret key. */
+  secret: string;
+};
+
+/**
+ * A list of the IDs of secrets associated with a webhook receiver.
+ */
+export type WebhookSecrets = { secrets: WebhookSecret[] };
+
+/**
  * Supported set of sort modes for scanning by name or id
  */
 export type NameOrIdSortMode =
@@ -4409,29 +4996,31 @@ export type NameOrIdSortMode =
   | "id_ascending";
 
 /**
+ * Supported set of sort modes for scanning by timestamp and ID
+ */
+export type TimeAndIdSortMode =
+  /** sort in increasing order of timestamp and ID, i.e., earliest first */
+  | "time_and_id_ascending"
+
+  /** sort in increasing order of timestamp and ID, i.e., most recent first */
+  | "time_and_id_descending";
+
+/**
  * Supported set of sort modes for scanning by id only.
  *
  * Currently, we only support scanning in ascending order.
  */
 export type IdSortMode = "id_ascending";
 
-export type DiskMetricName =
-  | "activated"
-  | "flush"
-  | "read"
-  | "read_bytes"
-  | "write"
-  | "write_bytes";
+export type SystemMetricName =
+  | "virtual_disk_space_provisioned"
+  | "cpus_provisioned"
+  | "ram_provisioned";
 
 /**
  * The order in which the client wants to page through the requested collection
  */
 export type PaginationOrder = "ascending" | "descending";
-
-export type SystemMetricName =
-  | "virtual_disk_space_provisioned"
-  | "cpus_provisioned"
-  | "ram_provisioned";
 
 /**
  * Supported set of sort modes for scanning by name only
@@ -4470,37 +5059,41 @@ export interface ProbeDeleteQueryParams {
 export interface SupportBundleListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
-  sortBy?: IdSortMode;
+  sortBy?: TimeAndIdSortMode;
 }
 
 export interface SupportBundleViewPathParams {
-  supportBundle: string;
+  bundleId: string;
+}
+
+export interface SupportBundleUpdatePathParams {
+  bundleId: string;
 }
 
 export interface SupportBundleDeletePathParams {
-  supportBundle: string;
+  bundleId: string;
 }
 
 export interface SupportBundleDownloadPathParams {
-  supportBundle: string;
+  bundleId: string;
 }
 
 export interface SupportBundleHeadPathParams {
-  supportBundle: string;
+  bundleId: string;
 }
 
 export interface SupportBundleDownloadFilePathParams {
+  bundleId: string;
   file: string;
-  supportBundle: string;
 }
 
 export interface SupportBundleHeadFilePathParams {
+  bundleId: string;
   file: string;
-  supportBundle: string;
 }
 
 export interface SupportBundleIndexPathParams {
-  supportBundle: string;
+  bundleId: string;
 }
 
 export interface LoginSamlPathParams {
@@ -4579,6 +5172,64 @@ export interface AffinityGroupMemberInstanceDeletePathParams {
 
 export interface AffinityGroupMemberInstanceDeleteQueryParams {
   project?: NameOrId;
+}
+
+export interface AlertClassListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  filter?: AlertSubscription;
+}
+
+export interface AlertReceiverListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface AlertReceiverViewPathParams {
+  receiver: NameOrId;
+}
+
+export interface AlertReceiverDeletePathParams {
+  receiver: NameOrId;
+}
+
+export interface AlertDeliveryListPathParams {
+  receiver: NameOrId;
+}
+
+export interface AlertDeliveryListQueryParams {
+  delivered?: boolean | null;
+  failed?: boolean | null;
+  pending?: boolean | null;
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: TimeAndIdSortMode;
+}
+
+export interface AlertReceiverProbePathParams {
+  receiver: NameOrId;
+}
+
+export interface AlertReceiverProbeQueryParams {
+  resend?: boolean;
+}
+
+export interface AlertReceiverSubscriptionAddPathParams {
+  receiver: NameOrId;
+}
+
+export interface AlertReceiverSubscriptionRemovePathParams {
+  receiver: NameOrId;
+  subscription: AlertSubscription;
+}
+
+export interface AlertDeliveryResendPathParams {
+  alertId: string;
+}
+
+export interface AlertDeliveryResendQueryParams {
+  receiver: NameOrId;
 }
 
 export interface AntiAffinityGroupListQueryParams {
@@ -4724,20 +5375,6 @@ export interface DiskFinalizeImportPathParams {
 }
 
 export interface DiskFinalizeImportQueryParams {
-  project?: NameOrId;
-}
-
-export interface DiskMetricsListPathParams {
-  disk: NameOrId;
-  metric: DiskMetricName;
-}
-
-export interface DiskMetricsListQueryParams {
-  endTime?: Date;
-  limit?: number | null;
-  order?: PaginationOrder;
-  pageToken?: string | null;
-  startTime?: Date;
   project?: NameOrId;
 }
 
@@ -5106,6 +5743,16 @@ export interface LoginLocalPathParams {
   siloName: Name;
 }
 
+export interface CurrentUserAccessTokenListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: IdSortMode;
+}
+
+export interface CurrentUserAccessTokenDeletePathParams {
+  tokenId: string;
+}
+
 export interface CurrentUserGroupsQueryParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -5230,6 +5877,14 @@ export interface SnapshotDeletePathParams {
 
 export interface SnapshotDeleteQueryParams {
   project?: NameOrId;
+}
+
+export interface AuditLogListQueryParams {
+  endTime?: Date | null;
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: TimeAndIdSortMode;
+  startTime?: Date;
 }
 
 export interface PhysicalDiskListQueryParams {
@@ -5401,7 +6056,7 @@ export interface SamlIdentityProviderViewPathParams {
 }
 
 export interface SamlIdentityProviderViewQueryParams {
-  silo: NameOrId;
+  silo?: NameOrId;
 }
 
 export interface IpPoolListQueryParams {
@@ -5565,15 +6220,6 @@ export interface NetworkingSwitchPortSettingsViewPathParams {
   port: NameOrId;
 }
 
-export interface RoleListQueryParams {
-  limit?: number | null;
-  pageToken?: string | null;
-}
-
-export interface RoleViewPathParams {
-  roleName: string;
-}
-
 export interface SystemQuotasListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -5625,6 +6271,28 @@ export interface SystemTimeseriesSchemaListQueryParams {
   pageToken?: string | null;
 }
 
+export interface SystemUpdatePutRepositoryQueryParams {
+  fileName: string;
+}
+
+export interface SystemUpdateGetRepositoryPathParams {
+  systemVersion: string;
+}
+
+export interface SystemUpdateTrustRootListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: IdSortMode;
+}
+
+export interface SystemUpdateTrustRootViewPathParams {
+  trustRootId: string;
+}
+
+export interface SystemUpdateTrustRootDeletePathParams {
+  trustRootId: string;
+}
+
 export interface SiloUserListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -5671,6 +6339,34 @@ export interface UserListQueryParams {
   sortBy?: IdSortMode;
 }
 
+export interface UserViewPathParams {
+  userId: string;
+}
+
+export interface UserTokenListPathParams {
+  userId: string;
+}
+
+export interface UserTokenListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: IdSortMode;
+}
+
+export interface UserLogoutPathParams {
+  userId: string;
+}
+
+export interface UserSessionListPathParams {
+  userId: string;
+}
+
+export interface UserSessionListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: IdSortMode;
+}
+
 export interface VpcFirewallRulesViewQueryParams {
   project?: NameOrId;
   vpc: NameOrId;
@@ -5702,7 +6398,7 @@ export interface VpcRouterRouteViewPathParams {
 
 export interface VpcRouterRouteViewQueryParams {
   project?: NameOrId;
-  router: NameOrId;
+  router?: NameOrId;
   vpc?: NameOrId;
 }
 
@@ -5853,6 +6549,22 @@ export interface VpcDeleteQueryParams {
   project?: NameOrId;
 }
 
+export interface WebhookReceiverUpdatePathParams {
+  receiver: NameOrId;
+}
+
+export interface WebhookSecretsListQueryParams {
+  receiver: NameOrId;
+}
+
+export interface WebhookSecretsAddQueryParams {
+  receiver: NameOrId;
+}
+
+export interface WebhookSecretsDeletePathParams {
+  secretId: string;
+}
+
 type EmptyObj = Record<string, never>;
 export class Api extends HttpClient {
   methods = {
@@ -5970,10 +6682,14 @@ export class Api extends HttpClient {
     /**
      * Create a new support bundle
      */
-    supportBundleCreate: (_: EmptyObj, params: FetchParams = {}) => {
+    supportBundleCreate: (
+      { body }: { body: SupportBundleCreate },
+      params: FetchParams = {},
+    ) => {
       return this.request<SupportBundleInfo>({
         path: `/experimental/v1/system/support-bundles`,
         method: "POST",
+        body,
         ...params,
       });
     },
@@ -5985,8 +6701,25 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<SupportBundleInfo>({
-        path: `/experimental/v1/system/support-bundles/${path.supportBundle}`,
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
         method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Update a support bundle
+     */
+    supportBundleUpdate: (
+      {
+        path,
+        body,
+      }: { path: SupportBundleUpdatePathParams; body: SupportBundleUpdate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SupportBundleInfo>({
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
+        method: "PUT",
+        body,
         ...params,
       });
     },
@@ -5998,7 +6731,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/experimental/v1/system/support-bundles/${path.supportBundle}`,
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
         method: "DELETE",
         ...params,
       });
@@ -6011,7 +6744,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download`,
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}/download`,
         method: "GET",
         ...params,
       });
@@ -6024,7 +6757,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download`,
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}/download`,
         method: "HEAD",
         ...params,
       });
@@ -6037,7 +6770,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download/${path.file}`,
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
         method: "GET",
         ...params,
       });
@@ -6050,7 +6783,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/download/${path.file}`,
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
         method: "HEAD",
         ...params,
       });
@@ -6063,7 +6796,7 @@ export class Api extends HttpClient {
       params: FetchParams = {},
     ) => {
       return this.request<void>({
-        path: `/experimental/v1/system/support-bundles/${path.supportBundle}/index`,
+        path: `/experimental/v1/system/support-bundles/${path.bundleId}/index`,
         method: "GET",
         ...params,
       });
@@ -6257,6 +6990,153 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * List alert classes
+     */
+    alertClassList: (
+      { query = {} }: { query?: AlertClassListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AlertClassResultsPage>({
+        path: `/v1/alert-classes`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List alert receivers
+     */
+    alertReceiverList: (
+      { query = {} }: { query?: AlertReceiverListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AlertReceiverResultsPage>({
+        path: `/v1/alert-receivers`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch alert receiver
+     */
+    alertReceiverView: (
+      { path }: { path: AlertReceiverViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AlertReceiver>({
+        path: `/v1/alert-receivers/${path.receiver}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Delete alert receiver
+     */
+    alertReceiverDelete: (
+      { path }: { path: AlertReceiverDeletePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/alert-receivers/${path.receiver}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * List delivery attempts to alert receiver
+     */
+    alertDeliveryList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AlertDeliveryListPathParams;
+        query?: AlertDeliveryListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AlertDeliveryResultsPage>({
+        path: `/v1/alert-receivers/${path.receiver}/deliveries`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Send liveness probe to alert receiver
+     */
+    alertReceiverProbe: (
+      {
+        path,
+        query = {},
+      }: {
+        path: AlertReceiverProbePathParams;
+        query?: AlertReceiverProbeQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AlertProbeResult>({
+        path: `/v1/alert-receivers/${path.receiver}/probe`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Add alert receiver subscription
+     */
+    alertReceiverSubscriptionAdd: (
+      {
+        path,
+        body,
+      }: {
+        path: AlertReceiverSubscriptionAddPathParams;
+        body: AlertSubscriptionCreate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AlertSubscriptionCreated>({
+        path: `/v1/alert-receivers/${path.receiver}/subscriptions`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Remove alert receiver subscription
+     */
+    alertReceiverSubscriptionRemove: (
+      { path }: { path: AlertReceiverSubscriptionRemovePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/alert-receivers/${path.receiver}/subscriptions/${path.subscription}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * Request re-delivery of alert
+     */
+    alertDeliveryResend: (
+      {
+        path,
+        query,
+      }: {
+        path: AlertDeliveryResendPathParams;
+        query: AlertDeliveryResendQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AlertDeliveryId>({
+        path: `/v1/alerts/${path.alertId}/resend`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List anti-affinity groups
      */
     antiAffinityGroupList: (
@@ -6431,6 +7311,30 @@ export class Api extends HttpClient {
         path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members/instance/${path.instance}`,
         method: "DELETE",
         query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch current silo's auth settings
+     */
+    authSettingsView: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<SiloAuthSettings>({
+        path: `/v1/auth-settings`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Update current silo's auth settings
+     */
+    authSettingsUpdate: (
+      { body }: { body: SiloAuthSettingsUpdate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SiloAuthSettings>({
+        path: `/v1/auth-settings`,
+        method: "PUT",
+        body,
         ...params,
       });
     },
@@ -6633,26 +7537,6 @@ export class Api extends HttpClient {
         path: `/v1/disks/${path.disk}/finalize`,
         method: "POST",
         body,
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Fetch disk metrics
-     */
-    diskMetricsList: (
-      {
-        path,
-        query = {},
-      }: {
-        path: DiskMetricsListPathParams;
-        query?: DiskMetricsListQueryParams;
-      },
-      params: FetchParams = {},
-    ) => {
-      return this.request<MeasurementResultsPage>({
-        path: `/v1/disks/${path.disk}/metrics/${path.metric}`,
-        method: "GET",
         query,
         ...params,
       });
@@ -7518,6 +8402,33 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * List access tokens
+     */
+    currentUserAccessTokenList: (
+      { query = {} }: { query?: CurrentUserAccessTokenListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<DeviceAccessTokenResultsPage>({
+        path: `/v1/me/access-tokens`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete access token
+     */
+    currentUserAccessTokenDelete: (
+      { path }: { path: CurrentUserAccessTokenDeletePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/me/access-tokens/${path.tokenId}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
      * Fetch current user's groups
      */
     currentUserGroups: (
@@ -7899,6 +8810,20 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * View audit log
+     */
+    auditLogList: (
+      { query = {} }: { query?: AuditLogListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AuditLogEntryResultsPage>({
+        path: `/v1/system/audit-log`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List physical disks
      */
     physicalDiskList: (
@@ -8235,7 +9160,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * List a silo's IdP's name
+     * List identity providers for silo
      */
     siloIdentityProviderList: (
       { query = {} }: { query?: SiloIdentityProviderListQueryParams },
@@ -8310,7 +9235,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Create SAML IdP
+     * Create SAML identity provider
      */
     samlIdentityProviderCreate: (
       {
@@ -8331,15 +9256,15 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Fetch SAML IdP
+     * Fetch SAML identity provider
      */
     samlIdentityProviderView: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: SamlIdentityProviderViewPathParams;
-        query: SamlIdentityProviderViewQueryParams;
+        query?: SamlIdentityProviderViewQueryParams;
       },
       params: FetchParams = {},
     ) => {
@@ -8877,6 +9802,30 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Return whether API services can receive limited ICMP traffic
+     */
+    networkingInboundIcmpView: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<ServiceIcmpConfig>({
+        path: `/v1/system/networking/inbound-icmp`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Set whether API services can receive limited ICMP traffic
+     */
+    networkingInboundIcmpUpdate: (
+      { body }: { body: ServiceIcmpConfig },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/networking/inbound-icmp`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
      * List loopback addresses
      */
     networkingLoopbackAddressList: (
@@ -8924,7 +9873,7 @@ export class Api extends HttpClient {
       { query = {} }: { query?: NetworkingSwitchPortSettingsListQueryParams },
       params: FetchParams = {},
     ) => {
-      return this.request<SwitchPortSettingsResultsPage>({
+      return this.request<SwitchPortSettingsIdentityResultsPage>({
         path: `/v1/system/networking/switch-port-settings`,
         method: "GET",
         query,
@@ -8938,7 +9887,7 @@ export class Api extends HttpClient {
       { body }: { body: SwitchPortSettingsCreate },
       params: FetchParams = {},
     ) => {
-      return this.request<SwitchPortSettingsView>({
+      return this.request<SwitchPortSettings>({
         path: `/v1/system/networking/switch-port-settings`,
         method: "POST",
         body,
@@ -8966,7 +9915,7 @@ export class Api extends HttpClient {
       { path }: { path: NetworkingSwitchPortSettingsViewPathParams },
       params: FetchParams = {},
     ) => {
-      return this.request<SwitchPortSettingsView>({
+      return this.request<SwitchPortSettings>({
         path: `/v1/system/networking/switch-port-settings/${path.port}`,
         method: "GET",
         ...params,
@@ -8993,33 +9942,6 @@ export class Api extends HttpClient {
         path: `/v1/system/policy`,
         method: "PUT",
         body,
-        ...params,
-      });
-    },
-    /**
-     * List built-in roles
-     */
-    roleList: (
-      { query = {} }: { query?: RoleListQueryParams },
-      params: FetchParams = {},
-    ) => {
-      return this.request<RoleResultsPage>({
-        path: `/v1/system/roles`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Fetch built-in role
-     */
-    roleView: (
-      { path }: { path: RoleViewPathParams },
-      params: FetchParams = {},
-    ) => {
-      return this.request<Role>({
-        path: `/v1/system/roles/${path.roleName}`,
-        method: "GET",
         ...params,
       });
     },
@@ -9194,6 +10116,33 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Upload system release repository
+     */
+    systemUpdatePutRepository: (
+      { query }: { query: SystemUpdatePutRepositoryQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<TufRepoInsertResponse>({
+        path: `/v1/system/update/repository`,
+        method: "PUT",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch system release repository description by version
+     */
+    systemUpdateGetRepository: (
+      { path }: { path: SystemUpdateGetRepositoryPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<TufRepoGetResponse>({
+        path: `/v1/system/update/repository/${path.systemVersion}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
      * Get the current target release of the rack's system software
      */
     targetReleaseView: (_: EmptyObj, params: FetchParams = {}) => {
@@ -9214,6 +10163,56 @@ export class Api extends HttpClient {
         path: `/v1/system/update/target-release`,
         method: "PUT",
         body,
+        ...params,
+      });
+    },
+    /**
+     * List root roles in the updates trust store
+     */
+    systemUpdateTrustRootList: (
+      { query = {} }: { query?: SystemUpdateTrustRootListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<UpdatesTrustRootResultsPage>({
+        path: `/v1/system/update/trust-roots`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Add trusted root role to updates trust store
+     */
+    systemUpdateTrustRootCreate: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<UpdatesTrustRoot>({
+        path: `/v1/system/update/trust-roots`,
+        method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * Fetch trusted root role
+     */
+    systemUpdateTrustRootView: (
+      { path }: { path: SystemUpdateTrustRootViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<UpdatesTrustRoot>({
+        path: `/v1/system/update/trust-roots/${path.trustRootId}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Delete trusted root role
+     */
+    systemUpdateTrustRootDelete: (
+      { path }: { path: SystemUpdateTrustRootDeletePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/update/trust-roots/${path.trustRootId}`,
+        method: "DELETE",
         ...params,
       });
     },
@@ -9335,6 +10334,69 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * Fetch user
+     */
+    userView: (
+      { path }: { path: UserViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<User>({
+        path: `/v1/users/${path.userId}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * List user's access tokens
+     */
+    userTokenList: (
+      {
+        path,
+        query = {},
+      }: { path: UserTokenListPathParams; query?: UserTokenListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<DeviceAccessTokenResultsPage>({
+        path: `/v1/users/${path.userId}/access-tokens`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Log user out
+     */
+    userLogout: (
+      { path }: { path: UserLogoutPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/users/${path.userId}/logout`,
+        method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * List user's console sessions
+     */
+    userSessionList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: UserSessionListPathParams;
+        query?: UserSessionListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ConsoleSessionResultsPage>({
+        path: `/v1/users/${path.userId}/sessions`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
      * Fetch resource utilization for user's current silo
      */
     utilizationView: (_: EmptyObj, params: FetchParams = {}) => {
@@ -9417,10 +10479,10 @@ export class Api extends HttpClient {
     vpcRouterRouteView: (
       {
         path,
-        query,
+        query = {},
       }: {
         path: VpcRouterRouteViewPathParams;
-        query: VpcRouterRouteViewQueryParams;
+        query?: VpcRouterRouteViewQueryParams;
       },
       params: FetchParams = {},
     ) => {
@@ -9761,6 +10823,82 @@ export class Api extends HttpClient {
         path: `/v1/vpcs/${path.vpc}`,
         method: "DELETE",
         query,
+        ...params,
+      });
+    },
+    /**
+     * Create webhook receiver
+     */
+    webhookReceiverCreate: (
+      { body }: { body: WebhookCreate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<WebhookReceiver>({
+        path: `/v1/webhook-receivers`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Update webhook receiver
+     */
+    webhookReceiverUpdate: (
+      {
+        path,
+        body,
+      }: { path: WebhookReceiverUpdatePathParams; body: WebhookReceiverUpdate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/webhook-receivers/${path.receiver}`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * List webhook receiver secret IDs
+     */
+    webhookSecretsList: (
+      { query }: { query: WebhookSecretsListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<WebhookSecrets>({
+        path: `/v1/webhook-secrets`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Add secret to webhook receiver
+     */
+    webhookSecretsAdd: (
+      {
+        query,
+        body,
+      }: { query: WebhookSecretsAddQueryParams; body: WebhookSecretCreate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<WebhookSecret>({
+        path: `/v1/webhook-secrets`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Remove secret from webhook receiver
+     */
+    webhookSecretsDelete: (
+      { path }: { path: WebhookSecretsDeletePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/webhook-secrets/${path.secretId}`,
+        method: "DELETE",
         ...params,
       });
     },
