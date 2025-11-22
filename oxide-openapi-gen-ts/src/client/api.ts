@@ -126,10 +126,11 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
   w(`/* eslint-disable */
 
-    import type { FetchParams } from './http-client'
-    import { HttpClient, toQueryString } from './http-client'
+    import type { FetchParams, FullParams, ApiResult } from "./http-client";
+    import { dateReplacer, handleResponse, mergeParams, toQueryString } from './http-client'
+    import { snakeify } from './util'
 
-    export type { ApiConfig, ApiResult, ErrorBody, ErrorResult, } from './http-client'
+    export type { ApiResult, ErrorBody, ErrorResult } from './http-client'
     `);
 
   const schemaNames = getSortedSchemas(spec);
@@ -169,8 +170,49 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
   w("type EmptyObj = Record<string, never>;");
 
-  w(`export class Api extends HttpClient {
-       methods = {`);
+  w(`export interface ApiConfig {
+      /**
+       * No host means requests will be sent to the current host. This is used in
+       * the web console.
+       */
+      host?: string;
+      token?: string;
+      baseParams?: FetchParams;
+    }
+
+    export class Api {
+      host: string;
+      token?: string;
+      baseParams: FetchParams;
+
+
+      constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
+        this.host = host;
+        this.token = token;
+
+        const headers = new Headers({ "Content-Type": "application/json" });
+        if (token) {
+          headers.append("Authorization", \`Bearer \${token}\`);
+        }
+        this.baseParams = mergeParams({ headers }, baseParams);
+      }
+
+      public async request<Data>({
+        body,
+        path,
+        query,
+        host,
+        ...fetchParams
+      }: FullParams): Promise<ApiResult<Data>> {
+        const url = (host || this.host) + path + toQueryString(query);
+        const init = {
+          ...mergeParams(this.baseParams, fetchParams),
+          body: JSON.stringify(snakeify(body), dateReplacer),
+        };
+        return handleResponse(await fetch(url, init));
+      }
+       
+      methods = {`);
 
   for (const { conf, opId, method, path } of iterPathConfig(spec.paths)) {
     // websockets handled in the next loop

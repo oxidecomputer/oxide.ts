@@ -8,15 +8,16 @@
 
 /* eslint-disable */
 
-import type { FetchParams } from "./http-client";
-import { HttpClient, toQueryString } from "./http-client";
-
-export type {
-  ApiConfig,
-  ApiResult,
-  ErrorBody,
-  ErrorResult,
+import type { FetchParams, FullParams, ApiResult } from "./http-client";
+import {
+  dateReplacer,
+  handleResponse,
+  mergeParams,
+  toQueryString,
 } from "./http-client";
+import { snakeify } from "./util";
+
+export type { ApiResult, ErrorBody, ErrorResult } from "./http-client";
 
 /**
  * An IPv4 subnet
@@ -6668,7 +6669,47 @@ export interface WebhookSecretsDeletePathParams {
 }
 
 type EmptyObj = Record<string, never>;
-export class Api extends HttpClient {
+export interface ApiConfig {
+  /**
+   * No host means requests will be sent to the current host. This is used in
+   * the web console.
+   */
+  host?: string;
+  token?: string;
+  baseParams?: FetchParams;
+}
+
+export class Api {
+  host: string;
+  token?: string;
+  baseParams: FetchParams;
+
+  constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
+    this.host = host;
+    this.token = token;
+
+    const headers = new Headers({ "Content-Type": "application/json" });
+    if (token) {
+      headers.append("Authorization", `Bearer ${token}`);
+    }
+    this.baseParams = mergeParams({ headers }, baseParams);
+  }
+
+  public async request<Data>({
+    body,
+    path,
+    query,
+    host,
+    ...fetchParams
+  }: FullParams): Promise<ApiResult<Data>> {
+    const url = (host || this.host) + path + toQueryString(query);
+    const init = {
+      ...mergeParams(this.baseParams, fetchParams),
+      body: JSON.stringify(snakeify(body), dateReplacer),
+    };
+    return handleResponse(await fetch(url, init));
+  }
+
   methods = {
     /**
      * Start an OAuth 2.0 Device Authorization Grant
