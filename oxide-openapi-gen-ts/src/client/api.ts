@@ -184,16 +184,23 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       host: string;
       token?: string;
       baseParams: FetchParams;
-
+      /**
+       * Pulled from info.version in the OpenAPI schema. Sent in the
+       * \`api-version\` header on all requests.
+       */
+      apiVersion = "${spec.info.version}";
 
       constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
         this.host = host;
         this.token = token;
 
-        const headers = new Headers({ "Content-Type": "application/json" });
-        if (token) {
-          headers.append("Authorization", \`Bearer \${token}\`);
-        }
+        const headers = new Headers({
+          "Content-Type": "application/json",
+          "api-version": this.apiVersion,
+        });
+
+        if (token) headers.append("Authorization", \`Bearer \${token}\`);
+
         this.baseParams = mergeParams({ headers }, baseParams);
       }
 
