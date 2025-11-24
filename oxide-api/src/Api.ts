@@ -158,6 +158,16 @@ export type AddressLotResultsPage = {
 };
 
 /**
+ * An address lot and associated blocks resulting from viewing an address lot.
+ */
+export type AddressLotViewResponse = {
+  /** The address lot blocks. */
+  blocks: AddressLotBlock[];
+  /** The address lot. */
+  lot: AddressLot;
+};
+
+/**
  * Describes the scope of affinity for the purposes of co-location.
  */
 export type FailureDomain = "sled";
@@ -205,8 +215,6 @@ export type AffinityGroupCreate = {
   policy: AffinityPolicy;
 };
 
-export type TypedUuidForInstanceKind = string;
-
 /**
  * Running state of an Instance (primarily: booted or stopped)
  *
@@ -252,7 +260,7 @@ export type InstanceState =
  */
 export type AffinityGroupMember = {
   type: "instance";
-  value: { id: TypedUuidForInstanceKind; name: Name; runState: InstanceState };
+  value: { id: string; name: Name; runState: InstanceState };
 };
 
 /**
@@ -333,8 +341,6 @@ export type AlertClassResultsPage = {
   nextPage?: string | null;
 };
 
-export type TypedUuidForAlertKind = string;
-
 /**
  * The response received from a webhook receiver endpoint.
  */
@@ -380,8 +386,6 @@ export type WebhookDeliveryAttempt = {
  */
 export type AlertDeliveryAttempts = { webhook: WebhookDeliveryAttempt[] };
 
-export type TypedUuidForAlertReceiverKind = string;
-
 /**
  * The state of a webhook delivery attempt.
  */
@@ -417,13 +421,13 @@ export type AlertDelivery = {
   /** The event class. */
   alertClass: string;
   /** The UUID of the event. */
-  alertId: TypedUuidForAlertKind;
+  alertId: string;
   /** Individual attempts to deliver this webhook event, and their outcomes. */
   attempts: AlertDeliveryAttempts;
   /** The UUID of this delivery attempt. */
   id: string;
   /** The UUID of the alert receiver that this event was delivered to. */
-  receiverId: TypedUuidForAlertReceiverKind;
+  receiverId: string;
   /** The state of this delivery. */
   state: AlertDeliveryState;
   /** The time at which this delivery began (i.e. the event was dispatched to the receiver). */
@@ -594,7 +598,7 @@ export type AntiAffinityGroupCreate = {
  */
 export type AntiAffinityGroupMember = {
   type: "instance";
-  value: { id: TypedUuidForInstanceKind; name: Name; runState: InstanceState };
+  value: { id: string; name: Name; runState: InstanceState };
 };
 
 /**
@@ -625,21 +629,10 @@ export type AntiAffinityGroupUpdate = {
   name?: Name | null;
 };
 
-/**
- * An identifier for an artifact.
- */
-export type ArtifactId = {
-  /** The kind of artifact this is. */
-  kind: string;
-  /** The artifact's name. */
-  name: string;
-  /** The artifact's version. */
-  version: string;
-};
-
 export type AuditLogEntryActor =
   | { kind: "user_builtin"; userBuiltinId: string }
   | { kind: "silo_user"; siloId: string; siloUserId: string }
+  | { kind: "scim"; siloId: string }
   | { kind: "unauthenticated" };
 
 /**
@@ -1325,7 +1318,11 @@ export type Cumulativeuint64 = { startTime: Date; value: number };
 export type CurrentUser = {
   /** Human-readable name that can identify the user */
   displayName: string;
+  /** Whether this user has the viewer role on the fleet. Used by the web console to determine whether to show system-level UI. */
+  fleetViewer: boolean;
   id: string;
+  /** Whether this user has the admin role on their silo. Used by the web console to determine whether to show admin-only UI elements. */
+  siloAdmin: boolean;
   /** Uuid of the silo to which this user belongs */
   siloId: string;
   /** Name of the silo to which this user belongs. */
@@ -2284,6 +2281,26 @@ export type InstanceAutoRestartPolicy =
   | "best_effort";
 
 /**
+ * A required CPU platform for an instance.
+ *
+ * When an instance specifies a required CPU platform:
+ *
+ * - The system may expose (to the VM) new CPU features that are only present on that platform (or on newer platforms of the same lineage that also support those features). - The instance must run on hosts that have CPUs that support all the features of the supplied platform.
+ *
+ * That is, the instance is restricted to hosts that have the CPUs which support all features of the required platform, but in exchange the CPU features exposed by the platform are available for the guest to use. Note that this may prevent an instance from starting (if the hosts that could run it are full but there is capacity on other incompatible hosts).
+ *
+ * If an instance does not specify a required CPU platform, then when it starts, the control plane selects a host for the instance and then supplies the guest with the "minimum" CPU platform supported by that host. This maximizes the number of hosts that can run the VM if it later needs to migrate to another host.
+ *
+ * In all cases, the CPU features presented by a given CPU platform are a subset of what the corresponding hardware may actually support; features which cannot be used from a virtual environment or do not have full hypervisor support may be masked off. See RFD 314 for specific CPU features in a CPU platform.
+ */
+export type InstanceCpuPlatform =
+  /** An AMD Milan-like CPU platform. */
+  | "amd_milan"
+
+  /** An AMD Turin-like CPU platform. */
+  | "amd_turin";
+
+/**
  * The number of CPUs in an Instance
  */
 export type InstanceCpuCount = number;
@@ -2304,6 +2321,8 @@ This policy determines whether the instance should be automatically restarted by
   autoRestartPolicy?: InstanceAutoRestartPolicy | null;
   /** the ID of the disk used to boot this Instance, if a specific one is assigned. */
   bootDiskId?: string | null;
+  /** The CPU platform for this instance. If this is `null`, the instance requires no particular CPU platform. */
+  cpuPlatform?: InstanceCpuPlatform | null;
   /** human-readable free-form text about a resource */
   description: string;
   /** RFC1035-compliant hostname for the Instance. */
@@ -2361,6 +2380,8 @@ export type InstanceNetworkInterfaceCreate = {
   name: Name;
   /** The VPC Subnet in which to create the interface. */
   subnetName: Name;
+  /** A set of additional networks that this interface may send and receive traffic on. */
+  transitIps?: IpNet[];
   /** The VPC in which to create the interface. */
   vpcName: Name;
 };
@@ -2398,6 +2419,8 @@ Specifying a boot disk is optional but recommended to ensure predictable boot be
 
 An instance that does not have a boot disk set will use the boot options specified in its UEFI settings, which are controlled by both the instance's UEFI firmware and the guest operating system. Boot options can change as disks are attached and detached, which may result in an instance that only boots to the EFI shell until a boot disk is set. */
   bootDisk?: InstanceDiskAttachment | null;
+  /** The CPU platform to be used for this instance. If this is `null`, the instance requires no particular CPU platform; when it is started the instance will have the most general CPU platform supported by the sled it is initially placed on. */
+  cpuPlatform?: InstanceCpuPlatform | null;
   description: string;
   /** A list of disks to be attached to the instance.
 
@@ -2517,19 +2540,23 @@ export type InstanceSerialConsoleData = {
  * Parameters of an `Instance` that can be reconfigured after creation.
  */
 export type InstanceUpdate = {
-  /** Sets the auto-restart policy for this instance.
+  /** The auto-restart policy for this instance.
 
 This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, any explicitly configured auto-restart policy will be unset, and the control plane will select the default policy when determining whether the instance can be automatically restarted.
 
 Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
-  autoRestartPolicy?: InstanceAutoRestartPolicy | null;
-  /** Name or ID of the disk the instance should be instructed to boot from.
+  autoRestartPolicy: InstanceAutoRestartPolicy | null;
+  /** The disk the instance is configured to boot from.
 
-If not provided, unset the instance's boot disk. */
-  bootDisk?: NameOrId | null;
-  /** The amount of memory to assign to this instance. */
+Setting a boot disk is optional but recommended to ensure predictable boot behavior. The boot disk can be set during instance creation or later if the instance is stopped. The boot disk counts against the disk attachment limit.
+
+An instance that does not have a boot disk set will use the boot options specified in its UEFI settings, which are controlled by both the instance's UEFI firmware and the guest operating system. Boot options can change as disks are attached and detached, which may result in an instance that only boots to the EFI shell until a boot disk is set. */
+  bootDisk: NameOrId | null;
+  /** The CPU platform to be used for this instance. If this is `null`, the instance requires no particular CPU platform; when it is started the instance will have the most general CPU platform supported by the sled it is initially placed on. */
+  cpuPlatform: InstanceCpuPlatform | null;
+  /** The amount of RAM (in bytes) to be allocated to the instance */
   memory: ByteCount;
-  /** The number of CPUs to assign to this instance. */
+  /** The number of vCPUs to be allocated to the instance */
   ncpus: InstanceCpuCount;
 };
 
@@ -2650,6 +2677,23 @@ export type InternetGatewayResultsPage = {
 };
 
 /**
+ * The IP address version.
+ */
+export type IpVersion = "v4" | "v6";
+
+/**
+ * Type of IP pool.
+ */
+export type IpPoolType =
+  /** Unicast IP pool for standard IP allocations. */
+  | "unicast"
+
+  /** Multicast IP pool for multicast group allocations.
+
+All ranges in a multicast pool must be either ASM or SSM (not mixed). */
+  | "multicast";
+
+/**
  * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
  */
 export type IpPool = {
@@ -2657,8 +2701,12 @@ export type IpPool = {
   description: string;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
+  /** The IP version for the pool. */
+  ipVersion: IpVersion;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
+  /** Type of IP pool (unicast or multicast) */
+  poolType: IpPoolType;
   /** timestamp when this resource was created */
   timeCreated: Date;
   /** timestamp when this resource was last modified */
@@ -2666,9 +2714,22 @@ export type IpPool = {
 };
 
 /**
- * Create-time parameters for an `IpPool`
+ * Create-time parameters for an `IpPool`.
+ *
+ * For multicast pools, all ranges must be either Any-Source Multicast (ASM) or Source-Specific Multicast (SSM), but not both. Mixing ASM and SSM ranges in the same pool is not allowed.
+ *
+ * ASM: IPv4 addresses outside 232.0.0.0/8, IPv6 addresses with flag field != 3 SSM: IPv4 addresses in 232.0.0.0/8, IPv6 addresses with flag field = 3
  */
-export type IpPoolCreate = { description: string; name: Name };
+export type IpPoolCreate = {
+  description: string;
+  /** The IP version of the pool.
+
+The default is IPv4. */
+  ipVersion?: IpVersion;
+  name: Name;
+  /** Type of IP pool (defaults to Unicast) */
+  poolType?: IpPoolType;
+};
 
 export type IpPoolLinkSilo = {
   /** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified. There can be at most one default for a given silo. */
@@ -2749,25 +2810,16 @@ export type IpPoolSiloUpdate = {
  */
 export type IpPoolUpdate = { description?: string | null; name?: Name | null };
 
-export type Ipv4Utilization = {
-  /** The number of IPv4 addresses allocated from this pool */
-  allocated: number;
-  /** The total number of IPv4 addresses in the pool, i.e., the sum of the lengths of the IPv4 ranges. Unlike IPv6 capacity, can be a 32-bit integer because there are only 2^32 IPv4 addresses. */
-  capacity: number;
-};
-
-export type Ipv6Utilization = {
-  /** The number of IPv6 addresses allocated from this pool. A 128-bit integer string to match the capacity field. */
-  allocated: string;
-  /** The total number of IPv6 addresses in the pool, i.e., the sum of the lengths of the IPv6 ranges. An IPv6 range can contain up to 2^128 addresses, so we represent this value in JSON as a numeric string with a custom "uint128" format. */
-  capacity: string;
-};
-
+/**
+ * The utilization of IP addresses in a pool.
+ *
+ * Note that both the count of remaining addresses and the total capacity are integers, reported as floating point numbers. This accommodates allocations larger than a 64-bit integer, which is common with IPv6 address spaces. With very large IP Pools (> 2**53 addresses), integer precision will be lost, in exchange for representing the entire range. In such a case the pool still has many available addresses.
+ */
 export type IpPoolUtilization = {
-  /** Number of allocated and total available IPv4 addresses in pool */
-  ipv4: Ipv4Utilization;
-  /** Number of allocated and total available IPv6 addresses in pool */
-  ipv6: Ipv6Utilization;
+  /** The total number of addresses in the pool. */
+  capacity: number;
+  /** The number of remaining addresses in the pool. */
+  remaining: number;
 };
 
 /**
@@ -3089,14 +3141,19 @@ export type Timeseries = { fields: Record<string, FieldValue>; points: Points };
  *
  * A table is the result of an OxQL query. It contains a name, usually the name of the timeseries schema from which the data is derived, and any number of timeseries, which contain the actual data.
  */
-export type Table = { name: string; timeseries: Record<string, Timeseries> };
+export type OxqlTable = {
+  /** The name of the table. */
+  name: string;
+  /** The set of timeseries in the table, ordered by key. */
+  timeseries: Timeseries[];
+};
 
 /**
  * The result of a successful OxQL query.
  */
 export type OxqlQueryResult = {
   /** Tables resulting from the query, each containing timeseries. */
-  tables: Table[];
+  tables: OxqlTable[];
 };
 
 /**
@@ -3262,7 +3319,11 @@ export type ProjectResultsPage = {
   nextPage?: string | null;
 };
 
-export type ProjectRole = "admin" | "collaborator" | "viewer";
+export type ProjectRole =
+  | "admin"
+  | "collaborator"
+  | "limited_collaborator"
+  | "viewer";
 
 /**
  * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
@@ -3506,6 +3567,22 @@ export type SamlIdentityProviderCreate = {
   technicalContactEmail: string;
 };
 
+export type ScimClientBearerToken = {
+  id: string;
+  timeCreated: Date;
+  timeExpires?: Date | null;
+};
+
+/**
+ * The POST response is the only time the generated bearer token is returned to the client.
+ */
+export type ScimClientBearerTokenValue = {
+  bearerToken: string;
+  id: string;
+  timeCreated: Date;
+  timeExpires?: Date | null;
+};
+
 /**
  * Configuration of inbound ICMP allowed by API services.
  */
@@ -3530,7 +3607,10 @@ export type SiloIdentityMode =
   | "saml_jit"
 
   /** The system is the source of truth about users.  There is no linkage to an external authentication provider or identity provider. */
-  | "local_only";
+  | "local_only"
+
+  /** Users are authenticated with SAML using an external authentication provider. Users and groups are managed with SCIM API calls, likely from the same authentication provider. */
+  | "saml_scim";
 
 /**
  * View of a Silo
@@ -3538,6 +3618,8 @@ export type SiloIdentityMode =
  * A Silo is the highest level unit of isolation.
  */
 export type Silo = {
+  /** Optionally, silos can have a group name that is automatically granted the silo admin role. */
+  adminGroupName?: string | null;
   /** human-readable free-form text about a resource */
   description: string;
   /** A silo where discoverable is false can be retrieved only by its id - it will not be part of the "list all silos" output. */
@@ -3682,7 +3764,11 @@ export type SiloResultsPage = {
   nextPage?: string | null;
 };
 
-export type SiloRole = "admin" | "collaborator" | "viewer";
+export type SiloRole =
+  | "admin"
+  | "collaborator"
+  | "limited_collaborator"
+  | "viewer";
 
 /**
  * Describes the assignment of a particular role on a particular resource to a particular identity (user, group, etc.)
@@ -3953,8 +4039,6 @@ export type SupportBundleCreate = {
   userComment?: string | null;
 };
 
-export type TypedUuidForSupportBundleKind = string;
-
 export type SupportBundleState =
   /** Support Bundle still actively being collected.
 
@@ -3977,7 +4061,7 @@ The record of the bundle still exists for readability, but the only valid operat
   | "active";
 
 export type SupportBundleInfo = {
-  id: TypedUuidForSupportBundleKind;
+  id: string;
   reasonForCreation: string;
   reasonForFailure?: string | null;
   state: SupportBundleState;
@@ -4336,24 +4420,13 @@ export type SwitchResultsPage = {
 };
 
 /**
- * Source of a system software target release.
- */
-export type TargetReleaseSource =
-  /** Unspecified or unknown source (probably MUPdate). */
-  | { type: "unspecified" }
-  /** The specified release of the rack's system software. */
-  | { type: "system_version"; version: string };
-
-/**
- * View of a system software target release.
+ * View of a system software target release
  */
 export type TargetRelease = {
-  /** The target-release generation number. */
-  generation: number;
-  /** The source of the target release. */
-  releaseSource: TargetReleaseSource;
-  /** The time it was set as the target release. */
+  /** Time this was set as the target release */
   timeRequested: Date;
+  /** The specified release of the rack's system software */
+  version: string;
 };
 
 /**
@@ -4422,82 +4495,44 @@ export type TimeseriesSchemaResultsPage = {
 };
 
 /**
- * Metadata about an individual TUF artifact.
- *
- * Found within a `TufRepoDescription`.
+ * Metadata about a TUF repository
  */
-export type TufArtifactMeta = {
-  /** The hash of the artifact. */
-  hash: string;
-  /** The artifact ID. */
-  id: ArtifactId;
-  /** Contents of the `SIGN` field of a Hubris archive caboose, i.e., an identifier for the set of valid signing keys. Currently only applicable to RoT image and bootloader artifacts, where it will be an LPC55 Root Key Table Hash (RKTH). */
-  sign?: number[] | null;
-  /** The size of the artifact in bytes. */
-  size: number;
-};
+export type TufRepo = {
+  /** The file name of the repository, as reported by the client that uploaded it
 
-/**
- * Metadata about a TUF repository.
- *
- * Found within a `TufRepoDescription`.
- */
-export type TufRepoMeta = {
-  /** The file name of the repository.
-
-This is purely used for debugging and may not always be correct (e.g. with wicket, we read the file contents from stdin so we don't know the correct file name). */
+This is intended for debugging. The file name may not match any particular pattern, and even if it does, it may not be accurate since it's just what the client reported. */
   fileName: string;
-  /** The hash of the repository.
-
-This is a slight abuse of `ArtifactHash`, since that's the hash of individual artifacts within the repository. However, we use it here for convenience. */
+  /** The hash of the repository */
   hash: string;
-  /** The system version in artifacts.json. */
+  /** The system version for this repository
+
+The system version is a top-level version number applied to all the software in the repository. */
   systemVersion: string;
-  /** The version of the targets role. */
-  targetsRoleVersion: number;
-  /** The time until which the repo is valid. */
-  validUntil: Date;
+  /** Time the repository was uploaded */
+  timeCreated: Date;
 };
 
 /**
- * A description of an uploaded TUF repository.
+ * A single page of results
  */
-export type TufRepoDescription = {
-  /** Information about the artifacts present in the repository. */
-  artifacts: TufArtifactMeta[];
-  /** Information about the repository. */
-  repo: TufRepoMeta;
+export type TufRepoResultsPage = {
+  /** list of items on this page of results */
+  items: TufRepo[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
 };
 
 /**
- * Data about a successful TUF repo get from Nexus.
+ * Whether the uploaded TUF repo already existed or was new and had to be inserted. Part of `TufRepoUpload`.
  */
-export type TufRepoGetResponse = {
-  /** The description of the repository. */
-  description: TufRepoDescription;
-};
-
-/**
- * Status of a TUF repo import.
- *
- * Part of `TufRepoInsertResponse`.
- */
-export type TufRepoInsertStatus =
-  /** The repository already existed in the database. */
+export type TufRepoUploadStatus =
+  /** The repository already existed in the database */
   | "already_exists"
 
-  /** The repository did not exist, and was inserted into the database. */
+  /** The repository did not exist, and was inserted into the database */
   | "inserted";
 
-/**
- * Data about a successful TUF repo import into Nexus.
- */
-export type TufRepoInsertResponse = {
-  /** The repository as present in the database. */
-  recorded: TufRepoDescription;
-  /** Whether this repository already existed or is new. */
-  status: TufRepoInsertStatus;
-};
+export type TufRepoUpload = { repo: TufRepo; status: TufRepoUploadStatus };
 
 /**
  * A sled that has not been added to an initialized rack yet
@@ -4521,6 +4556,29 @@ export type UninitializedSledResultsPage = {
   items: UninitializedSled[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string | null;
+};
+
+export type UpdateStatus = {
+  /** Count of components running each release version
+
+Keys will be either:
+
+* Semver-like release version strings * "install dataset", representing the initial rack software before any updates * "unknown", which means there is no TUF repo uploaded that matches the software running on the component) */
+  componentsByReleaseVersion: Record<string, number>;
+  /** Whether automatic update is suspended due to manual update activity
+
+After a manual support procedure that changes the system software, automatic update activity is suspended to avoid undoing the change. To resume automatic update, first upload the TUF repository matching the manually applied update, then set that as the target release. */
+  suspended: boolean;
+  /** Current target release of the system software
+
+This may not correspond to the actual system software running at the time of request; it is instead the release that the system should be moving towards as a goal state. The system asynchronously updates software to match this target release.
+
+Will only be null if a target release has never been set. In that case, the system is not automatically attempting to manage software versions. */
+  targetRelease: TargetRelease | null;
+  /** Time of most recent update planning activity
+
+This is intended as a rough indicator of the last time something happened in the update planner. */
+  timeLastStepPlanned: Date;
 };
 
 /**
@@ -5021,6 +5079,16 @@ export type SystemMetricName =
  * The order in which the client wants to page through the requested collection
  */
 export type PaginationOrder = "ascending" | "descending";
+
+/**
+ * Supported sort modes when scanning by semantic version
+ */
+export type VersionSortMode =
+  /** Sort in increasing semantic version order (oldest first) */
+  | "version_ascending"
+
+  /** Sort in decreasing semantic version order (newest first) */
+  | "version_descending";
 
 /**
  * Supported set of sort modes for scanning by name only
@@ -6146,6 +6214,10 @@ export interface NetworkingAddressLotListQueryParams {
   sortBy?: NameOrIdSortMode;
 }
 
+export interface NetworkingAddressLotViewPathParams {
+  addressLot: NameOrId;
+}
+
 export interface NetworkingAddressLotDeletePathParams {
   addressLot: NameOrId;
 }
@@ -6220,6 +6292,30 @@ export interface NetworkingSwitchPortSettingsViewPathParams {
   port: NameOrId;
 }
 
+export interface ScimTokenListQueryParams {
+  silo: NameOrId;
+}
+
+export interface ScimTokenCreateQueryParams {
+  silo: NameOrId;
+}
+
+export interface ScimTokenViewPathParams {
+  tokenId: string;
+}
+
+export interface ScimTokenViewQueryParams {
+  silo: NameOrId;
+}
+
+export interface ScimTokenDeletePathParams {
+  tokenId: string;
+}
+
+export interface ScimTokenDeleteQueryParams {
+  silo: NameOrId;
+}
+
 export interface SystemQuotasListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -6271,11 +6367,17 @@ export interface SystemTimeseriesSchemaListQueryParams {
   pageToken?: string | null;
 }
 
-export interface SystemUpdatePutRepositoryQueryParams {
+export interface SystemUpdateRepositoryListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: VersionSortMode;
+}
+
+export interface SystemUpdateRepositoryUploadQueryParams {
   fileName: string;
 }
 
-export interface SystemUpdateGetRepositoryPathParams {
+export interface SystemUpdateRepositoryViewPathParams {
   systemVersion: string;
 }
 
@@ -9364,7 +9466,7 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Add range to IP pool
+     * Add range to IP pool.
      */
     ipPoolRangeAdd: (
       { path, body }: { path: IpPoolRangeAddPathParams; body: IpRange },
@@ -9559,6 +9661,19 @@ export class Api extends HttpClient {
         path: `/v1/system/networking/address-lot`,
         method: "POST",
         body,
+        ...params,
+      });
+    },
+    /**
+     * Fetch address lot
+     */
+    networkingAddressLotView: (
+      { path }: { path: NetworkingAddressLotViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<AddressLotViewResponse>({
+        path: `/v1/system/networking/address-lot/${path.addressLot}`,
+        method: "GET",
         ...params,
       });
     },
@@ -9946,6 +10061,68 @@ export class Api extends HttpClient {
       });
     },
     /**
+     * List SCIM tokens
+     */
+    scimTokenList: (
+      { query }: { query: ScimTokenListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ScimClientBearerToken[]>({
+        path: `/v1/system/scim/tokens`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create SCIM token
+     */
+    scimTokenCreate: (
+      { query }: { query: ScimTokenCreateQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ScimClientBearerTokenValue>({
+        path: `/v1/system/scim/tokens`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch SCIM token
+     */
+    scimTokenView: (
+      {
+        path,
+        query,
+      }: { path: ScimTokenViewPathParams; query: ScimTokenViewQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ScimClientBearerToken>({
+        path: `/v1/system/scim/tokens/${path.tokenId}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete SCIM token
+     */
+    scimTokenDelete: (
+      {
+        path,
+        query,
+      }: { path: ScimTokenDeletePathParams; query: ScimTokenDeleteQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/scim/tokens/${path.tokenId}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
      * Lists resource quotas for all silos
      */
     systemQuotasList: (
@@ -10116,50 +10293,64 @@ export class Api extends HttpClient {
       });
     },
     /**
-     * Upload system release repository
+     * List all TUF repositories
      */
-    systemUpdatePutRepository: (
-      { query }: { query: SystemUpdatePutRepositoryQueryParams },
+    systemUpdateRepositoryList: (
+      { query = {} }: { query?: SystemUpdateRepositoryListQueryParams },
       params: FetchParams = {},
     ) => {
-      return this.request<TufRepoInsertResponse>({
-        path: `/v1/system/update/repository`,
+      return this.request<TufRepoResultsPage>({
+        path: `/v1/system/update/repositories`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Upload system release repository
+     */
+    systemUpdateRepositoryUpload: (
+      { query }: { query: SystemUpdateRepositoryUploadQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<TufRepoUpload>({
+        path: `/v1/system/update/repositories`,
         method: "PUT",
         query,
         ...params,
       });
     },
     /**
-     * Fetch system release repository description by version
+     * Fetch system release repository by version
      */
-    systemUpdateGetRepository: (
-      { path }: { path: SystemUpdateGetRepositoryPathParams },
+    systemUpdateRepositoryView: (
+      { path }: { path: SystemUpdateRepositoryViewPathParams },
       params: FetchParams = {},
     ) => {
-      return this.request<TufRepoGetResponse>({
-        path: `/v1/system/update/repository/${path.systemVersion}`,
+      return this.request<TufRepo>({
+        path: `/v1/system/update/repositories/${path.systemVersion}`,
         method: "GET",
         ...params,
       });
     },
     /**
-     * Get the current target release of the rack's system software
+     * Fetch system update status
      */
-    targetReleaseView: (_: EmptyObj, params: FetchParams = {}) => {
-      return this.request<TargetRelease>({
-        path: `/v1/system/update/target-release`,
+    systemUpdateStatus: (_: EmptyObj, params: FetchParams = {}) => {
+      return this.request<UpdateStatus>({
+        path: `/v1/system/update/status`,
         method: "GET",
         ...params,
       });
     },
     /**
-     * Set the current target release of the rack's system software
+     * Set target release
      */
     targetReleaseUpdate: (
       { body }: { body: SetTargetReleaseParams },
       params: FetchParams = {},
     ) => {
-      return this.request<TargetRelease>({
+      return this.request<void>({
         path: `/v1/system/update/target-release`,
         method: "PUT",
         body,

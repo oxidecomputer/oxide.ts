@@ -73,6 +73,8 @@ test("Instance", () => {
       autoRestartPolicy?: InstanceAutoRestartPolicy | null;
       /** the ID of the disk used to boot this Instance, if a specific one is assigned. */
       bootDiskId?: string | null;
+      /** The CPU platform for this instance. If this is \`null\`, the instance requires no particular CPU platform. */
+      cpuPlatform?: InstanceCpuPlatform | null;
       /** human-readable free-form text about a resource */
       description: string;
       /** RFC1035-compliant hostname for the Instance. */
