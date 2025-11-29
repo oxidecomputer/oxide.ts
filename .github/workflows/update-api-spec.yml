@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "18"
+          node-version: "24"
       - working-directory: "./oxide-openapi-gen-ts"
         run: 'npm install'
       - run: ./tools/gen.sh
