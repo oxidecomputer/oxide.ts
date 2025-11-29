@@ -8,6 +8,6 @@ jobs:
   license:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Check License Header
         uses: apache/skywalking-eyes/header@5dfa68f93380a5e57259faaf95088b7f133b5778

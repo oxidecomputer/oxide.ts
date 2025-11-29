@@ -3,7 +3,7 @@
   "version": "0.4.1",
   "description": "TypeScript client for the Oxide API",
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   },
   "type": "module",
   "main": "./dist/Api.js",
@@ -34,7 +34,7 @@
   "homepage": "https://github.com/oxidecomputer/oxide.ts#readme",
   "devDependencies": {
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.9.3"
   },
   "tsup": {
     "clean": true,
