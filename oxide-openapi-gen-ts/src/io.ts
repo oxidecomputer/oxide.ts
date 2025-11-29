@@ -27,22 +27,25 @@ export function initIO(out: Writable) {
  * A test stream that stores a buffer internally
  */
 export class TestWritable extends Writable {
-  private buffer: Buffer = Buffer.from("");
+  private buffer: Uint8Array = new Uint8Array(0);
 
   _write(
-    chunk: Buffer,
+    chunk: Uint8Array,
     _encoding: BufferEncoding,
     callback: (error?: Error | null) => void
   ): void {
-    this.buffer = Buffer.concat([this.buffer, chunk]);
+    const result = new Uint8Array(this.buffer.length + chunk.length);
+    result.set(this.buffer, 0);
+    result.set(chunk, this.buffer.length);
+    this.buffer = result;
     callback();
   }
 
   value(): string {
-    return this.buffer.toString().trim();
+    return Buffer.from(this.buffer).toString().trim();
   }
 
   clear(): void {
-    this.buffer = Buffer.from("");
+    this.buffer = new Uint8Array(0);
   }
 }
