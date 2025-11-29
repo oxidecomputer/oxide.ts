@@ -9,7 +9,7 @@
     "OpenAPI client generator"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   },
   "type": "module",
   "main": "./dist/index.js",
