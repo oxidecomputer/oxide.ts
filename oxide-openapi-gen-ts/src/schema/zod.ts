@@ -86,12 +86,11 @@ export const schemaToZod = makeSchemaGenerator({
     const { w0 } = io;
     schemaToZod(schema.items, io);
     w0(".array()");
+    if (schema.nullable) io.w0(".nullable()");
     if ("default" in schema) {
       w0(`.default(${JSON.stringify(schema.default)})`);
     }
-    if (schema.uniqueItems) {
-      w0(`.refine(...uniqueItems)`);
-    }
+    if (schema.uniqueItems) w0(`.refine(...uniqueItems)`);
   },
 
   object(schema, io) {

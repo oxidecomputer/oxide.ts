@@ -36,3 +36,303 @@ test("string with default", () => {
   schemaToZod({ type: "string", default: "test" }, io);
   expect(out.value()).toMatchInlineSnapshot(`"z.string().default("test")"`);
 });
+
+test("string nullable", () => {
+  schemaToZod({ type: "string", nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string().nullable()"');
+});
+
+test("string with minLength and maxLength", () => {
+  schemaToZod({ type: "string", minLength: 1, maxLength: 100 }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string().min(1).max(100)"');
+});
+
+test("string with pattern", () => {
+  schemaToZod({ type: "string", pattern: "^[a-z]+$" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string().regex(/^[a-z]+$/)"');
+});
+
+test("string format uuid", () => {
+  schemaToZod({ type: "string", format: "uuid" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.uuid()"');
+});
+
+test("string format ip", () => {
+  schemaToZod({ type: "string", format: "ip" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.ipv4()"');
+});
+
+test("string format ipv4", () => {
+  schemaToZod({ type: "string", format: "ipv4" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.ipv4()"');
+});
+
+test("string format ipv6", () => {
+  schemaToZod({ type: "string", format: "ipv6" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.ipv6()"');
+});
+
+test("boolean nullable", () => {
+  schemaToZod({ type: "boolean", nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot('"SafeBoolean.nullable()"');
+});
+
+test("number", () => {
+  schemaToZod({ type: "number" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number()"');
+});
+
+test("number nullable", () => {
+  schemaToZod({ type: "number", nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().nullable()"');
+});
+
+test("integer", () => {
+  schemaToZod({ type: "integer" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number()"');
+});
+
+test("integer with format uint8", () => {
+  schemaToZod({ type: "integer", format: "uint8" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().min(0).max(255)"');
+});
+
+test("integer with format int16", () => {
+  schemaToZod({ type: "integer", format: "int16" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().min(-32767).max(32767)"');
+});
+
+test("integer with explicit min/max", () => {
+  schemaToZod({ type: "integer", minimum: 5, maximum: 10 }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().min(5).max(10)"');
+});
+
+test("integer with default", () => {
+  schemaToZod({ type: "integer", default: 42 }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().default(42)"');
+});
+
+test("integer nullable", () => {
+  schemaToZod({ type: "integer", nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().nullable()"');
+});
+
+test("integer enum", () => {
+  schemaToZod({ type: "integer", enum: [1, 2, 3] }, io);
+  expect(out.value()).toMatchInlineSnapshot('"IntEnum([1,2,3] as const)"');
+});
+
+test("string enum", () => {
+  schemaToZod({ type: "string", enum: ["a", "b", "c"] }, io);
+  expect(out.value()).toMatchInlineSnapshot(`"z.enum(["a","b","c"])"`);
+});
+
+test("string enum nullable", () => {
+  schemaToZod({ type: "string", enum: ["a", "b"], nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot(`"z.enum(["a","b"]).nullable()"`);
+});
+
+test("date", () => {
+  schemaToZod({ type: "string", format: "date-time" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.coerce.date()"');
+});
+
+test("date nullable", () => {
+  schemaToZod({ type: "string", format: "date-time", nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.coerce.date().nullable()"');
+});
+
+test("array", () => {
+  schemaToZod({ type: "array", items: { type: "string" } }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string().array()"');
+});
+
+test("array nullable", () => {
+  schemaToZod({ type: "array", items: { type: "string" }, nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string().array().nullable()"');
+});
+
+test("array with default", () => {
+  schemaToZod({ type: "array", items: { type: "string" }, default: [] }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string().array().default([])"');
+});
+
+test("array nullable with default", () => {
+  schemaToZod(
+    { type: "array", items: { type: "number" }, nullable: true, default: [1, 2] },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.number().array().nullable().default([1,2])"'
+  );
+});
+
+test("array with uniqueItems", () => {
+  schemaToZod({ type: "array", items: { type: "string" }, uniqueItems: true }, io);
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.string().array().refine(...uniqueItems)"'
+  );
+});
+
+test("ref", () => {
+  schemaToZod({ $ref: "#/components/schemas/MyType" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"MyType"');
+});
+
+test("object with properties", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        age: { type: "integer" },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "age": z.number().optional(),
+    })"
+  `);
+});
+
+test("object nullable", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: { id: { type: "string" } },
+      required: ["id"],
+      nullable: true,
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"id": z.string(),
+    }).nullable()"
+  `);
+});
+
+test("object as record with additionalProperties", () => {
+  schemaToZod(
+    { type: "object", additionalProperties: { type: "number" } },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot('"z.record(z.string(),z.number())"');
+});
+
+test("object as record without additionalProperties", () => {
+  schemaToZod({ type: "object" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.record(z.string(),z.unknown())"');
+});
+
+test("object as record nullable", () => {
+  schemaToZod({ type: "object", nullable: true }, io);
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.record(z.string(),z.unknown()).nullable()"'
+  );
+});
+
+test("oneOf single element", () => {
+  schemaToZod({ oneOf: [{ type: "string" }] }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string()"');
+});
+
+test("oneOf flattened single-element enums", () => {
+  schemaToZod(
+    {
+      oneOf: [
+        { type: "string", enum: ["a"] },
+        { type: "string", enum: ["b"] },
+        { type: "string", enum: ["c"] },
+      ],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`"z.enum(["a", "b", "c"])"`);
+});
+
+test("oneOf union", () => {
+  schemaToZod(
+    {
+      oneOf: [{ type: "string" }, { type: "number" }],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.union([
+    z.string(),
+    z.number(),
+    ])"
+  `);
+});
+
+test("oneOf nullable", () => {
+  schemaToZod(
+    {
+      oneOf: [{ type: "string" }, { type: "number" }],
+      nullable: true,
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.union([
+    z.string(),
+    z.number(),
+    ])
+    .nullable()"
+  `);
+});
+
+test("allOf single element", () => {
+  schemaToZod({ allOf: [{ type: "string" }] }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.string()"');
+});
+
+test("allOf intersection", () => {
+  schemaToZod(
+    {
+      allOf: [
+        { $ref: "#/components/schemas/Base" },
+        { $ref: "#/components/schemas/Extended" },
+      ],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.intersection([
+    Base,
+    Extended,
+    ])"
+  `);
+});
+
+test("allOf nullable", () => {
+  schemaToZod(
+    {
+      allOf: [{ type: "string" }],
+      nullable: true,
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot('"z.string().nullable()"');
+});
+
+test("allOf with default", () => {
+  schemaToZod(
+    {
+      allOf: [{ $ref: "#/components/schemas/Config" }],
+      default: { enabled: true },
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(
+    '"Config.default({"enabled":true})"'
+  );
+});
+
+test("empty schema", () => {
+  schemaToZod({}, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.record(z.string(), z.unknown())"');
+});
