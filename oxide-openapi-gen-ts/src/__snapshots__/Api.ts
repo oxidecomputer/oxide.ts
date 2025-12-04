@@ -5209,7 +5209,7 @@ export interface ProbeCreateQueryParams {
 }
 
 export interface ProbeViewPathParams {
-  probe:NameOrId,
+  probe: NameOrId,
 }
 
 export interface ProbeViewQueryParams {
@@ -5217,7 +5217,7 @@ export interface ProbeViewQueryParams {
 }
 
 export interface ProbeDeletePathParams {
-  probe:NameOrId,
+  probe: NameOrId,
 }
 
 export interface ProbeDeleteQueryParams {
@@ -5231,42 +5231,42 @@ export interface SupportBundleListQueryParams {
 }
 
 export interface SupportBundleViewPathParams {
-  bundleId:string,
+  bundleId: string,
 }
 
 export interface SupportBundleUpdatePathParams {
-  bundleId:string,
+  bundleId: string,
 }
 
 export interface SupportBundleDeletePathParams {
-  bundleId:string,
+  bundleId: string,
 }
 
 export interface SupportBundleDownloadPathParams {
-  bundleId:string,
+  bundleId: string,
 }
 
 export interface SupportBundleHeadPathParams {
-  bundleId:string,
+  bundleId: string,
 }
 
 export interface SupportBundleDownloadFilePathParams {
-  bundleId:string,
-  file:string,
+  bundleId: string,
+  file: string,
 }
 
 export interface SupportBundleHeadFilePathParams {
-  bundleId:string,
-  file:string,
+  bundleId: string,
+  file: string,
 }
 
 export interface SupportBundleIndexPathParams {
-  bundleId:string,
+  bundleId: string,
 }
 
 export interface LoginSamlPathParams {
-  providerName:Name,
-  siloName:Name,
+  providerName: Name,
+  siloName: Name,
 }
 
 export interface AffinityGroupListQueryParams {
@@ -5281,7 +5281,7 @@ export interface AffinityGroupCreateQueryParams {
 }
 
 export interface AffinityGroupViewPathParams {
-  affinityGroup:NameOrId,
+  affinityGroup: NameOrId,
 }
 
 export interface AffinityGroupViewQueryParams {
@@ -5289,7 +5289,7 @@ export interface AffinityGroupViewQueryParams {
 }
 
 export interface AffinityGroupUpdatePathParams {
-  affinityGroup:NameOrId,
+  affinityGroup: NameOrId,
 }
 
 export interface AffinityGroupUpdateQueryParams {
@@ -5297,7 +5297,7 @@ export interface AffinityGroupUpdateQueryParams {
 }
 
 export interface AffinityGroupDeletePathParams {
-  affinityGroup:NameOrId,
+  affinityGroup: NameOrId,
 }
 
 export interface AffinityGroupDeleteQueryParams {
@@ -5305,7 +5305,7 @@ export interface AffinityGroupDeleteQueryParams {
 }
 
 export interface AffinityGroupMemberListPathParams {
-  affinityGroup:NameOrId,
+  affinityGroup: NameOrId,
 }
 
 export interface AffinityGroupMemberListQueryParams {
@@ -5316,8 +5316,8 @@ export interface AffinityGroupMemberListQueryParams {
 }
 
 export interface AffinityGroupMemberInstanceViewPathParams {
-  affinityGroup:NameOrId,
-  instance:NameOrId,
+  affinityGroup: NameOrId,
+  instance: NameOrId,
 }
 
 export interface AffinityGroupMemberInstanceViewQueryParams {
@@ -5325,8 +5325,8 @@ export interface AffinityGroupMemberInstanceViewQueryParams {
 }
 
 export interface AffinityGroupMemberInstanceAddPathParams {
-  affinityGroup:NameOrId,
-  instance:NameOrId,
+  affinityGroup: NameOrId,
+  instance: NameOrId,
 }
 
 export interface AffinityGroupMemberInstanceAddQueryParams {
@@ -5334,8 +5334,8 @@ export interface AffinityGroupMemberInstanceAddQueryParams {
 }
 
 export interface AffinityGroupMemberInstanceDeletePathParams {
-  affinityGroup:NameOrId,
-  instance:NameOrId,
+  affinityGroup: NameOrId,
+  instance: NameOrId,
 }
 
 export interface AffinityGroupMemberInstanceDeleteQueryParams {
@@ -5355,15 +5355,15 @@ export interface AlertReceiverListQueryParams {
 }
 
 export interface AlertReceiverViewPathParams {
-  receiver:NameOrId,
+  receiver: NameOrId,
 }
 
 export interface AlertReceiverDeletePathParams {
-  receiver:NameOrId,
+  receiver: NameOrId,
 }
 
 export interface AlertDeliveryListPathParams {
-  receiver:NameOrId,
+  receiver: NameOrId,
 }
 
 export interface AlertDeliveryListQueryParams {
@@ -5376,7 +5376,7 @@ export interface AlertDeliveryListQueryParams {
 }
 
 export interface AlertReceiverProbePathParams {
-  receiver:NameOrId,
+  receiver: NameOrId,
 }
 
 export interface AlertReceiverProbeQueryParams {
@@ -5384,16 +5384,16 @@ export interface AlertReceiverProbeQueryParams {
 }
 
 export interface AlertReceiverSubscriptionAddPathParams {
-  receiver:NameOrId,
+  receiver: NameOrId,
 }
 
 export interface AlertReceiverSubscriptionRemovePathParams {
-  receiver:NameOrId,
-  subscription:AlertSubscription,
+  receiver: NameOrId,
+  subscription: AlertSubscription,
 }
 
 export interface AlertDeliveryResendPathParams {
-  alertId:string,
+  alertId: string,
 }
 
 export interface AlertDeliveryResendQueryParams {
@@ -5412,7 +5412,7 @@ export interface AntiAffinityGroupCreateQueryParams {
 }
 
 export interface AntiAffinityGroupViewPathParams {
-  antiAffinityGroup:NameOrId,
+  antiAffinityGroup: NameOrId,
 }
 
 export interface AntiAffinityGroupViewQueryParams {
@@ -5420,7 +5420,7 @@ export interface AntiAffinityGroupViewQueryParams {
 }
 
 export interface AntiAffinityGroupUpdatePathParams {
-  antiAffinityGroup:NameOrId,
+  antiAffinityGroup: NameOrId,
 }
 
 export interface AntiAffinityGroupUpdateQueryParams {
@@ -5428,7 +5428,7 @@ export interface AntiAffinityGroupUpdateQueryParams {
 }
 
 export interface AntiAffinityGroupDeletePathParams {
-  antiAffinityGroup:NameOrId,
+  antiAffinityGroup: NameOrId,
 }
 
 export interface AntiAffinityGroupDeleteQueryParams {
@@ -5436,7 +5436,7 @@ export interface AntiAffinityGroupDeleteQueryParams {
 }
 
 export interface AntiAffinityGroupMemberListPathParams {
-  antiAffinityGroup:NameOrId,
+  antiAffinityGroup: NameOrId,
 }
 
 export interface AntiAffinityGroupMemberListQueryParams {
@@ -5447,8 +5447,8 @@ export interface AntiAffinityGroupMemberListQueryParams {
 }
 
 export interface AntiAffinityGroupMemberInstanceViewPathParams {
-  antiAffinityGroup:NameOrId,
-  instance:NameOrId,
+  antiAffinityGroup: NameOrId,
+  instance: NameOrId,
 }
 
 export interface AntiAffinityGroupMemberInstanceViewQueryParams {
@@ -5456,8 +5456,8 @@ export interface AntiAffinityGroupMemberInstanceViewQueryParams {
 }
 
 export interface AntiAffinityGroupMemberInstanceAddPathParams {
-  antiAffinityGroup:NameOrId,
-  instance:NameOrId,
+  antiAffinityGroup: NameOrId,
+  instance: NameOrId,
 }
 
 export interface AntiAffinityGroupMemberInstanceAddQueryParams {
@@ -5465,8 +5465,8 @@ export interface AntiAffinityGroupMemberInstanceAddQueryParams {
 }
 
 export interface AntiAffinityGroupMemberInstanceDeletePathParams {
-  antiAffinityGroup:NameOrId,
-  instance:NameOrId,
+  antiAffinityGroup: NameOrId,
+  instance: NameOrId,
 }
 
 export interface AntiAffinityGroupMemberInstanceDeleteQueryParams {
@@ -5480,11 +5480,11 @@ export interface CertificateListQueryParams {
 }
 
 export interface CertificateViewPathParams {
-  certificate:NameOrId,
+  certificate: NameOrId,
 }
 
 export interface CertificateDeletePathParams {
-  certificate:NameOrId,
+  certificate: NameOrId,
 }
 
 export interface DiskListQueryParams {
@@ -5499,7 +5499,7 @@ export interface DiskCreateQueryParams {
 }
 
 export interface DiskViewPathParams {
-  disk:NameOrId,
+  disk: NameOrId,
 }
 
 export interface DiskViewQueryParams {
@@ -5507,7 +5507,7 @@ export interface DiskViewQueryParams {
 }
 
 export interface DiskDeletePathParams {
-  disk:NameOrId,
+  disk: NameOrId,
 }
 
 export interface DiskDeleteQueryParams {
@@ -5515,7 +5515,7 @@ export interface DiskDeleteQueryParams {
 }
 
 export interface DiskBulkWriteImportPathParams {
-  disk:NameOrId,
+  disk: NameOrId,
 }
 
 export interface DiskBulkWriteImportQueryParams {
@@ -5523,7 +5523,7 @@ export interface DiskBulkWriteImportQueryParams {
 }
 
 export interface DiskBulkWriteImportStartPathParams {
-  disk:NameOrId,
+  disk: NameOrId,
 }
 
 export interface DiskBulkWriteImportStartQueryParams {
@@ -5531,7 +5531,7 @@ export interface DiskBulkWriteImportStartQueryParams {
 }
 
 export interface DiskBulkWriteImportStopPathParams {
-  disk:NameOrId,
+  disk: NameOrId,
 }
 
 export interface DiskBulkWriteImportStopQueryParams {
@@ -5539,7 +5539,7 @@ export interface DiskBulkWriteImportStopQueryParams {
 }
 
 export interface DiskFinalizeImportPathParams {
-  disk:NameOrId,
+  disk: NameOrId,
 }
 
 export interface DiskFinalizeImportQueryParams {
@@ -5558,7 +5558,7 @@ export interface FloatingIpCreateQueryParams {
 }
 
 export interface FloatingIpViewPathParams {
-  floatingIp:NameOrId,
+  floatingIp: NameOrId,
 }
 
 export interface FloatingIpViewQueryParams {
@@ -5566,7 +5566,7 @@ export interface FloatingIpViewQueryParams {
 }
 
 export interface FloatingIpUpdatePathParams {
-  floatingIp:NameOrId,
+  floatingIp: NameOrId,
 }
 
 export interface FloatingIpUpdateQueryParams {
@@ -5574,7 +5574,7 @@ export interface FloatingIpUpdateQueryParams {
 }
 
 export interface FloatingIpDeletePathParams {
-  floatingIp:NameOrId,
+  floatingIp: NameOrId,
 }
 
 export interface FloatingIpDeleteQueryParams {
@@ -5582,7 +5582,7 @@ export interface FloatingIpDeleteQueryParams {
 }
 
 export interface FloatingIpAttachPathParams {
-  floatingIp:NameOrId,
+  floatingIp: NameOrId,
 }
 
 export interface FloatingIpAttachQueryParams {
@@ -5590,7 +5590,7 @@ export interface FloatingIpAttachQueryParams {
 }
 
 export interface FloatingIpDetachPathParams {
-  floatingIp:NameOrId,
+  floatingIp: NameOrId,
 }
 
 export interface FloatingIpDetachQueryParams {
@@ -5604,7 +5604,7 @@ export interface GroupListQueryParams {
 }
 
 export interface GroupViewPathParams {
-  groupId:string,
+  groupId: string,
 }
 
 export interface ImageListQueryParams {
@@ -5619,7 +5619,7 @@ export interface ImageCreateQueryParams {
 }
 
 export interface ImageViewPathParams {
-  image:NameOrId,
+  image: NameOrId,
 }
 
 export interface ImageViewQueryParams {
@@ -5627,7 +5627,7 @@ export interface ImageViewQueryParams {
 }
 
 export interface ImageDeletePathParams {
-  image:NameOrId,
+  image: NameOrId,
 }
 
 export interface ImageDeleteQueryParams {
@@ -5635,7 +5635,7 @@ export interface ImageDeleteQueryParams {
 }
 
 export interface ImageDemotePathParams {
-  image:NameOrId,
+  image: NameOrId,
 }
 
 export interface ImageDemoteQueryParams {
@@ -5643,7 +5643,7 @@ export interface ImageDemoteQueryParams {
 }
 
 export interface ImagePromotePathParams {
-  image:NameOrId,
+  image: NameOrId,
 }
 
 export interface ImagePromoteQueryParams {
@@ -5662,7 +5662,7 @@ export interface InstanceCreateQueryParams {
 }
 
 export interface InstanceViewPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceViewQueryParams {
@@ -5670,7 +5670,7 @@ export interface InstanceViewQueryParams {
 }
 
 export interface InstanceUpdatePathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceUpdateQueryParams {
@@ -5678,7 +5678,7 @@ export interface InstanceUpdateQueryParams {
 }
 
 export interface InstanceDeletePathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceDeleteQueryParams {
@@ -5686,7 +5686,7 @@ export interface InstanceDeleteQueryParams {
 }
 
 export interface InstanceAffinityGroupListPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceAffinityGroupListQueryParams {
@@ -5697,7 +5697,7 @@ export interface InstanceAffinityGroupListQueryParams {
 }
 
 export interface InstanceAntiAffinityGroupListPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceAntiAffinityGroupListQueryParams {
@@ -5708,7 +5708,7 @@ export interface InstanceAntiAffinityGroupListQueryParams {
 }
 
 export interface InstanceDiskListPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceDiskListQueryParams {
@@ -5719,7 +5719,7 @@ export interface InstanceDiskListQueryParams {
 }
 
 export interface InstanceDiskAttachPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceDiskAttachQueryParams {
@@ -5727,7 +5727,7 @@ export interface InstanceDiskAttachQueryParams {
 }
 
 export interface InstanceDiskDetachPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceDiskDetachQueryParams {
@@ -5735,7 +5735,7 @@ export interface InstanceDiskDetachQueryParams {
 }
 
 export interface InstanceExternalIpListPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceExternalIpListQueryParams {
@@ -5743,7 +5743,7 @@ export interface InstanceExternalIpListQueryParams {
 }
 
 export interface InstanceEphemeralIpAttachPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceEphemeralIpAttachQueryParams {
@@ -5751,7 +5751,7 @@ export interface InstanceEphemeralIpAttachQueryParams {
 }
 
 export interface InstanceEphemeralIpDetachPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceEphemeralIpDetachQueryParams {
@@ -5759,7 +5759,7 @@ export interface InstanceEphemeralIpDetachQueryParams {
 }
 
 export interface InstanceRebootPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceRebootQueryParams {
@@ -5767,7 +5767,7 @@ export interface InstanceRebootQueryParams {
 }
 
 export interface InstanceSerialConsolePathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceSerialConsoleQueryParams {
@@ -5778,7 +5778,7 @@ export interface InstanceSerialConsoleQueryParams {
 }
 
 export interface InstanceSerialConsoleStreamPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceSerialConsoleStreamQueryParams {
@@ -5787,7 +5787,7 @@ export interface InstanceSerialConsoleStreamQueryParams {
 }
 
 export interface InstanceSshPublicKeyListPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceSshPublicKeyListQueryParams {
@@ -5798,7 +5798,7 @@ export interface InstanceSshPublicKeyListQueryParams {
 }
 
 export interface InstanceStartPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceStartQueryParams {
@@ -5806,7 +5806,7 @@ export interface InstanceStartQueryParams {
 }
 
 export interface InstanceStopPathParams {
-  instance:NameOrId,
+  instance: NameOrId,
 }
 
 export interface InstanceStopQueryParams {
@@ -5829,7 +5829,7 @@ export interface InternetGatewayIpAddressCreateQueryParams {
 }
 
 export interface InternetGatewayIpAddressDeletePathParams {
-  address:NameOrId,
+  address: NameOrId,
 }
 
 export interface InternetGatewayIpAddressDeleteQueryParams {
@@ -5855,7 +5855,7 @@ export interface InternetGatewayIpPoolCreateQueryParams {
 }
 
 export interface InternetGatewayIpPoolDeletePathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface InternetGatewayIpPoolDeleteQueryParams {
@@ -5879,7 +5879,7 @@ export interface InternetGatewayCreateQueryParams {
 }
 
 export interface InternetGatewayViewPathParams {
-  gateway:NameOrId,
+  gateway: NameOrId,
 }
 
 export interface InternetGatewayViewQueryParams {
@@ -5888,7 +5888,7 @@ export interface InternetGatewayViewQueryParams {
 }
 
 export interface InternetGatewayDeletePathParams {
-  gateway:NameOrId,
+  gateway: NameOrId,
 }
 
 export interface InternetGatewayDeleteQueryParams {
@@ -5904,11 +5904,11 @@ export interface ProjectIpPoolListQueryParams {
 }
 
 export interface ProjectIpPoolViewPathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface LoginLocalPathParams {
-  siloName:Name,
+  siloName: Name,
 }
 
 export interface CurrentUserAccessTokenListQueryParams {
@@ -5918,7 +5918,7 @@ export interface CurrentUserAccessTokenListQueryParams {
 }
 
 export interface CurrentUserAccessTokenDeletePathParams {
-  tokenId:string,
+  tokenId: string,
 }
 
 export interface CurrentUserGroupsQueryParams {
@@ -5934,15 +5934,15 @@ export interface CurrentUserSshKeyListQueryParams {
 }
 
 export interface CurrentUserSshKeyViewPathParams {
-  sshKey:NameOrId,
+  sshKey: NameOrId,
 }
 
 export interface CurrentUserSshKeyDeletePathParams {
-  sshKey:NameOrId,
+  sshKey: NameOrId,
 }
 
 export interface SiloMetricPathParams {
-  metricName:SystemMetricName,
+  metricName: SystemMetricName,
 }
 
 export interface SiloMetricQueryParams {
@@ -5968,7 +5968,7 @@ export interface InstanceNetworkInterfaceCreateQueryParams {
 }
 
 export interface InstanceNetworkInterfaceViewPathParams {
-  interface:NameOrId,
+  interface: NameOrId,
 }
 
 export interface InstanceNetworkInterfaceViewQueryParams {
@@ -5977,7 +5977,7 @@ export interface InstanceNetworkInterfaceViewQueryParams {
 }
 
 export interface InstanceNetworkInterfaceUpdatePathParams {
-  interface:NameOrId,
+  interface: NameOrId,
 }
 
 export interface InstanceNetworkInterfaceUpdateQueryParams {
@@ -5986,7 +5986,7 @@ export interface InstanceNetworkInterfaceUpdateQueryParams {
 }
 
 export interface InstanceNetworkInterfaceDeletePathParams {
-  interface:NameOrId,
+  interface: NameOrId,
 }
 
 export interface InstanceNetworkInterfaceDeleteQueryParams {
@@ -6001,23 +6001,23 @@ export interface ProjectListQueryParams {
 }
 
 export interface ProjectViewPathParams {
-  project:NameOrId,
+  project: NameOrId,
 }
 
 export interface ProjectUpdatePathParams {
-  project:NameOrId,
+  project: NameOrId,
 }
 
 export interface ProjectDeletePathParams {
-  project:NameOrId,
+  project: NameOrId,
 }
 
 export interface ProjectPolicyViewPathParams {
-  project:NameOrId,
+  project: NameOrId,
 }
 
 export interface ProjectPolicyUpdatePathParams {
-  project:NameOrId,
+  project: NameOrId,
 }
 
 export interface SnapshotListQueryParams {
@@ -6032,7 +6032,7 @@ export interface SnapshotCreateQueryParams {
 }
 
 export interface SnapshotViewPathParams {
-  snapshot:NameOrId,
+  snapshot: NameOrId,
 }
 
 export interface SnapshotViewQueryParams {
@@ -6040,7 +6040,7 @@ export interface SnapshotViewQueryParams {
 }
 
 export interface SnapshotDeletePathParams {
-  snapshot:NameOrId,
+  snapshot: NameOrId,
 }
 
 export interface SnapshotDeleteQueryParams {
@@ -6062,13 +6062,13 @@ export interface PhysicalDiskListQueryParams {
 }
 
 export interface PhysicalDiskViewPathParams {
-  diskId:string,
+  diskId: string,
 }
 
 export interface NetworkingSwitchPortLldpNeighborsPathParams {
-  port:Name,
-  rackId:string,
-  switchLocation:Name,
+  port: Name,
+  rackId: string,
+  switchLocation: Name,
 }
 
 export interface NetworkingSwitchPortLldpNeighborsQueryParams {
@@ -6084,7 +6084,7 @@ export interface RackListQueryParams {
 }
 
 export interface RackViewPathParams {
-  rackId:string,
+  rackId: string,
 }
 
 export interface SledListQueryParams {
@@ -6094,11 +6094,11 @@ export interface SledListQueryParams {
 }
 
 export interface SledViewPathParams {
-  sledId:string,
+  sledId: string,
 }
 
 export interface SledPhysicalDiskListPathParams {
-  sledId:string,
+  sledId: string,
 }
 
 export interface SledPhysicalDiskListQueryParams {
@@ -6108,7 +6108,7 @@ export interface SledPhysicalDiskListQueryParams {
 }
 
 export interface SledInstanceListPathParams {
-  sledId:string,
+  sledId: string,
 }
 
 export interface SledInstanceListQueryParams {
@@ -6118,7 +6118,7 @@ export interface SledInstanceListQueryParams {
 }
 
 export interface SledSetProvisionPolicyPathParams {
-  sledId:string,
+  sledId: string,
 }
 
 export interface SledListUninitializedQueryParams {
@@ -6134,7 +6134,7 @@ export interface NetworkingSwitchPortListQueryParams {
 }
 
 export interface NetworkingSwitchPortLldpConfigViewPathParams {
-  port:Name,
+  port: Name,
 }
 
 export interface NetworkingSwitchPortLldpConfigViewQueryParams {
@@ -6143,7 +6143,7 @@ export interface NetworkingSwitchPortLldpConfigViewQueryParams {
 }
 
 export interface NetworkingSwitchPortLldpConfigUpdatePathParams {
-  port:Name,
+  port: Name,
 }
 
 export interface NetworkingSwitchPortLldpConfigUpdateQueryParams {
@@ -6152,7 +6152,7 @@ export interface NetworkingSwitchPortLldpConfigUpdateQueryParams {
 }
 
 export interface NetworkingSwitchPortApplySettingsPathParams {
-  port:Name,
+  port: Name,
 }
 
 export interface NetworkingSwitchPortApplySettingsQueryParams {
@@ -6161,7 +6161,7 @@ export interface NetworkingSwitchPortApplySettingsQueryParams {
 }
 
 export interface NetworkingSwitchPortClearSettingsPathParams {
-  port:Name,
+  port: Name,
 }
 
 export interface NetworkingSwitchPortClearSettingsQueryParams {
@@ -6170,7 +6170,7 @@ export interface NetworkingSwitchPortClearSettingsQueryParams {
 }
 
 export interface NetworkingSwitchPortStatusPathParams {
-  port:Name,
+  port: Name,
 }
 
 export interface NetworkingSwitchPortStatusQueryParams {
@@ -6185,7 +6185,7 @@ export interface SwitchListQueryParams {
 }
 
 export interface SwitchViewPathParams {
-  switchId:string,
+  switchId: string,
 }
 
 export interface SiloIdentityProviderListQueryParams {
@@ -6200,7 +6200,7 @@ export interface LocalIdpUserCreateQueryParams {
 }
 
 export interface LocalIdpUserDeletePathParams {
-  userId:string,
+  userId: string,
 }
 
 export interface LocalIdpUserDeleteQueryParams {
@@ -6208,7 +6208,7 @@ export interface LocalIdpUserDeleteQueryParams {
 }
 
 export interface LocalIdpUserSetPasswordPathParams {
-  userId:string,
+  userId: string,
 }
 
 export interface LocalIdpUserSetPasswordQueryParams {
@@ -6220,7 +6220,7 @@ export interface SamlIdentityProviderCreateQueryParams {
 }
 
 export interface SamlIdentityProviderViewPathParams {
-  provider:NameOrId,
+  provider: NameOrId,
 }
 
 export interface SamlIdentityProviderViewQueryParams {
@@ -6234,19 +6234,19 @@ export interface IpPoolListQueryParams {
 }
 
 export interface IpPoolViewPathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolUpdatePathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolDeletePathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolRangeListPathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolRangeListQueryParams {
@@ -6255,15 +6255,15 @@ export interface IpPoolRangeListQueryParams {
 }
 
 export interface IpPoolRangeAddPathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolRangeRemovePathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolSiloListPathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolSiloListQueryParams {
@@ -6273,21 +6273,21 @@ export interface IpPoolSiloListQueryParams {
 }
 
 export interface IpPoolSiloLinkPathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolSiloUpdatePathParams {
-  pool:NameOrId,
-  silo:NameOrId,
+  pool: NameOrId,
+  silo: NameOrId,
 }
 
 export interface IpPoolSiloUnlinkPathParams {
-  pool:NameOrId,
-  silo:NameOrId,
+  pool: NameOrId,
+  silo: NameOrId,
 }
 
 export interface IpPoolUtilizationViewPathParams {
-  pool:NameOrId,
+  pool: NameOrId,
 }
 
 export interface IpPoolServiceRangeListQueryParams {
@@ -6296,7 +6296,7 @@ export interface IpPoolServiceRangeListQueryParams {
 }
 
 export interface SystemMetricPathParams {
-  metricName:SystemMetricName,
+  metricName: SystemMetricName,
 }
 
 export interface SystemMetricQueryParams {
@@ -6315,15 +6315,15 @@ export interface NetworkingAddressLotListQueryParams {
 }
 
 export interface NetworkingAddressLotViewPathParams {
-  addressLot:NameOrId,
+  addressLot: NameOrId,
 }
 
 export interface NetworkingAddressLotDeletePathParams {
-  addressLot:NameOrId,
+  addressLot: NameOrId,
 }
 
 export interface NetworkingAddressLotBlockListPathParams {
-  addressLot:NameOrId,
+  addressLot: NameOrId,
 }
 
 export interface NetworkingAddressLotBlockListQueryParams {
@@ -6349,11 +6349,11 @@ export interface NetworkingBgpAnnounceSetListQueryParams {
 }
 
 export interface NetworkingBgpAnnounceSetDeletePathParams {
-  announceSet:NameOrId,
+  announceSet: NameOrId,
 }
 
 export interface NetworkingBgpAnnouncementListPathParams {
-  announceSet:NameOrId,
+  announceSet: NameOrId,
 }
 
 export interface NetworkingBgpMessageHistoryQueryParams {
@@ -6371,10 +6371,10 @@ export interface NetworkingLoopbackAddressListQueryParams {
 }
 
 export interface NetworkingLoopbackAddressDeletePathParams {
-  address:string,
-  rackId:string,
-  subnetMask:number,
-  switchLocation:Name,
+  address: string,
+  rackId: string,
+  subnetMask: number,
+  switchLocation: Name,
 }
 
 export interface NetworkingSwitchPortSettingsListQueryParams {
@@ -6389,7 +6389,7 @@ export interface NetworkingSwitchPortSettingsDeleteQueryParams {
 }
 
 export interface NetworkingSwitchPortSettingsViewPathParams {
-  port:NameOrId,
+  port: NameOrId,
 }
 
 export interface ScimTokenListQueryParams {
@@ -6401,7 +6401,7 @@ export interface ScimTokenCreateQueryParams {
 }
 
 export interface ScimTokenViewPathParams {
-  tokenId:string,
+  tokenId: string,
 }
 
 export interface ScimTokenViewQueryParams {
@@ -6409,7 +6409,7 @@ export interface ScimTokenViewQueryParams {
 }
 
 export interface ScimTokenDeletePathParams {
-  tokenId:string,
+  tokenId: string,
 }
 
 export interface ScimTokenDeleteQueryParams {
@@ -6429,15 +6429,15 @@ export interface SiloListQueryParams {
 }
 
 export interface SiloViewPathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface SiloDeletePathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface SiloIpPoolListPathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface SiloIpPoolListQueryParams {
@@ -6447,19 +6447,19 @@ export interface SiloIpPoolListQueryParams {
 }
 
 export interface SiloPolicyViewPathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface SiloPolicyUpdatePathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface SiloQuotasViewPathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface SiloQuotasUpdatePathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface SystemTimeseriesSchemaListQueryParams {
@@ -6478,7 +6478,7 @@ export interface SystemUpdateRepositoryUploadQueryParams {
 }
 
 export interface SystemUpdateRepositoryViewPathParams {
-  systemVersion:string,
+  systemVersion: string,
 }
 
 export interface SystemUpdateTrustRootListQueryParams {
@@ -6488,11 +6488,11 @@ export interface SystemUpdateTrustRootListQueryParams {
 }
 
 export interface SystemUpdateTrustRootViewPathParams {
-  trustRootId:string,
+  trustRootId: string,
 }
 
 export interface SystemUpdateTrustRootDeletePathParams {
-  trustRootId:string,
+  trustRootId: string,
 }
 
 export interface SiloUserListQueryParams {
@@ -6503,7 +6503,7 @@ export interface SiloUserListQueryParams {
 }
 
 export interface SiloUserViewPathParams {
-  userId:string,
+  userId: string,
 }
 
 export interface SiloUserViewQueryParams {
@@ -6517,7 +6517,7 @@ export interface UserBuiltinListQueryParams {
 }
 
 export interface UserBuiltinViewPathParams {
-  user:NameOrId,
+  user: NameOrId,
 }
 
 export interface SiloUtilizationListQueryParams {
@@ -6527,7 +6527,7 @@ export interface SiloUtilizationListQueryParams {
 }
 
 export interface SiloUtilizationViewPathParams {
-  silo:NameOrId,
+  silo: NameOrId,
 }
 
 export interface TimeseriesQueryQueryParams {
@@ -6542,11 +6542,11 @@ export interface UserListQueryParams {
 }
 
 export interface UserViewPathParams {
-  userId:string,
+  userId: string,
 }
 
 export interface UserTokenListPathParams {
-  userId:string,
+  userId: string,
 }
 
 export interface UserTokenListQueryParams {
@@ -6556,11 +6556,11 @@ export interface UserTokenListQueryParams {
 }
 
 export interface UserLogoutPathParams {
-  userId:string,
+  userId: string,
 }
 
 export interface UserSessionListPathParams {
-  userId:string,
+  userId: string,
 }
 
 export interface UserSessionListQueryParams {
@@ -6595,7 +6595,7 @@ export interface VpcRouterRouteCreateQueryParams {
 }
 
 export interface VpcRouterRouteViewPathParams {
-  route:NameOrId,
+  route: NameOrId,
 }
 
 export interface VpcRouterRouteViewQueryParams {
@@ -6605,7 +6605,7 @@ export interface VpcRouterRouteViewQueryParams {
 }
 
 export interface VpcRouterRouteUpdatePathParams {
-  route:NameOrId,
+  route: NameOrId,
 }
 
 export interface VpcRouterRouteUpdateQueryParams {
@@ -6615,7 +6615,7 @@ export interface VpcRouterRouteUpdateQueryParams {
 }
 
 export interface VpcRouterRouteDeletePathParams {
-  route:NameOrId,
+  route: NameOrId,
 }
 
 export interface VpcRouterRouteDeleteQueryParams {
@@ -6638,7 +6638,7 @@ export interface VpcRouterCreateQueryParams {
 }
 
 export interface VpcRouterViewPathParams {
-  router:NameOrId,
+  router: NameOrId,
 }
 
 export interface VpcRouterViewQueryParams {
@@ -6647,7 +6647,7 @@ export interface VpcRouterViewQueryParams {
 }
 
 export interface VpcRouterUpdatePathParams {
-  router:NameOrId,
+  router: NameOrId,
 }
 
 export interface VpcRouterUpdateQueryParams {
@@ -6656,7 +6656,7 @@ export interface VpcRouterUpdateQueryParams {
 }
 
 export interface VpcRouterDeletePathParams {
-  router:NameOrId,
+  router: NameOrId,
 }
 
 export interface VpcRouterDeleteQueryParams {
@@ -6678,7 +6678,7 @@ export interface VpcSubnetCreateQueryParams {
 }
 
 export interface VpcSubnetViewPathParams {
-  subnet:NameOrId,
+  subnet: NameOrId,
 }
 
 export interface VpcSubnetViewQueryParams {
@@ -6687,7 +6687,7 @@ export interface VpcSubnetViewQueryParams {
 }
 
 export interface VpcSubnetUpdatePathParams {
-  subnet:NameOrId,
+  subnet: NameOrId,
 }
 
 export interface VpcSubnetUpdateQueryParams {
@@ -6696,7 +6696,7 @@ export interface VpcSubnetUpdateQueryParams {
 }
 
 export interface VpcSubnetDeletePathParams {
-  subnet:NameOrId,
+  subnet: NameOrId,
 }
 
 export interface VpcSubnetDeleteQueryParams {
@@ -6705,7 +6705,7 @@ export interface VpcSubnetDeleteQueryParams {
 }
 
 export interface VpcSubnetListNetworkInterfacesPathParams {
-  subnet:NameOrId,
+  subnet: NameOrId,
 }
 
 export interface VpcSubnetListNetworkInterfacesQueryParams {
@@ -6728,7 +6728,7 @@ export interface VpcCreateQueryParams {
 }
 
 export interface VpcViewPathParams {
-  vpc:NameOrId,
+  vpc: NameOrId,
 }
 
 export interface VpcViewQueryParams {
@@ -6736,7 +6736,7 @@ export interface VpcViewQueryParams {
 }
 
 export interface VpcUpdatePathParams {
-  vpc:NameOrId,
+  vpc: NameOrId,
 }
 
 export interface VpcUpdateQueryParams {
@@ -6744,7 +6744,7 @@ export interface VpcUpdateQueryParams {
 }
 
 export interface VpcDeletePathParams {
-  vpc:NameOrId,
+  vpc: NameOrId,
 }
 
 export interface VpcDeleteQueryParams {
@@ -6752,7 +6752,7 @@ export interface VpcDeleteQueryParams {
 }
 
 export interface WebhookReceiverUpdatePathParams {
-  receiver:NameOrId,
+  receiver: NameOrId,
 }
 
 export interface WebhookSecretsListQueryParams {
@@ -6764,7 +6764,7 @@ export interface WebhookSecretsAddQueryParams {
 }
 
 export interface WebhookSecretsDeletePathParams {
-  secretId:string,
+  secretId: string,
 }
 
 type EmptyObj = Record<string, never>;

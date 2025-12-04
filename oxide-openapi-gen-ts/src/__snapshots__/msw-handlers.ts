@@ -691,7 +691,7 @@ export interface MSWHandlers {
 
 
     export function makeHandlers(
-      handlers: MSWHandlers, 
+      handlers: MSWHandlers,
     ): HttpHandler[] {
       return [
 http.post('/device/auth', handler(handlers['deviceAuthRequest'], null, null)),
