@@ -12,7 +12,7 @@ import { getSortedSchemas } from "./base";
 import fs from "node:fs";
 import path from "node:path";
 
-export function generateTypeTests(spec: OpenAPIV3.Document, destDir: string) {
+export async function generateTypeTests(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
   const outFile = path.resolve(destDir, "type-test.ts");
@@ -35,4 +35,5 @@ export function generateTypeTests(spec: OpenAPIV3.Document, destDir: string) {
 
     w(`assert<Equals<A.${name}, z.infer<typeof V.${name}>>>();`);
   }
+  await io.end();
 }

@@ -7,16 +7,8 @@
  * Copyright Oxide Computer Company
  */
 
-import SwaggerParser from "@apidevtools/swagger-parser";
-import type { OpenAPIV3 } from "openapi-types";
-
-import { copyStaticFiles, generateApi } from "./client/api";
-import { generateMSWHandlers } from "./client/msw-handlers";
-import { generateTypeTests } from "./client/type-tests";
-import { generateZodValidators } from "./client/zodValidators";
-import { resolve } from "node:path";
-import { existsSync } from "node:fs";
 import parseArgs from "minimist";
+import { generate, ALL_FEATURES, type Feature } from "./generate";
 
 function helpAndExit(msg?: string): never {
   if (msg) console.log("Error: " + msg + "\n");
@@ -32,10 +24,6 @@ function helpAndExit(msg?: string): never {
   console.log("  gen nexus-json generated-client --features zod,msw");
   process.exit(1);
 }
-
-type Feature = "zod" | "msw" | "typetests";
-const ALL_FEATURES: Feature[] = ["zod", "msw", "typetests"];
-type Features = Record<Feature, boolean>;
 
 function parseFeatures(featuresArg: string | undefined) {
   const features =
@@ -56,34 +44,6 @@ function parseFeatures(featuresArg: string | undefined) {
     msw: validated.includes("msw"),
     typetests: validated.includes("typetests"),
   };
-}
-
-async function generate(specFile: string, destDir: string, features: Features) {
-  // destination directory is resolved relative to CWD
-  const destDirAbs = resolve(process.cwd(), destDir);
-
-  if (!existsSync(destDirAbs)) {
-    throw new Error(`Error: destination directory does not exist.
-  Argument given: ${destDirAbs}
-  Resolved path:  ${destDirAbs}
-`);
-  }
-
-  const rawSpec = await SwaggerParser.parse(specFile);
-  if (!("openapi" in rawSpec) || !rawSpec.openapi.startsWith("3.0")) {
-    throw new Error("Only OpenAPI 3.0 is currently supported");
-  }
-
-  // we're not actually changing anything from rawSpec to spec, we've
-  // just ruled out v2 and v3.1
-  const spec = rawSpec as OpenAPIV3.Document;
-
-  copyStaticFiles(destDirAbs);
-  generateApi(spec, destDirAbs);
-  if (features.typetests) generateTypeTests(spec, destDirAbs);
-  if (features.msw) generateMSWHandlers(spec, destDirAbs);
-  // msw requires zod
-  if (features.zod || features.msw) generateZodValidators(spec, destDirAbs);
 }
 
 ////////////////////////////////////

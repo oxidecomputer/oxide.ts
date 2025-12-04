@@ -11,4 +11,7 @@ header:
   paths:
     - '**/*.{ts,js,sh}'
 
+  paths-ignore:
+    - '**/__snapshots__/**'
+
   comment: on-failure

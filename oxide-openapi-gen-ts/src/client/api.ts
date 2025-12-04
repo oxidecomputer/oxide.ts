@@ -116,7 +116,7 @@ export function genQueryParams(
   io.w("}\n");
 }
 
-export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
+export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
   const outFile = path.resolve(destDir, "Api.ts");
@@ -345,5 +345,5 @@ export function generateApi(spec: OpenAPIV3.Document, destDir: string) {
      }
 
    export default Api;`);
-  out.end();
+  await io.end();
 }
