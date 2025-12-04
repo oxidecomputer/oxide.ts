@@ -7,33 +7,31 @@
  * Copyright Oxide Computer Company
  */
 
-import parseArgs from "minimist";
-import { generate, ALL_FEATURES, type Feature } from "./generate";
+import { Command, InvalidArgumentError } from "@commander-js/extra-typings";
+import {
+  generate,
+  ALL_FEATURES,
+  type Feature,
+  type Features,
+} from "./generate";
 
-function helpAndExit(msg?: string): never {
-  if (msg) console.log("Error: " + msg + "\n");
-  console.log("Usage:");
-  console.log("  gen <specFile> <destDir> [options]\n");
-  console.log("Options:");
-  console.log(
-    "  --features       Comma-separated list of features to generate. Default: none."
-  );
-  console.log(`                   Allowed values: ${ALL_FEATURES.join(", ")}`);
-  console.log("  -h, --help       Show this help message and exit\n");
-  console.log("Example:");
-  console.log("  gen nexus-json generated-client --features zod,msw");
-  process.exit(1);
-}
+const bold = (s: string) => `\x1b[1m${s}\x1b[22m`;
+const yellow = (s: string) => `\x1b[33m${s}\x1b[39m`;
+const cyan = (s: string) => `\x1b[36m${s}\x1b[39m`;
+const heading = (s: string) => bold(yellow(s));
 
-function parseFeatures(featuresArg: string | undefined) {
-  const features =
-    typeof featuresArg === "string"
-      ? featuresArg.split(",").map((f) => f.trim())
-      : [];
+const helpStyle = {
+  styleTitle: heading,
+  styleOptionTerm: cyan,
+  styleArgumentTerm: cyan,
+};
+
+function parseFeatures(value: string): Features {
+  const features = value.split(",").map((f) => f.trim());
 
   for (const feature of features) {
     if (!ALL_FEATURES.includes(feature as Feature)) {
-      helpAndExit(`Unrecognized feature '${feature}'.`);
+      throw new InvalidArgumentError(`Unrecognized feature '${feature}'.`);
     }
   }
 
@@ -46,21 +44,27 @@ function parseFeatures(featuresArg: string | undefined) {
   };
 }
 
-////////////////////////////////////
-// actually do the thing
-////////////////////////////////////
+const DEFAULT_FEATURES: Features = { zod: false, msw: false, typetests: false };
 
-const args = parseArgs(process.argv.slice(2), {
-  string: ["features"],
-  alias: { h: "help" },
-});
-
-if (args.help) helpAndExit();
-
-const [specFile, destDir] = args._;
-if (!specFile) helpAndExit(`Missing <specFile>`);
-if (!destDir) helpAndExit(`Missing <destdir>`);
-
-const features = parseFeatures(args.features);
-
-generate(specFile, destDir, features);
+new Command()
+  .name("openapi-gen-ts")
+  .configureHelp(helpStyle)
+  .argument("<specFile>", "OpenAPI spec file")
+  .argument("<destDir>", "Destination directory for generated client")
+  .option(
+    "-f, --features <features>",
+    `Comma-separated list of features (${ALL_FEATURES.join(", ")})`,
+    parseFeatures
+  )
+  .addHelpText(
+    "after",
+    "\n" +
+      heading("Example") +
+      ":\n  openapi-gen-ts nexus.json api/__generated__ --features zod,msw"
+  )
+  .action((specFile, destDir, opts) => {
+    // default features handled here instead of option definition because
+    // otherwise the object gets plopped confusingly into the help text
+    generate(specFile, destDir, opts.features ?? DEFAULT_FEATURES);
+  })
+  .parse();
