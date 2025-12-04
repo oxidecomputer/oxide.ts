@@ -50,13 +50,12 @@
   },
   "homepage": "https://github.com/oxidecomputer/oxide.ts#readme",
   "dependencies": {
-    "minimist": "^1.2.8",
+    "@commander-js/extra-typings": "^14.0.0",
     "prettier": "2.7.1",
     "swagger-parser": "^10.0.3",
     "ts-pattern": "^5.1.1"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.5",
     "@types/node": "^24.10.1",
     "@types/prettier": "^2.7.3",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
