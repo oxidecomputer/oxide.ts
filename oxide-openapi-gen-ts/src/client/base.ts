@@ -77,42 +77,81 @@ export function docComment(
   }
 }
 
-type PathConfig = ReturnType<typeof iterPathConfig>[number];
-export function iterPathConfig(paths: OpenAPIV3.Document["paths"]) {
-  return Object.entries(paths).flatMap(([path, handlers]) => {
-    if (!handlers) return [];
-
-    return Object.values(HttpMethods).flatMap((method) => {
-      const conf = handlers[method];
-      if (!conf || !conf.operationId) return [];
-      return { path, conf, method, opId: conf.operationId };
-    });
-  });
-}
-
 export type Param = Omit<OpenAPIV3.ParameterObject, "schema"> &
   Required<Pick<OpenAPIV3.ParameterObject, "schema">>;
-type ParamGroup = [pathParams: Param[], queryParams: Param[]];
-interface IterParamsResult extends PathConfig {
-  params: ParamGroup;
+
+/**
+ * A normalized representation of an API operation extracted from OpenAPI paths.
+ */
+export interface Operation {
+  opId: string;
+  method: string;
+  path: string;
+  pathParams: Param[];
+  queryParams: Param[];
+  bodyType: string | null;
+  successType: string | null;
+  doc: string | undefined;
+  isWebSocket: boolean;
 }
 
-export function iterParams(paths: OpenAPIV3.Document["paths"]) {
-  const collectedParams: IterParamsResult[] = [];
-  for (const { conf, ...others } of iterPathConfig(paths)) {
-    const params = conf.parameters;
-    const group: ParamGroup = [[], []];
-    for (const param of params || []) {
-      if ("name" in param && param.schema) {
-        if (param.in === "path") {
-          group[0].push(param as Param);
-        }
-        if (param.in === "query") {
-          group[1].push(param as Param);
-        }
+function getSuccessResponse(
+  responses: OpenAPIV3.ResponsesObject
+): OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject | undefined {
+  return (
+    responses["200"] || responses["201"] || responses["202"] || responses["204"]
+  );
+}
+
+function extractParams(params: OpenAPIV3.ParameterObject[] | undefined): {
+  pathParams: Param[];
+  queryParams: Param[];
+} {
+  const pathParams: Param[] = [];
+  const queryParams: Param[] = [];
+  for (const param of params || []) {
+    if ("name" in param && param.schema) {
+      if (param.in === "path") {
+        pathParams.push(param as Param);
+      } else if (param.in === "query") {
+        queryParams.push(param as Param);
       }
     }
-    collectedParams.push({ conf, ...others, params: group });
   }
-  return collectedParams;
+  return { pathParams, queryParams };
+}
+
+/**
+ * Extract all operations from an OpenAPI spec into a normalized form. Used for
+ * generating both the client methods and the MSW handlers.
+ */
+export function getOperations(spec: OpenAPIV3.Document): Operation[] {
+  const operations: Operation[] = [];
+
+  for (const [path, handlers] of Object.entries(spec.paths)) {
+    if (!handlers) continue;
+
+    for (const method of Object.values(HttpMethods)) {
+      const conf = handlers[method];
+      if (!conf || !conf.operationId) continue;
+
+      const { pathParams, queryParams } = extractParams(
+        conf.parameters as OpenAPIV3.ParameterObject[] | undefined
+      );
+
+      operations.push({
+        opId: conf.operationId,
+        method,
+        path,
+        pathParams,
+        queryParams,
+        bodyType: contentRef(conf.requestBody),
+        successType: contentRef(getSuccessResponse(conf.responses)),
+        doc: conf.summary || conf.description,
+        isWebSocket: "x-dropshot-websocket" in conf,
+      });
+    }
+  }
+
+  return operations;
 }
