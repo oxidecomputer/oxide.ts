@@ -9,7 +9,7 @@
 import type { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { snakeToCamel, snakeToPascal } from "../util";
-import { contentRef, iterPathConfig } from "./base";
+import { getOperations } from "./base";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -64,39 +64,27 @@ export async function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: str
     export { HttpResponse }
   `);
 
+  const operations = getOperations(spec);
+
   w(`export interface MSWHandlers {`);
-  for (const { conf, method, opId, path } of iterPathConfig(spec.paths)) {
-    const opName = snakeToCamel(opId);
+  for (const op of operations) {
+    const opName = snakeToCamel(op.opId);
+    const { pathParams, queryParams, bodyType, successType, method, path } = op;
 
-    const successResponse =
-      conf.responses["200"] ||
-      conf.responses["201"] ||
-      conf.responses["202"] ||
-      conf.responses["204"];
-
-    const successType = contentRef(successResponse, "Api.");
-
-    const bodyType = contentRef(conf.requestBody);
     const body =
       bodyType && (method === "post" || method === "put")
         ? `body: Json<Api.${bodyType}>,`
         : "";
-    const pathParams = conf.parameters?.filter(
-      (param) => "name" in param && param.schema && param.in === "path"
-    );
-    const queryParams = conf.parameters?.filter(
-      (param) => "name" in param && param.schema && param.in === "query"
-    );
-    const pathParamsType = pathParams?.length
-      ? `path: Api.${snakeToPascal(opId)}PathParams,`
+    const pathParamsType = pathParams.length
+      ? `path: Api.${snakeToPascal(op.opId)}PathParams,`
       : "";
-    const queryParamsType = queryParams?.length
-      ? `query: Api.${snakeToPascal(opId)}QueryParams,`
+    const queryParamsType = queryParams.length
+      ? `query: Api.${snakeToPascal(op.opId)}QueryParams,`
       : "";
     const params = `params: { ${pathParamsType} ${queryParamsType} ${body} req: Request, cookies: Record<string, string> }`;
 
     const resultType = successType
-      ? `Promisable<HandlerResult<${successType}>>`
+      ? `Promisable<HandlerResult<Api.${successType}>>`
       : "Promisable<StatusCode>";
 
     w(`/** \`${method.toUpperCase()} ${formatPath(path)}\` */`);
@@ -200,19 +188,20 @@ export async function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: str
 
 
     export function makeHandlers(
-      handlers: MSWHandlers, 
+      handlers: MSWHandlers,
     ): HttpHandler[] {
       return [`);
-  for (const { path, method, opId, conf } of iterPathConfig(spec.paths)) {
-    const handler = snakeToCamel(opId);
-    const bodyType = contentRef(conf.requestBody, "schema.");
+  for (const op of operations) {
+    const handler = snakeToCamel(op.opId);
+    const { bodyType, method, path, pathParams, queryParams } = op;
     const bodySchema =
-      bodyType !== "void" && (method === "post" || method === "put")
-        ? bodyType
+      bodyType && (method === "post" || method === "put")
+        ? `schema.${bodyType}`
         : "null";
-    const paramSchema = conf.parameters?.length
-      ? `schema.${snakeToPascal(opId)}Params`
-      : "null";
+    const paramSchema =
+      pathParams.length || queryParams.length
+        ? `schema.${snakeToPascal(op.opId)}Params`
+        : "null";
 
     w(
       `http.${method}('${formatPath(

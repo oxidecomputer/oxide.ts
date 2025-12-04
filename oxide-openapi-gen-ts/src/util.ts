@@ -19,13 +19,7 @@ export const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
 export const pascalToCamel = (s: string) =>
   s ? s[0].toLowerCase() + s.slice(1) : s;
 
-const renameMap: Record<string, string> = {
-  organization_name: "org_name",
-};
-
-const renameParam = (s: string) => renameMap[s] || s;
-
-export const processParamName = (s: string) => snakeToCamel(renameParam(s));
+export const processParamName = (s: string) => snakeToCamel(s);
 
 /** `{project_name}` -> `${projectName}`. if no brackets, leave it alone */
 const segmentToInterpolation = (s: string) =>

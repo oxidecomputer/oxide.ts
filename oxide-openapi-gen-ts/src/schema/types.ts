@@ -61,6 +61,7 @@ export const schemaToTypes = makeSchemaGenerator({
         w0("unknown");
       }
       w0(">");
+      if (schema.nullable) w0(" | null");
       return;
     }
 

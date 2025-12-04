@@ -23,11 +23,9 @@ import { type IO, initIO } from "../io";
 import type { Schema } from "../schema/base";
 import {
   type Param,
-  contentRef,
   docComment,
   getSortedSchemas,
-  iterParams,
-  iterPathConfig,
+  getOperations,
 } from "./base";
 import { schemaToTypes } from "../schema/types";
 
@@ -62,6 +60,26 @@ const queryParamsType = (opId: string) => `${opId}QueryParams`;
 const pathParamsType = (opId: string) => `${opId}PathParams`;
 
 /**
+ * Generate the type annotations for path and query params in a method signature.
+ * Query params are marked optional only if there are no required params.
+ */
+function genParamTypes(
+  pathParams: Param[],
+  queryParams: Param[],
+  opNameType: string,
+  io: IO
+) {
+  if (pathParams.length > 0) {
+    io.w(`path: ${pathParamsType(opNameType)},`);
+  }
+  if (queryParams.length > 0) {
+    io.w0("query");
+    if (!queryParams.some((p) => p.required)) io.w0("?");
+    io.w(`: ${queryParamsType(opNameType)},`);
+  }
+}
+
+/**
  * Source file is a relative path that we resolve relative to this
  * file, not the CWD or package root
  */
@@ -77,36 +95,17 @@ export function copyStaticFiles(destDir: string) {
   copyFile("./static/http-client.ts", destDir);
 }
 
-export function genPathParams(
+function genParamsInterface(
   params: Param[],
-  opName: string,
+  interfaceName: string,
   schemaNames: string[],
   io: IO
 ) {
-  io.w(`export interface ${pathParamsType(opName)} {`);
+  io.w(`export interface ${interfaceName} {`);
   for (const param of params) {
     if ("description" in param.schema || "title" in param.schema) {
       docComment(extractDoc(param.schema), schemaNames, io);
     }
-    io.w0(`  ${processParamName(param.name)}:`);
-    schemaToTypes(param.schema, io);
-    io.w(",");
-  }
-  io.w("}\n");
-}
-
-export function genQueryParams(
-  params: Param[],
-  opName: string,
-  schemaNames: string[],
-  io: IO
-) {
-  io.w(`export interface ${queryParamsType(opName)} {`);
-  for (const param of params) {
-    if ("description" in param.schema || "title" in param.schema) {
-      docComment(extractDoc(param.schema), schemaNames, io);
-    }
-
     io.w0(`  ${processParamName(param.name)}`);
     if (!param.required) io.w0("?");
     io.w0(": ");
@@ -155,16 +154,16 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     w(";\n");
   }
 
-  // To generate separate path and query params
-  for (const { params, opId } of iterParams(spec.paths)) {
-    const opName = snakeToPascal(opId);
-    const [pathParams, queryParams] = params;
-    if (pathParams.length > 0) {
-      genPathParams(pathParams, opName, schemaNames, io);
-    }
+  const operations = getOperations(spec);
 
-    if (queryParams.length > 0) {
-      genQueryParams(queryParams, opName, schemaNames, io);
+  // Generate separate path and query param types
+  for (const op of operations) {
+    const opName = snakeToPascal(op.opId);
+    if (op.pathParams.length > 0) {
+      genParamsInterface(op.pathParams, pathParamsType(opName), schemaNames, io);
+    }
+    if (op.queryParams.length > 0) {
+      genParamsInterface(op.queryParams, queryParamsType(opName), schemaNames, io);
     }
   }
 
@@ -221,32 +220,15 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
        
       methods = {`);
 
-  for (const { conf, opId, method, path } of iterPathConfig(spec.paths)) {
+  for (const op of operations) {
     // websockets handled in the next loop
-    if ("x-dropshot-websocket" in conf) continue;
+    if (op.isWebSocket) continue;
 
-    const methodName = snakeToCamel(opId);
-    const methodNameType = snakeToPascal(opId);
+    const methodName = snakeToCamel(op.opId);
+    const methodNameType = snakeToPascal(op.opId);
+    const { pathParams, queryParams, bodyType, successType } = op;
 
-    const params = conf.parameters || [];
-    const pathParams = params.filter(
-      (p) => "in" in p && p.in === "path"
-    ) as OpenAPIV3.ParameterObject[];
-    const queryParams = params.filter(
-      (p) => "in" in p && p.in === "query"
-    ) as OpenAPIV3.ParameterObject[];
-
-    const bodyType = contentRef(conf.requestBody);
-
-    const successResponse =
-      conf.responses["200"] ||
-      conf.responses["201"] ||
-      conf.responses["202"] ||
-      conf.responses["204"];
-
-    const successType = contentRef(successResponse);
-
-    docComment(conf.summary || conf.description, schemaNames, io);
+    docComment(op.doc, schemaNames, io);
 
     w0(`${methodName}: (`);
 
@@ -262,15 +244,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       if (bodyType) w0("body, ");
       w0("}: {");
 
-      if (pathParams.length > 0) {
-        w(`path: ${pathParamsType(methodNameType)},`);
-      }
-
-      if (queryParams.length > 0) {
-        w0("query");
-        if (!queryParams.some((p) => p.required)) w0("?");
-        w(`: ${queryParamsType(methodNameType)},`);
-      }
+      genParamTypes(pathParams, queryParams, methodNameType, io);
       if (bodyType) w(`body: ${bodyType},`);
       w("},");
     } else {
@@ -279,8 +253,8 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
     w(`params: FetchParams = {}) => {
          return this.request<${successType || "void"}>({
-           path: ${pathToTemplateStr(path)},
-           method: "${method.toUpperCase()}",`);
+           path: ${pathToTemplateStr(op.path)},
+           method: "${op.method.toUpperCase()}",`);
     if (bodyType) {
       w(`  body,`);
     }
@@ -297,44 +271,34 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
   // handle websockets endpoints separately so api.methods keep consistent
   // return types
-  for (const { conf, opId, path } of iterPathConfig(spec.paths)) {
-    if (!("x-dropshot-websocket" in conf)) continue;
+  for (const op of operations) {
+    if (!op.isWebSocket) continue;
 
-    const methodName = snakeToCamel(opId);
-    const methodNameType = snakeToPascal(opId);
+    const methodName = snakeToCamel(op.opId);
+    const methodNameType = snakeToPascal(op.opId);
+    const { pathParams, queryParams } = op;
 
-    const params = conf.parameters || [];
-    const pathParams = params.filter(
-      (p) => "in" in p && p.in === "path"
-    ) as OpenAPIV3.ParameterObject[];
-    const queryParams = params.filter(
-      (p) => "in" in p && p.in === "query"
-    ) as OpenAPIV3.ParameterObject[];
-
-    docComment(conf.summary || conf.description, schemaNames, io);
+    docComment(op.doc, schemaNames, io);
 
     w0(`${methodName}: (`);
 
     w(`{ `);
     w(" host, secure = true,");
     if (pathParams.length > 0) w0("path, ");
-    if (queryParams.length > 0) w0("query = {}, ");
+    if (queryParams.length > 0) {
+      w0("query");
+      if (!queryParams.some((p) => p.required)) w0(" = {}");
+      w0(", ");
+    }
     w0("}: {");
     w("  host: string, secure?: boolean,");
-
-    if (pathParams.length > 0) {
-      w(`path: ${pathParamsType(methodNameType)},`);
-    }
-
-    if (queryParams.length > 0) {
-      w(`query?: ${queryParamsType(methodNameType)},`);
-    }
+    genParamTypes(pathParams, queryParams, methodNameType, io);
     w("},");
 
     // websocket endpoints can't use normal fetch so we return a WebSocket
     w(`) => {
         const protocol = secure ? 'wss:' : 'ws:'
-        const route = ${pathToTemplateStr(path)}`);
+        const route = ${pathToTemplateStr(op.path)}`);
     w0(`return new WebSocket(protocol + '//' + host + route`);
     if (queryParams.length > 0) w0(`+ toQueryString(query)`);
     w(`);
