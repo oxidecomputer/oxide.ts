@@ -32,6 +32,9 @@ jobs:
       - name: Lint generator
         working-directory: "./oxide-openapi-gen-ts"
         run: npm run lint
+      - name: Check formatting
+        working-directory: "./oxide-openapi-gen-ts"
+        run: npm run fmt:check
       - name: Test generator
         working-directory: "./oxide-openapi-gen-ts"
         run: npm test run

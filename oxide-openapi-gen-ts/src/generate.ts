@@ -49,5 +49,6 @@ export async function generate(
   if (features.typetests) await generateTypeTests(spec, destDirAbs);
   if (features.msw) await generateMSWHandlers(spec, destDirAbs);
   // msw requires zod
-  if (features.zod || features.msw) await generateZodValidators(spec, destDirAbs);
+  if (features.zod || features.msw)
+    await generateZodValidators(spec, destDirAbs);
 }

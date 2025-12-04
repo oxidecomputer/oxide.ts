@@ -160,10 +160,20 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   for (const op of operations) {
     const opName = snakeToPascal(op.opId);
     if (op.pathParams.length > 0) {
-      genParamsInterface(op.pathParams, pathParamsType(opName), schemaNames, io);
+      genParamsInterface(
+        op.pathParams,
+        pathParamsType(opName),
+        schemaNames,
+        io
+      );
     }
     if (op.queryParams.length > 0) {
-      genParamsInterface(op.queryParams, queryParamsType(opName), schemaNames, io);
+      genParamsInterface(
+        op.queryParams,
+        queryParamsType(opName),
+        schemaNames,
+        io
+      );
     }
   }
 
