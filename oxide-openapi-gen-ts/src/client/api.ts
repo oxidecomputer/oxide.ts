@@ -60,6 +60,26 @@ const queryParamsType = (opId: string) => `${opId}QueryParams`;
 const pathParamsType = (opId: string) => `${opId}PathParams`;
 
 /**
+ * Generate the type annotations for path and query params in a method signature.
+ * Query params are marked optional only if there are no required params.
+ */
+function genParamTypes(
+  pathParams: Param[],
+  queryParams: Param[],
+  opNameType: string,
+  io: IO
+) {
+  if (pathParams.length > 0) {
+    io.w(`path: ${pathParamsType(opNameType)},`);
+  }
+  if (queryParams.length > 0) {
+    io.w0("query");
+    if (!queryParams.some((p) => p.required)) io.w0("?");
+    io.w(`: ${queryParamsType(opNameType)},`);
+  }
+}
+
+/**
  * Source file is a relative path that we resolve relative to this
  * file, not the CWD or package root
  */
@@ -243,15 +263,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
       if (bodyType) w0("body, ");
       w0("}: {");
 
-      if (pathParams.length > 0) {
-        w(`path: ${pathParamsType(methodNameType)},`);
-      }
-
-      if (queryParams.length > 0) {
-        w0("query");
-        if (!queryParams.some((p) => p.required)) w0("?");
-        w(`: ${queryParamsType(methodNameType)},`);
-      }
+      genParamTypes(pathParams, queryParams, methodNameType, io);
       if (bodyType) w(`body: ${bodyType},`);
       w("},");
     } else {
@@ -292,17 +304,14 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     w(`{ `);
     w(" host, secure = true,");
     if (pathParams.length > 0) w0("path, ");
-    if (queryParams.length > 0) w0("query = {}, ");
+    if (queryParams.length > 0) {
+      w0("query");
+      if (!queryParams.some((p) => p.required)) w0(" = {}");
+      w0(", ");
+    }
     w0("}: {");
     w("  host: string, secure?: boolean,");
-
-    if (pathParams.length > 0) {
-      w(`path: ${pathParamsType(methodNameType)},`);
-    }
-
-    if (queryParams.length > 0) {
-      w(`query?: ${queryParamsType(methodNameType)},`);
-    }
+    genParamTypes(pathParams, queryParams, methodNameType, io);
     w("},");
 
     // websocket endpoints can't use normal fetch so we return a WebSocket
