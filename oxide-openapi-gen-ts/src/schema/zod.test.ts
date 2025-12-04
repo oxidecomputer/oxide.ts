@@ -99,7 +99,9 @@ test("integer with format uint8", () => {
 
 test("integer with format int16", () => {
   schemaToZod({ type: "integer", format: "int16" }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.number().min(-32767).max(32767)"');
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.number().min(-32767).max(32767)"'
+  );
 });
 
 test("integer with explicit min/max", () => {
@@ -159,7 +161,12 @@ test("array with default", () => {
 
 test("array nullable with default", () => {
   schemaToZod(
-    { type: "array", items: { type: "number" }, nullable: true, default: [1, 2] },
+    {
+      type: "array",
+      items: { type: "number" },
+      nullable: true,
+      default: [1, 2],
+    },
     io
   );
   expect(out.value()).toMatchInlineSnapshot(
@@ -168,7 +175,10 @@ test("array nullable with default", () => {
 });
 
 test("array with uniqueItems", () => {
-  schemaToZod({ type: "array", items: { type: "string" }, uniqueItems: true }, io);
+  schemaToZod(
+    { type: "array", items: { type: "string" }, uniqueItems: true },
+    io
+  );
   expect(out.value()).toMatchInlineSnapshot(
     '"z.string().array().refine(...uniqueItems)"'
   );
@@ -215,16 +225,17 @@ test("object nullable", () => {
 });
 
 test("object as record with additionalProperties", () => {
-  schemaToZod(
-    { type: "object", additionalProperties: { type: "number" } },
-    io
+  schemaToZod({ type: "object", additionalProperties: { type: "number" } }, io);
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.record(z.string(),z.number())"'
   );
-  expect(out.value()).toMatchInlineSnapshot('"z.record(z.string(),z.number())"');
 });
 
 test("object as record without additionalProperties", () => {
   schemaToZod({ type: "object" }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.record(z.string(),z.unknown())"');
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.record(z.string(),z.unknown())"'
+  );
 });
 
 test("object as record nullable", () => {
@@ -334,5 +345,7 @@ test("allOf with default", () => {
 
 test("empty schema", () => {
   schemaToZod({}, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.record(z.string(), z.unknown())"');
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.record(z.string(), z.unknown())"'
+  );
 });
