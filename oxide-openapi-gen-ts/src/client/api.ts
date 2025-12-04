@@ -95,36 +95,17 @@ export function copyStaticFiles(destDir: string) {
   copyFile("./static/http-client.ts", destDir);
 }
 
-export function genPathParams(
+function genParamsInterface(
   params: Param[],
-  opName: string,
+  interfaceName: string,
   schemaNames: string[],
   io: IO
 ) {
-  io.w(`export interface ${pathParamsType(opName)} {`);
+  io.w(`export interface ${interfaceName} {`);
   for (const param of params) {
     if ("description" in param.schema || "title" in param.schema) {
       docComment(extractDoc(param.schema), schemaNames, io);
     }
-    io.w0(`  ${processParamName(param.name)}:`);
-    schemaToTypes(param.schema, io);
-    io.w(",");
-  }
-  io.w("}\n");
-}
-
-export function genQueryParams(
-  params: Param[],
-  opName: string,
-  schemaNames: string[],
-  io: IO
-) {
-  io.w(`export interface ${queryParamsType(opName)} {`);
-  for (const param of params) {
-    if ("description" in param.schema || "title" in param.schema) {
-      docComment(extractDoc(param.schema), schemaNames, io);
-    }
-
     io.w0(`  ${processParamName(param.name)}`);
     if (!param.required) io.w0("?");
     io.w0(": ");
@@ -179,10 +160,10 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   for (const op of operations) {
     const opName = snakeToPascal(op.opId);
     if (op.pathParams.length > 0) {
-      genPathParams(op.pathParams, opName, schemaNames, io);
+      genParamsInterface(op.pathParams, pathParamsType(opName), schemaNames, io);
     }
     if (op.queryParams.length > 0) {
-      genQueryParams(op.queryParams, opName, schemaNames, io);
+      genParamsInterface(op.queryParams, queryParamsType(opName), schemaNames, io);
     }
   }
 
