@@ -16,7 +16,7 @@ import fs from "node:fs";
 const formatPath = (path: string) =>
   path.replace(/{(\w+)}/g, (n) => `:${snakeToCamel(n.slice(1, -1))}`);
 
-export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
+export async function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
   if (!spec.components) return;
 
   const outFile = path.resolve(destDir, "msw-handlers.ts");
@@ -221,4 +221,5 @@ export function generateMSWHandlers(spec: OpenAPIV3.Document, destDir: string) {
     );
   }
   w(`]}`);
+  await io.end();
 }

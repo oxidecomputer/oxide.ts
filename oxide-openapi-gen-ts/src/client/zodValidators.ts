@@ -16,7 +16,7 @@ import fs from "node:fs";
 
 const HttpMethods = OpenAPIV3.HttpMethods;
 
-export function generateZodValidators(
+export async function generateZodValidators(
   spec: OpenAPIV3.Document,
   destDir: string
 ) {
@@ -107,5 +107,5 @@ export function generateZodValidators(
       w("");
     }
   }
-  out.end();
+  await io.end();
 }

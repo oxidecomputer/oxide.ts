@@ -11,15 +11,33 @@ import { Writable } from "node:stream";
 export interface IO {
   w: (str: string) => void;
   w0: (str: string) => void;
+  /**
+   * End the stream and return a promise that resolves when it's flushed.
+   *
+   * Writable streams buffer data and flush asynchronously, so calling
+   * stream.end() does not guarantee the data is written to disk. We need
+   * to wait for the 'finish' event to know the file is complete.
+   *
+   * This wasn't needed when the generator only ran as a CLI because Node
+   * flushes pending I/O on process exit. Now that tests call generate()
+   * and continue running, we must explicitly wait for the streams.
+   */
+  end: () => Promise<void>;
 }
 
 // not a class because we want to destructure w and w0 in the calling code, and
 // if it was a class, they would lose their 'this' on destructure
-export function initIO(out: Writable) {
+export function initIO(out: Writable): IO {
   return {
     w: (s: string) => out.write(s + "\n"),
     /** same as w() but no newline */
     w0: (s: string) => out.write(s),
+    end: () =>
+      new Promise((resolve, reject) => {
+        out.on("finish", resolve);
+        out.on("error", reject);
+        out.end();
+      }),
   };
 }
 
