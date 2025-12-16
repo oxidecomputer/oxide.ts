@@ -24,11 +24,11 @@ OpenAPI schemas to TS types is in [`src/schema/types.ts`](./src/schema/types.ts)
 The files in [`src/client/static/`](./src/client/static/) are copied over to
 the client as-is during generation. We generate several distinct pieces:
 
-| File                                            | Description                                                                                            |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [`Api.ts`](../api/src/Api.ts)                   | A [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)-based TS client to the Oxide API |
-| [`validate.ts`](../api/src/validate.ts)         | [Zod](https://github.com/colinhacks/zod) validators for API request and response types                 |
-| [`msw-handlers.ts`](../api/src/msw-handlers.ts) | Helpers used to build a mock API with [Mock Service Worker](https://mswjs.io/) in the console repo     |
+| File                                                   | Description                                                                                            |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| [`Api.ts`](src/__snapshots__/Api.ts)                   | A [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)-based TS client to the Oxide API |
+| [`validate.ts`](src/__snapshots__/validate.ts)         | [Zod](https://github.com/colinhacks/zod) validators for API request and response types                 |
+| [`msw-handlers.ts`](src/__snapshots__/msw-handlers.ts) | Helpers used to build a mock API with [Mock Service Worker](https://mswjs.io/) in the console repo     |
 
 ## Why a custom generator?
 
