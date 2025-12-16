@@ -30,7 +30,6 @@ the client as-is during generation. We generate several distinct pieces:
 | [`validate.ts`](src/__snapshots__/validate.ts)         | [Zod](https://github.com/colinhacks/zod) validators for API request and response types                 |
 | [`msw-handlers.ts`](src/__snapshots__/msw-handlers.ts) | Helpers used to build a mock API with [Mock Service Worker](https://mswjs.io/) in the console repo     |
 
-
 ## Why a custom generator?
 
 We tried many existing generators, and while most worked in a basic sense, we
