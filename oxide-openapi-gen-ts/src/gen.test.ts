@@ -12,10 +12,13 @@ import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OMICRON_SHA = readFileSync(join(__dirname, "../../OMICRON_VERSION"), "utf-8").trim();
-const SPEC_FILE = `/tmp/openapi-gen-ts-schemas/${OMICRON_SHA}.json`;
+const SPEC_LATEST_URL = `https://raw.githubusercontent.com/oxidecomputer/omicron/${OMICRON_SHA}/openapi/nexus/nexus-latest.json`;
+const SPEC_FILENAME = execSync(`curl --fail "${SPEC_LATEST_URL}"`, { encoding: 'utf-8' }).trim();
+const SPEC_FILE = `/tmp/openapi-gen-ts-schemas/${OMICRON_SHA}-${SPEC_FILENAME}`;
 
 let tempDir: string;
 
