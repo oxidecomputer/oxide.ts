@@ -9,7 +9,7 @@
 /**
 * An IPv4 subnet
 * 
-* An IPv4 subnet, including prefix and subnet mask
+* An IPv4 subnet, including prefix and prefix length
  */
 export type Ipv4Net =
 string;
@@ -30,7 +30,7 @@ export type IpNet =
 /**
 * A name unique within the parent collection
 * 
-* Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
+* Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID, but they may contain a UUID. They can be at most 63 characters long.
  */
 export type Name =
 string;
@@ -48,7 +48,9 @@ export type Address =
 /** The address and prefix length of this address. */
 "address": IpNet,
 /** The address lot this address is drawn from. */
-"addressLot": NameOrId,};
+"addressLot": NameOrId,
+/** Optional VLAN ID for this address */
+"vlanId"?: number | null,};
 
 /**
 * A set of addresses associated with a port configuration.
@@ -56,7 +58,9 @@ export type Address =
 export type AddressConfig =
 {
 /** The set of addresses assigned to the port configuration. */
-"addresses": (Address)[],};
+"addresses": (Address)[],
+/** Link to assign the addresses to. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+"linkName": Name,};
 
 /**
 * The kind associated with an address lot.
@@ -151,11 +155,615 @@ export type AddressLotResultsPage =
 "nextPage"?: string | null,};
 
 /**
+* An address lot and associated blocks resulting from viewing an address lot.
+ */
+export type AddressLotViewResponse =
+{
+/** The address lot blocks. */
+"blocks": (AddressLotBlock)[],
+/** The address lot. */
+"lot": AddressLot,};
+
+/**
+* The IP address version.
+ */
+export type IpVersion =
+"v4"
+| "v6"
+;
+
+/**
+* Specify which IP pool to allocate from.
+ */
+export type PoolSelector =
+(/** Use the specified pool by name or ID. */
+| {
+/** The pool to allocate from. */
+"pool": NameOrId,"type": "explicit"
+,}
+/** Use the default pool for the silo. */
+| {
+/** IP version to use when multiple default pools exist. Required if both IPv4 and IPv6 default pools are configured. */
+"ipVersion"?: IpVersion | null,"type": "auto"
+,}
+);
+
+/**
+* Specify how to allocate a floating IP address.
+ */
+export type AddressSelector =
+(/** Reserve a specific IP address. */
+| {
+/** The IP address to reserve. Must be available in the pool. */
+"ip": string,
+/** The pool containing this address. If not specified, the default pool for the address's IP version is used. */
+"pool"?: NameOrId | null,"type": "explicit"
+,}
+/** Automatically allocate an IP address from a specified pool. */
+| {
+/** Pool selection.
+
+If omitted, this field uses the silo's default pool. If the silo has default pools for both IPv4 and IPv6, the request will fail unless `ip_version` is specified in the pool selector. */
+"poolSelector"?: PoolSelector,"type": "auto"
+,}
+);
+
+/**
+* Describes the scope of affinity for the purposes of co-location.
+ */
+export type FailureDomain =
+"sled"
+;
+
+/**
+* Affinity policy used to describe "what to do when a request cannot be satisfied"
+* 
+* Used for both Affinity and Anti-Affinity Groups
+ */
+export type AffinityPolicy =
+(/** If the affinity request cannot be satisfied, allow it anyway.
+
+This enables a "best-effort" attempt to satisfy the affinity policy. */
+| "allow"
+
+/** If the affinity request cannot be satisfied, fail explicitly. */
+| "fail"
+
+);
+
+/**
+* View of an Affinity Group
+ */
+export type AffinityGroup =
+{
+/** human-readable free-form text about a resource */
+"description": string,"failureDomain": FailureDomain,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,"policy": AffinityPolicy,"projectId": string,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Create-time parameters for an `AffinityGroup`
+ */
+export type AffinityGroupCreate =
+{"description": string,"failureDomain": FailureDomain,"name": Name,"policy": AffinityPolicy,};
+
+/**
+* Running state of an Instance (primarily: booted or stopped)
+* 
+* This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
+ */
+export type InstanceState =
+(/** The instance is being created. */
+| "creating"
+
+/** The instance is currently starting up. */
+| "starting"
+
+/** The instance is currently running. */
+| "running"
+
+/** The instance has been requested to stop and a transition to "Stopped" is imminent. */
+| "stopping"
+
+/** The instance is currently stopped. */
+| "stopped"
+
+/** The instance is in the process of rebooting - it will remain in the "rebooting" state until the VM is starting once more. */
+| "rebooting"
+
+/** The instance is in the process of migrating - it will remain in the "migrating" state until the migration process is complete and the destination propolis is ready to continue execution. */
+| "migrating"
+
+/** The instance is attempting to recover from a failure. */
+| "repairing"
+
+/** The instance has encountered a failure. */
+| "failed"
+
+/** The instance has been deleted. */
+| "destroyed"
+
+);
+
+/**
+* A member of an Affinity Group
+* 
+* Membership in a group is not exclusive - members may belong to multiple affinity / anti-affinity groups.
+* 
+* Affinity Groups can contain up to 32 members.
+ */
+export type AffinityGroupMember =
+{"type": "instance"
+,"value": {"id": string,"name": Name,"runState": InstanceState,},};
+
+/**
+* A single page of results
+ */
+export type AffinityGroupMemberResultsPage =
+{
+/** list of items on this page of results */
+"items": (AffinityGroupMember)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type AffinityGroupResultsPage =
+{
+/** list of items on this page of results */
+"items": (AffinityGroup)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Updateable properties of an `AffinityGroup`
+ */
+export type AffinityGroupUpdate =
+{"description"?: string | null,"name"?: Name | null,};
+
+export type BgpMessageHistory =
+Record<string, unknown>;
+
+/**
+* Identifies switch physical location
+ */
+export type SwitchLocation =
+(/** Switch in upper slot */
+| "switch0"
+
+/** Switch in lower slot */
+| "switch1"
+
+);
+
+/**
+* BGP message history for a particular switch.
+ */
+export type SwitchBgpHistory =
+{
+/** Message history indexed by peer address. */
+"history": Record<string,BgpMessageHistory>,
+/** Switch this message history is associated with. */
+"switch": SwitchLocation,};
+
+/**
+* BGP message history for rack switches.
+ */
+export type AggregateBgpMessageHistory =
+{
+/** BGP history organized by switch. */
+"switchHistories": (SwitchBgpHistory)[],};
+
+/**
+* An alert class.
+ */
+export type AlertClass =
+{
+/** A description of what this alert class represents. */
+"description": string,
+/** The name of the alert class. */
+"name": string,};
+
+/**
+* A single page of results
+ */
+export type AlertClassResultsPage =
+{
+/** list of items on this page of results */
+"items": (AlertClass)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* The response received from a webhook receiver endpoint.
+ */
+export type WebhookDeliveryResponse =
+{
+/** The response time of the webhook endpoint, in milliseconds. */
+"durationMs": number,
+/** The HTTP status code returned from the webhook endpoint. */
+"status": number,};
+
+export type WebhookDeliveryAttemptResult =
+(/** The webhook event has been delivered successfully. */
+| "succeeded"
+
+/** A webhook request was sent to the endpoint, and it returned a HTTP error status code indicating an error. */
+| "failed_http_error"
+
+/** The webhook request could not be sent to the receiver endpoint. */
+| "failed_unreachable"
+
+/** A connection to the receiver endpoint was successfully established, but no response was received within the delivery timeout. */
+| "failed_timeout"
+
+);
+
+/**
+* An individual delivery attempt for a webhook event.
+* 
+* This represents a single HTTP request that was sent to the receiver, and its outcome.
+ */
+export type WebhookDeliveryAttempt =
+{
+/** The attempt number. */
+"attempt": number,"response"?: WebhookDeliveryResponse | null,
+/** The outcome of this delivery attempt: either the event was delivered successfully, or the request failed for one of several reasons. */
+"result": WebhookDeliveryAttemptResult,
+/** The time at which the webhook delivery was attempted. */
+"timeSent": Date,};
+
+/**
+* A list of attempts to deliver an alert to a receiver.
+* 
+* The type of the delivery attempt model depends on the receiver type, as it may contain information specific to that delivery mechanism. For example, webhook delivery attempts contain the HTTP status code of the webhook request.
+ */
+export type AlertDeliveryAttempts =
+{"webhook": (WebhookDeliveryAttempt)[],};
+
+/**
+* The state of a webhook delivery attempt.
+ */
+export type AlertDeliveryState =
+(/** The webhook event has not yet been delivered successfully.
+
+Either no delivery attempts have yet been performed, or the delivery has failed at least once but has retries remaining. */
+| "pending"
+
+/** The webhook event has been delivered successfully. */
+| "delivered"
+
+/** The webhook delivery attempt has failed permanently and will not be retried again. */
+| "failed"
+
+);
+
+/**
+* The reason an alert was delivered
+ */
+export type AlertDeliveryTrigger =
+(/** Delivery was triggered by the alert itself. */
+| "alert"
+
+/** Delivery was triggered by a request to resend the alert. */
+| "resend"
+
+/** This delivery is a liveness probe. */
+| "probe"
+
+);
+
+/**
+* A delivery of a webhook event.
+ */
+export type AlertDelivery =
+{
+/** The event class. */
+"alertClass": string,
+/** The UUID of the event. */
+"alertId": string,
+/** Individual attempts to deliver this webhook event, and their outcomes. */
+"attempts": AlertDeliveryAttempts,
+/** The UUID of this delivery attempt. */
+"id": string,
+/** The UUID of the alert receiver that this event was delivered to. */
+"receiverId": string,
+/** The state of this delivery. */
+"state": AlertDeliveryState,
+/** The time at which this delivery began (i.e. the event was dispatched to the receiver). */
+"timeStarted": Date,
+/** Why this delivery was performed. */
+"trigger": AlertDeliveryTrigger,};
+
+export type AlertDeliveryId =
+{"deliveryId": string,};
+
+/**
+* A single page of results
+ */
+export type AlertDeliveryResultsPage =
+{
+/** list of items on this page of results */
+"items": (AlertDelivery)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Data describing the result of an alert receiver liveness probe attempt.
+ */
+export type AlertProbeResult =
+{
+/** The outcome of the probe delivery. */
+"probe": AlertDelivery,
+/** If the probe request succeeded, and resending failed deliveries on success was requested, the number of new delivery attempts started. Otherwise, if the probe did not succeed, or resending failed deliveries was not requested, this is null.
+
+Note that this may be 0, if there were no events found which had not been delivered successfully to this receiver. */
+"resendsStarted"?: number | null,};
+
+/**
+* A view of a shared secret key assigned to a webhook receiver.
+* 
+* Once a secret is created, the value of the secret is not available in the API, as it must remain secret. Instead, secrets are referenced by their unique IDs assigned when they are created.
+ */
+export type WebhookSecret =
+{
+/** The public unique ID of the secret. */
+"id": string,
+/** The UTC timestamp at which this secret was created. */
+"timeCreated": Date,};
+
+/**
+* The possible alert delivery mechanisms for an alert receiver.
+ */
+export type AlertReceiverKind =
+{
+/** The URL that webhook notification requests are sent to. */
+"endpoint": string,"kind": "webhook"
+,"secrets": (WebhookSecret)[],};
+
+/**
+* A webhook event class subscription
+* 
+* A webhook event class subscription matches either a single event class exactly, or a glob pattern including wildcards that may match multiple event classes
+ */
+export type AlertSubscription =
+string;
+
+/**
+* The configuration for an alert receiver.
+ */
+export type AlertReceiver =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** Configuration specific to the kind of alert receiver that this is. */
+"kind": AlertReceiverKind,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** The list of alert classes to which this receiver is subscribed. */
+"subscriptions": (AlertSubscription)[],
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* A single page of results
+ */
+export type AlertReceiverResultsPage =
+{
+/** list of items on this page of results */
+"items": (AlertReceiver)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+export type AlertSubscriptionCreate =
+{
+/** The event class pattern to subscribe to. */
+"subscription": AlertSubscription,};
+
+export type AlertSubscriptionCreated =
+{
+/** The new subscription added to the receiver. */
+"subscription": AlertSubscription,};
+
+/**
+* Description of source IPs allowed to reach rack services.
+ */
+export type AllowedSourceIps =
+(/** Allow traffic from any external IP address. */
+| {"allow": "any"
+,}
+/** Restrict access to a specific set of source IP addresses or subnets.
+
+All others are prevented from reaching rack services. */
+| {"allow": "list"
+,"ips": (IpNet)[],}
+);
+
+/**
+* Allowlist of IPs or subnets that can make requests to user-facing services.
+ */
+export type AllowList =
+{
+/** The allowlist of IPs or subnets. */
+"allowedIps": AllowedSourceIps,
+/** Time the list was created. */
+"timeCreated": Date,
+/** Time the list was last modified. */
+"timeModified": Date,};
+
+/**
+* Parameters for updating allowed source IPs
+ */
+export type AllowListUpdate =
+{
+/** The new list of allowed source IPs. */
+"allowedIps": AllowedSourceIps,};
+
+/**
+* View of an Anti-Affinity Group
+ */
+export type AntiAffinityGroup =
+{
+/** human-readable free-form text about a resource */
+"description": string,"failureDomain": FailureDomain,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,"policy": AffinityPolicy,"projectId": string,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Create-time parameters for an `AntiAffinityGroup`
+ */
+export type AntiAffinityGroupCreate =
+{"description": string,"failureDomain": FailureDomain,"name": Name,"policy": AffinityPolicy,};
+
+/**
+* A member of an Anti-Affinity Group
+* 
+* Membership in a group is not exclusive - members may belong to multiple affinity / anti-affinity groups.
+* 
+* Anti-Affinity Groups can contain up to 32 members.
+ */
+export type AntiAffinityGroupMember =
+{"type": "instance"
+,"value": {"id": string,"name": Name,"runState": InstanceState,},};
+
+/**
+* A single page of results
+ */
+export type AntiAffinityGroupMemberResultsPage =
+{
+/** list of items on this page of results */
+"items": (AntiAffinityGroupMember)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type AntiAffinityGroupResultsPage =
+{
+/** list of items on this page of results */
+"items": (AntiAffinityGroup)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Updateable properties of an `AntiAffinityGroup`
+ */
+export type AntiAffinityGroupUpdate =
+{"description"?: string | null,"name"?: Name | null,};
+
+export type AuditLogEntryActor =
+(| {"kind": "user_builtin"
+,"userBuiltinId": string,}
+| {"kind": "silo_user"
+,"siloId": string,"siloUserId": string,}
+| {"kind": "scim"
+,"siloId": string,}
+| {"kind": "unauthenticated"
+,}
+);
+
+/**
+* Result of an audit log entry
+ */
+export type AuditLogEntryResult =
+(/** The operation completed successfully */
+| {
+/** HTTP status code */
+"httpStatusCode": number,"kind": "success"
+,}
+/** The operation failed */
+| {"errorCode"?: string | null,"errorMessage": string,
+/** HTTP status code */
+"httpStatusCode": number,"kind": "error"
+,}
+/** After the logged operation completed, our attempt to write the result to the audit log failed, so it was automatically marked completed later by a background job. This does not imply that the operation itself timed out or failed, only our attempts to log its result. */
+| {"kind": "unknown"
+,}
+);
+
+/**
+* Audit log entry
+ */
+export type AuditLogEntry =
+{"actor": AuditLogEntryActor,
+/** How the user authenticated the request. Possible values are "session_cookie" and "access_token". Optional because it will not be defined on unauthenticated requests like login attempts. */
+"authMethod"?: string | null,
+/** Unique identifier for the audit log entry */
+"id": string,
+/** API endpoint ID, e.g., `project_create` */
+"operationId": string,
+/** Request ID for tracing requests through the system */
+"requestId": string,
+/** URI of the request, truncated to 512 characters. Will only include host and scheme for HTTP/2 requests. For HTTP/1.1, the URI will consist of only the path and query. */
+"requestUri": string,
+/** Result of the operation */
+"result": AuditLogEntryResult,
+/** IP address that made the request */
+"sourceIp": string,
+/** Time operation completed */
+"timeCompleted": Date,
+/** When the request was received */
+"timeStarted": Date,
+/** User agent string from the request, truncated to 256 characters. */
+"userAgent"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type AuditLogEntryResultsPage =
+{
+/** list of items on this page of results */
+"items": (AuditLogEntry)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Authorization scope for a timeseries.
+* 
+* This describes the level at which a user must be authorized to read data from a timeseries. For example, fleet-scoping means the data is only visible to an operator or fleet reader. Project-scoped, on the other hand, indicates that a user will see data limited to the projects on which they have read permissions.
+ */
+export type AuthzScope =
+(/** Timeseries data is limited to fleet readers. */
+| "fleet"
+
+/** Timeseries data is limited to the authorized silo for a user. */
+| "silo"
+
+/** Timeseries data is limited to the authorized projects for a user. */
+| "project"
+
+/** The timeseries is viewable to all without limitation. */
+| "viewable_to_all"
+
+);
+
+/**
 * Properties that uniquely identify an Oxide hardware component
  */
 export type Baseboard =
 {"part": string,"revision": number,"serial": string,};
 
+/**
+* BFD connection mode.
+ */
 export type BfdMode =
 "single_hop"
 | "multi_hop"
@@ -294,16 +902,12 @@ export type BgpConfigResultsPage =
 "nextPage"?: string | null,};
 
 /**
-* Identifies switch physical location
+* The current status of a BGP peer.
  */
-export type SwitchLocation =
-(/** Switch in upper slot */
-| "switch0"
-
-/** Switch in lower slot */
-| "switch1"
-
-);
+export type BgpExported =
+{
+/** Exported routes indexed by peer address. */
+"exports": Record<string,(Ipv4Net)[]>,};
 
 /**
 * A route imported from a BGP peer.
@@ -320,37 +924,68 @@ export type BgpImportedRouteIpv4 =
 "switch": SwitchLocation,};
 
 /**
+* Define policy relating to the import and export of prefixes from a BGP peer.
+ */
+export type ImportExportPolicy =
+(/** Do not perform any filtering. */
+| {"type": "no_filtering"
+,}
+| {"type": "allow"
+,"value": (IpNet)[],}
+);
+
+/**
 * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
  */
 export type BgpPeer =
 {
 /** The address of the host to peer with. */
 "addr": string,
-/** The set of announcements advertised by the peer. */
-"bgpAnnounceSet": NameOrId,
+/** Define export policy for a peer. */
+"allowedExport": ImportExportPolicy,
+/** Define import policy for a peer. */
+"allowedImport": ImportExportPolicy,
 /** The global BGP configuration used for establishing a session with this peer. */
 "bgpConfig": NameOrId,
+/** Include the provided communities in updates sent to the peer. */
+"communities": (number)[],
 /** How long to to wait between TCP connection retries (seconds). */
 "connectRetry": number,
 /** How long to delay sending an open request after establishing a TCP session (seconds). */
 "delayOpen": number,
-/** How long to hold peer connections between keppalives (seconds). */
+/** Enforce that the first AS in paths received from this peer is the peer's AS. */
+"enforceFirstAs": boolean,
+/** How long to hold peer connections between keepalives (seconds). */
 "holdTime": number,
 /** How long to hold a peer in idle before attempting a new session (seconds). */
 "idleHoldTime": number,
 /** The name of interface to peer on. This is relative to the port configuration this BGP peer configuration is a part of. For example this value could be phy0 to refer to a primary physical interface. Or it could be vlan47 to refer to a VLAN interface. */
-"interfaceName": string,
+"interfaceName": Name,
 /** How often to send keepalive requests (seconds). */
-"keepalive": number,};
+"keepalive": number,
+/** Apply a local preference to routes received from this peer. */
+"localPref"?: number | null,
+/** Use the given key for TCP-MD5 authentication with the peer. */
+"md5AuthKey"?: string | null,
+/** Require messages from a peer have a minimum IP time to live field. */
+"minTtl"?: number | null,
+/** Apply the provided multi-exit discriminator (MED) updates sent to the peer. */
+"multiExitDiscriminator"?: number | null,
+/** Require that a peer has a specified ASN. */
+"remoteAsn"?: number | null,
+/** Associate a VLAN ID with a peer. */
+"vlanId"?: number | null,};
 
 export type BgpPeerConfig =
-{"peers": (BgpPeer)[],};
+{
+/** Link that the peer is reachable on. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+"linkName": Name,"peers": (BgpPeer)[],};
 
 /**
 * The current state of a BGP peer.
  */
 export type BgpPeerState =
-(/** Initial state. Refuse all incomming BGP connections. No resources allocated to peer. */
+(/** Initial state. Refuse all incoming BGP connections. No resources allocated to peer. */
 | "idle"
 
 /** Waiting for the TCP connection to be completed. */
@@ -365,10 +1000,13 @@ export type BgpPeerState =
 /** Waiting for keepaliave or notification from peer. */
 | "open_confirm"
 
+/** There is an ongoing Connection Collision that hasn't yet been resolved. Two connections are maintained until one connection receives an Open or is able to progress into Established. */
+| "connection_collision"
+
 /** Synchronizing with peer. */
 | "session_setup"
 
-/** Session established. Able to exchange update, notification and keepliave messages with peers. */
+/** Session established. Able to exchange update, notification and keepalive messages with peers. */
 | "established"
 
 );
@@ -688,12 +1326,16 @@ export type ServiceUsingCertificate =
  */
 export type Certificate =
 {
+/** PEM-formatted string containing public certificate chain */
+"cert": string,
 /** human-readable free-form text about a resource */
 "description": string,
 /** unique, immutable, system-controlled identifier for each resource */
 "id": string,
 /** unique, mutable, user-controlled identifier for each resource */
-"name": Name,"service": ServiceUsingCertificate,
+"name": Name,
+/** The service using this certificate */
+"service": ServiceUsingCertificate,
 /** timestamp when this resource was created */
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
@@ -718,6 +1360,24 @@ export type CertificateResultsPage =
 {
 /** list of items on this page of results */
 "items": (Certificate)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* View of a console session
+ */
+export type ConsoleSession =
+{
+/** A unique, immutable, system-controlled identifier for the session */
+"id": string,"timeCreated": Date,"timeLastUsed": Date,};
+
+/**
+* A single page of results
+ */
+export type ConsoleSessionResultsPage =
+{
+/** list of items on this page of results */
+"items": (ConsoleSession)[],
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
 
@@ -751,11 +1411,35 @@ export type Cumulativeuint64 =
 export type CurrentUser =
 {
 /** Human-readable name that can identify the user */
-"displayName": string,"id": string,
+"displayName": string,
+/** Whether this user has the viewer role on the fleet. Used by the web console to determine whether to show system-level UI. */
+"fleetViewer": boolean,"id": string,
+/** Whether this user has the admin role on their silo. Used by the web console to determine whether to show admin-only UI elements. */
+"siloAdmin": boolean,
 /** Uuid of the silo to which this user belongs */
 "siloId": string,
 /** Name of the silo to which this user belongs. */
 "siloName": Name,};
+
+/**
+* Structure for estimating the p-quantile of a population.
+* 
+* This is based on the P² algorithm for estimating quantiles using constant space.
+* 
+* The algorithm consists of maintaining five markers: the minimum, the p/2-, p-, and (1 + p)/2 quantiles, and the maximum.
+ */
+export type Quantile =
+{
+/** The desired marker positions. */
+"desiredMarkerPositions": (number)[],
+/** The heights of the markers. */
+"markerHeights": (number)[],
+/** The positions of the markers.
+
+We track sample size in the 5th position, as useful observations won't start until we've filled the heights at the 6th sample anyway This does deviate from the paper, but it's a more useful representation that works according to the paper's algorithm. */
+"markerPositions": (number)[],
+/** The p value for the quantile. */
+"p": number,};
 
 /**
 * Histogram metric
@@ -765,7 +1449,29 @@ export type CurrentUser =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramint8 =
-{"bins": (Binint8)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binint8)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -775,7 +1481,29 @@ export type Histogramint8 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramuint8 =
-{"bins": (Binuint8)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binuint8)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -785,7 +1513,29 @@ export type Histogramuint8 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramint16 =
-{"bins": (Binint16)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binint16)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -795,7 +1545,29 @@ export type Histogramint16 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramuint16 =
-{"bins": (Binuint16)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binuint16)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -805,7 +1577,29 @@ export type Histogramuint16 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramint32 =
-{"bins": (Binint32)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binint32)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -815,7 +1609,29 @@ export type Histogramint32 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramuint32 =
-{"bins": (Binuint32)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binuint32)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -825,7 +1641,29 @@ export type Histogramuint32 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramint64 =
-{"bins": (Binint64)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binint64)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -835,7 +1673,29 @@ export type Histogramint64 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramuint64 =
-{"bins": (Binuint64)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binuint64)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -845,7 +1705,29 @@ export type Histogramuint64 =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramfloat =
-{"bins": (Binfloat)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Binfloat)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * Histogram metric
@@ -855,7 +1737,29 @@ export type Histogramfloat =
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export type Histogramdouble =
-{"bins": (Bindouble)[],"nSamples": number,"startTime": Date,};
+{
+/** The bins of the histogram. */
+"bins": (Bindouble)[],
+/** The maximum value of all samples in the histogram. */
+"max": number,
+/** The minimum value of all samples in the histogram. */
+"min": number,
+/** The total number of samples in the histogram. */
+"nSamples": number,
+/** p50 Quantile */
+"p50": Quantile,
+/** p95 Quantile */
+"p90": Quantile,
+/** p99 Quantile */
+"p99": Quantile,
+/** M2 for Welford's algorithm for variance calculation.
+
+Read about [Welford's algorithm](https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm) for more information on the algorithm. */
+"squaredMean": number,
+/** The start time of the histogram. */
+"startTime": Date,
+/** The sum of all samples in the histogram. */
+"sumOfSamples": number,};
 
 /**
 * The type of an individual datum of a metric.
@@ -957,16 +1861,42 @@ export type Datum =
 
 export type DerEncodedKeyPair =
 {
-/** request signing private key (base64 encoded der file) */
+/** request signing RSA private key in PKCS#1 format (base64 encoded der file) */
 "privateKey": string,
 /** request signing public certificate (base64 encoded der file) */
 "publicCert": string,};
 
+/**
+* View of a device access token
+ */
+export type DeviceAccessToken =
+{
+/** A unique, immutable, system-controlled identifier for the token. Note that this ID is not the bearer token itself, which starts with "oxide-token-" */
+"id": string,"timeCreated": Date,
+/** Expiration timestamp. A null value means the token does not automatically expire. */
+"timeExpires"?: Date | null,};
+
 export type DeviceAccessTokenRequest =
 {"clientId": string,"deviceCode": string,"grantType": string,};
 
+/**
+* A single page of results
+ */
+export type DeviceAccessTokenResultsPage =
+{
+/** list of items on this page of results */
+"items": (DeviceAccessToken)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
 export type DeviceAuthRequest =
-{"clientId": string,};
+{"clientId": string,
+/** Optional lifetime for the access token in seconds.
+
+This value will be validated during the confirmation step. If not specified, it defaults to the silo's max TTL, which can be seen at `/v1/auth-settings`.  If specified, must not exceed the silo's max TTL.
+
+Some special logic applies when authenticating the confirmation request with an existing device token: the requested TTL must not produce an expiration time later than the authenticating token's expiration. If no TTL is specified, the expiration will be the lesser of the silo max and the authenticating token's expiration time. To get the longest allowed lifetime, omit the TTL and authenticate with a web console session. */
+"ttlSeconds"?: number | null,};
 
 export type DeviceAuthVerify =
 {"userCode": string,};
@@ -974,6 +1904,11 @@ export type DeviceAuthVerify =
 export type Digest =
 {"type": "sha256"
 ,"value": string,};
+
+export type DiskType =
+"distributed"
+| "local"
+;
 
 /**
 * State of a Disk
@@ -1023,7 +1958,7 @@ export type DiskState =
 export type Disk =
 {"blockSize": ByteCount,
 /** human-readable free-form text about a resource */
-"description": string,"devicePath": string,
+"description": string,"devicePath": string,"diskType": DiskType,
 /** unique, immutable, system-controlled identifier for each resource */
 "id": string,
 /** ID of image from which disk was created, if any */
@@ -1038,7 +1973,7 @@ export type Disk =
 "timeModified": Date,};
 
 /**
-* Different sources for a disk
+* Different sources for a Distributed Disk
  */
 export type DiskSource =
 (/** Create a blank disk */
@@ -1058,13 +1993,25 @@ export type DiskSource =
 );
 
 /**
+* The source of a `Disk`'s blocks
+ */
+export type DiskBackend =
+(| {"type": "local"
+,}
+| {
+/** The initial source for this disk */
+"diskSource": DiskSource,"type": "distributed"
+,}
+);
+
+/**
 * Create-time parameters for a `Disk`
  */
 export type DiskCreate =
 {"description": string,
-/** initial source for this disk */
-"diskSource": DiskSource,"name": Name,
-/** total size of the Disk in bytes */
+/** The source for this `Disk`'s blocks */
+"diskBackend": DiskBackend,"name": Name,
+/** The total size of the Disk (in bytes) */
 "size": ByteCount,};
 
 export type DiskPath =
@@ -1083,15 +2030,44 @@ export type DiskResultsPage =
 "nextPage"?: string | null,};
 
 /**
+* A distribution is a sequence of bins and counts in those bins, and some statistical information tracked to compute the mean, standard deviation, and quantile estimates.
+* 
+* Min, max, and the p-* quantiles are treated as optional due to the possibility of distribution operations, like subtraction.
+ */
+export type Distributiondouble =
+{"bins": (number)[],"counts": (number)[],"max"?: number | null,"min"?: number | null,"p50"?: number | null,"p90"?: number | null,"p99"?: number | null,"squaredMean": number,"sumOfSamples": number,};
+
+/**
+* A distribution is a sequence of bins and counts in those bins, and some statistical information tracked to compute the mean, standard deviation, and quantile estimates.
+* 
+* Min, max, and the p-* quantiles are treated as optional due to the possibility of distribution operations, like subtraction.
+ */
+export type Distributionint64 =
+{"bins": (number)[],"counts": (number)[],"max"?: number | null,"min"?: number | null,"p50"?: number | null,"p90"?: number | null,"p99"?: number | null,"squaredMean": number,"sumOfSamples": number,};
+
+/**
 * Parameters for creating an ephemeral IP address for an instance.
  */
 export type EphemeralIpCreate =
 {
-/** Name or ID of the IP pool used to allocate an address */
-"pool"?: NameOrId | null,};
+/** Pool to allocate from. */
+"poolSelector"?: PoolSelector,};
 
 export type ExternalIp =
-(| {"ip": string,"kind": "ephemeral"
+(/** A source NAT IP address.
+
+SNAT addresses are ephemeral addresses used only for outbound connectivity. */
+| {
+/** The first usable port within the IP address. */
+"firstPort": number,
+/** The IP address. */
+"ip": string,
+/** ID of the IP Pool from which the address is taken. */
+"ipPoolId": string,"kind": "snat"
+,
+/** The last usable port within the IP address. */
+"lastPort": number,}
+| {"ip": string,"ipPoolId": string,"kind": "ephemeral"
 ,}
 /** A Floating IP is a well-known IP address which can be attached and detached from instances. */
 | {
@@ -1102,7 +2078,9 @@ export type ExternalIp =
 /** The ID of the instance that this Floating IP is attached to, if it is presently in use. */
 "instanceId"?: string | null,
 /** The IP address held by this resource. */
-"ip": string,"kind": "floating"
+"ip": string,
+/** The ID of the IP pool this resource belongs to. */
+"ipPoolId": string,"kind": "floating"
 ,
 /** unique, mutable, user-controlled identifier for each resource */
 "name": Name,
@@ -1118,8 +2096,10 @@ export type ExternalIp =
 * Parameters for creating an external IP address for instances.
  */
 export type ExternalIpCreate =
-(/** An IP address providing both inbound and outbound access. The address is automatically-assigned from the provided IP Pool, or the current silo's default pool if not specified. */
-| {"pool"?: NameOrId | null,"type": "ephemeral"
+(/** An IP address providing both inbound and outbound access. The address is automatically assigned from a pool. */
+| {
+/** Pool to allocate from. */
+"poolSelector"?: PoolSelector,"type": "ephemeral"
 ,}
 /** An IP address providing both inbound and outbound access. The address is an existing floating IP object assigned to the current project.
 
@@ -1137,6 +2117,68 @@ export type ExternalIpResultsPage =
 "items": (ExternalIp)[],
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
+
+/**
+* The `FieldType` identifies the data type of a target or metric field.
+ */
+export type FieldType =
+"string"
+| "i8"
+| "u8"
+| "i16"
+| "u16"
+| "i32"
+| "u32"
+| "i64"
+| "u64"
+| "ip_addr"
+| "uuid"
+| "bool"
+;
+
+/**
+* The source from which a field is derived, the target or metric.
+ */
+export type FieldSource =
+"target"
+| "metric"
+;
+
+/**
+* The name and type information for a field of a timeseries schema.
+ */
+export type FieldSchema =
+{"description": string,"fieldType": FieldType,"name": string,"source": FieldSource,};
+
+/**
+* The `FieldValue` contains the value of a target or metric field.
+ */
+export type FieldValue =
+(| {"type": "string"
+,"value": string,}
+| {"type": "i8"
+,"value": number,}
+| {"type": "u8"
+,"value": number,}
+| {"type": "i16"
+,"value": number,}
+| {"type": "u16"
+,"value": number,}
+| {"type": "i32"
+,"value": number,}
+| {"type": "u32"
+,"value": number,}
+| {"type": "i64"
+,"value": number,}
+| {"type": "u64"
+,"value": number,}
+| {"type": "ip_addr"
+,"value": string,}
+| {"type": "uuid"
+,"value": string,}
+| {"type": "bool"
+,"value": boolean,}
+);
 
 /**
 * Parameters for finalizing a disk
@@ -1191,6 +2233,8 @@ export type FloatingIp =
 "instanceId"?: string | null,
 /** The IP address held by this resource. */
 "ip": string,
+/** The ID of the IP pool this resource belongs to. */
+"ipPoolId": string,
 /** unique, mutable, user-controlled identifier for each resource */
 "name": Name,
 /** The project this resource exists within. */
@@ -1221,11 +2265,9 @@ export type FloatingIpAttach =
 * Parameters for creating a new floating IP address for instances.
  */
 export type FloatingIpCreate =
-{"description": string,
-/** An IP address to reserve for use as a floating IP. This field is optional: when not set, an address will be automatically chosen from `pool`. If set, then the IP must be available in the resolved `pool`. */
-"ip"?: string | null,"name": Name,
-/** The parent IP pool that a floating IP is pulled from. If unset, the default pool is selected. */
-"pool"?: NameOrId | null,};
+{
+/** IP address allocation method. */
+"addressSelector"?: AddressSelector,"description": string,"name": Name,};
 
 /**
 * A single page of results
@@ -1269,6 +2311,14 @@ export type GroupResultsPage =
 * A hostname identifies a host on a network, and is usually a dot-delimited sequence of labels, where each label contains only letters, digits, or the hyphen. See RFCs 1035 and 952 for more details.
  */
 export type Hostname =
+string;
+
+/**
+* A range of ICMP(v6) types or codes
+* 
+* An inclusive-inclusive range of ICMP(v6) types or codes. The second value may be omitted to represent a single parameter.
+ */
+export type IcmpParamRange =
 string;
 
 export type IdentityProviderType =
@@ -1344,12 +2394,8 @@ export type Image =
 * The source of the underlying image.
  */
 export type ImageSource =
-(| {"id": string,"type": "snapshot"
-,}
-/** Boot the Alpine ISO that ships with the Propolis zone. Intended for development purposes only. */
-| {"type": "you_can_boot_anything_as_long_as_its_alpine"
-,}
-);
+{"id": string,"type": "snapshot"
+,};
 
 /**
 * Create-time parameters for an `Image`
@@ -1380,54 +2426,64 @@ export type ImportBlocksBulkWrite =
 {"base64EncodedData": string,"offset": number,};
 
 /**
+* A policy determining when an instance should be automatically restarted by the control plane.
+ */
+export type InstanceAutoRestartPolicy =
+(/** The instance should not be automatically restarted by the control plane if it fails. */
+| "never"
+
+/** If this instance is running and unexpectedly fails (e.g. due to a host software crash or unexpected host reboot), the control plane will make a best-effort attempt to restart it. The control plane may choose not to restart the instance to preserve the overall availability of the system. */
+| "best_effort"
+
+);
+
+/**
+* A required CPU platform for an instance.
+* 
+* When an instance specifies a required CPU platform:
+* 
+* - The system may expose (to the VM) new CPU features that are only present on that platform (or on newer platforms of the same lineage that also support those features). - The instance must run on hosts that have CPUs that support all the features of the supplied platform.
+* 
+* That is, the instance is restricted to hosts that have the CPUs which support all features of the required platform, but in exchange the CPU features exposed by the platform are available for the guest to use. Note that this may prevent an instance from starting (if the hosts that could run it are full but there is capacity on other incompatible hosts).
+* 
+* If an instance does not specify a required CPU platform, then when it starts, the control plane selects a host for the instance and then supplies the guest with the "minimum" CPU platform supported by that host. This maximizes the number of hosts that can run the VM if it later needs to migrate to another host.
+* 
+* In all cases, the CPU features presented by a given CPU platform are a subset of what the corresponding hardware may actually support; features which cannot be used from a virtual environment or do not have full hypervisor support may be masked off. See RFD 314 for specific CPU features in a CPU platform.
+ */
+export type InstanceCpuPlatform =
+(/** An AMD Milan-like CPU platform. */
+| "amd_milan"
+
+/** An AMD Turin-like CPU platform. */
+| "amd_turin"
+
+);
+
+/**
 * The number of CPUs in an Instance
  */
 export type InstanceCpuCount =
 number;
 
 /**
-* Running state of an Instance (primarily: booted or stopped)
-* 
-* This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
- */
-export type InstanceState =
-(/** The instance is being created. */
-| "creating"
-
-/** The instance is currently starting up. */
-| "starting"
-
-/** The instance is currently running. */
-| "running"
-
-/** The instance has been requested to stop and a transition to "Stopped" is imminent. */
-| "stopping"
-
-/** The instance is currently stopped. */
-| "stopped"
-
-/** The instance is in the process of rebooting - it will remain in the "rebooting" state until the VM is starting once more. */
-| "rebooting"
-
-/** The instance is in the process of migrating - it will remain in the "migrating" state until the migration process is complete and the destination propolis is ready to continue execution. */
-| "migrating"
-
-/** The instance is attempting to recover from a failure. */
-| "repairing"
-
-/** The instance has encountered a failure. */
-| "failed"
-
-/** The instance has been deleted. */
-| "destroyed"
-
-);
-
-/**
 * View of an Instance
  */
 export type Instance =
 {
+/** The time at which the auto-restart cooldown period for this instance completes, permitting it to be automatically restarted again. If the instance enters the `Failed` state, it will not be restarted until after this time.
+
+If this is not present, then either the instance has never been automatically restarted, or the cooldown period has already expired, allowing the instance to be restarted immediately if it fails. */
+"autoRestartCooldownExpiration"?: Date | null,
+/** `true` if this instance's auto-restart policy will permit the control plane to automatically restart it if it enters the `Failed` state. */
+"autoRestartEnabled": boolean,
+/** The auto-restart policy configured for this instance, or `null` if no explicit policy has been configured.
+
+This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, the control plane will use the default policy when determining whether or not to automatically restart this instance, which may or may not allow it to be restarted. The value of the `auto_restart_enabled` field indicates whether the instance will be auto-restarted, based on its current policy or the default if it has no configured policy. */
+"autoRestartPolicy"?: InstanceAutoRestartPolicy | null,
+/** the ID of the disk used to boot this Instance, if a specific one is assigned. */
+"bootDiskId"?: string | null,
+/** The CPU platform for this instance. If this is `null`, the instance requires no particular CPU platform. */
+"cpuPlatform"?: InstanceCpuPlatform | null,
 /** human-readable free-form text about a resource */
 "description": string,
 /** RFC1035-compliant hostname for the Instance. */
@@ -1444,6 +2500,10 @@ export type Instance =
 "projectId": string,"runState": InstanceState,
 /** timestamp when this resource was created */
 "timeCreated": Date,
+/** The timestamp of the most recent time this instance was automatically restarted by the control plane.
+
+If this is not present, then this instance has not been automatically restarted. */
+"timeLastAutoRestarted"?: Date | null,
 /** timestamp when this resource was last modified */
 "timeModified": Date,"timeRunStateUpdated": Date,};
 
@@ -1453,9 +2513,9 @@ export type Instance =
 export type InstanceDiskAttachment =
 (/** During instance creation, create and attach disks */
 | {"description": string,
-/** initial source for this disk */
-"diskSource": DiskSource,"name": Name,
-/** total size of the Disk in bytes */
+/** The source for this `Disk`'s blocks */
+"diskBackend": DiskBackend,"name": Name,
+/** The total size of the Disk (in bytes) */
 "size": ByteCount,"type": "create"
 ,}
 /** During instance creation, attach this disk */
@@ -1466,12 +2526,73 @@ export type InstanceDiskAttachment =
 );
 
 /**
+* How a VPC-private IP address is assigned to a network interface.
+ */
+export type Ipv4Assignment =
+(/** Automatically assign an IP address from the VPC Subnet. */
+| {"type": "auto"
+,}
+/** Explicitly assign a specific address, if available. */
+| {"type": "explicit"
+,"value": string,}
+);
+
+/**
+* Configuration for a network interface's IPv4 addressing.
+ */
+export type PrivateIpv4StackCreate =
+{
+/** The VPC-private address to assign to the interface. */
+"ip": Ipv4Assignment,
+/** Additional IP networks the interface can send / receive on. */
+"transitIps"?: (Ipv4Net)[],};
+
+/**
+* How a VPC-private IP address is assigned to a network interface.
+ */
+export type Ipv6Assignment =
+(/** Automatically assign an IP address from the VPC Subnet. */
+| {"type": "auto"
+,}
+/** Explicitly assign a specific address, if available. */
+| {"type": "explicit"
+,"value": string,}
+);
+
+/**
+* Configuration for a network interface's IPv6 addressing.
+ */
+export type PrivateIpv6StackCreate =
+{
+/** The VPC-private address to assign to the interface. */
+"ip": Ipv6Assignment,
+/** Additional IP networks the interface can send / receive on. */
+"transitIps"?: (Ipv6Net)[],};
+
+/**
+* Create parameters for a network interface's IP stack.
+ */
+export type PrivateIpStackCreate =
+(/** The interface has only an IPv4 stack. */
+| {"type": "v4"
+,"value": PrivateIpv4StackCreate,}
+/** The interface has only an IPv6 stack. */
+| {"type": "v6"
+,"value": PrivateIpv6StackCreate,}
+/** The interface has both an IPv4 and IPv6 stack. */
+| {"type": "dual_stack"
+,"value": {"v4": PrivateIpv4StackCreate,"v6": PrivateIpv6StackCreate,},}
+);
+
+/**
 * Create-time parameters for an `InstanceNetworkInterface`
  */
 export type InstanceNetworkInterfaceCreate =
 {"description": string,
-/** The IP address for the interface. One will be auto-assigned if not provided. */
-"ip"?: string | null,"name": Name,
+/** The IP stack configuration for this interface.
+
+If not provided, a default configuration will be used, which creates a dual-stack IPv4 / IPv6 interface. */
+"ipConfig"?: PrivateIpStackCreate,"name": Name,
 /** The VPC Subnet in which to create the interface. */
 "subnetName": Name,
 /** The VPC in which to create the interface. */
@@ -1486,8 +2607,20 @@ export type InstanceNetworkInterfaceAttachment =
 If more than one interface is provided, then the first will be designated the primary interface for the instance. */
 | {"params": (InstanceNetworkInterfaceCreate)[],"type": "create"
 ,}
-/** The default networking configuration for an instance is to create a single primary interface with an automatically-assigned IP address. The IP will be pulled from the Project's default VPC / VPC Subnet. */
-| {"type": "default"
+/** Create a single primary interface with an automatically-assigned IPv4 address.
+
+The IP will be pulled from the Project's default VPC / VPC Subnet. */
+| {"type": "default_ipv4"
+,}
+/** Create a single primary interface with an automatically-assigned IPv6 address.
+
+The IP will be pulled from the Project's default VPC / VPC Subnet. */
+| {"type": "default_ipv6"
+,}
+/** Create a single primary interface with automatically-assigned IPv4 and IPv6 addresses.
+
+The IPs will be pulled from the Project's default VPC / VPC Subnet. */
+| {"type": "default_dual_stack"
 ,}
 /** No network interfaces at all will be created for the instance. */
 | {"type": "none"
@@ -1498,13 +2631,45 @@ If more than one interface is provided, then the first will be designated the pr
 * Create-time parameters for an `Instance`
  */
 export type InstanceCreate =
-{"description": string,
-/** The disks to be created or attached for this instance. */
+{
+/** Anti-Affinity groups which this instance should be added. */
+"antiAffinityGroups"?: (NameOrId)[],
+/** The auto-restart policy for this instance.
+
+This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, no auto-restart policy will be explicitly configured for this instance, and the control plane will select the default policy when determining whether the instance can be automatically restarted.
+
+Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
+"autoRestartPolicy"?: InstanceAutoRestartPolicy | null,
+/** The disk the instance is configured to boot from.
+
+This disk can either be attached if it already exists or created along with the instance.
+
+Specifying a boot disk is optional but recommended to ensure predictable boot behavior. The boot disk can be set during instance creation or later if the instance is stopped. The boot disk counts against the disk attachment limit.
+
+An instance that does not have a boot disk set will use the boot options specified in its UEFI settings, which are controlled by both the instance's UEFI firmware and the guest operating system. Boot options can change as disks are attached and detached, which may result in an instance that only boots to the EFI shell until a boot disk is set. */
+"bootDisk"?: InstanceDiskAttachment | null,
+/** The CPU platform to be used for this instance. If this is `null`, the instance requires no particular CPU platform; when it is started the instance will have the most general CPU platform supported by the sled it is initially placed on. */
+"cpuPlatform"?: InstanceCpuPlatform | null,"description": string,
+/** A list of disks to be attached to the instance.
+
+Disk attachments of type "create" will be created, while those of type "attach" must already exist.
+
+The order of this list does not guarantee a boot order for the instance. Use the boot_disk attribute to specify a boot disk. When boot_disk is specified it will count against the disk attachment limit. */
 "disks"?: (InstanceDiskAttachment)[],
 /** The external IP addresses provided to this instance.
 
 By default, all instances have outbound connectivity, but no inbound connectivity. These external addresses can be used to provide a fixed, known IP address for making inbound connections to the instance. */
-"externalIps"?: (ExternalIpCreate)[],"hostname": Hostname,"memory": ByteCount,"name": Name,"ncpus": InstanceCpuCount,
+"externalIps"?: (ExternalIpCreate)[],
+/** The hostname to be assigned to the instance */
+"hostname": Hostname,
+/** The amount of RAM (in bytes) to be allocated to the instance */
+"memory": ByteCount,
+/** The multicast groups this instance should join.
+
+The instance will be automatically added as a member of the specified multicast groups during creation, enabling it to send and receive multicast traffic for those groups. */
+"multicastGroups"?: (NameOrId)[],"name": Name,
+/** The number of vCPUs to be allocated to the instance */
+"ncpus": InstanceCpuCount,
 /** The network interfaces to be created for this instance. */
 "networkInterfaces"?: InstanceNetworkInterfaceAttachment,
 /** An allowlist of SSH public keys to be transferred to the instance via cloud-init during instance creation.
@@ -1517,10 +2682,39 @@ If not provided, all SSH public keys from the user's profile will be sent. If an
 "userData"?: string,};
 
 /**
-* Migration parameters for an `Instance`
+* The VPC-private IPv4 stack for a network interface
  */
-export type InstanceMigrate =
-{"dstSledId": string,};
+export type PrivateIpv4Stack =
+{
+/** The VPC-private IPv4 address for the interface. */
+"ip": string,
+/** A set of additional IPv4 networks that this interface may send and receive traffic on. */
+"transitIps": (Ipv4Net)[],};
+
+/**
+* The VPC-private IPv6 stack for a network interface
+ */
+export type PrivateIpv6Stack =
+{
+/** The VPC-private IPv6 address for the interface. */
+"ip": string,
+/** A set of additional IPv6 networks that this interface may send and receive traffic on. */
+"transitIps": (Ipv6Net)[],};
+
+/**
+* The VPC-private IP stack for a network interface.
+ */
+export type PrivateIpStack =
+(/** The interface has only an IPv4 stack. */
+| {"type": "v4"
+,"value": PrivateIpv4Stack,}
+/** The interface has only an IPv6 stack. */
+| {"type": "v6"
+,"value": PrivateIpv6Stack,}
+/** The interface is dual-stack IPv4 and IPv6. */
+| {"type": "dual_stack"
+,"value": {"v4": PrivateIpv4Stack,"v6": PrivateIpv6Stack,},}
+);
 
 /**
 * A MAC address
@@ -1541,8 +2735,8 @@ export type InstanceNetworkInterface =
 "id": string,
 /** The Instance to which the interface belongs. */
 "instanceId": string,
-/** The IP address assigned to this interface. */
-"ip": string,
+/** The VPC-private IP stack for this interface. */
+"ipStack": PrivateIpStack,
 /** The MAC address assigned to this interface. */
 "mac": MacAddr,
 /** unique, mutable, user-controlled identifier for each resource */
@@ -1580,7 +2774,9 @@ export type InstanceNetworkInterfaceUpdate =
 If applied to a secondary interface, that interface will become the primary on the next reboot of the instance. Note that this may have implications for routing between instances, as the new primary interface will be on a distinct subnet from the previous primary interface.
 
 Note that this can only be used to select a new primary interface for an instance. Requests to change the primary interface into a secondary will return an error. */
-"primary"?: boolean,};
+"primary"?: boolean,
+/** A set of additional networks that this interface may send and receive traffic on */
+"transitIps"?: (IpNet)[],};
 
 /**
 * A single page of results
@@ -1603,9 +2799,45 @@ export type InstanceSerialConsoleData =
 "lastByteOffset": number,};
 
 /**
-* A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
+* Parameters of an `Instance` that can be reconfigured after creation.
  */
-export type IpPool =
+export type InstanceUpdate =
+{
+/** The auto-restart policy for this instance.
+
+This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is `null`, any explicitly configured auto-restart policy will be unset, and the control plane will select the default policy when determining whether the instance can be automatically restarted.
+
+Currently, the global default auto-restart policy is "best-effort", so instances with `null` auto-restart policies will be automatically restarted. However, in the future, the default policy may be configurable through other mechanisms, such as on a per-project basis. In that case, any configured default policy will be used if this is `null`. */
+"autoRestartPolicy": InstanceAutoRestartPolicy | null,
+/** The disk the instance is configured to boot from.
+
+Setting a boot disk is optional but recommended to ensure predictable boot behavior. The boot disk can be set during instance creation or later if the instance is stopped. The boot disk counts against the disk attachment limit.
+
+An instance that does not have a boot disk set will use the boot options specified in its UEFI settings, which are controlled by both the instance's UEFI firmware and the guest operating system. Boot options can change as disks are attached and detached, which may result in an instance that only boots to the EFI shell until a boot disk is set. */
+"bootDisk": NameOrId | null,
+/** The CPU platform to be used for this instance. If this is `null`, the instance requires no particular CPU platform; when it is started the instance will have the most general CPU platform supported by the sled it is initially placed on. */
+"cpuPlatform": InstanceCpuPlatform | null,
+/** The amount of RAM (in bytes) to be allocated to the instance */
+"memory": ByteCount,
+/** Multicast groups this instance should join.
+
+When specified, this replaces the instance's current multicast group membership with the new set of groups. The instance will leave any groups not listed here and join any new groups that are specified.
+
+If not provided (None), the instance's multicast group membership will not be changed. */
+"multicastGroups"?: (NameOrId)[] | null,
+/** The number of vCPUs to be allocated to the instance */
+"ncpus": InstanceCpuCount,};
+
+export type InterfaceNum =
+(| {"unknown": number,}
+| {"ifIndex": number,}
+| {"portNumber": number,}
+);
+
+/**
+* An internet gateway provides a path between VPC networks and external networks.
+ */
+export type InternetGateway =
 {
 /** human-readable free-form text about a resource */
 "description": string,
@@ -1616,17 +2848,153 @@ export type IpPool =
 /** timestamp when this resource was created */
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
+"timeModified": Date,
+/** The VPC to which the gateway belongs. */
+"vpcId": string,};
+
+/**
+* Create-time parameters for an `InternetGateway`
+ */
+export type InternetGatewayCreate =
+{"description": string,"name": Name,};
+
+/**
+* An IP address that is attached to an internet gateway
+ */
+export type InternetGatewayIpAddress =
+{
+/** The associated IP address, */
+"address": string,
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** The associated internet gateway. */
+"internetGatewayId": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
 "timeModified": Date,};
 
 /**
-* Create-time parameters for an `IpPool`
+* Create-time identity-related parameters
+ */
+export type InternetGatewayIpAddressCreate =
+{"address": string,"description": string,"name": Name,};
+
+/**
+* A single page of results
+ */
+export type InternetGatewayIpAddressResultsPage =
+{
+/** list of items on this page of results */
+"items": (InternetGatewayIpAddress)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* An IP pool that is attached to an internet gateway
+ */
+export type InternetGatewayIpPool =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** The associated internet gateway. */
+"internetGatewayId": string,
+/** The associated IP pool. */
+"ipPoolId": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Create-time identity-related parameters
+ */
+export type InternetGatewayIpPoolCreate =
+{"description": string,"ipPool": NameOrId,"name": Name,};
+
+/**
+* A single page of results
+ */
+export type InternetGatewayIpPoolResultsPage =
+{
+/** list of items on this page of results */
+"items": (InternetGatewayIpPool)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type InternetGatewayResultsPage =
+{
+/** list of items on this page of results */
+"items": (InternetGateway)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Type of IP pool.
+ */
+export type IpPoolType =
+(/** Unicast IP pool for standard IP allocations. */
+| "unicast"
+
+/** Multicast IP pool for multicast group allocations.
+
+All ranges in a multicast pool must be either ASM or SSM (not mixed). */
+| "multicast"
+
+);
+
+/**
+* A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
+ */
+export type IpPool =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** The IP version for the pool. */
+"ipVersion": IpVersion,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** Type of IP pool (unicast or multicast). */
+"poolType": IpPoolType,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Create-time parameters for an `IpPool`.
+* 
+* For multicast pools, all ranges must be either Any-Source Multicast (ASM) or Source-Specific Multicast (SSM), but not both. Mixing ASM and SSM ranges in the same pool is not allowed.
+* 
+* ASM: IPv4 addresses outside 232.0.0.0/8, IPv6 addresses with flag field != 3 SSM: IPv4 addresses in 232.0.0.0/8, IPv6 addresses with flag field = 3
  */
 export type IpPoolCreate =
-{"description": string,"name": Name,};
+{"description": string,
+/** The IP version of the pool.
+
+The default is IPv4. */
+"ipVersion"?: IpVersion,"name": Name,
+/** Type of IP pool (defaults to Unicast) */
+"poolType"?: IpPoolType,};
 
 export type IpPoolLinkSilo =
 {
-/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified. There can be at most one default for a given silo. */
+/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified.
+
+A silo can have at most one default pool per combination of pool type (unicast or multicast) and IP version (IPv4 or IPv6), allowing up to 4 default pools total. */
 "isDefault": boolean,"silo": NameOrId,};
 
 /**
@@ -1678,7 +3046,9 @@ export type IpPoolResultsPage =
  */
 export type IpPoolSiloLink =
 {"ipPoolId": string,
-/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified. There can be at most one default for a given silo. */
+/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified.
+
+A silo can have at most one default pool per combination of pool type (unicast or multicast) and IP version (IPv4 or IPv6), allowing up to 4 default pools total. */
 "isDefault": boolean,"siloId": string,};
 
 /**
@@ -1693,7 +3063,9 @@ export type IpPoolSiloLinkResultsPage =
 
 export type IpPoolSiloUpdate =
 {
-/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified. There can be at most one default for a given silo, so when a pool is made default, an existing default will remain linked but will no longer be the default. */
+/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified.
+
+A silo can have at most one default pool per combination of pool type (unicast or multicast) and IP version (IPv4 or IPv6), allowing up to 4 default pools total. When a pool is made default, an existing default of the same type and version will remain linked but will no longer be the default. */
 "isDefault": boolean,};
 
 /**
@@ -1703,9 +3075,21 @@ export type IpPoolUpdate =
 {"description"?: string | null,"name"?: Name | null,};
 
 /**
+* The utilization of IP addresses in a pool.
+* 
+* Note that both the count of remaining addresses and the total capacity are integers, reported as floating point numbers. This accommodates allocations larger than a 64-bit integer, which is common with IPv6 address spaces. With very large IP Pools (> 2**53 addresses), integer precision will be lost, in exchange for representing the entire range. In such a case the pool still has many available addresses.
+ */
+export type IpPoolUtilization =
+{
+/** The total number of addresses in the pool. */
+"capacity": number,
+/** The number of remaining addresses in the pool. */
+"remaining": number,};
+
+/**
 * A range of IP ports
 * 
-* An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port
+* An inclusive-inclusive range of IP ports. The second port may be omitted to represent a single port.
  */
 export type L4PortRange =
 string;
@@ -1714,7 +3098,7 @@ string;
 * The forward error correction mode of a link.
  */
 export type LinkFec =
-(/** Firecode foward error correction. */
+(/** Firecode forward error correction. */
 | "firecode"
 
 /** No forward error correction. */
@@ -1726,14 +3110,24 @@ export type LinkFec =
 );
 
 /**
-* The LLDP configuration associated with a port. LLDP may be either enabled or disabled, if enabled, an LLDP configuration must be provided by name or id.
+* The LLDP configuration associated with a port.
  */
-export type LldpServiceConfigCreate =
+export type LldpLinkConfigCreate =
 {
+/** The LLDP chassis identifier TLV. */
+"chassisId"?: string | null,
 /** Whether or not LLDP is enabled. */
 "enabled": boolean,
-/** A reference to the LLDP configuration used. Must not be `None` when `enabled` is `true`. */
-"lldpConfig"?: NameOrId | null,};
+/** The LLDP link description TLV. */
+"linkDescription"?: string | null,
+/** The LLDP link name TLV. */
+"linkName"?: string | null,
+/** The LLDP management IP TLV. */
+"managementIp"?: string | null,
+/** The LLDP system description TLV. */
+"systemDescription"?: string | null,
+/** The LLDP system name TLV. */
+"systemName"?: string | null,};
 
 /**
 * The speed of a link.
@@ -1769,32 +3163,104 @@ export type LinkSpeed =
 );
 
 /**
+* Per-port tx-eq overrides.  This can be used to fine-tune the transceiver equalization settings to improve signal integrity.
+ */
+export type TxEqConfig =
+{
+/** Main tap */
+"main"?: number | null,
+/** Post-cursor tap1 */
+"post1"?: number | null,
+/** Post-cursor tap2 */
+"post2"?: number | null,
+/** Pre-cursor tap1 */
+"pre1"?: number | null,
+/** Pre-cursor tap2 */
+"pre2"?: number | null,};
+
+/**
 * Switch link configuration.
  */
 export type LinkConfigCreate =
 {
-/** Whether or not to set autonegotiation */
+/** Whether or not to set autonegotiation. */
 "autoneg": boolean,
-/** The forward error correction mode of the link. */
-"fec": LinkFec,
+/** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
+"fec"?: LinkFec | null,
+/** Link name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+"linkName": Name,
 /** The link-layer discovery protocol (LLDP) configuration for the link. */
-"lldp": LldpServiceConfigCreate,
+"lldp": LldpLinkConfigCreate,
 /** Maximum transmission unit for the link. */
 "mtu": number,
 /** The speed of the link. */
-"speed": LinkSpeed,};
+"speed": LinkSpeed,
+/** Optional tx_eq settings. */
+"txEq"?: TxEqConfig | null,};
 
 /**
 * A link layer discovery protocol (LLDP) service configuration.
  */
-export type LldpServiceConfig =
+export type LldpLinkConfig =
 {
+/** The LLDP chassis identifier TLV. */
+"chassisId"?: string | null,
 /** Whether or not the LLDP service is enabled. */
 "enabled": boolean,
 /** The id of this LLDP service instance. */
 "id": string,
-/** The link-layer discovery protocol configuration for this service. */
-"lldpConfigId"?: string | null,};
+/** The LLDP link description TLV. */
+"linkDescription"?: string | null,
+/** The LLDP link name TLV. */
+"linkName"?: string | null,
+/** The LLDP management IP TLV. */
+"managementIp"?: string | null,
+/** The LLDP system description TLV. */
+"systemDescription"?: string | null,
+/** The LLDP system name TLV. */
+"systemName"?: string | null,};
+
+export type NetworkAddress =
+(| {"ipAddr": string,}
+| {"iEEE802": (number)[],}
+);
+
+export type ManagementAddress =
+{"addr": NetworkAddress,"interfaceNum": InterfaceNum,"oid"?: (number)[] | null,};
+
+/**
+* Information about LLDP advertisements from other network entities directly connected to a switch port.  This structure contains both metadata about when and where the neighbor was seen, as well as the specific information the neighbor was advertising.
+ */
+export type LldpNeighbor =
+{
+/** The LLDP chassis identifier advertised by the neighbor */
+"chassisId": string,
+/** Initial sighting of this LldpNeighbor */
+"firstSeen": Date,
+/** Most recent sighting of this LldpNeighbor */
+"lastSeen": Date,
+/** The LLDP link description advertised by the neighbor */
+"linkDescription"?: string | null,
+/** The LLDP link name advertised by the neighbor */
+"linkName": string,
+/** The port on which the neighbor was seen */
+"localPort": string,
+/** The LLDP management IP(s) advertised by the neighbor */
+"managementIp": (ManagementAddress)[],
+/** The LLDP system description advertised by the neighbor */
+"systemDescription"?: string | null,
+/** The LLDP system name advertised by the neighbor */
+"systemName"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type LldpNeighborResultsPage =
+{
+/** list of items on this page of results */
+"items": (LldpNeighbor)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
 
 /**
 * A loopback address is an address that is assigned to a rack switch but is not associated with any particular port.
@@ -1825,7 +3291,7 @@ export type LoopbackAddressCreate =
 "anycast": boolean,
 /** The subnet mask to use for the address. */
 "mask": number,
-/** The containing the switch this loopback address will be configured on. */
+/** The rack containing the switch this loopback address will be configured on. */
 "rackId": string,
 /** The location of the switch within the rack this loopback address will be configured on. */
 "switchLocation": Name,};
@@ -1857,6 +3323,257 @@ export type MeasurementResultsPage =
 "nextPage"?: string | null,};
 
 /**
+* The type of the metric itself, indicating what its values represent.
+ */
+export type MetricType =
+(/** The value represents an instantaneous measurement in time. */
+| "gauge"
+
+/** The value represents a difference between two points in time. */
+| "delta"
+
+/** The value represents an accumulation between two points in time. */
+| "cumulative"
+
+);
+
+/**
+* View of a Multicast Group
+ */
+export type MulticastGroup =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** The ID of the IP pool this resource belongs to. */
+"ipPoolId": string,
+/** The multicast IP address held by this resource. */
+"multicastIp": string,
+/** Multicast VLAN (MVLAN) for egress multicast traffic to upstream networks. None means no VLAN tagging on egress. */
+"mvlan"?: number | null,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** Source IP addresses for Source-Specific Multicast (SSM). Empty array means any source is allowed. */
+"sourceIps": (string)[],
+/** Current state of the multicast group. */
+"state": string,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Create-time parameters for a multicast group.
+ */
+export type MulticastGroupCreate =
+{"description": string,
+/** The multicast IP address to allocate. If None, one will be allocated from the default pool. */
+"multicastIp"?: string | null,
+/** Multicast VLAN (MVLAN) for egress multicast traffic to upstream networks. Tags packets leaving the rack to traverse VLAN-segmented upstream networks.
+
+Valid range: 2-4094 (VLAN IDs 0-1 are reserved by IEEE 802.1Q standard). */
+"mvlan"?: number | null,"name": Name,
+/** Name or ID of the IP pool to allocate from. If None, uses the default multicast pool. */
+"pool"?: NameOrId | null,
+/** Source IP addresses for Source-Specific Multicast (SSM).
+
+None uses default behavior (Any-Source Multicast). Empty list explicitly allows any source (Any-Source Multicast). Non-empty list restricts to specific sources (SSM). */
+"sourceIps"?: (string)[] | null,};
+
+/**
+* View of a Multicast Group Member (instance belonging to a multicast group)
+ */
+export type MulticastGroupMember =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** The ID of the instance that is a member of this group. */
+"instanceId": string,
+/** The ID of the multicast group this member belongs to. */
+"multicastGroupId": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** Current state of the multicast group membership. */
+"state": string,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Parameters for adding an instance to a multicast group.
+ */
+export type MulticastGroupMemberAdd =
+{
+/** Name or ID of the instance to add to the multicast group */
+"instance": NameOrId,};
+
+/**
+* A single page of results
+ */
+export type MulticastGroupMemberResultsPage =
+{
+/** list of items on this page of results */
+"items": (MulticastGroupMember)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type MulticastGroupResultsPage =
+{
+/** list of items on this page of results */
+"items": (MulticastGroup)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Update-time parameters for a multicast group.
+ */
+export type MulticastGroupUpdate =
+{"description"?: string | null,
+/** Multicast VLAN (MVLAN) for egress multicast traffic to upstream networks. Set to null to clear the MVLAN. Valid range: 2-4094 when provided. Omit the field to leave mvlan unchanged. */
+"mvlan"?: number | null,"name"?: Name | null,"sourceIps"?: (string)[] | null,};
+
+/**
+* VPC-private IPv4 configuration for a network interface.
+ */
+export type PrivateIpv4Config =
+{
+/** VPC-private IP address. */
+"ip": string,
+/** The IP subnet. */
+"subnet": Ipv4Net,
+/** Additional networks on which the interface can send / receive traffic. */
+"transitIps"?: (Ipv4Net)[],};
+
+/**
+* VPC-private IPv6 configuration for a network interface.
+ */
+export type PrivateIpv6Config =
+{
+/** VPC-private IP address. */
+"ip": string,
+/** The IP subnet. */
+"subnet": Ipv6Net,
+/** Additional networks on which the interface can send / receive traffic. */
+"transitIps": (Ipv6Net)[],};
+
+/**
+* VPC-private IP address configuration for a network interface.
+ */
+export type PrivateIpConfig =
+(/** The interface has only an IPv4 configuration. */
+| {"type": "v4"
+,"value": PrivateIpv4Config,}
+/** The interface has only an IPv6 configuration. */
+| {"type": "v6"
+,"value": PrivateIpv6Config,}
+/** The interface is dual-stack. */
+| {"type": "dual_stack"
+,"value": {
+/** The interface's IPv4 configuration. */
+"v4": PrivateIpv4Config,
+/** The interface's IPv6 configuration. */
+"v6": PrivateIpv6Config,},}
+);
+
+/**
+* The type of network interface
+ */
+export type NetworkInterfaceKind =
+(/** A vNIC attached to a guest instance */
+| {"id": string,"type": "instance"
+,}
+/** A vNIC associated with an internal service */
+| {"id": string,"type": "service"
+,}
+/** A vNIC associated with a probe */
+| {"id": string,"type": "probe"
+,}
+);
+
+/**
+* A Geneve Virtual Network Identifier
+ */
+export type Vni =
+number;
+
+/**
+* Information required to construct a virtual network interface
+ */
+export type NetworkInterface =
+{"id": string,"ipConfig": PrivateIpConfig,"kind": NetworkInterfaceKind,"mac": MacAddr,"name": Name,"primary": boolean,"slot": number,"vni": Vni,};
+
+/**
+* List of data values for one timeseries.
+* 
+* Each element is an option, where `None` represents a missing sample.
+ */
+export type ValueArray =
+(| {"type": "integer"
+,"values": (number | null)[],}
+| {"type": "double"
+,"values": (number | null)[],}
+| {"type": "boolean"
+,"values": (boolean | null)[],}
+| {"type": "string"
+,"values": (string | null)[],}
+| {"type": "integer_distribution"
+,"values": (Distributionint64 | null)[],}
+| {"type": "double_distribution"
+,"values": (Distributiondouble | null)[],}
+);
+
+/**
+* A single list of values, for one dimension of a timeseries.
+ */
+export type Values =
+{
+/** The type of this metric. */
+"metricType": MetricType,
+/** The data values. */
+"values": ValueArray,};
+
+/**
+* Timepoints and values for one timeseries.
+ */
+export type Points =
+{"startTimes"?: (Date)[] | null,"timestamps": (Date)[],"values": (Values)[],};
+
+/**
+* A timeseries contains a timestamped set of values from one source.
+* 
+* This includes the typed key-value pairs that uniquely identify it, and the set of timestamps and data values from it.
+ */
+export type Timeseries =
+{"fields": Record<string,FieldValue>,"points": Points,};
+
+/**
+* A table represents one or more timeseries with the same schema.
+* 
+* A table is the result of an OxQL query. It contains a name, usually the name of the timeseries schema from which the data is derived, and any number of timeseries, which contain the actual data.
+ */
+export type OxqlTable =
+{
+/** The name of the table. */
+"name": string,
+/** The set of timeseries in the table, ordered by key. */
+"timeseries": (Timeseries)[],};
+
+/**
+* The result of a successful OxQL query.
+ */
+export type OxqlQueryResult =
+{
+/** Tables resulting from the query, each containing timeseries. */
+"tables": (OxqlTable)[],};
+
+/**
 * A password used to authenticate a user
 * 
 * Passwords may be subject to additional constraints.
@@ -1873,6 +3590,36 @@ export type PhysicalDiskKind =
 ;
 
 /**
+* The operator-defined policy of a physical disk.
+ */
+export type PhysicalDiskPolicy =
+(/** The operator has indicated that the disk is in-service. */
+| {"kind": "in_service"
+,}
+/** The operator has indicated that the disk has been permanently removed from service.
+
+This is a terminal state: once a particular disk ID is expunged, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.)
+
+An expunged disk is always non-provisionable. */
+| {"kind": "expunged"
+,}
+);
+
+/**
+* The current state of the disk, as determined by Nexus.
+ */
+export type PhysicalDiskState =
+(/** The disk is currently active, and has resources allocated on it. */
+| "active"
+
+/** The disk has been permanently removed from service.
+
+This is a terminal state: once a particular disk ID is decommissioned, it will never return to service. (The actual hardware may be reused, but it will be treated as a brand-new disk.) */
+| "decommissioned"
+
+);
+
+/**
 * View of a Physical Disk
 * 
 * Physical disks reside in a particular sled and are used to store both Instance Disk data as well as internal metadata.
@@ -1880,9 +3627,13 @@ export type PhysicalDiskKind =
 export type PhysicalDisk =
 {"formFactor": PhysicalDiskKind,
 /** unique, immutable, system-controlled identifier for each resource */
-"id": string,"model": string,"serial": string,
+"id": string,"model": string,
+/** The operator-defined policy for a physical disk. */
+"policy": PhysicalDiskPolicy,"serial": string,
 /** The sled to which this disk is attached, if any. */
 "sledId"?: string | null,
+/** The current state Nexus believes the disk to be in. */
+"state": PhysicalDiskState,
 /** timestamp when this resource was created */
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
@@ -1906,6 +3657,52 @@ export type Ping =
 {
 /** Whether the external API is reachable. Will always be Ok if the endpoint returns anything at all. */
 "status": PingStatus,};
+
+/**
+* Identity-related metadata that's included in nearly all public API objects
+ */
+export type Probe =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,"sled": string,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Create time parameters for probes.
+ */
+export type ProbeCreate =
+{"description": string,"name": Name,
+/** Pool to allocate from. */
+"poolSelector"?: PoolSelector,"sled": string,};
+
+export type ProbeExternalIpKind =
+"snat"
+| "floating"
+| "ephemeral"
+;
+
+export type ProbeExternalIp =
+{"firstPort": number,"ip": string,"kind": ProbeExternalIpKind,"lastPort": number,};
+
+export type ProbeInfo =
+{"externalIps": (ProbeExternalIp)[],"id": string,"interface": NetworkInterface,"name": Name,"sled": string,};
+
+/**
+* A single page of results
+ */
+export type ProbeInfoResultsPage =
+{
+/** list of items on this page of results */
+"items": (ProbeInfo)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
 
 /**
 * View of a Project
@@ -1942,6 +3739,7 @@ export type ProjectResultsPage =
 export type ProjectRole =
 "admin"
 | "collaborator"
+| "limited_collaborator"
 | "viewer"
 ;
 
@@ -1992,30 +3790,6 @@ export type RackResultsPage =
 "nextPage"?: string | null,};
 
 /**
-* A name for a built-in role
-* 
-* Role names consist of two string components separated by dot (".").
- */
-export type RoleName =
-string;
-
-/**
-* View of a Role
- */
-export type Role =
-{"description": string,"name": RoleName,};
-
-/**
-* A single page of results
- */
-export type RoleResultsPage =
-{
-/** list of items on this page of results */
-"items": (Role)[],
-/** token used to fetch the next page of results (if any) */
-"nextPage"?: string | null,};
-
-/**
 * A route to a destination network through a gateway address.
  */
 export type Route =
@@ -2024,6 +3798,8 @@ export type Route =
 "dst": IpNet,
 /** The route gateway. */
 "gw": string,
+/** Route RIB priority. Higher priority indicates precedence within and across protocols. */
+"ribPriority"?: number | null,
 /** VLAN id the gateway is reachable over. */
 "vid"?: number | null,};
 
@@ -2032,8 +3808,136 @@ export type Route =
  */
 export type RouteConfig =
 {
+/** Link name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+"linkName": Name,
 /** The set of routes assigned to a switch port. */
 "routes": (Route)[],};
+
+/**
+* A `RouteDestination` is used to match traffic with a routing rule based on the destination of that traffic.
+* 
+* When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
+ */
+export type RouteDestination =
+(/** Route applies to traffic destined for the specified IP address */
+| {"type": "ip"
+,"value": string,}
+/** Route applies to traffic destined for the specified IP subnet */
+| {"type": "ip_net"
+,"value": IpNet,}
+/** Route applies to traffic destined for the specified VPC */
+| {"type": "vpc"
+,"value": Name,}
+/** Route applies to traffic destined for the specified VPC subnet */
+| {"type": "subnet"
+,"value": Name,}
+);
+
+/**
+* A `RouteTarget` describes the possible locations that traffic matching a route destination can be sent.
+ */
+export type RouteTarget =
+(/** Forward traffic to a particular IP address. */
+| {"type": "ip"
+,"value": string,}
+/** Forward traffic to a VPC */
+| {"type": "vpc"
+,"value": Name,}
+/** Forward traffic to a VPC Subnet */
+| {"type": "subnet"
+,"value": Name,}
+/** Forward traffic to a specific instance */
+| {"type": "instance"
+,"value": Name,}
+/** Forward traffic to an internet gateway */
+| {"type": "internet_gateway"
+,"value": Name,}
+/** Drop matching traffic */
+| {"type": "drop"
+,}
+);
+
+/**
+* The kind of a `RouterRoute`
+* 
+* The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
+ */
+export type RouterRouteKind =
+(/** Determines the default destination of traffic, such as whether it goes to the internet or not.
+
+`Destination: An Internet Gateway` `Modifiable: true` */
+| "default"
+
+/** Automatically added for each VPC Subnet in the VPC
+
+`Destination: A VPC Subnet` `Modifiable: false` */
+| "vpc_subnet"
+
+/** Automatically added when VPC peering is established
+
+`Destination: A different VPC` `Modifiable: false` */
+| "vpc_peering"
+
+/** Created by a user; see `RouteTarget`
+
+`Destination: User defined` `Modifiable: true` */
+| "custom"
+
+);
+
+/**
+* A route defines a rule that governs where traffic should be sent based on its destination.
+ */
+export type RouterRoute =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** Selects which traffic this routing rule will apply to */
+"destination": RouteDestination,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** Describes the kind of router. Set at creation. `read-only` */
+"kind": RouterRouteKind,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** The location that matched packets should be forwarded to */
+"target": RouteTarget,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,
+/** The ID of the VPC Router to which the route belongs */
+"vpcRouterId": string,};
+
+/**
+* Create-time parameters for a `RouterRoute`
+ */
+export type RouterRouteCreate =
+{"description": string,
+/** Selects which traffic this routing rule will apply to. */
+"destination": RouteDestination,"name": Name,
+/** The location that matched packets should be forwarded to. */
+"target": RouteTarget,};
+
+/**
+* A single page of results
+ */
+export type RouterRouteResultsPage =
+{
+/** list of items on this page of results */
+"items": (RouterRoute)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Updateable properties of a `RouterRoute`
+ */
+export type RouterRouteUpdate =
+{"description"?: string | null,
+/** Selects which traffic this routing rule will apply to. */
+"destination": RouteDestination,"name"?: Name | null,
+/** The location that matched packets should be forwarded to. */
+"target": RouteTarget,};
 
 /**
 * Identity-related metadata that's included in nearly all public API objects
@@ -2087,6 +3991,31 @@ export type SamlIdentityProviderCreate =
 /** customer's technical contact for saml configuration */
 "technicalContactEmail": string,};
 
+export type ScimClientBearerToken =
+{"id": string,"timeCreated": Date,"timeExpires"?: Date | null,};
+
+/**
+* The POST response is the only time the generated bearer token is returned to the client.
+ */
+export type ScimClientBearerTokenValue =
+{"bearerToken": string,"id": string,"timeCreated": Date,"timeExpires"?: Date | null,};
+
+/**
+* Configuration of inbound ICMP allowed by API services.
+ */
+export type ServiceIcmpConfig =
+{
+/** When enabled, Nexus is able to receive ICMP Destination Unreachable type 3 (port unreachable) and type 4 (fragmentation needed), Redirect, and Time Exceeded messages. These enable Nexus to perform Path MTU discovery and better cope with fragmentation issues. Otherwise all inbound ICMP traffic will be dropped. */
+"enabled": boolean,};
+
+/**
+* Parameters for PUT requests to `/v1/system/update/target-release`.
+ */
+export type SetTargetReleaseParams =
+{
+/** Version of the system software to make the target release. */
+"systemVersion": string,};
+
 /**
 * Describes how identities are managed and users are authenticated in this Silo
  */
@@ -2097,6 +4026,9 @@ export type SiloIdentityMode =
 /** The system is the source of truth about users.  There is no linkage to an external authentication provider or identity provider. */
 | "local_only"
 
+/** Users are authenticated with SAML using an external authentication provider. Users and groups are managed with SCIM API calls, likely from the same authentication provider. */
+| "saml_scim"
+
 );
 
 /**
@@ -2106,6 +4038,8 @@ export type SiloIdentityMode =
  */
 export type Silo =
 {
+/** Optionally, silos can have a group name that is automatically granted the silo admin role. */
+"adminGroupName"?: string | null,
 /** human-readable free-form text about a resource */
 "description": string,
 /** A silo where discoverable is false can be retrieved only by its id - it will not be part of the "list all silos" output. */
@@ -2124,6 +4058,22 @@ The default is that no Fleet roles are conferred by any Silo roles unless there'
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
 "timeModified": Date,};
+
+/**
+* View of silo authentication settings
+ */
+export type SiloAuthSettings =
+{
+/** Maximum lifetime of a device token in seconds. If set to null, users will be able to create tokens that do not expire. */
+"deviceTokenMaxTtlSeconds"?: number | null,"siloId": string,};
+
+/**
+* Updateable properties of a silo's settings.
+ */
+export type SiloAuthSettingsUpdate =
+{
+/** Maximum lifetime of a device token in seconds. If set to null, users will be able to create tokens that do not expire. */
+"deviceTokenMaxTtlSeconds": number | null,};
 
 /**
 * The amount of provisionable resources for a Silo
@@ -2164,10 +4114,16 @@ export type SiloIpPool =
 "description": string,
 /** unique, immutable, system-controlled identifier for each resource */
 "id": string,
-/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified. There can be at most one default for a given silo. */
+/** The IP version for the pool. */
+"ipVersion": IpVersion,
+/** When a pool is the default for a silo, floating IPs and instance ephemeral IPs will come from that pool when no other pool is specified.
+
+A silo can have at most one default pool per combination of pool type (unicast or multicast) and IP version (IPv4 or IPv6), allowing up to 4 default pools total. */
 "isDefault": boolean,
 /** unique, mutable, user-controlled identifier for each resource */
 "name": Name,
+/** Type of IP pool (unicast or multicast). */
+"poolType": IpPoolType,
 /** timestamp when this resource was created */
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
@@ -2230,6 +4186,7 @@ export type SiloResultsPage =
 export type SiloRole =
 "admin"
 | "collaborator"
+| "limited_collaborator"
 | "viewer"
 ;
 
@@ -2316,7 +4273,7 @@ An expunged sled is always non-provisionable. */
 );
 
 /**
-* The current state of the sled, as determined by Nexus.
+* The current state of the sled.
  */
 export type SledState =
 (/** The sled is currently active, and has resources allocated on it. */
@@ -2340,7 +4297,7 @@ export type Sled =
 "policy": SledPolicy,
 /** The rack to which this Sled is currently attached */
 "rackId": string,
-/** The current state Nexus believes the sled to be in. */
+/** The current state of the sled. */
 "state": SledState,
 /** timestamp when this resource was created */
 "timeCreated": Date,
@@ -2350,6 +4307,12 @@ export type Sled =
 "usableHardwareThreads": number,
 /** Amount of RAM which may be used by the Sled's OS */
 "usablePhysicalRam": ByteCount,};
+
+/**
+* The unique ID of a sled.
+ */
+export type SledId =
+{"id": string,};
 
 /**
 * An operator's view of an instance running on a given sled
@@ -2480,6 +4443,52 @@ export type SshKeyResultsPage =
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
 
+export type SupportBundleCreate =
+{
+/** User comment for the support bundle */
+"userComment"?: string | null,};
+
+export type SupportBundleState =
+(/** Support Bundle still actively being collected.
+
+This is the initial state for a Support Bundle, and it will automatically transition to either "Failing" or "Active".
+
+If a user no longer wants to access a Support Bundle, they can request cancellation, which will transition to the "Destroying" state. */
+| "collecting"
+
+/** Support Bundle is being destroyed.
+
+Once backing storage has been freed, this bundle is destroyed. */
+| "destroying"
+
+/** Support Bundle was not created successfully, or was created and has lost backing storage.
+
+The record of the bundle still exists for readability, but the only valid operation on these bundles is to destroy them. */
+| "failed"
+
+/** Support Bundle has been processed, and is ready for usage. */
+| "active"
+
+);
+
+export type SupportBundleInfo =
+{"id": string,"reasonForCreation": string,"reasonForFailure"?: string | null,"state": SupportBundleState,"timeCreated": Date,"userComment"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type SupportBundleInfoResultsPage =
+{
+/** list of items on this page of results */
+"items": (SupportBundleInfo)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+export type SupportBundleUpdate =
+{
+/** User comment for the support bundle */
+"userComment"?: string | null,};
+
 /**
 * An operator's view of a Switch.
  */
@@ -2517,7 +4526,7 @@ export type SwitchInterfaceConfig =
 /** A unique identifier for this switch interface. */
 "id": string,
 /** The name of this switch interface. */
-"interfaceName": string,
+"interfaceName": Name,
 /** The switch interface kind. */
 "kind": SwitchInterfaceKind2,
 /** The port settings object this switch interface configuration belongs to. */
@@ -2549,8 +4558,13 @@ export type SwitchInterfaceConfigCreate =
 {
 /** What kind of switch interface this configuration represents. */
 "kind": SwitchInterfaceKind,
+/** Link name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
+"linkName": Name,
 /** Whether or not IPv6 is enabled. */
 "v6Enabled": boolean,};
+
+export type SwitchLinkState =
+Record<string, unknown>;
 
 /**
 * A switch port represents a physical external port on a rack switch.
@@ -2560,7 +4574,7 @@ export type SwitchPort =
 /** The id of the switch port. */
 "id": string,
 /** The name of this switch port. */
-"portName": string,
+"portName": Name,
 /** The primary settings group of this switch port. Will be `None` until this switch port is configured. */
 "portSettingsId"?: string | null,
 /** The rack this switch port belongs to. */
@@ -2571,16 +4585,22 @@ export type SwitchPort =
 /**
 * An IP address configuration for a port settings object.
  */
-export type SwitchPortAddressConfig =
+export type SwitchPortAddressView =
 {
 /** The IP address and prefix. */
 "address": IpNet,
 /** The id of the address lot block this address is drawn from. */
 "addressLotBlockId": string,
+/** The id of the address lot this address is drawn from. */
+"addressLotId": string,
+/** The name of the address lot this address is drawn from. */
+"addressLotName": Name,
 /** The interface name this address belongs to. */
-"interfaceName": string,
+"interfaceName": Name,
 /** The port settings object this address configuration belongs to. */
-"portSettingsId": string,};
+"portSettingsId": string,
+/** An optional VLAN ID */
+"vlanId"?: number | null,};
 
 /**
 * Parameters for applying settings to switch ports.
@@ -2589,20 +4609,6 @@ export type SwitchPortApplySettings =
 {
 /** A name or id to use when applying switch port settings. */
 "portSettings": NameOrId,};
-
-/**
-* A BGP peer configuration for a port settings object.
- */
-export type SwitchPortBgpPeerConfig =
-{
-/** The address of the peer. */
-"addr": string,
-/** The id of the global BGP configuration referenced by this peer configuration. */
-"bgpConfigId": string,
-/** The interface name used to establish a peer session. */
-"interfaceName": string,
-/** The port settings object this BGP configuration belongs to. */
-"portSettingsId": string,};
 
 /**
 * The link geometry associated with a switch port.
@@ -2653,18 +4659,42 @@ export type SwitchPortConfigCreate =
 "geometry": SwitchPortGeometry,};
 
 /**
+* Per-port tx-eq overrides.  This can be used to fine-tune the transceiver equalization settings to improve signal integrity.
+ */
+export type TxEqConfig2 =
+{
+/** Main tap */
+"main"?: number | null,
+/** Post-cursor tap1 */
+"post1"?: number | null,
+/** Post-cursor tap2 */
+"post2"?: number | null,
+/** Pre-cursor tap1 */
+"pre1"?: number | null,
+/** Pre-cursor tap2 */
+"pre2"?: number | null,};
+
+/**
 * A link configuration for a port settings object.
  */
 export type SwitchPortLinkConfig =
 {
+/** Whether or not the link has autonegotiation enabled. */
+"autoneg": boolean,
+/** The requested forward-error correction method.  If this is not specified, the standard FEC for the underlying media will be applied if it can be determined. */
+"fec"?: LinkFec | null,
 /** The name of this link. */
-"linkName": string,
-/** The link-layer discovery protocol service configuration id for this link. */
-"lldpServiceConfigId": string,
+"linkName": Name,
+/** The link-layer discovery protocol service configuration for this link. */
+"lldpLinkConfig"?: LldpLinkConfig | null,
 /** The maximum transmission unit for this link. */
 "mtu": number,
 /** The port settings this link configuration belongs to. */
-"portSettingsId": string,};
+"portSettingsId": string,
+/** The configured speed of the link. */
+"speed": LinkSpeed,
+/** The tx_eq configuration for this link. */
+"txEqConfig"?: TxEqConfig2 | null,};
 
 /**
 * A single page of results
@@ -2684,45 +4714,15 @@ export type SwitchPortRouteConfig =
 /** The route's destination network. */
 "dst": IpNet,
 /** The route's gateway address. */
-"gw": IpNet,
+"gw": string,
 /** The interface name this route configuration is assigned to. */
-"interfaceName": string,
+"interfaceName": Name,
 /** The port settings object this route configuration belongs to. */
 "portSettingsId": string,
+/** Route RIB priority. Higher priority indicates precedence within and across protocols. */
+"ribPriority"?: number | null,
 /** The VLAN identifier for the route. Use this if the gateway is reachable over an 802.1Q tagged L2 segment. */
 "vlanId"?: number | null,};
-
-/**
-* A switch port settings identity whose id may be used to view additional details.
- */
-export type SwitchPortSettings =
-{
-/** human-readable free-form text about a resource */
-"description": string,
-/** unique, immutable, system-controlled identifier for each resource */
-"id": string,
-/** unique, mutable, user-controlled identifier for each resource */
-"name": Name,
-/** timestamp when this resource was created */
-"timeCreated": Date,
-/** timestamp when this resource was last modified */
-"timeModified": Date,};
-
-/**
-* Parameters for creating switch port settings. Switch port settings are the central data structure for setting up external networking. Switch port settings include link, interface, route, address and dynamic network protocol configuration.
- */
-export type SwitchPortSettingsCreate =
-{
-/** Addresses indexed by interface name. */
-"addresses": Record<string,AddressConfig>,
-/** BGP peers indexed by interface name. */
-"bgpPeers": Record<string,BgpPeerConfig>,"description": string,"groups": (NameOrId)[],
-/** Interfaces indexed by link name. */
-"interfaces": Record<string,SwitchInterfaceConfigCreate>,
-/** Links indexed by phy name. On ports that are not broken out, this is always phy0. On a 2x breakout the options are phy0 and phy1, on 4x phy0-phy3, etc. */
-"links": Record<string,LinkConfigCreate>,"name": Name,"portConfig": SwitchPortConfigCreate,
-/** Routes indexed by interface name. */
-"routes": Record<string,RouteConfig>,};
 
 /**
 * This structure maps a port settings object to a port settings groups. Port settings objects may inherit settings from groups. This mapping defines the relationship between settings objects and the groups they reference.
@@ -2733,16 +4733,6 @@ export type SwitchPortSettingsGroups =
 "portSettingsGroupId": string,
 /** The id of a port settings object referencing a port settings group. */
 "portSettingsId": string,};
-
-/**
-* A single page of results
- */
-export type SwitchPortSettingsResultsPage =
-{
-/** list of items on this page of results */
-"items": (SwitchPortSettings)[],
-/** token used to fetch the next page of results (if any) */
-"nextPage"?: string | null,};
 
 /**
 * A switch port VLAN interface configuration for a port settings object.
@@ -2757,28 +4747,76 @@ export type SwitchVlanInterfaceConfig =
 /**
 * This structure contains all port settings information in one place. It's a convenience data structure for getting a complete view of a particular port's settings.
  */
-export type SwitchPortSettingsView =
+export type SwitchPortSettings =
 {
 /** Layer 3 IP address settings. */
-"addresses": (SwitchPortAddressConfig)[],
+"addresses": (SwitchPortAddressView)[],
 /** BGP peer settings. */
-"bgpPeers": (SwitchPortBgpPeerConfig)[],
+"bgpPeers": (BgpPeer)[],
+/** human-readable free-form text about a resource */
+"description": string,
 /** Switch port settings included from other switch port settings groups. */
 "groups": (SwitchPortSettingsGroups)[],
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
 /** Layer 3 interface settings. */
 "interfaces": (SwitchInterfaceConfig)[],
-/** Link-layer discovery protocol (LLDP) settings. */
-"linkLldp": (LldpServiceConfig)[],
 /** Layer 2 link settings. */
 "links": (SwitchPortLinkConfig)[],
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
 /** Layer 1 physical port settings. */
 "port": SwitchPortConfig,
 /** IP route settings. */
 "routes": (SwitchPortRouteConfig)[],
-/** The primary switch port settings handle. */
-"settings": SwitchPortSettings,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,
 /** Vlan interface settings. */
 "vlanInterfaces": (SwitchVlanInterfaceConfig)[],};
+
+/**
+* Parameters for creating switch port settings. Switch port settings are the central data structure for setting up external networking. Switch port settings include link, interface, route, address and dynamic network protocol configuration.
+ */
+export type SwitchPortSettingsCreate =
+{
+/** Address configurations. */
+"addresses": (AddressConfig)[],
+/** BGP peer configurations. */
+"bgpPeers"?: (BgpPeerConfig)[],"description": string,"groups"?: (NameOrId)[],
+/** Interface configurations. */
+"interfaces"?: (SwitchInterfaceConfigCreate)[],
+/** Link configurations. */
+"links": (LinkConfigCreate)[],"name": Name,"portConfig": SwitchPortConfigCreate,
+/** Route configurations. */
+"routes"?: (RouteConfig)[],};
+
+/**
+* A switch port settings identity whose id may be used to view additional details.
+ */
+export type SwitchPortSettingsIdentity =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* A single page of results
+ */
+export type SwitchPortSettingsIdentityResultsPage =
+{
+/** list of items on this page of results */
+"items": (SwitchPortSettingsIdentity)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
 
 /**
 * A single page of results
@@ -2789,6 +4827,120 @@ export type SwitchResultsPage =
 "items": (Switch)[],
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
+
+/**
+* View of a system software target release
+ */
+export type TargetRelease =
+{
+/** Time this was set as the target release */
+"timeRequested": Date,
+/** The specified release of the rack's system software */
+"version": string,};
+
+/**
+* Text descriptions for the target and metric of a timeseries.
+ */
+export type TimeseriesDescription =
+{"metric": string,"target": string,};
+
+/**
+* The name of a timeseries
+* 
+* Names are constructed by concatenating the target and metric names with ':'. Target and metric names must be lowercase alphanumeric characters with '_' separating words.
+ */
+export type TimeseriesName =
+string;
+
+/**
+* A timeseries query string, written in the Oximeter query language.
+ */
+export type TimeseriesQuery =
+{
+/** A timeseries query string, written in the Oximeter query language. */
+"query": string,};
+
+/**
+* Measurement units for timeseries samples.
+ */
+export type Units =
+(| "count"
+| "bytes"
+| "seconds"
+| "nanoseconds"
+| "volts"
+| "amps"
+| "watts"
+| "degrees_celsius"
+
+/** No meaningful units, e.g. a dimensionless quanity. */
+| "none"
+
+/** Rotations per minute. */
+| "rpm"
+
+);
+
+/**
+* The schema for a timeseries.
+* 
+* This includes the name of the timeseries, as well as the datum type of its metric and the schema for each field.
+ */
+export type TimeseriesSchema =
+{"authzScope": AuthzScope,"created": Date,"datumType": DatumType,"description": TimeseriesDescription,"fieldSchema": (FieldSchema)[],"timeseriesName": TimeseriesName,"units": Units,"version": number,};
+
+/**
+* A single page of results
+ */
+export type TimeseriesSchemaResultsPage =
+{
+/** list of items on this page of results */
+"items": (TimeseriesSchema)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Metadata about a TUF repository
+ */
+export type TufRepo =
+{
+/** The file name of the repository, as reported by the client that uploaded it
+
+This is intended for debugging. The file name may not match any particular pattern, and even if it does, it may not be accurate since it's just what the client reported. */
+"fileName": string,
+/** The hash of the repository */
+"hash": string,
+/** The system version for this repository
+
+The system version is a top-level version number applied to all the software in the repository. */
+"systemVersion": string,
+/** Time the repository was uploaded */
+"timeCreated": Date,};
+
+/**
+* A single page of results
+ */
+export type TufRepoResultsPage =
+{
+/** list of items on this page of results */
+"items": (TufRepo)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Whether the uploaded TUF repo already existed or was new and had to be inserted. Part of `TufRepoUpload`.
+ */
+export type TufRepoUploadStatus =
+(/** The repository already existed in the database */
+| "already_exists"
+
+/** The repository did not exist, and was inserted into the database */
+| "inserted"
+
+);
+
+export type TufRepoUpload =
+{"repo": TufRepo,"status": TufRepoUploadStatus,};
 
 /**
 * A sled that has not been added to an initialized rack yet
@@ -2812,6 +4964,51 @@ export type UninitializedSledResultsPage =
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
 
+export type UpdateStatus =
+{
+/** Count of components running each release version
+
+Keys will be either:
+
+* Semver-like release version strings * "install dataset", representing the initial rack software before any updates * "unknown", which means there is no TUF repo uploaded that matches the software running on the component) */
+"componentsByReleaseVersion": Record<string,number>,
+/** Whether automatic update is suspended due to manual update activity
+
+After a manual support procedure that changes the system software, automatic update activity is suspended to avoid undoing the change. To resume automatic update, first upload the TUF repository matching the manually applied update, then set that as the target release. */
+"suspended": boolean,
+/** Current target release of the system software
+
+This may not correspond to the actual system software running at the time of request; it is instead the release that the system should be moving towards as a goal state. The system asynchronously updates software to match this target release.
+
+Will only be null if a target release has never been set. In that case, the system is not automatically attempting to manage software versions. */
+"targetRelease": TargetRelease | null,
+/** Time of most recent update planning activity
+
+This is intended as a rough indicator of the last time something happened in the update planner. */
+"timeLastStepPlanned": Date,};
+
+/**
+* Trusted root role used by the update system to verify update repositories.
+ */
+export type UpdatesTrustRoot =
+{
+/** The UUID of this trusted root role. */
+"id": string,
+/** The trusted root role itself, a JSON document as described by The Update Framework. */
+"rootRole": Record<string, unknown>,
+/** Time the trusted root role was added. */
+"timeCreated": Date,};
+
+/**
+* A single page of results
+ */
+export type UpdatesTrustRootResultsPage =
+{
+/** list of items on this page of results */
+"items": (UpdatesTrustRoot)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
 /**
 * View of a User
  */
@@ -2825,7 +5022,7 @@ export type User =
 /**
 * View of a Built-in User
 * 
-* A Built-in User is explicitly created as opposed to being derived from an Identify Provider.
+* Built-in users are identities internal to the system, used when the control plane performs actions autonomously
  */
 export type UserBuiltin =
 {
@@ -2851,9 +5048,9 @@ export type UserBuiltinResultsPage =
 "nextPage"?: string | null,};
 
 /**
-* A name unique within the parent collection
+* A username for a local-only user
 * 
-* Names must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Names cannot be a UUID though they may contain a UUID.
+* Usernames must begin with a lower case ASCII letter, be composed exclusively of lowercase ASCII, uppercase ASCII, numbers, and '-', and may not end with a '-'. Usernames cannot be a UUID, but they may contain a UUID. They can be at most 63 characters long.
  */
 export type UserId =
 string;
@@ -2940,6 +5137,9 @@ export type VpcCreate =
 All IPv6 subnets created from this VPC must be taken from this range, which should be a Unique Local Address in the range `fd00::/48`. The default VPC Subnet will have the first `/64` range from this prefix. */
 "ipv6Prefix"?: Ipv6Net | null,"name": Name,};
 
+export type VpcFirewallIcmpFilter =
+{"code"?: IcmpParamRange | null,"icmpType": number,};
+
 export type VpcFirewallRuleAction =
 "allow"
 | "deny"
@@ -2975,19 +5175,22 @@ export type VpcFirewallRuleHostFilter =
 * The protocols that may be specified in a firewall rule's filter
  */
 export type VpcFirewallRuleProtocol =
-"TCP"
-| "UDP"
-| "ICMP"
-;
+(| {"type": "tcp"
+,}
+| {"type": "udp"
+,}
+| {"type": "icmp"
+,"value": VpcFirewallIcmpFilter | null,}
+);
 
 /**
-* Filter for a firewall rule. A given packet must match every field that is present for the rule to apply to it. A packet matches a field if any entry in that field matches the packet.
+* Filters reduce the scope of a firewall rule. Without filters, the rule applies to all packets to the targets (or from the targets, if it's an outbound rule). With multiple filters, the rule applies only to packets matching ALL filters. The maximum number of each type of filter is 256.
  */
 export type VpcFirewallRuleFilter =
 {
-/** If present, the sources (if incoming) or destinations (if outgoing) this rule applies to. */
+/** If present, host filters match the "other end" of traffic from the target’s perspective: for an inbound rule, they match the source of traffic. For an outbound rule, they match the destination. */
 "hosts"?: (VpcFirewallRuleHostFilter)[] | null,
-/** If present, the destination ports this rule applies to. */
+/** If present, the destination ports or port ranges this rule applies to. */
 "ports"?: (L4PortRange)[] | null,
 /** If present, the networking protocols this rule applies to. */
 "protocols"?: (VpcFirewallRuleProtocol)[] | null,};
@@ -2998,7 +5201,7 @@ export type VpcFirewallRuleStatus =
 ;
 
 /**
-* A `VpcFirewallRuleTarget` is used to specify the set of `Instance`s to which a firewall rule applies.
+* A `VpcFirewallRuleTarget` is used to specify the set of instances to which a firewall rule applies. You can target instances directly by name, or specify a VPC, VPC subnet, IP, or IP subnet, which will apply the rule to traffic going to all matching instances. Targets are additive: the rule applies to instances matching ANY target.
  */
 export type VpcFirewallRuleTarget =
 (/** The rule applies to all instances in the VPC */
@@ -3023,29 +5226,29 @@ export type VpcFirewallRuleTarget =
  */
 export type VpcFirewallRule =
 {
-/** whether traffic matching the rule should be allowed or dropped */
+/** Whether traffic matching the rule should be allowed or dropped */
 "action": VpcFirewallRuleAction,
 /** human-readable free-form text about a resource */
 "description": string,
-/** whether this rule is for incoming or outgoing traffic */
+/** Whether this rule is for incoming or outgoing traffic */
 "direction": VpcFirewallRuleDirection,
-/** reductions on the scope of the rule */
+/** Reductions on the scope of the rule */
 "filters": VpcFirewallRuleFilter,
 /** unique, immutable, system-controlled identifier for each resource */
 "id": string,
 /** unique, mutable, user-controlled identifier for each resource */
 "name": Name,
-/** the relative priority of this rule */
+/** The relative priority of this rule */
 "priority": number,
-/** whether this rule is in effect */
+/** Whether this rule is in effect */
 "status": VpcFirewallRuleStatus,
-/** list of sets of instances that the rule applies to */
+/** Determine the set of instances that the rule applies to */
 "targets": (VpcFirewallRuleTarget)[],
 /** timestamp when this resource was created */
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
 "timeModified": Date,
-/** the VPC to which this rule belongs */
+/** The VPC to which this rule belongs */
 "vpcId": string,};
 
 /**
@@ -3053,28 +5256,28 @@ export type VpcFirewallRule =
  */
 export type VpcFirewallRuleUpdate =
 {
-/** whether traffic matching the rule should be allowed or dropped */
+/** Whether traffic matching the rule should be allowed or dropped */
 "action": VpcFirewallRuleAction,
-/** human-readable free-form text about a resource */
+/** Human-readable free-form text about a resource */
 "description": string,
-/** whether this rule is for incoming or outgoing traffic */
+/** Whether this rule is for incoming or outgoing traffic */
 "direction": VpcFirewallRuleDirection,
-/** reductions on the scope of the rule */
+/** Reductions on the scope of the rule */
 "filters": VpcFirewallRuleFilter,
-/** name of the rule, unique to this VPC */
+/** Name of the rule, unique to this VPC */
 "name": Name,
-/** the relative priority of this rule */
+/** The relative priority of this rule */
 "priority": number,
-/** whether this rule is in effect */
+/** Whether this rule is in effect */
 "status": VpcFirewallRuleStatus,
-/** list of sets of instances that the rule applies to */
+/** Determine the set of instances that the rule applies to */
 "targets": (VpcFirewallRuleTarget)[],};
 
 /**
-* Updateable properties of a `Vpc`'s firewall Note that VpcFirewallRules are implicitly created along with a Vpc, so there is no explicit creation.
+* Updated list of firewall rules. Will replace all existing rules.
  */
 export type VpcFirewallRuleUpdateParams =
-{"rules": (VpcFirewallRuleUpdate)[],};
+{"rules"?: (VpcFirewallRuleUpdate)[],};
 
 /**
 * Collection of a Vpc's firewall rules
@@ -3092,11 +5295,58 @@ export type VpcResultsPage =
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
 
+export type VpcRouterKind =
+"system"
+| "custom"
+;
+
 /**
-* A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionall an IPv6 subnetwork.
+* A VPC router defines a series of rules that indicate where traffic should be sent depending on its destination.
+ */
+export type VpcRouter =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,"kind": VpcRouterKind,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,
+/** The VPC to which the router belongs. */
+"vpcId": string,};
+
+/**
+* Create-time parameters for a `VpcRouter`
+ */
+export type VpcRouterCreate =
+{"description": string,"name": Name,};
+
+/**
+* A single page of results
+ */
+export type VpcRouterResultsPage =
+{
+/** list of items on this page of results */
+"items": (VpcRouter)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* Updateable properties of a `VpcRouter`
+ */
+export type VpcRouterUpdate =
+{"description"?: string | null,"name"?: Name | null,};
+
+/**
+* A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionally an IPv6 subnetwork.
  */
 export type VpcSubnet =
 {
+/** ID for an attached custom router. */
+"customRouterId"?: string | null,
 /** human-readable free-form text about a resource */
 "description": string,
 /** unique, immutable, system-controlled identifier for each resource */
@@ -3118,7 +5368,11 @@ export type VpcSubnet =
 * Create-time parameters for a `VpcSubnet`
  */
 export type VpcSubnetCreate =
-{"description": string,
+{
+/** An optional router, used to direct packets sent from hosts in this subnet to any destination address.
+
+Custom routers apply in addition to the VPC-wide *system* router, and have higher priority than the system router for an otherwise equal-prefix-length match. */
+"customRouter"?: NameOrId | null,"description": string,
 /** The IPv4 address range for this subnet.
 
 It must be allocated from an RFC 1918 private address range, and must not overlap with any other existing subnet in the VPC. */
@@ -3142,13 +5396,68 @@ export type VpcSubnetResultsPage =
 * Updateable properties of a `VpcSubnet`
  */
 export type VpcSubnetUpdate =
-{"description"?: string | null,"name"?: Name | null,};
+{
+/** An optional router, used to direct packets sent from hosts in this subnet to any destination address. */
+"customRouter"?: NameOrId | null,"description"?: string | null,"name"?: Name | null,};
 
 /**
 * Updateable properties of a `Vpc`
  */
 export type VpcUpdate =
 {"description"?: string | null,"dnsName"?: Name | null,"name"?: Name | null,};
+
+/**
+* Create-time identity-related parameters
+ */
+export type WebhookCreate =
+{"description": string,
+/** The URL that webhook notification requests should be sent to */
+"endpoint": string,"name": Name,
+/** A non-empty list of secret keys used to sign webhook payloads. */
+"secrets": (string)[],
+/** A list of webhook event class subscriptions.
+
+If this list is empty or is not included in the request body, the webhook will not be subscribed to any events. */
+"subscriptions"?: (AlertSubscription)[],};
+
+/**
+* The configuration for a webhook alert receiver.
+ */
+export type WebhookReceiver =
+{
+/** human-readable free-form text about a resource */
+"description": string,
+/** The URL that webhook notification requests are sent to. */
+"endpoint": string,
+/** unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** unique, mutable, user-controlled identifier for each resource */
+"name": Name,"secrets": (WebhookSecret)[],
+/** The list of alert classes to which this receiver is subscribed. */
+"subscriptions": (AlertSubscription)[],
+/** timestamp when this resource was created */
+"timeCreated": Date,
+/** timestamp when this resource was last modified */
+"timeModified": Date,};
+
+/**
+* Parameters to update a webhook configuration.
+ */
+export type WebhookReceiverUpdate =
+{"description"?: string | null,
+/** The URL that webhook notification requests should be sent to */
+"endpoint"?: string | null,"name"?: Name | null,};
+
+export type WebhookSecretCreate =
+{
+/** The value of the shared secret key. */
+"secret": string,};
+
+/**
+* A list of the IDs of secrets associated with a webhook receiver.
+ */
+export type WebhookSecrets =
+{"secrets": (WebhookSecret)[],};
 
 /**
 * Supported set of sort modes for scanning by name or id
@@ -3165,22 +5474,17 @@ export type NameOrIdSortMode =
 
 );
 
-export type DiskMetricName =
-"activated"
-| "flush"
-| "read"
-| "read_bytes"
-| "write"
-| "write_bytes"
-;
-
 /**
-* The order in which the client wants to page through the requested collection
+* Supported set of sort modes for scanning by timestamp and ID
  */
-export type PaginationOrder =
-"ascending"
-| "descending"
-;
+export type TimeAndIdSortMode =
+(/** sort in increasing order of timestamp and ID, i.e., earliest first */
+| "time_and_id_ascending"
+
+/** sort in increasing order of timestamp and ID, i.e., most recent first */
+| "time_and_id_descending"
+
+);
 
 /**
 * Supported set of sort modes for scanning by id only.
@@ -3198,6 +5502,26 @@ export type SystemMetricName =
 ;
 
 /**
+* The order in which the client wants to page through the requested collection
+ */
+export type PaginationOrder =
+"ascending"
+| "descending"
+;
+
+/**
+* Supported sort modes when scanning by semantic version
+ */
+export type VersionSortMode =
+(/** Sort in increasing semantic version order (oldest first) */
+| "version_ascending"
+
+/** Sort in decreasing semantic version order (newest first) */
+| "version_descending"
+
+);
+
+/**
 * Supported set of sort modes for scanning by name only
 * 
 * Currently, we only support scanning in ascending order.
@@ -3206,9 +5530,280 @@ export type NameSortMode =
 "name_ascending"
 ;
 
+export interface ProbeListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface ProbeCreateQueryParams {
+  project: NameOrId,
+}
+
+export interface ProbeViewPathParams {
+  probe: NameOrId,
+}
+
+export interface ProbeViewQueryParams {
+  project: NameOrId,
+}
+
+export interface ProbeDeletePathParams {
+  probe: NameOrId,
+}
+
+export interface ProbeDeleteQueryParams {
+  project: NameOrId,
+}
+
+export interface SupportBundleListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: TimeAndIdSortMode,
+}
+
+export interface SupportBundleViewPathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleUpdatePathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleDeletePathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleDownloadPathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleHeadPathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleDownloadFilePathParams {
+  bundleId: string,
+  file: string,
+}
+
+export interface SupportBundleHeadFilePathParams {
+  bundleId: string,
+  file: string,
+}
+
+export interface SupportBundleIndexPathParams {
+  bundleId: string,
+}
+
 export interface LoginSamlPathParams {
   providerName: Name,
   siloName: Name,
+}
+
+export interface AffinityGroupListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface AffinityGroupCreateQueryParams {
+  project: NameOrId,
+}
+
+export interface AffinityGroupViewPathParams {
+  affinityGroup: NameOrId,
+}
+
+export interface AffinityGroupViewQueryParams {
+  project?: NameOrId,
+}
+
+export interface AffinityGroupUpdatePathParams {
+  affinityGroup: NameOrId,
+}
+
+export interface AffinityGroupUpdateQueryParams {
+  project?: NameOrId,
+}
+
+export interface AffinityGroupDeletePathParams {
+  affinityGroup: NameOrId,
+}
+
+export interface AffinityGroupDeleteQueryParams {
+  project?: NameOrId,
+}
+
+export interface AffinityGroupMemberListPathParams {
+  affinityGroup: NameOrId,
+}
+
+export interface AffinityGroupMemberListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface AffinityGroupMemberInstanceViewPathParams {
+  affinityGroup: NameOrId,
+  instance: NameOrId,
+}
+
+export interface AffinityGroupMemberInstanceViewQueryParams {
+  project?: NameOrId,
+}
+
+export interface AffinityGroupMemberInstanceAddPathParams {
+  affinityGroup: NameOrId,
+  instance: NameOrId,
+}
+
+export interface AffinityGroupMemberInstanceAddQueryParams {
+  project?: NameOrId,
+}
+
+export interface AffinityGroupMemberInstanceDeletePathParams {
+  affinityGroup: NameOrId,
+  instance: NameOrId,
+}
+
+export interface AffinityGroupMemberInstanceDeleteQueryParams {
+  project?: NameOrId,
+}
+
+export interface AlertClassListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  filter?: AlertSubscription,
+}
+
+export interface AlertReceiverListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface AlertReceiverViewPathParams {
+  receiver: NameOrId,
+}
+
+export interface AlertReceiverDeletePathParams {
+  receiver: NameOrId,
+}
+
+export interface AlertDeliveryListPathParams {
+  receiver: NameOrId,
+}
+
+export interface AlertDeliveryListQueryParams {
+  delivered?: boolean | null,
+  failed?: boolean | null,
+  pending?: boolean | null,
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: TimeAndIdSortMode,
+}
+
+export interface AlertReceiverProbePathParams {
+  receiver: NameOrId,
+}
+
+export interface AlertReceiverProbeQueryParams {
+  resend?: boolean,
+}
+
+export interface AlertReceiverSubscriptionAddPathParams {
+  receiver: NameOrId,
+}
+
+export interface AlertReceiverSubscriptionRemovePathParams {
+  receiver: NameOrId,
+  subscription: AlertSubscription,
+}
+
+export interface AlertDeliveryResendPathParams {
+  alertId: string,
+}
+
+export interface AlertDeliveryResendQueryParams {
+  receiver: NameOrId,
+}
+
+export interface AntiAffinityGroupListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface AntiAffinityGroupCreateQueryParams {
+  project: NameOrId,
+}
+
+export interface AntiAffinityGroupViewPathParams {
+  antiAffinityGroup: NameOrId,
+}
+
+export interface AntiAffinityGroupViewQueryParams {
+  project?: NameOrId,
+}
+
+export interface AntiAffinityGroupUpdatePathParams {
+  antiAffinityGroup: NameOrId,
+}
+
+export interface AntiAffinityGroupUpdateQueryParams {
+  project?: NameOrId,
+}
+
+export interface AntiAffinityGroupDeletePathParams {
+  antiAffinityGroup: NameOrId,
+}
+
+export interface AntiAffinityGroupDeleteQueryParams {
+  project?: NameOrId,
+}
+
+export interface AntiAffinityGroupMemberListPathParams {
+  antiAffinityGroup: NameOrId,
+}
+
+export interface AntiAffinityGroupMemberListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface AntiAffinityGroupMemberInstanceViewPathParams {
+  antiAffinityGroup: NameOrId,
+  instance: NameOrId,
+}
+
+export interface AntiAffinityGroupMemberInstanceViewQueryParams {
+  project?: NameOrId,
+}
+
+export interface AntiAffinityGroupMemberInstanceAddPathParams {
+  antiAffinityGroup: NameOrId,
+  instance: NameOrId,
+}
+
+export interface AntiAffinityGroupMemberInstanceAddQueryParams {
+  project?: NameOrId,
+}
+
+export interface AntiAffinityGroupMemberInstanceDeletePathParams {
+  antiAffinityGroup: NameOrId,
+  instance: NameOrId,
+}
+
+export interface AntiAffinityGroupMemberInstanceDeleteQueryParams {
+  project?: NameOrId,
 }
 
 export interface CertificateListQueryParams {
@@ -3281,20 +5876,6 @@ export interface DiskFinalizeImportPathParams {
 }
 
 export interface DiskFinalizeImportQueryParams {
-  project?: NameOrId,
-}
-
-export interface DiskMetricsListPathParams {
-  disk: NameOrId,
-  metric: DiskMetricName,
-}
-
-export interface DiskMetricsListQueryParams {
-  endTime?: Date,
-  limit?: number | null,
-  order?: PaginationOrder,
-  pageToken?: string | null,
-  startTime?: Date,
   project?: NameOrId,
 }
 
@@ -3421,12 +6002,42 @@ export interface InstanceViewQueryParams {
   project?: NameOrId,
 }
 
+export interface InstanceUpdatePathParams {
+  instance: NameOrId,
+}
+
+export interface InstanceUpdateQueryParams {
+  project?: NameOrId,
+}
+
 export interface InstanceDeletePathParams {
   instance: NameOrId,
 }
 
 export interface InstanceDeleteQueryParams {
   project?: NameOrId,
+}
+
+export interface InstanceAffinityGroupListPathParams {
+  instance: NameOrId,
+}
+
+export interface InstanceAffinityGroupListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface InstanceAntiAffinityGroupListPathParams {
+  instance: NameOrId,
+}
+
+export interface InstanceAntiAffinityGroupListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
 }
 
 export interface InstanceDiskListPathParams {
@@ -3480,11 +6091,29 @@ export interface InstanceEphemeralIpDetachQueryParams {
   project?: NameOrId,
 }
 
-export interface InstanceMigratePathParams {
+export interface InstanceMulticastGroupListPathParams {
   instance: NameOrId,
 }
 
-export interface InstanceMigrateQueryParams {
+export interface InstanceMulticastGroupListQueryParams {
+  project?: NameOrId,
+}
+
+export interface InstanceMulticastGroupJoinPathParams {
+  instance: NameOrId,
+  multicastGroup: NameOrId,
+}
+
+export interface InstanceMulticastGroupJoinQueryParams {
+  project?: NameOrId,
+}
+
+export interface InstanceMulticastGroupLeavePathParams {
+  instance: NameOrId,
+  multicastGroup: NameOrId,
+}
+
+export interface InstanceMulticastGroupLeaveQueryParams {
   project?: NameOrId,
 }
 
@@ -3543,6 +6172,90 @@ export interface InstanceStopQueryParams {
   project?: NameOrId,
 }
 
+export interface InternetGatewayIpAddressListQueryParams {
+  gateway?: NameOrId,
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayIpAddressCreateQueryParams {
+  gateway: NameOrId,
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayIpAddressDeletePathParams {
+  address: NameOrId,
+}
+
+export interface InternetGatewayIpAddressDeleteQueryParams {
+  cascade?: boolean,
+  gateway?: NameOrId,
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayIpPoolListQueryParams {
+  gateway?: NameOrId,
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayIpPoolCreateQueryParams {
+  gateway: NameOrId,
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayIpPoolDeletePathParams {
+  pool: NameOrId,
+}
+
+export interface InternetGatewayIpPoolDeleteQueryParams {
+  cascade?: boolean,
+  gateway?: NameOrId,
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayCreateQueryParams {
+  project?: NameOrId,
+  vpc: NameOrId,
+}
+
+export interface InternetGatewayViewPathParams {
+  gateway: NameOrId,
+}
+
+export interface InternetGatewayViewQueryParams {
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface InternetGatewayDeletePathParams {
+  gateway: NameOrId,
+}
+
+export interface InternetGatewayDeleteQueryParams {
+  cascade?: boolean,
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
 export interface ProjectIpPoolListQueryParams {
   limit?: number | null,
   pageToken?: string | null,
@@ -3555,6 +6268,16 @@ export interface ProjectIpPoolViewPathParams {
 
 export interface LoginLocalPathParams {
   siloName: Name,
+}
+
+export interface CurrentUserAccessTokenListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: IdSortMode,
+}
+
+export interface CurrentUserAccessTokenDeletePathParams {
+  tokenId: string,
 }
 
 export interface CurrentUserGroupsQueryParams {
@@ -3587,6 +6310,51 @@ export interface SiloMetricQueryParams {
   order?: PaginationOrder,
   pageToken?: string | null,
   startTime?: Date,
+  project?: NameOrId,
+}
+
+export interface MulticastGroupListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: NameOrIdSortMode,
+}
+
+export interface MulticastGroupViewPathParams {
+  multicastGroup: NameOrId,
+}
+
+export interface MulticastGroupUpdatePathParams {
+  multicastGroup: NameOrId,
+}
+
+export interface MulticastGroupDeletePathParams {
+  multicastGroup: NameOrId,
+}
+
+export interface MulticastGroupMemberListPathParams {
+  multicastGroup: NameOrId,
+}
+
+export interface MulticastGroupMemberListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: IdSortMode,
+}
+
+export interface MulticastGroupMemberAddPathParams {
+  multicastGroup: NameOrId,
+}
+
+export interface MulticastGroupMemberAddQueryParams {
+  project?: NameOrId,
+}
+
+export interface MulticastGroupMemberRemovePathParams {
+  instance: NameOrId,
+  multicastGroup: NameOrId,
+}
+
+export interface MulticastGroupMemberRemoveQueryParams {
   project?: NameOrId,
 }
 
@@ -3683,7 +6451,31 @@ export interface SnapshotDeleteQueryParams {
   project?: NameOrId,
 }
 
+export interface AuditLogListQueryParams {
+  endTime?: Date | null,
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: TimeAndIdSortMode,
+  startTime?: Date,
+}
+
 export interface PhysicalDiskListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: IdSortMode,
+}
+
+export interface PhysicalDiskViewPathParams {
+  diskId: string,
+}
+
+export interface NetworkingSwitchPortLldpNeighborsPathParams {
+  port: Name,
+  rackId: string,
+  switchLocation: Name,
+}
+
+export interface NetworkingSwitchPortLldpNeighborsQueryParams {
   limit?: number | null,
   pageToken?: string | null,
   sortBy?: IdSortMode,
@@ -3745,6 +6537,24 @@ export interface NetworkingSwitchPortListQueryParams {
   switchPortId?: string | null,
 }
 
+export interface NetworkingSwitchPortLldpConfigViewPathParams {
+  port: Name,
+}
+
+export interface NetworkingSwitchPortLldpConfigViewQueryParams {
+  rackId: string,
+  switchLocation: Name,
+}
+
+export interface NetworkingSwitchPortLldpConfigUpdatePathParams {
+  port: Name,
+}
+
+export interface NetworkingSwitchPortLldpConfigUpdateQueryParams {
+  rackId: string,
+  switchLocation: Name,
+}
+
 export interface NetworkingSwitchPortApplySettingsPathParams {
   port: Name,
 }
@@ -3759,6 +6569,15 @@ export interface NetworkingSwitchPortClearSettingsPathParams {
 }
 
 export interface NetworkingSwitchPortClearSettingsQueryParams {
+  rackId: string,
+  switchLocation: Name,
+}
+
+export interface NetworkingSwitchPortStatusPathParams {
+  port: Name,
+}
+
+export interface NetworkingSwitchPortStatusQueryParams {
   rackId: string,
   switchLocation: Name,
 }
@@ -3809,7 +6628,7 @@ export interface SamlIdentityProviderViewPathParams {
 }
 
 export interface SamlIdentityProviderViewQueryParams {
-  silo: NameOrId,
+  silo?: NameOrId,
 }
 
 export interface IpPoolListQueryParams {
@@ -3871,6 +6690,10 @@ export interface IpPoolSiloUnlinkPathParams {
   silo: NameOrId,
 }
 
+export interface IpPoolUtilizationViewPathParams {
+  pool: NameOrId,
+}
+
 export interface IpPoolServiceRangeListQueryParams {
   limit?: number | null,
   pageToken?: string | null,
@@ -3889,10 +6712,18 @@ export interface SystemMetricQueryParams {
   silo?: NameOrId,
 }
 
+export interface LookupMulticastGroupByIpPathParams {
+  address: string,
+}
+
 export interface NetworkingAddressLotListQueryParams {
   limit?: number | null,
   pageToken?: string | null,
   sortBy?: NameOrIdSortMode,
+}
+
+export interface NetworkingAddressLotViewPathParams {
+  addressLot: NameOrId,
 }
 
 export interface NetworkingAddressLotDeletePathParams {
@@ -3911,7 +6742,6 @@ export interface NetworkingAddressLotBlockListQueryParams {
 
 export interface NetworkingBgpConfigListQueryParams {
   limit?: number | null,
-  nameOrId?: NameOrId,
   pageToken?: string | null,
   sortBy?: NameOrIdSortMode,
 }
@@ -3921,11 +6751,21 @@ export interface NetworkingBgpConfigDeleteQueryParams {
 }
 
 export interface NetworkingBgpAnnounceSetListQueryParams {
-  nameOrId: NameOrId,
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: NameOrIdSortMode,
 }
 
-export interface NetworkingBgpAnnounceSetDeleteQueryParams {
-  nameOrId: NameOrId,
+export interface NetworkingBgpAnnounceSetDeletePathParams {
+  announceSet: NameOrId,
+}
+
+export interface NetworkingBgpAnnouncementListPathParams {
+  announceSet: NameOrId,
+}
+
+export interface NetworkingBgpMessageHistoryQueryParams {
+  asn: number,
 }
 
 export interface NetworkingBgpImportedRoutesIpv4QueryParams {
@@ -3960,13 +6800,28 @@ export interface NetworkingSwitchPortSettingsViewPathParams {
   port: NameOrId,
 }
 
-export interface RoleListQueryParams {
-  limit?: number | null,
-  pageToken?: string | null,
+export interface ScimTokenListQueryParams {
+  silo: NameOrId,
 }
 
-export interface RoleViewPathParams {
-  roleName: string,
+export interface ScimTokenCreateQueryParams {
+  silo: NameOrId,
+}
+
+export interface ScimTokenViewPathParams {
+  tokenId: string,
+}
+
+export interface ScimTokenViewQueryParams {
+  silo: NameOrId,
+}
+
+export interface ScimTokenDeletePathParams {
+  tokenId: string,
+}
+
+export interface ScimTokenDeleteQueryParams {
+  silo: NameOrId,
 }
 
 export interface SystemQuotasListQueryParams {
@@ -4015,6 +6870,39 @@ export interface SiloQuotasUpdatePathParams {
   silo: NameOrId,
 }
 
+export interface SystemTimeseriesSchemaListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+}
+
+export interface SystemUpdateRepositoryListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: VersionSortMode,
+}
+
+export interface SystemUpdateRepositoryUploadQueryParams {
+  fileName: string,
+}
+
+export interface SystemUpdateRepositoryViewPathParams {
+  systemVersion: string,
+}
+
+export interface SystemUpdateTrustRootListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: IdSortMode,
+}
+
+export interface SystemUpdateTrustRootViewPathParams {
+  trustRootId: string,
+}
+
+export interface SystemUpdateTrustRootDeletePathParams {
+  trustRootId: string,
+}
+
 export interface SiloUserListQueryParams {
   limit?: number | null,
   pageToken?: string | null,
@@ -4050,8 +6938,40 @@ export interface SiloUtilizationViewPathParams {
   silo: NameOrId,
 }
 
+export interface TimeseriesQueryQueryParams {
+  project: NameOrId,
+}
+
 export interface UserListQueryParams {
   group?: string | null,
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: IdSortMode,
+}
+
+export interface UserViewPathParams {
+  userId: string,
+}
+
+export interface UserTokenListPathParams {
+  userId: string,
+}
+
+export interface UserTokenListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: IdSortMode,
+}
+
+export interface UserLogoutPathParams {
+  userId: string,
+}
+
+export interface UserSessionListPathParams {
+  userId: string,
+}
+
+export interface UserSessionListQueryParams {
   limit?: number | null,
   pageToken?: string | null,
   sortBy?: IdSortMode,
@@ -4065,6 +6985,91 @@ export interface VpcFirewallRulesViewQueryParams {
 export interface VpcFirewallRulesUpdateQueryParams {
   project?: NameOrId,
   vpc: NameOrId,
+}
+
+export interface VpcRouterRouteListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  router?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterRouteCreateQueryParams {
+  project?: NameOrId,
+  router: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterRouteViewPathParams {
+  route: NameOrId,
+}
+
+export interface VpcRouterRouteViewQueryParams {
+  project?: NameOrId,
+  router?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterRouteUpdatePathParams {
+  route: NameOrId,
+}
+
+export interface VpcRouterRouteUpdateQueryParams {
+  project?: NameOrId,
+  router?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterRouteDeletePathParams {
+  route: NameOrId,
+}
+
+export interface VpcRouterRouteDeleteQueryParams {
+  project?: NameOrId,
+  router?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  project?: NameOrId,
+  sortBy?: NameOrIdSortMode,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterCreateQueryParams {
+  project?: NameOrId,
+  vpc: NameOrId,
+}
+
+export interface VpcRouterViewPathParams {
+  router: NameOrId,
+}
+
+export interface VpcRouterViewQueryParams {
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterUpdatePathParams {
+  router: NameOrId,
+}
+
+export interface VpcRouterUpdateQueryParams {
+  project?: NameOrId,
+  vpc?: NameOrId,
+}
+
+export interface VpcRouterDeletePathParams {
+  router: NameOrId,
+}
+
+export interface VpcRouterDeleteQueryParams {
+  project?: NameOrId,
+  vpc?: NameOrId,
 }
 
 export interface VpcSubnetListQueryParams {
@@ -4154,6 +7159,22 @@ export interface VpcDeleteQueryParams {
   project?: NameOrId,
 }
 
+export interface WebhookReceiverUpdatePathParams {
+  receiver: NameOrId,
+}
+
+export interface WebhookSecretsListQueryParams {
+  receiver: NameOrId,
+}
+
+export interface WebhookSecretsAddQueryParams {
+  receiver: NameOrId,
+}
+
+export interface WebhookSecretsDeletePathParams {
+  secretId: string,
+}
+
 type EmptyObj = Record<string, never>;
 export interface ApiConfig {
       /**
@@ -4173,7 +7194,7 @@ export interface ApiConfig {
        * Pulled from info.version in the OpenAPI schema. Sent in the
        * `api-version` header on all requests.
        */
-      apiVersion = "0.0.6";
+      apiVersion = "2026010500.0.0";
 
       constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
         this.host = host;
@@ -4242,6 +7263,200 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* List instrumentation probes
+ */
+probeList: ({ 
+query = {}, }: {query?: ProbeListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<ProbeInfoResultsPage>({
+           path: `/experimental/v1/probes`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create instrumentation probe
+ */
+probeCreate: ({ 
+query, body, }: {query: ProbeCreateQueryParams,
+body: ProbeCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<Probe>({
+           path: `/experimental/v1/probes`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* View instrumentation probe
+ */
+probeView: ({ 
+path, query, }: {path: ProbeViewPathParams,
+query: ProbeViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<ProbeInfo>({
+           path: `/experimental/v1/probes/${path.probe}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete instrumentation probe
+ */
+probeDelete: ({ 
+path, query, }: {path: ProbeDeletePathParams,
+query: ProbeDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/experimental/v1/probes/${path.probe}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List all support bundles
+ */
+supportBundleList: ({ 
+query = {}, }: {query?: SupportBundleListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfoResultsPage>({
+           path: `/experimental/v1/system/support-bundles`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create a new support bundle
+ */
+supportBundleCreate: ({ 
+body, }: {body: SupportBundleCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfo>({
+           path: `/experimental/v1/system/support-bundles`,
+           method: "POST",
+  body,
+  ...params,
+         })
+      },
+/**
+* View a support bundle
+ */
+supportBundleView: ({ 
+path, }: {path: SupportBundleViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfo>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Update a support bundle
+ */
+supportBundleUpdate: ({ 
+path, body, }: {path: SupportBundleUpdatePathParams,
+body: SupportBundleUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfo>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
+           method: "PUT",
+  body,
+  ...params,
+         })
+      },
+/**
+* Delete an existing support bundle
+ */
+supportBundleDelete: ({ 
+path, }: {path: SupportBundleDeletePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
+           method: "DELETE",
+  ...params,
+         })
+      },
+/**
+* Download the contents of a support bundle
+ */
+supportBundleDownload: ({ 
+path, }: {path: SupportBundleDownloadPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Download the metadata of a support bundle
+ */
+supportBundleHead: ({ 
+path, }: {path: SupportBundleHeadPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download`,
+           method: "HEAD",
+  ...params,
+         })
+      },
+/**
+* Download a file within a support bundle
+ */
+supportBundleDownloadFile: ({ 
+path, }: {path: SupportBundleDownloadFilePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Download the metadata of a file within the support bundle
+ */
+supportBundleHeadFile: ({ 
+path, }: {path: SupportBundleHeadFilePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
+           method: "HEAD",
+  ...params,
+         })
+      },
+/**
+* Download the index of a support bundle
+ */
+supportBundleIndex: ({ 
+path, }: {path: SupportBundleIndexPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/experimental/v1/system/support-bundles/${path.bundleId}/index`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
 * Authenticate a user via SAML
  */
 loginSaml: ({ 
@@ -4251,6 +7466,432 @@ params: FetchParams = {}) => {
          return this.request<void>({
            path: `/login/${path.siloName}/saml/${path.providerName}`,
            method: "POST",
+  ...params,
+         })
+      },
+/**
+* List affinity groups
+ */
+affinityGroupList: ({ 
+query = {}, }: {query?: AffinityGroupListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroupResultsPage>({
+           path: `/v1/affinity-groups`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create affinity group
+ */
+affinityGroupCreate: ({ 
+query, body, }: {query: AffinityGroupCreateQueryParams,
+body: AffinityGroupCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroup>({
+           path: `/v1/affinity-groups`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch affinity group
+ */
+affinityGroupView: ({ 
+path, query = {}, }: {path: AffinityGroupViewPathParams,
+query?: AffinityGroupViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroup>({
+           path: `/v1/affinity-groups/${path.affinityGroup}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Update affinity group
+ */
+affinityGroupUpdate: ({ 
+path, query = {}, body, }: {path: AffinityGroupUpdatePathParams,
+query?: AffinityGroupUpdateQueryParams,
+body: AffinityGroupUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroup>({
+           path: `/v1/affinity-groups/${path.affinityGroup}`,
+           method: "PUT",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete affinity group
+ */
+affinityGroupDelete: ({ 
+path, query = {}, }: {path: AffinityGroupDeletePathParams,
+query?: AffinityGroupDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/affinity-groups/${path.affinityGroup}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List affinity group members
+ */
+affinityGroupMemberList: ({ 
+path, query = {}, }: {path: AffinityGroupMemberListPathParams,
+query?: AffinityGroupMemberListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroupMemberResultsPage>({
+           path: `/v1/affinity-groups/${path.affinityGroup}/members`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch affinity group member
+ */
+affinityGroupMemberInstanceView: ({ 
+path, query = {}, }: {path: AffinityGroupMemberInstanceViewPathParams,
+query?: AffinityGroupMemberInstanceViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroupMember>({
+           path: `/v1/affinity-groups/${path.affinityGroup}/members/instance/${path.instance}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Add member to affinity group
+ */
+affinityGroupMemberInstanceAdd: ({ 
+path, query = {}, }: {path: AffinityGroupMemberInstanceAddPathParams,
+query?: AffinityGroupMemberInstanceAddQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroupMember>({
+           path: `/v1/affinity-groups/${path.affinityGroup}/members/instance/${path.instance}`,
+           method: "POST",
+  query,
+  ...params,
+         })
+      },
+/**
+* Remove member from affinity group
+ */
+affinityGroupMemberInstanceDelete: ({ 
+path, query = {}, }: {path: AffinityGroupMemberInstanceDeletePathParams,
+query?: AffinityGroupMemberInstanceDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/affinity-groups/${path.affinityGroup}/members/instance/${path.instance}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List alert classes
+ */
+alertClassList: ({ 
+query = {}, }: {query?: AlertClassListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertClassResultsPage>({
+           path: `/v1/alert-classes`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* List alert receivers
+ */
+alertReceiverList: ({ 
+query = {}, }: {query?: AlertReceiverListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertReceiverResultsPage>({
+           path: `/v1/alert-receivers`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch alert receiver
+ */
+alertReceiverView: ({ 
+path, }: {path: AlertReceiverViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertReceiver>({
+           path: `/v1/alert-receivers/${path.receiver}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Delete alert receiver
+ */
+alertReceiverDelete: ({ 
+path, }: {path: AlertReceiverDeletePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/alert-receivers/${path.receiver}`,
+           method: "DELETE",
+  ...params,
+         })
+      },
+/**
+* List delivery attempts to alert receiver
+ */
+alertDeliveryList: ({ 
+path, query = {}, }: {path: AlertDeliveryListPathParams,
+query?: AlertDeliveryListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertDeliveryResultsPage>({
+           path: `/v1/alert-receivers/${path.receiver}/deliveries`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Send liveness probe to alert receiver
+ */
+alertReceiverProbe: ({ 
+path, query = {}, }: {path: AlertReceiverProbePathParams,
+query?: AlertReceiverProbeQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertProbeResult>({
+           path: `/v1/alert-receivers/${path.receiver}/probe`,
+           method: "POST",
+  query,
+  ...params,
+         })
+      },
+/**
+* Add alert receiver subscription
+ */
+alertReceiverSubscriptionAdd: ({ 
+path, body, }: {path: AlertReceiverSubscriptionAddPathParams,
+body: AlertSubscriptionCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertSubscriptionCreated>({
+           path: `/v1/alert-receivers/${path.receiver}/subscriptions`,
+           method: "POST",
+  body,
+  ...params,
+         })
+      },
+/**
+* Remove alert receiver subscription
+ */
+alertReceiverSubscriptionRemove: ({ 
+path, }: {path: AlertReceiverSubscriptionRemovePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/alert-receivers/${path.receiver}/subscriptions/${path.subscription}`,
+           method: "DELETE",
+  ...params,
+         })
+      },
+/**
+* Request re-delivery of alert
+ */
+alertDeliveryResend: ({ 
+path, query, }: {path: AlertDeliveryResendPathParams,
+query: AlertDeliveryResendQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertDeliveryId>({
+           path: `/v1/alerts/${path.alertId}/resend`,
+           method: "POST",
+  query,
+  ...params,
+         })
+      },
+/**
+* List anti-affinity groups
+ */
+antiAffinityGroupList: ({ 
+query = {}, }: {query?: AntiAffinityGroupListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroupResultsPage>({
+           path: `/v1/anti-affinity-groups`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create anti-affinity group
+ */
+antiAffinityGroupCreate: ({ 
+query, body, }: {query: AntiAffinityGroupCreateQueryParams,
+body: AntiAffinityGroupCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroup>({
+           path: `/v1/anti-affinity-groups`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch anti-affinity group
+ */
+antiAffinityGroupView: ({ 
+path, query = {}, }: {path: AntiAffinityGroupViewPathParams,
+query?: AntiAffinityGroupViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroup>({
+           path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Update anti-affinity group
+ */
+antiAffinityGroupUpdate: ({ 
+path, query = {}, body, }: {path: AntiAffinityGroupUpdatePathParams,
+query?: AntiAffinityGroupUpdateQueryParams,
+body: AntiAffinityGroupUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroup>({
+           path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}`,
+           method: "PUT",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete anti-affinity group
+ */
+antiAffinityGroupDelete: ({ 
+path, query = {}, }: {path: AntiAffinityGroupDeletePathParams,
+query?: AntiAffinityGroupDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List anti-affinity group members
+ */
+antiAffinityGroupMemberList: ({ 
+path, query = {}, }: {path: AntiAffinityGroupMemberListPathParams,
+query?: AntiAffinityGroupMemberListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroupMemberResultsPage>({
+           path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch anti-affinity group member
+ */
+antiAffinityGroupMemberInstanceView: ({ 
+path, query = {}, }: {path: AntiAffinityGroupMemberInstanceViewPathParams,
+query?: AntiAffinityGroupMemberInstanceViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroupMember>({
+           path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members/instance/${path.instance}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Add member to anti-affinity group
+ */
+antiAffinityGroupMemberInstanceAdd: ({ 
+path, query = {}, }: {path: AntiAffinityGroupMemberInstanceAddPathParams,
+query?: AntiAffinityGroupMemberInstanceAddQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroupMember>({
+           path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members/instance/${path.instance}`,
+           method: "POST",
+  query,
+  ...params,
+         })
+      },
+/**
+* Remove member from anti-affinity group
+ */
+antiAffinityGroupMemberInstanceDelete: ({ 
+path, query = {}, }: {path: AntiAffinityGroupMemberInstanceDeletePathParams,
+query?: AntiAffinityGroupMemberInstanceDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}/members/instance/${path.instance}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch current silo's auth settings
+ */
+authSettingsView: (_: EmptyObj,
+params: FetchParams = {}) => {
+         return this.request<SiloAuthSettings>({
+           path: `/v1/auth-settings`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Update current silo's auth settings
+ */
+authSettingsUpdate: ({ 
+body, }: {body: SiloAuthSettingsUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<SiloAuthSettings>({
+           path: `/v1/auth-settings`,
+           method: "PUT",
+  body,
   ...params,
          })
       },
@@ -4433,22 +8074,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Fetch disk metrics
- */
-diskMetricsList: ({ 
-path, query = {}, }: {path: DiskMetricsListPathParams,
-query?: DiskMetricsListQueryParams,
-},
-params: FetchParams = {}) => {
-         return this.request<MeasurementResultsPage>({
-           path: `/v1/disks/${path.disk}/metrics/${path.metric}`,
-           method: "GET",
-  query,
-  ...params,
-         })
-      },
-/**
-* List all floating IPs
+* List floating IPs
  */
 floatingIpList: ({ 
 query = {}, }: {query?: FloatingIpListQueryParams,
@@ -4719,6 +8345,23 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* Update instance
+ */
+instanceUpdate: ({ 
+path, query = {}, body, }: {path: InstanceUpdatePathParams,
+query?: InstanceUpdateQueryParams,
+body: InstanceUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<Instance>({
+           path: `/v1/instances/${path.instance}`,
+           method: "PUT",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
 * Delete instance
  */
 instanceDelete: ({ 
@@ -4729,6 +8372,36 @@ params: FetchParams = {}) => {
          return this.request<void>({
            path: `/v1/instances/${path.instance}`,
            method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List affinity groups containing instance
+ */
+instanceAffinityGroupList: ({ 
+path, query = {}, }: {path: InstanceAffinityGroupListPathParams,
+query?: InstanceAffinityGroupListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AffinityGroupResultsPage>({
+           path: `/v1/instances/${path.instance}/affinity-groups`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* List anti-affinity groups containing instance
+ */
+instanceAntiAffinityGroupList: ({ 
+path, query = {}, }: {path: InstanceAntiAffinityGroupListPathParams,
+query?: InstanceAntiAffinityGroupListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AntiAffinityGroupResultsPage>({
+           path: `/v1/instances/${path.instance}/anti-affinity-groups`,
+           method: "GET",
   query,
   ...params,
          })
@@ -4830,18 +8503,46 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Migrate an instance
+* List multicast groups for instance
  */
-instanceMigrate: ({ 
-path, query = {}, body, }: {path: InstanceMigratePathParams,
-query?: InstanceMigrateQueryParams,
-body: InstanceMigrate,
+instanceMulticastGroupList: ({ 
+path, query = {}, }: {path: InstanceMulticastGroupListPathParams,
+query?: InstanceMulticastGroupListQueryParams,
 },
 params: FetchParams = {}) => {
-         return this.request<Instance>({
-           path: `/v1/instances/${path.instance}/migrate`,
-           method: "POST",
-  body,
+         return this.request<MulticastGroupMemberResultsPage>({
+           path: `/v1/instances/${path.instance}/multicast-groups`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Join multicast group.
+ */
+instanceMulticastGroupJoin: ({ 
+path, query = {}, }: {path: InstanceMulticastGroupJoinPathParams,
+query?: InstanceMulticastGroupJoinQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroupMember>({
+           path: `/v1/instances/${path.instance}/multicast-groups/${path.multicastGroup}`,
+           method: "PUT",
+  query,
+  ...params,
+         })
+      },
+/**
+* Leave multicast group.
+ */
+instanceMulticastGroupLeave: ({ 
+path, query = {}, }: {path: InstanceMulticastGroupLeavePathParams,
+query?: InstanceMulticastGroupLeaveQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/instances/${path.instance}/multicast-groups/${path.multicastGroup}`,
+           method: "DELETE",
   query,
   ...params,
          })
@@ -4922,7 +8623,157 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* List all IP pools
+* List IP addresses attached to internet gateway
+ */
+internetGatewayIpAddressList: ({ 
+query = {}, }: {query?: InternetGatewayIpAddressListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<InternetGatewayIpAddressResultsPage>({
+           path: `/v1/internet-gateway-ip-addresses`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Attach IP address to internet gateway
+ */
+internetGatewayIpAddressCreate: ({ 
+query, body, }: {query: InternetGatewayIpAddressCreateQueryParams,
+body: InternetGatewayIpAddressCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<InternetGatewayIpAddress>({
+           path: `/v1/internet-gateway-ip-addresses`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Detach IP address from internet gateway
+ */
+internetGatewayIpAddressDelete: ({ 
+path, query = {}, }: {path: InternetGatewayIpAddressDeletePathParams,
+query?: InternetGatewayIpAddressDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/internet-gateway-ip-addresses/${path.address}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List IP pools attached to internet gateway
+ */
+internetGatewayIpPoolList: ({ 
+query = {}, }: {query?: InternetGatewayIpPoolListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<InternetGatewayIpPoolResultsPage>({
+           path: `/v1/internet-gateway-ip-pools`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Attach IP pool to internet gateway
+ */
+internetGatewayIpPoolCreate: ({ 
+query, body, }: {query: InternetGatewayIpPoolCreateQueryParams,
+body: InternetGatewayIpPoolCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<InternetGatewayIpPool>({
+           path: `/v1/internet-gateway-ip-pools`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Detach IP pool from internet gateway
+ */
+internetGatewayIpPoolDelete: ({ 
+path, query = {}, }: {path: InternetGatewayIpPoolDeletePathParams,
+query?: InternetGatewayIpPoolDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/internet-gateway-ip-pools/${path.pool}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List internet gateways
+ */
+internetGatewayList: ({ 
+query = {}, }: {query?: InternetGatewayListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<InternetGatewayResultsPage>({
+           path: `/v1/internet-gateways`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create VPC internet gateway
+ */
+internetGatewayCreate: ({ 
+query, body, }: {query: InternetGatewayCreateQueryParams,
+body: InternetGatewayCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<InternetGateway>({
+           path: `/v1/internet-gateways`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch internet gateway
+ */
+internetGatewayView: ({ 
+path, query = {}, }: {path: InternetGatewayViewPathParams,
+query?: InternetGatewayViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<InternetGateway>({
+           path: `/v1/internet-gateways/${path.gateway}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete internet gateway
+ */
+internetGatewayDelete: ({ 
+path, query = {}, }: {path: InternetGatewayDeletePathParams,
+query?: InternetGatewayDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/internet-gateways/${path.gateway}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List IP pools
  */
 projectIpPoolList: ({ 
 query = {}, }: {query?: ProjectIpPoolListQueryParams,
@@ -4982,6 +8833,33 @@ params: FetchParams = {}) => {
          return this.request<CurrentUser>({
            path: `/v1/me`,
            method: "GET",
+  ...params,
+         })
+      },
+/**
+* List access tokens
+ */
+currentUserAccessTokenList: ({ 
+query = {}, }: {query?: CurrentUserAccessTokenListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<DeviceAccessTokenResultsPage>({
+           path: `/v1/me/access-tokens`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete access token
+ */
+currentUserAccessTokenDelete: ({ 
+path, }: {path: CurrentUserAccessTokenDeletePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/me/access-tokens/${path.tokenId}`,
+           method: "DELETE",
   ...params,
          })
       },
@@ -5054,7 +8932,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Access metrics data
+* View metrics
  */
 siloMetric: ({ 
 path, query = {}, }: {path: SiloMetricPathParams,
@@ -5064,6 +8942,122 @@ params: FetchParams = {}) => {
          return this.request<MeasurementResultsPage>({
            path: `/v1/metrics/${path.metricName}`,
            method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* List all multicast groups.
+ */
+multicastGroupList: ({ 
+query = {}, }: {query?: MulticastGroupListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroupResultsPage>({
+           path: `/v1/multicast-groups`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create a multicast group.
+ */
+multicastGroupCreate: ({ 
+body, }: {body: MulticastGroupCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroup>({
+           path: `/v1/multicast-groups`,
+           method: "POST",
+  body,
+  ...params,
+         })
+      },
+/**
+* Fetch a multicast group.
+ */
+multicastGroupView: ({ 
+path, }: {path: MulticastGroupViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroup>({
+           path: `/v1/multicast-groups/${path.multicastGroup}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Update a multicast group.
+ */
+multicastGroupUpdate: ({ 
+path, body, }: {path: MulticastGroupUpdatePathParams,
+body: MulticastGroupUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroup>({
+           path: `/v1/multicast-groups/${path.multicastGroup}`,
+           method: "PUT",
+  body,
+  ...params,
+         })
+      },
+/**
+* Delete a multicast group.
+ */
+multicastGroupDelete: ({ 
+path, }: {path: MulticastGroupDeletePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/multicast-groups/${path.multicastGroup}`,
+           method: "DELETE",
+  ...params,
+         })
+      },
+/**
+* List members of a multicast group.
+ */
+multicastGroupMemberList: ({ 
+path, query = {}, }: {path: MulticastGroupMemberListPathParams,
+query?: MulticastGroupMemberListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroupMemberResultsPage>({
+           path: `/v1/multicast-groups/${path.multicastGroup}/members`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Add instance to a multicast group.
+ */
+multicastGroupMemberAdd: ({ 
+path, query = {}, body, }: {path: MulticastGroupMemberAddPathParams,
+query?: MulticastGroupMemberAddQueryParams,
+body: MulticastGroupMemberAdd,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroupMember>({
+           path: `/v1/multicast-groups/${path.multicastGroup}/members`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Remove instance from a multicast group.
+ */
+multicastGroupMemberRemove: ({ 
+path, query = {}, }: {path: MulticastGroupMemberRemovePathParams,
+query?: MulticastGroupMemberRemoveQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/multicast-groups/${path.multicastGroup}/members/${path.instance}`,
+           method: "DELETE",
   query,
   ...params,
          })
@@ -5339,6 +9333,20 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* View audit log
+ */
+auditLogList: ({ 
+query = {}, }: {query?: AuditLogListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AuditLogEntryResultsPage>({
+           path: `/v1/system/audit-log`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
 * List physical disks
  */
 physicalDiskList: ({ 
@@ -5347,6 +9355,34 @@ query = {}, }: {query?: PhysicalDiskListQueryParams,
 params: FetchParams = {}) => {
          return this.request<PhysicalDiskResultsPage>({
            path: `/v1/system/hardware/disks`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Get a physical disk
+ */
+physicalDiskView: ({ 
+path, }: {path: PhysicalDiskViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<PhysicalDisk>({
+           path: `/v1/system/hardware/disks/${path.diskId}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Fetch the LLDP neighbors seen on a switch port
+ */
+networkingSwitchPortLldpNeighbors: ({ 
+path, query = {}, }: {path: NetworkingSwitchPortLldpNeighborsPathParams,
+query?: NetworkingSwitchPortLldpNeighborsQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<LldpNeighborResultsPage>({
+           path: `/v1/system/hardware/rack-switch-port/${path.rackId}/${path.switchLocation}/${path.port}/lldp/neighbors`,
            method: "GET",
   query,
   ...params,
@@ -5400,7 +9436,7 @@ sledAdd: ({
 body, }: {body: UninitializedSledId,
 },
 params: FetchParams = {}) => {
-         return this.request<void>({
+         return this.request<SledId>({
            path: `/v1/system/hardware/sleds`,
            method: "POST",
   body,
@@ -5494,6 +9530,38 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* Fetch the LLDP configuration for a switch port
+ */
+networkingSwitchPortLldpConfigView: ({ 
+path, query, }: {path: NetworkingSwitchPortLldpConfigViewPathParams,
+query: NetworkingSwitchPortLldpConfigViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<LldpLinkConfig>({
+           path: `/v1/system/hardware/switch-port/${path.port}/lldp/config`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Update the LLDP configuration for a switch port
+ */
+networkingSwitchPortLldpConfigUpdate: ({ 
+path, query, body, }: {path: NetworkingSwitchPortLldpConfigUpdatePathParams,
+query: NetworkingSwitchPortLldpConfigUpdateQueryParams,
+body: LldpLinkConfig,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/hardware/switch-port/${path.port}/lldp/config`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
 * Apply switch port settings
  */
 networkingSwitchPortApplySettings: ({ 
@@ -5526,6 +9594,21 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* Get switch port status
+ */
+networkingSwitchPortStatus: ({ 
+path, query, }: {path: NetworkingSwitchPortStatusPathParams,
+query: NetworkingSwitchPortStatusQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<SwitchLinkState>({
+           path: `/v1/system/hardware/switch-port/${path.port}/status`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
 * List switches
  */
 switchList: ({ 
@@ -5553,7 +9636,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* List a silo's IdP's name
+* List identity providers for silo
  */
 siloIdentityProviderList: ({ 
 query = {}, }: {query?: SiloIdentityProviderListQueryParams,
@@ -5615,7 +9698,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Create SAML IdP
+* Create SAML identity provider
  */
 samlIdentityProviderCreate: ({ 
 query, body, }: {query: SamlIdentityProviderCreateQueryParams,
@@ -5631,11 +9714,11 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Fetch SAML IdP
+* Fetch SAML identity provider
  */
 samlIdentityProviderView: ({ 
-path, query, }: {path: SamlIdentityProviderViewPathParams,
-query: SamlIdentityProviderViewQueryParams,
+path, query = {}, }: {path: SamlIdentityProviderViewPathParams,
+query?: SamlIdentityProviderViewQueryParams,
 },
 params: FetchParams = {}) => {
          return this.request<SamlIdentityProvider>({
@@ -5730,7 +9813,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Add range to IP pool
+* Add range to IP pool.
  */
 ipPoolRangeAdd: ({ 
 path, body, }: {path: IpPoolRangeAddPathParams,
@@ -5818,6 +9901,19 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* Fetch IP pool utilization
+ */
+ipPoolUtilizationView: ({ 
+path, }: {path: IpPoolUtilizationViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<IpPoolUtilization>({
+           path: `/v1/system/ip-pools/${path.pool}/utilization`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
 * Fetch Oxide service IP pool
  */
 ipPoolServiceView: (_: EmptyObj,
@@ -5871,7 +9967,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Access metrics data
+* View metrics
  */
 systemMetric: ({ 
 path, query = {}, }: {path: SystemMetricPathParams,
@@ -5882,6 +9978,19 @@ params: FetchParams = {}) => {
            path: `/v1/system/metrics/${path.metricName}`,
            method: "GET",
   query,
+  ...params,
+         })
+      },
+/**
+* Look up multicast group by IP address.
+ */
+lookupMulticastGroupByIp: ({ 
+path, }: {path: LookupMulticastGroupByIpPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<MulticastGroup>({
+           path: `/v1/system/multicast-groups/by-ip/${path.address}`,
+           method: "GET",
   ...params,
          })
       },
@@ -5914,6 +10023,19 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* Fetch address lot
+ */
+networkingAddressLotView: ({ 
+path, }: {path: NetworkingAddressLotViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AddressLotViewResponse>({
+           path: `/v1/system/networking/address-lot/${path.addressLot}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
 * Delete address lot
  */
 networkingAddressLotDelete: ({ 
@@ -5938,6 +10060,31 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/address-lot/${path.addressLot}/blocks`,
            method: "GET",
   query,
+  ...params,
+         })
+      },
+/**
+* Get user-facing services IP allowlist
+ */
+networkingAllowListView: (_: EmptyObj,
+params: FetchParams = {}) => {
+         return this.request<AllowList>({
+           path: `/v1/system/networking/allow-list`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Update user-facing services IP allowlist
+ */
+networkingAllowListUpdate: ({ 
+body, }: {body: AllowListUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<AllowList>({
+           path: `/v1/system/networking/allow-list`,
+           method: "PUT",
+  body,
   ...params,
          })
       },
@@ -6023,29 +10170,29 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Get originated routes for a BGP configuration
+* List BGP announce sets
  */
 networkingBgpAnnounceSetList: ({ 
-query, }: {query: NetworkingBgpAnnounceSetListQueryParams,
+query = {}, }: {query?: NetworkingBgpAnnounceSetListQueryParams,
 },
 params: FetchParams = {}) => {
-         return this.request<BgpAnnouncement[]>({
-           path: `/v1/system/networking/bgp-announce`,
+         return this.request<BgpAnnounceSet[]>({
+           path: `/v1/system/networking/bgp-announce-set`,
            method: "GET",
   query,
   ...params,
          })
       },
 /**
-* Create new BGP announce set
+* Update BGP announce set
  */
-networkingBgpAnnounceSetCreate: ({ 
+networkingBgpAnnounceSetUpdate: ({ 
 body, }: {body: BgpAnnounceSetCreate,
 },
 params: FetchParams = {}) => {
          return this.request<BgpAnnounceSet>({
-           path: `/v1/system/networking/bgp-announce`,
-           method: "POST",
+           path: `/v1/system/networking/bgp-announce-set`,
+           method: "PUT",
   body,
   ...params,
          })
@@ -6054,12 +10201,49 @@ params: FetchParams = {}) => {
 * Delete BGP announce set
  */
 networkingBgpAnnounceSetDelete: ({ 
-query, }: {query: NetworkingBgpAnnounceSetDeleteQueryParams,
+path, }: {path: NetworkingBgpAnnounceSetDeletePathParams,
 },
 params: FetchParams = {}) => {
          return this.request<void>({
-           path: `/v1/system/networking/bgp-announce`,
+           path: `/v1/system/networking/bgp-announce-set/${path.announceSet}`,
            method: "DELETE",
+  ...params,
+         })
+      },
+/**
+* Get originated routes for a specified BGP announce set
+ */
+networkingBgpAnnouncementList: ({ 
+path, }: {path: NetworkingBgpAnnouncementListPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<BgpAnnouncement[]>({
+           path: `/v1/system/networking/bgp-announce-set/${path.announceSet}/announcement`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Get BGP exported routes
+ */
+networkingBgpExported: (_: EmptyObj,
+params: FetchParams = {}) => {
+         return this.request<BgpExported>({
+           path: `/v1/system/networking/bgp-exported`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Get BGP router message history
+ */
+networkingBgpMessageHistory: ({ 
+query, }: {query: NetworkingBgpMessageHistoryQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AggregateBgpMessageHistory>({
+           path: `/v1/system/networking/bgp-message-history`,
+           method: "GET",
   query,
   ...params,
          })
@@ -6086,6 +10270,31 @@ params: FetchParams = {}) => {
          return this.request<BgpPeerStatus[]>({
            path: `/v1/system/networking/bgp-status`,
            method: "GET",
+  ...params,
+         })
+      },
+/**
+* Return whether API services can receive limited ICMP traffic
+ */
+networkingInboundIcmpView: (_: EmptyObj,
+params: FetchParams = {}) => {
+         return this.request<ServiceIcmpConfig>({
+           path: `/v1/system/networking/inbound-icmp`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Set whether API services can receive limited ICMP traffic
+ */
+networkingInboundIcmpUpdate: ({ 
+body, }: {body: ServiceIcmpConfig,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/networking/inbound-icmp`,
+           method: "PUT",
+  body,
   ...params,
          })
       },
@@ -6137,7 +10346,7 @@ networkingSwitchPortSettingsList: ({
 query = {}, }: {query?: NetworkingSwitchPortSettingsListQueryParams,
 },
 params: FetchParams = {}) => {
-         return this.request<SwitchPortSettingsResultsPage>({
+         return this.request<SwitchPortSettingsIdentityResultsPage>({
            path: `/v1/system/networking/switch-port-settings`,
            method: "GET",
   query,
@@ -6151,7 +10360,7 @@ networkingSwitchPortSettingsCreate: ({
 body, }: {body: SwitchPortSettingsCreate,
 },
 params: FetchParams = {}) => {
-         return this.request<SwitchPortSettingsView>({
+         return this.request<SwitchPortSettings>({
            path: `/v1/system/networking/switch-port-settings`,
            method: "POST",
   body,
@@ -6179,7 +10388,7 @@ networkingSwitchPortSettingsView: ({
 path, }: {path: NetworkingSwitchPortSettingsViewPathParams,
 },
 params: FetchParams = {}) => {
-         return this.request<SwitchPortSettingsView>({
+         return this.request<SwitchPortSettings>({
            path: `/v1/system/networking/switch-port-settings/${path.port}`,
            method: "GET",
   ...params,
@@ -6211,29 +10420,60 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* List built-in roles
+* List SCIM tokens
  */
-roleList: ({ 
-query = {}, }: {query?: RoleListQueryParams,
+scimTokenList: ({ 
+query, }: {query: ScimTokenListQueryParams,
 },
 params: FetchParams = {}) => {
-         return this.request<RoleResultsPage>({
-           path: `/v1/system/roles`,
+         return this.request<ScimClientBearerToken[]>({
+           path: `/v1/system/scim/tokens`,
            method: "GET",
   query,
   ...params,
          })
       },
 /**
-* Fetch built-in role
+* Create SCIM token
  */
-roleView: ({ 
-path, }: {path: RoleViewPathParams,
+scimTokenCreate: ({ 
+query, }: {query: ScimTokenCreateQueryParams,
 },
 params: FetchParams = {}) => {
-         return this.request<Role>({
-           path: `/v1/system/roles/${path.roleName}`,
+         return this.request<ScimClientBearerTokenValue>({
+           path: `/v1/system/scim/tokens`,
+           method: "POST",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch SCIM token
+ */
+scimTokenView: ({ 
+path, query, }: {path: ScimTokenViewPathParams,
+query: ScimTokenViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<ScimClientBearerToken>({
+           path: `/v1/system/scim/tokens/${path.tokenId}`,
            method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete SCIM token
+ */
+scimTokenDelete: ({ 
+path, query, }: {path: ScimTokenDeletePathParams,
+query: ScimTokenDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/scim/tokens/${path.tokenId}`,
+           method: "DELETE",
+  query,
   ...params,
          })
       },
@@ -6377,6 +10617,151 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* Run timeseries query
+ */
+systemTimeseriesQuery: ({ 
+body, }: {body: TimeseriesQuery,
+},
+params: FetchParams = {}) => {
+         return this.request<OxqlQueryResult>({
+           path: `/v1/system/timeseries/query`,
+           method: "POST",
+  body,
+  ...params,
+         })
+      },
+/**
+* List timeseries schemas
+ */
+systemTimeseriesSchemaList: ({ 
+query = {}, }: {query?: SystemTimeseriesSchemaListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<TimeseriesSchemaResultsPage>({
+           path: `/v1/system/timeseries/schemas`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* List all TUF repositories
+ */
+systemUpdateRepositoryList: ({ 
+query = {}, }: {query?: SystemUpdateRepositoryListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<TufRepoResultsPage>({
+           path: `/v1/system/update/repositories`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Upload system release repository
+ */
+systemUpdateRepositoryUpload: ({ 
+query, }: {query: SystemUpdateRepositoryUploadQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<TufRepoUpload>({
+           path: `/v1/system/update/repositories`,
+           method: "PUT",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch system release repository by version
+ */
+systemUpdateRepositoryView: ({ 
+path, }: {path: SystemUpdateRepositoryViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<TufRepo>({
+           path: `/v1/system/update/repositories/${path.systemVersion}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Fetch system update status
+ */
+systemUpdateStatus: (_: EmptyObj,
+params: FetchParams = {}) => {
+         return this.request<UpdateStatus>({
+           path: `/v1/system/update/status`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Set target release
+ */
+targetReleaseUpdate: ({ 
+body, }: {body: SetTargetReleaseParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/update/target-release`,
+           method: "PUT",
+  body,
+  ...params,
+         })
+      },
+/**
+* List root roles in the updates trust store
+ */
+systemUpdateTrustRootList: ({ 
+query = {}, }: {query?: SystemUpdateTrustRootListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<UpdatesTrustRootResultsPage>({
+           path: `/v1/system/update/trust-roots`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Add trusted root role to updates trust store
+ */
+systemUpdateTrustRootCreate: (_: EmptyObj,
+params: FetchParams = {}) => {
+         return this.request<UpdatesTrustRoot>({
+           path: `/v1/system/update/trust-roots`,
+           method: "POST",
+  ...params,
+         })
+      },
+/**
+* Fetch trusted root role
+ */
+systemUpdateTrustRootView: ({ 
+path, }: {path: SystemUpdateTrustRootViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<UpdatesTrustRoot>({
+           path: `/v1/system/update/trust-roots/${path.trustRootId}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Delete trusted root role
+ */
+systemUpdateTrustRootDelete: ({ 
+path, }: {path: SystemUpdateTrustRootDeletePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/update/trust-roots/${path.trustRootId}`,
+           method: "DELETE",
+  ...params,
+         })
+      },
+/**
 * List built-in (system) users in silo
  */
 siloUserList: ({ 
@@ -6460,6 +10845,22 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* Run project-scoped timeseries query
+ */
+timeseriesQuery: ({ 
+query, body, }: {query: TimeseriesQueryQueryParams,
+body: TimeseriesQuery,
+},
+params: FetchParams = {}) => {
+         return this.request<OxqlQueryResult>({
+           path: `/v1/timeseries/query`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
 * List users
  */
 userList: ({ 
@@ -6468,6 +10869,62 @@ query = {}, }: {query?: UserListQueryParams,
 params: FetchParams = {}) => {
          return this.request<UserResultsPage>({
            path: `/v1/users`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch user
+ */
+userView: ({ 
+path, }: {path: UserViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<User>({
+           path: `/v1/users/${path.userId}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* List user's access tokens
+ */
+userTokenList: ({ 
+path, query = {}, }: {path: UserTokenListPathParams,
+query?: UserTokenListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<DeviceAccessTokenResultsPage>({
+           path: `/v1/users/${path.userId}/access-tokens`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Log user out
+ */
+userLogout: ({ 
+path, }: {path: UserLogoutPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/users/${path.userId}/logout`,
+           method: "POST",
+  ...params,
+         })
+      },
+/**
+* List user's console sessions
+ */
+userSessionList: ({ 
+path, query = {}, }: {path: UserSessionListPathParams,
+query?: UserSessionListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<ConsoleSessionResultsPage>({
+           path: `/v1/users/${path.userId}/sessions`,
            method: "GET",
   query,
   ...params,
@@ -6510,6 +10967,160 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-firewall-rules`,
            method: "PUT",
   body,
+  query,
+  ...params,
+         })
+      },
+/**
+* List routes
+ */
+vpcRouterRouteList: ({ 
+query = {}, }: {query?: VpcRouterRouteListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<RouterRouteResultsPage>({
+           path: `/v1/vpc-router-routes`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create route
+ */
+vpcRouterRouteCreate: ({ 
+query, body, }: {query: VpcRouterRouteCreateQueryParams,
+body: RouterRouteCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<RouterRoute>({
+           path: `/v1/vpc-router-routes`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch route
+ */
+vpcRouterRouteView: ({ 
+path, query = {}, }: {path: VpcRouterRouteViewPathParams,
+query?: VpcRouterRouteViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<RouterRoute>({
+           path: `/v1/vpc-router-routes/${path.route}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Update route
+ */
+vpcRouterRouteUpdate: ({ 
+path, query = {}, body, }: {path: VpcRouterRouteUpdatePathParams,
+query?: VpcRouterRouteUpdateQueryParams,
+body: RouterRouteUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<RouterRoute>({
+           path: `/v1/vpc-router-routes/${path.route}`,
+           method: "PUT",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete route
+ */
+vpcRouterRouteDelete: ({ 
+path, query = {}, }: {path: VpcRouterRouteDeletePathParams,
+query?: VpcRouterRouteDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/vpc-router-routes/${path.route}`,
+           method: "DELETE",
+  query,
+  ...params,
+         })
+      },
+/**
+* List routers
+ */
+vpcRouterList: ({ 
+query = {}, }: {query?: VpcRouterListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<VpcRouterResultsPage>({
+           path: `/v1/vpc-routers`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create VPC router
+ */
+vpcRouterCreate: ({ 
+query, body, }: {query: VpcRouterCreateQueryParams,
+body: VpcRouterCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<VpcRouter>({
+           path: `/v1/vpc-routers`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch router
+ */
+vpcRouterView: ({ 
+path, query = {}, }: {path: VpcRouterViewPathParams,
+query?: VpcRouterViewQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<VpcRouter>({
+           path: `/v1/vpc-routers/${path.router}`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Update router
+ */
+vpcRouterUpdate: ({ 
+path, query = {}, body, }: {path: VpcRouterUpdatePathParams,
+query?: VpcRouterUpdateQueryParams,
+body: VpcRouterUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<VpcRouter>({
+           path: `/v1/vpc-routers/${path.router}`,
+           method: "PUT",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Delete router
+ */
+vpcRouterDelete: ({ 
+path, query = {}, }: {path: VpcRouterDeletePathParams,
+query?: VpcRouterDeleteQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/vpc-routers/${path.router}`,
+           method: "DELETE",
   query,
   ...params,
          })
@@ -6680,6 +11291,78 @@ params: FetchParams = {}) => {
            path: `/v1/vpcs/${path.vpc}`,
            method: "DELETE",
   query,
+  ...params,
+         })
+      },
+/**
+* Create webhook receiver
+ */
+webhookReceiverCreate: ({ 
+body, }: {body: WebhookCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<WebhookReceiver>({
+           path: `/v1/webhook-receivers`,
+           method: "POST",
+  body,
+  ...params,
+         })
+      },
+/**
+* Update webhook receiver
+ */
+webhookReceiverUpdate: ({ 
+path, body, }: {path: WebhookReceiverUpdatePathParams,
+body: WebhookReceiverUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/webhook-receivers/${path.receiver}`,
+           method: "PUT",
+  body,
+  ...params,
+         })
+      },
+/**
+* List webhook receiver secret IDs
+ */
+webhookSecretsList: ({ 
+query, }: {query: WebhookSecretsListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<WebhookSecrets>({
+           path: `/v1/webhook-secrets`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Add secret to webhook receiver
+ */
+webhookSecretsAdd: ({ 
+query, body, }: {query: WebhookSecretsAddQueryParams,
+body: WebhookSecretCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<WebhookSecret>({
+           path: `/v1/webhook-secrets`,
+           method: "POST",
+  body,
+  query,
+  ...params,
+         })
+      },
+/**
+* Remove secret from webhook receiver
+ */
+webhookSecretsDelete: ({ 
+path, }: {path: WebhookSecretsDeletePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/webhook-secrets/${path.secretId}`,
+           method: "DELETE",
   ...params,
          })
       },
