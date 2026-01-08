@@ -16,7 +16,7 @@ import { snakeToCamel } from "../util";
  */
 function transformDefaultValue(value: unknown): unknown {
   if (value === null || value === undefined) return value;
-  if (typeof value !== 'object') return value;
+  if (typeof value !== "object") return value;
   if (Array.isArray(value)) return value.map(transformDefaultValue);
 
   const result: Record<string, unknown> = {};

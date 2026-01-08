@@ -19,13 +19,17 @@ import { execSync } from "node:child_process";
  */
 export function getSpecFilePath(omicronVersionPath: string): string {
   // Use split("\n")[0] to match bash's `head -n 1` behavior
-  const OMICRON_SHA = readFileSync(omicronVersionPath, "utf-8").split("\n")[0].trim();
+  const OMICRON_SHA = readFileSync(omicronVersionPath, "utf-8")
+    .split("\n")[0]
+    .trim();
   const SPEC_CACHE_DIR = "/tmp/openapi-gen-ts-schemas";
 
   // Check if a cached file already exists for this OMICRON_SHA
   if (existsSync(SPEC_CACHE_DIR)) {
     const cachedFiles = readdirSync(SPEC_CACHE_DIR);
-    const matchingFile = cachedFiles.find((file) => file.startsWith(`${OMICRON_SHA}-`));
+    const matchingFile = cachedFiles.find((file) =>
+      file.startsWith(`${OMICRON_SHA}-`)
+    );
 
     if (matchingFile) {
       return `${SPEC_CACHE_DIR}/${matchingFile}`;
@@ -37,11 +41,13 @@ export function getSpecFilePath(omicronVersionPath: string): string {
 
   let LATEST_SPEC: string;
   try {
-    LATEST_SPEC = execSync(`curl --fail "${SPEC_BASE}/nexus-latest.json"`, { encoding: 'utf-8' }).trim();
+    LATEST_SPEC = execSync(`curl --fail "${SPEC_BASE}/nexus-latest.json"`, {
+      encoding: "utf-8",
+    }).trim();
   } catch (error) {
     throw new Error(
       `Failed to fetch spec filename from ${SPEC_BASE}/nexus-latest.json. ` +
-      `Please check network connectivity and verify OMICRON_VERSION (${OMICRON_SHA}) is valid.`
+        `Please check network connectivity and verify OMICRON_VERSION (${OMICRON_SHA}) is valid.`
     );
   }
 
@@ -51,7 +57,7 @@ export function getSpecFilePath(omicronVersionPath: string): string {
   if (!existsSync(SPEC_FILE)) {
     throw new Error(
       `Spec file not found at ${SPEC_FILE}. ` +
-      `Please run \`npm run pretest\` or \`../tools/gen.sh\` to download the spec file first.`
+        `Please run \`npm run pretest\` or \`../tools/gen.sh\` to download the spec file first.`
     );
   }
 
