@@ -39,6 +39,7 @@ test("Disk", () => {
       /** human-readable free-form text about a resource */
       description: string;
       devicePath: string;
+      diskType: DiskType;
       /** unique, immutable, system-controlled identifier for each resource */
       id: string;
       /** ID of image from which disk was created, if any */
