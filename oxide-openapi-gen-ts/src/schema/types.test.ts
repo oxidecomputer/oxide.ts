@@ -9,9 +9,16 @@ import { test, expect } from "vitest";
 import { schemaToTypes } from "./types";
 import { TestWritable, initIO } from "../io";
 import * as prettier from "prettier";
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import spec from "../../spec.json";
 import { type Schema } from "./base";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const OMICRON_SHA = readFileSync(join(__dirname, "../../../OMICRON_VERSION"), "utf-8").trim();
+const SPEC_FILE = `/tmp/openapi-gen-ts-schemas/${OMICRON_SHA}.json`;
+const spec = JSON.parse(readFileSync(SPEC_FILE, "utf-8"));
 
 const schemas = spec.components.schemas;
 

@@ -14,7 +14,8 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SPEC_FILE = join(__dirname, "../../spec.json");
+const OMICRON_SHA = readFileSync(join(__dirname, "../../OMICRON_VERSION"), "utf-8").trim();
+const SPEC_FILE = `/tmp/openapi-gen-ts-schemas/${OMICRON_SHA}.json`;
 
 let tempDir: string;
 

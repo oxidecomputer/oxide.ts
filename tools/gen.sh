@@ -26,13 +26,23 @@ OMICRON_SHA=$(cat "$ROOT_DIR/OMICRON_VERSION")
 DEST_DIR="$ROOT_DIR/oxide-api/src"
 
 SPEC_LATEST_URL="https://raw.githubusercontent.com/oxidecomputer/omicron/$OMICRON_SHA/openapi/nexus/nexus-latest.json"
-SPEC_FILE="./spec.json"
+SPEC_CACHE_DIR="/tmp/openapi-gen-ts-schemas"
 
-# TODO: we could get rid of this DL if a test didn't rely on it
+# Create cache directory if it doesn't exist
+mkdir -p "$SPEC_CACHE_DIR"
+
 # nexus-latest.json is a symlink that contains the actual spec filename
 SPEC_FILENAME=$(curl --fail "$SPEC_LATEST_URL")
+SPEC_FILE="$SPEC_CACHE_DIR/$OMICRON_SHA-$SPEC_FILENAME"
 SPEC_URL="https://raw.githubusercontent.com/oxidecomputer/omicron/$OMICRON_SHA/openapi/nexus/$SPEC_FILENAME"
-curl --fail "$SPEC_URL" -o $SPEC_FILE
+
+# Download spec only if not already cached
+if [ ! -f "$SPEC_FILE" ]; then
+  echo "Downloading spec for $OMICRON_SHA ($SPEC_FILENAME)..."
+  curl --fail "$SPEC_URL" -o "$SPEC_FILE"
+else
+  echo "Using cached spec for $OMICRON_SHA ($SPEC_FILENAME)"
+fi
 
 rm -f "$DEST_DIR/*" # remove after we add --clean flag to generator
 
