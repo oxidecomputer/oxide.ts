@@ -9,29 +9,14 @@
 import { type IO } from "../io";
 import { makeSchemaGenerator, refToSchemaName } from "./base";
 import { type OpenAPIV3 } from "openapi-types";
-import { snakeToCamel } from "../util";
-
-/**
- * Recursively transform object keys from snake_case to camelCase for default values
- */
-function transformDefaultValue(value: unknown): unknown {
-  if (value === null || value === undefined) return value;
-  if (typeof value !== "object") return value;
-  if (Array.isArray(value)) return value.map(transformDefaultValue);
-
-  const result: Record<string, unknown> = {};
-  for (const [key, val] of Object.entries(value)) {
-    result[snakeToCamel(key)] = transformDefaultValue(val);
-  }
-  return result;
-}
+import { camelify, snakeToCamel } from "../util";
 
 /**
  * Generate the .default() method call with transformed default value
  */
 function getDefaultString(schema: OpenAPIV3.SchemaObject): string {
   if (!("default" in schema)) return "";
-  return `.default(${JSON.stringify(transformDefaultValue(schema.default))})`;
+  return `.default(${JSON.stringify(camelify(schema.default))})`;
 }
 
 export const schemaToZod = makeSchemaGenerator({
