@@ -159,7 +159,7 @@ z.object({"ip": z.ipv4(),
 "pool": NameOrId.nullable().optional(),
 "type": z.enum(["explicit"]),
 }),
-z.object({"poolSelector": PoolSelector.default({"ip_version":null,"type":"auto"}).optional(),
+z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
 "type": z.enum(["auto"]),
 }),
 ])
@@ -1556,7 +1556,7 @@ export const Distributionint64 = z.preprocess(processResponseBody,z.object({"bin
 /**
 * Parameters for creating an ephemeral IP address for an instance.
  */
-export const EphemeralIpCreate = z.preprocess(processResponseBody,z.object({"poolSelector": PoolSelector.default({"ip_version":null,"type":"auto"}).optional(),
+export const EphemeralIpCreate = z.preprocess(processResponseBody,z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
 }))
 
 /**
@@ -1596,7 +1596,7 @@ z.object({"description": z.string(),
 * Parameters for creating an external IP address for instances.
  */
 export const ExternalIpCreate = z.preprocess(processResponseBody,z.union([
-z.object({"poolSelector": PoolSelector.default({"ip_version":null,"type":"auto"}).optional(),
+z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
 "type": z.enum(["ephemeral"]),
 }),
 z.object({"floatingIp": NameOrId,
@@ -1734,7 +1734,7 @@ export const FloatingIpAttach = z.preprocess(processResponseBody,z.object({"kind
 /**
 * Parameters for creating a new floating IP address for instances.
  */
-export const FloatingIpCreate = z.preprocess(processResponseBody,z.object({"addressSelector": AddressSelector.default({"pool_selector":{"ip_version":null,"type":"auto"},"type":"auto"}).optional(),
+export const FloatingIpCreate = z.preprocess(processResponseBody,z.object({"addressSelector": AddressSelector.default({"poolSelector":{"ipVersion":null,"type":"auto"},"type":"auto"}).optional(),
 "description": z.string(),
 "name": Name,
 }))
@@ -1986,7 +1986,7 @@ z.object({"type": z.enum(["dual_stack"]),
 * Create-time parameters for an `InstanceNetworkInterface`
  */
 export const InstanceNetworkInterfaceCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
-"ipConfig": PrivateIpStackCreate.default({"type":"dual_stack","value":{"v4":{"ip":{"type":"auto"},"transit_ips":[]},"v6":{"ip":{"type":"auto"},"transit_ips":[]}}}).optional(),
+"ipConfig": PrivateIpStackCreate.default({"type":"dual_stack","value":{"v4":{"ip":{"type":"auto"},"transitIps":[]},"v6":{"ip":{"type":"auto"},"transitIps":[]}}}).optional(),
 "name": Name,
 "subnetName": Name,
 "vpcName": Name,
@@ -2499,7 +2499,7 @@ export const MulticastGroup = z.preprocess(processResponseBody,z.object({"descri
  */
 export const MulticastGroupCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "multicastIp": z.ipv4().nullable().default(null).optional(),
-"mvlan": z.number().min(0).max(65535).nullable().optional(),
+"mvlan": z.number().default(null).min(0).max(65535).nullable().optional(),
 "name": Name,
 "pool": NameOrId.nullable().default(null).optional(),
 "sourceIps": z.ipv4().array().nullable().default(null).optional(),
@@ -2755,7 +2755,7 @@ export const Probe = z.preprocess(processResponseBody,z.object({"description": z
  */
 export const ProbeCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "name": Name,
-"poolSelector": PoolSelector.default({"ip_version":null,"type":"auto"}).optional(),
+"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
 "sled": z.uuid(),
 }))
 
