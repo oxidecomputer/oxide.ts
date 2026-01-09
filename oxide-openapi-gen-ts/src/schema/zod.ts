@@ -13,18 +13,14 @@ import { camelify, snakeToCamel } from "../util";
 
 /**
  * Generate the .default() method call with transformed default value
- * Uses factory functions for arrays and objects to avoid shared reference issues
  */
 function getDefaultString(schema: OpenAPIV3.SchemaObject): string {
   if (!("default" in schema) || schema.default === undefined) return "";
   const defaultValue = camelify(schema.default);
 
-  // Use factory functions for non-primitive defaults to avoid shared references
-  if (Array.isArray(defaultValue)) {
-    return `.default(() => ${JSON.stringify(defaultValue)})`;
-  }
-  if (defaultValue !== null && typeof defaultValue === "object") {
-    return `.default(() => (${JSON.stringify(defaultValue)}))`;
+  // Only emit .default(null) if the schema is nullable to avoid runtime errors
+  if (defaultValue === null && !schema.nullable) {
+    return "";
   }
 
   return `.default(${JSON.stringify(defaultValue)})`;
@@ -131,8 +127,8 @@ export const schemaToZod = makeSchemaGenerator({
       schemaToZod(subSchema, io);
       // Only add .optional() if the property is not required AND doesn't have a default value
       // .default() already makes the input optional, and adding .optional() would prevent the default from being applied
-      const hasDefault =
-        "$ref" in subSchema ? false : subSchema.default !== undefined;
+      // Use getDefaultString to ensure we match actual default emission
+      const hasDefault = "$ref" in subSchema ? false : getDefaultString(subSchema) !== "";
       if (!schema.required?.includes(name) && !hasDefault) {
         w0(`.optional()`);
       }
@@ -140,6 +136,7 @@ export const schemaToZod = makeSchemaGenerator({
     }
     w0("})");
     if (schema.nullable) io.w0(".nullable()");
+    w0(getDefaultString(schema));
   },
 
   oneOf(schema, io) {
