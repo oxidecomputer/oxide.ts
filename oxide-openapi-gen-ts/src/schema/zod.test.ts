@@ -194,7 +194,9 @@ test("array nullable", () => {
 
 test("array with default", () => {
   schemaToZod({ type: "array", items: { type: "string" }, default: [] }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.string().array().default([])"');
+  expect(out.value()).toMatchInlineSnapshot(
+    `"z.string().array().default(() => [])"`
+  );
 });
 
 test("array nullable with default", () => {
@@ -208,7 +210,7 @@ test("array nullable with default", () => {
     io
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().array().nullable().default([1,2])"'
+    `"z.number().array().nullable().default(() => [1,2])"`
   );
 });
 
@@ -279,7 +281,7 @@ test("object with optional array that has default", () => {
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
-    "tags": z.string().array().default([]),
+    "tags": z.string().array().default(() => []),
     })"
   `);
 });
@@ -342,7 +344,7 @@ test("object mixing required, optional without default, and optional with defaul
     "z.object({"name": z.string(),
     "age": z.number().optional(),
     "count": z.number().default(0),
-    "tags": z.string().array().default([]),
+    "tags": z.string().array().default(() => []),
     })"
   `);
 });
@@ -478,7 +480,7 @@ test("allOf with default", () => {
     io
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"Config.default({"enabled":true})"'
+    `"Config.default(() => ({"enabled":true}))"`
   );
 });
 
@@ -487,4 +489,92 @@ test("empty schema", () => {
   expect(out.value()).toMatchInlineSnapshot(
     '"z.record(z.string(), z.unknown())"'
   );
+});
+
+test("object property with default: undefined should still be optional", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        description: { type: "string", default: undefined },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "description": z.string().optional(),
+    })"
+  `);
+});
+
+test("array default uses factory function", () => {
+  schemaToZod({ type: "array", items: { type: "string" }, default: [] }, io);
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.string().array().default(() => [])"'
+  );
+});
+
+test("array default with values uses factory function", () => {
+  schemaToZod(
+    { type: "array", items: { type: "number" }, default: [1, 2, 3] },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.number().array().default(() => [1,2,3])"'
+  );
+});
+
+test("object default uses factory function", () => {
+  schemaToZod(
+    {
+      allOf: [{ $ref: "#/components/schemas/Config" }],
+      default: { enabled: true },
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(
+    '"Config.default(() => ({"enabled":true}))"'
+  );
+});
+
+test("primitive defaults do not use factory function", () => {
+  schemaToZod({ type: "string", default: "test" }, io);
+  expect(out.value()).toMatchInlineSnapshot(`"z.string().default("test")"`);
+
+  out.clear();
+  schemaToZod({ type: "number", default: 42 }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().default(42)"');
+
+  out.clear();
+  schemaToZod({ type: "boolean", default: false }, io);
+  expect(out.value()).toMatchInlineSnapshot('"SafeBoolean.default(false)"');
+});
+
+test("null default does not use factory function", () => {
+  schemaToZod({ type: "string", nullable: true, default: null }, io);
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.string().nullable().default(null)"'
+  );
+});
+
+test("$ref property should be optional when not required", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        config: { $ref: "#/components/schemas/Config" },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "config": Config.optional(),
+    })"
+  `);
 });
