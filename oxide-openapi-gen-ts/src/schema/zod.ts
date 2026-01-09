@@ -15,8 +15,15 @@ import { camelify, snakeToCamel } from "../util";
  * Generate the .default() method call with transformed default value
  */
 function getDefaultString(schema: OpenAPIV3.SchemaObject): string {
-  if (!("default" in schema)) return "";
-  return `.default(${JSON.stringify(camelify(schema.default))})`;
+  if (!("default" in schema) || schema.default === undefined) return "";
+  const defaultValue = camelify(schema.default);
+
+  // Only emit .default(null) if the schema is nullable to avoid runtime errors
+  if (defaultValue === null && !schema.nullable) {
+    return "";
+  }
+
+  return `.default(${JSON.stringify(defaultValue)})`;
 }
 
 export const schemaToZod = makeSchemaGenerator({
@@ -81,11 +88,13 @@ export const schemaToZod = makeSchemaGenerator({
   number(schema, { w0 }) {
     w0("z.number()");
     if (schema.nullable) w0(".nullable()");
+    w0(getDefaultString(schema));
   },
 
   integer(schema, io) {
     schemaToZodInt(schema, io);
     if (schema.nullable) io.w0(".nullable()");
+    io.w0(getDefaultString(schema));
   },
 
   array(schema, io) {
@@ -116,13 +125,19 @@ export const schemaToZod = makeSchemaGenerator({
     for (const [name, subSchema] of Object.entries(schema.properties || {})) {
       w0(`${JSON.stringify(snakeToCamel(name))}: `);
       schemaToZod(subSchema, io);
-      if (!schema.required?.includes(name)) {
+      // Only add .optional() if the property is not required AND doesn't have a default value
+      // .default() already makes the input optional, and adding .optional() would prevent the default from being applied
+      // Use getDefaultString to ensure we match actual default emission
+      const hasDefault =
+        "$ref" in subSchema ? false : getDefaultString(subSchema) !== "";
+      if (!schema.required?.includes(name) && !hasDefault) {
         w0(`.optional()`);
       }
       w(",");
     }
     w0("})");
     if (schema.nullable) io.w0(".nullable()");
+    w0(getDefaultString(schema));
   },
 
   oneOf(schema, io) {
@@ -202,8 +217,6 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   } else {
     w0(`z.number()`);
   }
-
-  w0(getDefaultString(schema));
 
   const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) || [];
   if ("minimum" in schema) {
