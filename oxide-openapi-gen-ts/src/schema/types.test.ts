@@ -9,9 +9,16 @@ import { test, expect } from "vitest";
 import { schemaToTypes } from "./types";
 import { TestWritable, initIO } from "../io";
 import * as prettier from "prettier";
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { getSpecFilePath } from "../test-util";
 
-import spec from "../../spec.json";
 import { type Schema } from "./base";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const SPEC_FILE = getSpecFilePath(join(__dirname, "../../../OMICRON_VERSION"));
+const spec = JSON.parse(readFileSync(SPEC_FILE, "utf-8"));
 
 const schemas = spec.components.schemas;
 
@@ -39,6 +46,7 @@ test("Disk", () => {
       /** human-readable free-form text about a resource */
       description: string;
       devicePath: string;
+      diskType: DiskType;
       /** unique, immutable, system-controlled identifier for each resource */
       id: string;
       /** ID of image from which disk was created, if any */

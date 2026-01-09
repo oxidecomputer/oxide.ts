@@ -9,7 +9,15 @@
 import { type IO } from "../io";
 import { makeSchemaGenerator, refToSchemaName } from "./base";
 import { type OpenAPIV3 } from "openapi-types";
-import { snakeToCamel } from "../util";
+import { camelify, snakeToCamel } from "../util";
+
+/**
+ * Generate the .default() method call with transformed default value
+ */
+function getDefaultString(schema: OpenAPIV3.SchemaObject): string {
+  if (!("default" in schema)) return "";
+  return `.default(${JSON.stringify(camelify(schema.default))})`;
+}
 
 export const schemaToZod = makeSchemaGenerator({
   ref(schema, { w0 }) {
@@ -20,9 +28,7 @@ export const schemaToZod = makeSchemaGenerator({
 
   boolean(schema, { w0 }) {
     w0(`SafeBoolean`);
-    if ("default" in schema) {
-      w0(`.default(${schema.default})`);
-    }
+    w0(getDefaultString(schema));
     if (schema.nullable) w0(".nullable()");
   },
 
@@ -64,7 +70,7 @@ export const schemaToZod = makeSchemaGenerator({
     }
 
     if (schema.nullable) w0(".nullable()");
-    if ("default" in schema) w0(`.default(${JSON.stringify(schema.default)})`);
+    w0(getDefaultString(schema));
   },
 
   date(schema, { w0 }) {
@@ -87,9 +93,7 @@ export const schemaToZod = makeSchemaGenerator({
     schemaToZod(schema.items, io);
     w0(".array()");
     if (schema.nullable) io.w0(".nullable()");
-    if ("default" in schema) {
-      w0(`.default(${JSON.stringify(schema.default)})`);
-    }
+    w0(getDefaultString(schema));
     if (schema.uniqueItems) w0(`.refine(...uniqueItems)`);
   },
 
@@ -179,7 +183,7 @@ export const schemaToZod = makeSchemaGenerator({
     }
 
     if (schema.nullable) w0(".nullable()");
-    if ("default" in schema) w0(`.default(${JSON.stringify(schema.default)})`);
+    w0(getDefaultString(schema));
   },
 
   empty({ w0 }) {
@@ -199,9 +203,7 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
     w0(`z.number()`);
   }
 
-  if (schema.default) {
-    w0(`.default(${schema.default})`);
-  }
+  w0(getDefaultString(schema));
 
   const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) || [];
   if ("minimum" in schema) {

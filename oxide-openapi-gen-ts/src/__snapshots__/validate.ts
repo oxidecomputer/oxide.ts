@@ -134,6 +134,38 @@ export const AddressLotViewResponse = z.preprocess(processResponseBody,z.object(
 }))
 
 /**
+* The IP address version.
+ */
+export const IpVersion = z.preprocess(processResponseBody,z.enum(["v4","v6"]))
+
+/**
+* Specify which IP pool to allocate from.
+ */
+export const PoolSelector = z.preprocess(processResponseBody,z.union([
+z.object({"pool": NameOrId,
+"type": z.enum(["explicit"]),
+}),
+z.object({"ipVersion": IpVersion.nullable().default(null).optional(),
+"type": z.enum(["auto"]),
+}),
+])
+)
+
+/**
+* Specify how to allocate a floating IP address.
+ */
+export const AddressSelector = z.preprocess(processResponseBody,z.union([
+z.object({"ip": z.ipv4(),
+"pool": NameOrId.nullable().optional(),
+"type": z.enum(["explicit"]),
+}),
+z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
+"type": z.enum(["auto"]),
+}),
+])
+)
+
+/**
 * Describes the scope of affinity for the purposes of co-location.
  */
 export const FailureDomain = z.preprocess(processResponseBody,z.enum(["sled"]))
@@ -675,7 +707,7 @@ export const BgpPeerConfig = z.preprocess(processResponseBody,z.object({"linkNam
 /**
 * The current state of a BGP peer.
  */
-export const BgpPeerState = z.preprocess(processResponseBody,z.enum(["idle", "connect", "active", "open_sent", "open_confirm", "session_setup", "established"])
+export const BgpPeerState = z.preprocess(processResponseBody,z.enum(["idle", "connect", "active", "open_sent", "open_confirm", "connection_collision", "session_setup", "established"])
 )
 
 /**
@@ -1385,6 +1417,8 @@ export const Digest = z.preprocess(processResponseBody,z.object({"type": z.enum(
 "value": z.string(),
 }))
 
+export const DiskType = z.preprocess(processResponseBody,z.enum(["distributed","local"]))
+
 /**
 * State of a Disk
  */
@@ -1425,6 +1459,7 @@ z.object({"state": z.enum(["faulted"]),
 export const Disk = z.preprocess(processResponseBody,z.object({"blockSize": ByteCount,
 "description": z.string(),
 "devicePath": z.string(),
+"diskType": DiskType,
 "id": z.uuid(),
 "imageId": z.uuid().nullable().optional(),
 "name": Name,
@@ -1437,7 +1472,7 @@ export const Disk = z.preprocess(processResponseBody,z.object({"blockSize": Byte
 }))
 
 /**
-* Different sources for a disk
+* Different sources for a Distributed Disk
  */
 export const DiskSource = z.preprocess(processResponseBody,z.union([
 z.object({"blockSize": BlockSize,
@@ -1456,10 +1491,22 @@ z.object({"blockSize": BlockSize,
 )
 
 /**
+* The source of a `Disk`'s blocks
+ */
+export const DiskBackend = z.preprocess(processResponseBody,z.union([
+z.object({"type": z.enum(["local"]),
+}),
+z.object({"diskSource": DiskSource,
+"type": z.enum(["distributed"]),
+}),
+])
+)
+
+/**
 * Create-time parameters for a `Disk`
  */
 export const DiskCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
-"diskSource": DiskSource,
+"diskBackend": DiskBackend,
 "name": Name,
 "size": ByteCount,
 }))
@@ -1483,9 +1530,9 @@ export const Distributiondouble = z.preprocess(processResponseBody,z.object({"bi
 "counts": z.number().min(0).array(),
 "max": z.number().nullable().optional(),
 "min": z.number().nullable().optional(),
-"p50": Quantile.nullable().optional(),
-"p90": Quantile.nullable().optional(),
-"p99": Quantile.nullable().optional(),
+"p50": z.number().nullable().optional(),
+"p90": z.number().nullable().optional(),
+"p99": z.number().nullable().optional(),
 "squaredMean": z.number(),
 "sumOfSamples": z.number(),
 }))
@@ -1499,9 +1546,9 @@ export const Distributionint64 = z.preprocess(processResponseBody,z.object({"bin
 "counts": z.number().min(0).array(),
 "max": z.number().nullable().optional(),
 "min": z.number().nullable().optional(),
-"p50": Quantile.nullable().optional(),
-"p90": Quantile.nullable().optional(),
-"p99": Quantile.nullable().optional(),
+"p50": z.number().nullable().optional(),
+"p90": z.number().nullable().optional(),
+"p99": z.number().nullable().optional(),
 "squaredMean": z.number(),
 "sumOfSamples": z.number(),
 }))
@@ -1509,7 +1556,7 @@ export const Distributionint64 = z.preprocess(processResponseBody,z.object({"bin
 /**
 * Parameters for creating an ephemeral IP address for an instance.
  */
-export const EphemeralIpCreate = z.preprocess(processResponseBody,z.object({"pool": NameOrId.nullable().optional(),
+export const EphemeralIpCreate = z.preprocess(processResponseBody,z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
 }))
 
 /**
@@ -1549,7 +1596,7 @@ z.object({"description": z.string(),
 * Parameters for creating an external IP address for instances.
  */
 export const ExternalIpCreate = z.preprocess(processResponseBody,z.union([
-z.object({"pool": NameOrId.nullable().optional(),
+z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
 "type": z.enum(["ephemeral"]),
 }),
 z.object({"floatingIp": NameOrId,
@@ -1687,10 +1734,9 @@ export const FloatingIpAttach = z.preprocess(processResponseBody,z.object({"kind
 /**
 * Parameters for creating a new floating IP address for instances.
  */
-export const FloatingIpCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
-"ip": z.ipv4().nullable().optional(),
+export const FloatingIpCreate = z.preprocess(processResponseBody,z.object({"addressSelector": AddressSelector.default({"poolSelector":{"ipVersion":null,"type":"auto"},"type":"auto"}).optional(),
+"description": z.string(),
 "name": Name,
-"pool": NameOrId.nullable().optional(),
 }))
 
 /**
@@ -1869,7 +1915,7 @@ export const Instance = z.preprocess(processResponseBody,z.object({"autoRestartC
  */
 export const InstanceDiskAttachment = z.preprocess(processResponseBody,z.union([
 z.object({"description": z.string(),
-"diskSource": DiskSource,
+"diskBackend": DiskBackend,
 "name": Name,
 "size": ByteCount,
 "type": z.enum(["create"]),
@@ -1881,13 +1927,68 @@ z.object({"name": Name,
 )
 
 /**
+* How a VPC-private IP address is assigned to a network interface.
+ */
+export const Ipv4Assignment = z.preprocess(processResponseBody,z.union([
+z.object({"type": z.enum(["auto"]),
+}),
+z.object({"type": z.enum(["explicit"]),
+"value": z.ipv4(),
+}),
+])
+)
+
+/**
+* Configuration for a network interface's IPv4 addressing.
+ */
+export const PrivateIpv4StackCreate = z.preprocess(processResponseBody,z.object({"ip": Ipv4Assignment,
+"transitIps": Ipv4Net.array().default([]).optional(),
+}))
+
+/**
+* How a VPC-private IP address is assigned to a network interface.
+ */
+export const Ipv6Assignment = z.preprocess(processResponseBody,z.union([
+z.object({"type": z.enum(["auto"]),
+}),
+z.object({"type": z.enum(["explicit"]),
+"value": z.ipv6(),
+}),
+])
+)
+
+/**
+* Configuration for a network interface's IPv6 addressing.
+ */
+export const PrivateIpv6StackCreate = z.preprocess(processResponseBody,z.object({"ip": Ipv6Assignment,
+"transitIps": Ipv6Net.array().default([]).optional(),
+}))
+
+/**
+* Create parameters for a network interface's IP stack.
+ */
+export const PrivateIpStackCreate = z.preprocess(processResponseBody,z.union([
+z.object({"type": z.enum(["v4"]),
+"value": PrivateIpv4StackCreate,
+}),
+z.object({"type": z.enum(["v6"]),
+"value": PrivateIpv6StackCreate,
+}),
+z.object({"type": z.enum(["dual_stack"]),
+"value": z.object({"v4": PrivateIpv4StackCreate,
+"v6": PrivateIpv6StackCreate,
+}),
+}),
+])
+)
+
+/**
 * Create-time parameters for an `InstanceNetworkInterface`
  */
 export const InstanceNetworkInterfaceCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
-"ip": z.ipv4().nullable().optional(),
+"ipConfig": PrivateIpStackCreate.default({"type":"dual_stack","value":{"v4":{"ip":{"type":"auto"},"transitIps":[]},"v6":{"ip":{"type":"auto"},"transitIps":[]}}}).optional(),
 "name": Name,
 "subnetName": Name,
-"transitIps": IpNet.array().default([]).optional(),
 "vpcName": Name,
 }))
 
@@ -1898,7 +1999,11 @@ export const InstanceNetworkInterfaceAttachment = z.preprocess(processResponseBo
 z.object({"params": InstanceNetworkInterfaceCreate.array(),
 "type": z.enum(["create"]),
 }),
-z.object({"type": z.enum(["default"]),
+z.object({"type": z.enum(["default_ipv4"]),
+}),
+z.object({"type": z.enum(["default_ipv6"]),
+}),
+z.object({"type": z.enum(["default_dual_stack"]),
 }),
 z.object({"type": z.enum(["none"]),
 }),
@@ -1917,13 +2022,46 @@ export const InstanceCreate = z.preprocess(processResponseBody,z.object({"antiAf
 "externalIps": ExternalIpCreate.array().default([]).optional(),
 "hostname": Hostname,
 "memory": ByteCount,
+"multicastGroups": NameOrId.array().default([]).optional(),
 "name": Name,
 "ncpus": InstanceCpuCount,
-"networkInterfaces": InstanceNetworkInterfaceAttachment.default({"type":"default"}).optional(),
+"networkInterfaces": InstanceNetworkInterfaceAttachment.default({"type":"default_dual_stack"}).optional(),
 "sshPublicKeys": NameOrId.array().nullable().optional(),
 "start": SafeBoolean.default(true).optional(),
 "userData": z.string().default("").optional(),
 }))
+
+/**
+* The VPC-private IPv4 stack for a network interface
+ */
+export const PrivateIpv4Stack = z.preprocess(processResponseBody,z.object({"ip": z.ipv4(),
+"transitIps": Ipv4Net.array(),
+}))
+
+/**
+* The VPC-private IPv6 stack for a network interface
+ */
+export const PrivateIpv6Stack = z.preprocess(processResponseBody,z.object({"ip": z.ipv6(),
+"transitIps": Ipv6Net.array(),
+}))
+
+/**
+* The VPC-private IP stack for a network interface.
+ */
+export const PrivateIpStack = z.preprocess(processResponseBody,z.union([
+z.object({"type": z.enum(["v4"]),
+"value": PrivateIpv4Stack,
+}),
+z.object({"type": z.enum(["v6"]),
+"value": PrivateIpv6Stack,
+}),
+z.object({"type": z.enum(["dual_stack"]),
+"value": z.object({"v4": PrivateIpv4Stack,
+"v6": PrivateIpv6Stack,
+}),
+}),
+])
+)
 
 /**
 * A MAC address
@@ -1938,14 +2076,13 @@ export const MacAddr = z.preprocess(processResponseBody,z.string().min(5).max(17
 export const InstanceNetworkInterface = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "id": z.uuid(),
 "instanceId": z.uuid(),
-"ip": z.ipv4(),
+"ipStack": PrivateIpStack,
 "mac": MacAddr,
 "name": Name,
 "primary": SafeBoolean,
 "subnetId": z.uuid(),
 "timeCreated": z.coerce.date(),
 "timeModified": z.coerce.date(),
-"transitIps": IpNet.array().default([]).optional(),
 "vpcId": z.uuid(),
 }))
 
@@ -1988,6 +2125,7 @@ export const InstanceUpdate = z.preprocess(processResponseBody,z.object({"autoRe
 "bootDisk": NameOrId.nullable(),
 "cpuPlatform": InstanceCpuPlatform.nullable(),
 "memory": ByteCount,
+"multicastGroups": NameOrId.array().nullable().default(null).optional(),
 "ncpus": InstanceCpuCount,
 }))
 
@@ -2079,11 +2217,6 @@ export const InternetGatewayIpPoolResultsPage = z.preprocess(processResponseBody
 export const InternetGatewayResultsPage = z.preprocess(processResponseBody,z.object({"items": InternetGateway.array(),
 "nextPage": z.string().nullable().optional(),
 }))
-
-/**
-* The IP address version.
- */
-export const IpVersion = z.preprocess(processResponseBody,z.enum(["v4","v6"]))
 
 /**
 * Type of IP pool.
@@ -2347,6 +2480,108 @@ export const MetricType = z.preprocess(processResponseBody,z.enum(["gauge", "del
 )
 
 /**
+* View of a Multicast Group
+ */
+export const MulticastGroup = z.preprocess(processResponseBody,z.object({"description": z.string(),
+"id": z.uuid(),
+"ipPoolId": z.uuid(),
+"multicastIp": z.ipv4(),
+"mvlan": z.number().min(0).max(65535).nullable().optional(),
+"name": Name,
+"sourceIps": z.ipv4().array(),
+"state": z.string(),
+"timeCreated": z.coerce.date(),
+"timeModified": z.coerce.date(),
+}))
+
+/**
+* Create-time parameters for a multicast group.
+ */
+export const MulticastGroupCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
+"multicastIp": z.ipv4().nullable().default(null).optional(),
+"mvlan": z.number().default(null).min(0).max(65535).nullable().optional(),
+"name": Name,
+"pool": NameOrId.nullable().default(null).optional(),
+"sourceIps": z.ipv4().array().nullable().default(null).optional(),
+}))
+
+/**
+* View of a Multicast Group Member (instance belonging to a multicast group)
+ */
+export const MulticastGroupMember = z.preprocess(processResponseBody,z.object({"description": z.string(),
+"id": z.uuid(),
+"instanceId": z.uuid(),
+"multicastGroupId": z.uuid(),
+"name": Name,
+"state": z.string(),
+"timeCreated": z.coerce.date(),
+"timeModified": z.coerce.date(),
+}))
+
+/**
+* Parameters for adding an instance to a multicast group.
+ */
+export const MulticastGroupMemberAdd = z.preprocess(processResponseBody,z.object({"instance": NameOrId,
+}))
+
+/**
+* A single page of results
+ */
+export const MulticastGroupMemberResultsPage = z.preprocess(processResponseBody,z.object({"items": MulticastGroupMember.array(),
+"nextPage": z.string().nullable().optional(),
+}))
+
+/**
+* A single page of results
+ */
+export const MulticastGroupResultsPage = z.preprocess(processResponseBody,z.object({"items": MulticastGroup.array(),
+"nextPage": z.string().nullable().optional(),
+}))
+
+/**
+* Update-time parameters for a multicast group.
+ */
+export const MulticastGroupUpdate = z.preprocess(processResponseBody,z.object({"description": z.string().nullable().optional(),
+"mvlan": z.number().min(0).max(65535).nullable().optional(),
+"name": Name.nullable().optional(),
+"sourceIps": z.ipv4().array().nullable().optional(),
+}))
+
+/**
+* VPC-private IPv4 configuration for a network interface.
+ */
+export const PrivateIpv4Config = z.preprocess(processResponseBody,z.object({"ip": z.ipv4(),
+"subnet": Ipv4Net,
+"transitIps": Ipv4Net.array().default([]).optional(),
+}))
+
+/**
+* VPC-private IPv6 configuration for a network interface.
+ */
+export const PrivateIpv6Config = z.preprocess(processResponseBody,z.object({"ip": z.ipv6(),
+"subnet": Ipv6Net,
+"transitIps": Ipv6Net.array(),
+}))
+
+/**
+* VPC-private IP address configuration for a network interface.
+ */
+export const PrivateIpConfig = z.preprocess(processResponseBody,z.union([
+z.object({"type": z.enum(["v4"]),
+"value": PrivateIpv4Config,
+}),
+z.object({"type": z.enum(["v6"]),
+"value": PrivateIpv6Config,
+}),
+z.object({"type": z.enum(["dual_stack"]),
+"value": z.object({"v4": PrivateIpv4Config,
+"v6": PrivateIpv6Config,
+}),
+}),
+])
+)
+
+/**
 * The type of network interface
  */
 export const NetworkInterfaceKind = z.preprocess(processResponseBody,z.union([
@@ -2371,14 +2606,12 @@ export const Vni = z.preprocess(processResponseBody,z.number().min(0).max(429496
 * Information required to construct a virtual network interface
  */
 export const NetworkInterface = z.preprocess(processResponseBody,z.object({"id": z.uuid(),
-"ip": z.ipv4(),
+"ipConfig": PrivateIpConfig,
 "kind": NetworkInterfaceKind,
 "mac": MacAddr,
 "name": Name,
 "primary": SafeBoolean,
 "slot": z.number().min(0).max(255),
-"subnet": IpNet,
-"transitIps": IpNet.array().default([]).optional(),
 "vni": Vni,
 }))
 
@@ -2521,8 +2754,8 @@ export const Probe = z.preprocess(processResponseBody,z.object({"description": z
 * Create time parameters for probes.
  */
 export const ProbeCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
-"ipPool": NameOrId.nullable().optional(),
 "name": Name,
+"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}).optional(),
 "sled": z.uuid(),
 }))
 
@@ -2841,8 +3074,10 @@ export const SiloCreate = z.preprocess(processResponseBody,z.object({"adminGroup
  */
 export const SiloIpPool = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "id": z.uuid(),
+"ipVersion": IpVersion,
 "isDefault": SafeBoolean,
 "name": Name,
+"poolType": IpPoolType,
 "timeCreated": z.coerce.date(),
 "timeModified": z.coerce.date(),
 }))
@@ -4620,6 +4855,35 @@ export const InstanceEphemeralIpDetachParams = z.preprocess(processResponseBody,
   }),
 }))
 
+export const InstanceMulticastGroupListParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  instance: NameOrId,
+  }),
+  query: z.object({
+  project: NameOrId.optional(),
+  }),
+}))
+
+export const InstanceMulticastGroupJoinParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  instance: NameOrId,
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
+  project: NameOrId.optional(),
+  }),
+}))
+
+export const InstanceMulticastGroupLeaveParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  instance: NameOrId,
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
+  project: NameOrId.optional(),
+  }),
+}))
+
 export const InstanceRebootParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   instance: NameOrId,
@@ -4904,6 +5168,77 @@ export const SiloMetricParams = z.preprocess(processResponseBody, z.object({
   order: PaginationOrder.optional(),
   pageToken: z.string().nullable().optional(),
   startTime: z.coerce.date().optional(),
+  project: NameOrId.optional(),
+  }),
+}))
+
+export const MulticastGroupListParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: NameOrIdSortMode.optional(),
+  }),
+}))
+
+export const MulticastGroupCreateParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  }),
+}))
+
+export const MulticastGroupViewParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
+  }),
+}))
+
+export const MulticastGroupUpdateParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
+  }),
+}))
+
+export const MulticastGroupDeleteParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
+  }),
+}))
+
+export const MulticastGroupMemberListParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: IdSortMode.optional(),
+  }),
+}))
+
+export const MulticastGroupMemberAddParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
+  project: NameOrId.optional(),
+  }),
+}))
+
+export const MulticastGroupMemberRemoveParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  instance: NameOrId,
+  multicastGroup: NameOrId,
+  }),
+  query: z.object({
   project: NameOrId.optional(),
   }),
 }))
@@ -5485,6 +5820,14 @@ export const SystemMetricParams = z.preprocess(processResponseBody, z.object({
   pageToken: z.string().nullable().optional(),
   startTime: z.coerce.date().optional(),
   silo: NameOrId.optional(),
+  }),
+}))
+
+export const LookupMulticastGroupByIpParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  address: z.ipv4(),
+  }),
+  query: z.object({
   }),
 }))
 

@@ -12,9 +12,10 @@ import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { getSpecFilePath } from "./test-util";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SPEC_FILE = join(__dirname, "../../spec.json");
+const SPEC_FILE = getSpecFilePath(join(__dirname, "../../OMICRON_VERSION"));
 
 let tempDir: string;
 
