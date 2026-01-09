@@ -31,16 +31,16 @@ SPEC_CACHE_DIR="/tmp/openapi-gen-ts-schemas"
 # Create cache directory if it doesn't exist
 mkdir -p "$SPEC_CACHE_DIR"
 
-# nexus-latest.json is a symlink that contains the actual spec filename
-LATEST_SPEC=$(curl --fail "$SPEC_BASE/nexus-latest.json")
-SPEC_FILE="$SPEC_CACHE_DIR/$OMICRON_SHA-$LATEST_SPEC"
+SPEC_FILE="$SPEC_CACHE_DIR/$OMICRON_SHA.json"
 
 # Download spec only if not already cached
 if [ ! -f "$SPEC_FILE" ]; then
-  echo "Downloading spec for $OMICRON_SHA ($LATEST_SPEC)..."
+  echo "Downloading spec for $OMICRON_SHA..."
+  # nexus-latest.json is a symlink that contains the actual spec filename
+  LATEST_SPEC=$(curl --fail "$SPEC_BASE/nexus-latest.json")
   curl --fail "$SPEC_BASE/$LATEST_SPEC" -o "$SPEC_FILE"
 else
-  echo "Using cached spec for $OMICRON_SHA ($LATEST_SPEC)"
+  echo "Using cached spec for $OMICRON_SHA"
 fi
 
 rm -f "$DEST_DIR/*" # remove after we add --clean flag to generator
