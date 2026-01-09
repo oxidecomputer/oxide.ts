@@ -128,7 +128,8 @@ export const schemaToZod = makeSchemaGenerator({
       // Only add .optional() if the property is not required AND doesn't have a default value
       // .default() already makes the input optional, and adding .optional() would prevent the default from being applied
       // Use getDefaultString to ensure we match actual default emission
-      const hasDefault = "$ref" in subSchema ? false : getDefaultString(subSchema) !== "";
+      const hasDefault =
+        "$ref" in subSchema ? false : getDefaultString(subSchema) !== "";
       if (!schema.required?.includes(name) && !hasDefault) {
         w0(`.optional()`);
       }

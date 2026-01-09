@@ -191,9 +191,7 @@ test("array nullable", () => {
 
 test("array with default", () => {
   schemaToZod({ type: "array", items: { type: "string" }, default: [] }, io);
-  expect(out.value()).toMatchInlineSnapshot(
-    `"z.string().array().default([])"`
-  );
+  expect(out.value()).toMatchInlineSnapshot(`"z.string().array().default([])"`);
 });
 
 test("array nullable with default", () => {
@@ -509,9 +507,7 @@ test("object property with default: undefined should still be optional", () => {
 
 test("array default", () => {
   schemaToZod({ type: "array", items: { type: "string" }, default: [] }, io);
-  expect(out.value()).toMatchInlineSnapshot(
-    '"z.string().array().default([])"'
-  );
+  expect(out.value()).toMatchInlineSnapshot('"z.string().array().default([])"');
 });
 
 test("array default with values", () => {
