@@ -81,6 +81,7 @@ export const schemaToZod = makeSchemaGenerator({
   number(schema, { w0 }) {
     w0("z.number()");
     if (schema.nullable) w0(".nullable()");
+    w0(getDefaultString(schema));
   },
 
   integer(schema, io) {

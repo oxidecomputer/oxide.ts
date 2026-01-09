@@ -87,6 +87,16 @@ test("number nullable", () => {
   expect(out.value()).toMatchInlineSnapshot('"z.number().nullable()"');
 });
 
+test("number with default", () => {
+  schemaToZod({ type: "number", default: 3.14 }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().default(3.14)"');
+});
+
+test("number nullable with default", () => {
+  schemaToZod({ type: "number", nullable: true, default: null }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.number().nullable().default(null)"');
+});
+
 test("integer", () => {
   schemaToZod({ type: "integer" }, io);
   expect(out.value()).toMatchInlineSnapshot('"z.number()"');
