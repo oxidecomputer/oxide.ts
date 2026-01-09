@@ -96,11 +96,9 @@ export const schemaToZod = makeSchemaGenerator({
   },
 
   integer(schema, io) {
-    schemaToZodInt(schema, io, { skipDefault: schema.nullable });
-    if (schema.nullable) {
-      io.w0(".nullable()");
-      io.w0(getDefaultString(schema));
-    }
+    schemaToZodInt(schema, io);
+    if (schema.nullable) io.w0(".nullable()");
+    io.w0(getDefaultString(schema));
   },
 
   array(schema, io) {
@@ -214,11 +212,7 @@ export const schemaToZod = makeSchemaGenerator({
   },
 });
 
-function schemaToZodInt(
-  schema: OpenAPIV3.SchemaObject,
-  { w0 }: IO,
-  options?: { skipDefault?: boolean }
-) {
+function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   if ("enum" in schema) {
     /**  See comment in {@link setupZod} */
     w0(`IntEnum(${JSON.stringify(schema.enum)} as const)`);
@@ -242,9 +236,5 @@ function schemaToZodInt(
   } else if (size && parseInt(size) < 64) {
     // It's signed so remove the most significant bit
     w0(`.max(${Math.pow(2, parseInt(size) - 1) - 1})`);
-  }
-
-  if (!options?.skipDefault) {
-    w0(getDefaultString(schema));
   }
 }
