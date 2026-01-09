@@ -114,6 +114,32 @@ test("integer with default", () => {
   expect(out.value()).toMatchInlineSnapshot('"z.number().default(42)"');
 });
 
+test("integer with constraints and default", () => {
+  schemaToZod(
+    { type: "integer", minimum: 0, maximum: 65535, default: null },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.number().min(0).max(65535).default(null)"'
+  );
+});
+
+test("integer nullable with constraints and default", () => {
+  schemaToZod(
+    {
+      type: "integer",
+      minimum: 0,
+      maximum: 65535,
+      nullable: true,
+      default: null,
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.number().min(0).max(65535).nullable().default(null)"'
+  );
+});
+
 test("integer nullable", () => {
   schemaToZod({ type: "integer", nullable: true }, io);
   expect(out.value()).toMatchInlineSnapshot('"z.number().nullable()"');
@@ -204,6 +230,107 @@ test("object with properties", () => {
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
     "age": z.number().optional(),
+    })"
+  `);
+});
+
+test("object with optional property that has default", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        count: { type: "integer", default: 0 },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "count": z.number().default(0),
+    })"
+  `);
+});
+
+test("object with optional array that has default", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        tags: { type: "array", items: { type: "string" }, default: [] },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "tags": z.string().array().default([]),
+    })"
+  `);
+});
+
+test("object with optional nullable property that has default", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        description: { type: "string", nullable: true, default: null },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "description": z.string().nullable().default(null),
+    })"
+  `);
+});
+
+test("object with optional property WITHOUT default", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        email: { type: "string" },
+        phone: { type: "string" },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "email": z.string().optional(),
+    "phone": z.string().optional(),
+    })"
+  `);
+});
+
+test("object mixing required, optional without default, and optional with default", () => {
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        age: { type: "integer" },
+        count: { type: "integer", default: 0 },
+        tags: { type: "array", items: { type: "string" }, default: [] },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "age": z.number().optional(),
+    "count": z.number().default(0),
+    "tags": z.string().array().default([]),
     })"
   `);
 });

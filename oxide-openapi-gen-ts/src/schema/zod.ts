@@ -84,8 +84,11 @@ export const schemaToZod = makeSchemaGenerator({
   },
 
   integer(schema, io) {
-    schemaToZodInt(schema, io);
-    if (schema.nullable) io.w0(".nullable()");
+    schemaToZodInt(schema, io, { skipDefault: schema.nullable });
+    if (schema.nullable) {
+      io.w0(".nullable()");
+      io.w0(getDefaultString(schema));
+    }
   },
 
   array(schema, io) {
@@ -116,7 +119,9 @@ export const schemaToZod = makeSchemaGenerator({
     for (const [name, subSchema] of Object.entries(schema.properties || {})) {
       w0(`${JSON.stringify(snakeToCamel(name))}: `);
       schemaToZod(subSchema, io);
-      if (!schema.required?.includes(name)) {
+      // Only add .optional() if the property is not required AND doesn't have a default value
+      // .default() already makes the input optional, and adding .optional() would prevent the default from being applied
+      if (!schema.required?.includes(name) && !("default" in subSchema)) {
         w0(`.optional()`);
       }
       w(",");
@@ -195,15 +200,17 @@ export const schemaToZod = makeSchemaGenerator({
   },
 });
 
-function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
+function schemaToZodInt(
+  schema: OpenAPIV3.SchemaObject,
+  { w0 }: IO,
+  options?: { skipDefault?: boolean }
+) {
   if ("enum" in schema) {
     /**  See comment in {@link setupZod} */
     w0(`IntEnum(${JSON.stringify(schema.enum)} as const)`);
   } else {
     w0(`z.number()`);
   }
-
-  w0(getDefaultString(schema));
 
   const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) || [];
   if ("minimum" in schema) {
@@ -221,5 +228,9 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   } else if (size && parseInt(size) < 64) {
     // It's signed so remove the most significant bit
     w0(`.max(${Math.pow(2, parseInt(size) - 1) - 1})`);
+  }
+
+  if (!options?.skipDefault) {
+    w0(getDefaultString(schema));
   }
 }
