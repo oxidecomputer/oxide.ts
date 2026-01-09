@@ -94,7 +94,9 @@ test("number with default", () => {
 
 test("number nullable with default", () => {
   schemaToZod({ type: "number", nullable: true, default: null }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.number().nullable().default(null)"');
+  expect(out.value()).toMatchInlineSnapshot(
+    '"z.number().nullable().default(null)"'
+  );
 });
 
 test("integer", () => {
