@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { expect, test, beforeEach } from "vitest";
+import { beforeEach, expect, test } from "vitest";
 import { initIO, TestWritable } from "../io";
 import { schemaToZod } from "./zod";
 
@@ -127,12 +127,9 @@ test("integer with default", () => {
 });
 
 test("integer with constraints and default", () => {
-  schemaToZod(
-    { type: "integer", minimum: 0, maximum: 65535, default: null },
-    io
-  );
+  schemaToZod({ type: "integer", minimum: 0, maximum: 65535, default: 0 }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().min(0).max(65535).default(null)"'
+    '"z.number().min(0).max(65535).default(0)"'
   );
 });
 
