@@ -191,7 +191,7 @@ test("array nullable", () => {
 
 test("array with default", () => {
   schemaToZod({ type: "array", items: { type: "string" }, default: [] }, io);
-  expect(out.value()).toMatchInlineSnapshot(`"z.string().array().default([])"`);
+  expect(out.value()).toMatchInlineSnapshot('"z.string().array().default([])"');
 });
 
 test("array nullable with default", () => {
@@ -205,7 +205,7 @@ test("array nullable with default", () => {
     io
   );
   expect(out.value()).toMatchInlineSnapshot(
-    `"z.number().array().nullable().default([1,2])"`
+    '"z.number().array().nullable().default([1,2])"'
   );
 });
 
@@ -475,7 +475,7 @@ test("allOf with default", () => {
     io
   );
   expect(out.value()).toMatchInlineSnapshot(
-    `"Config.default({"enabled":true})"`
+    '"Config.default({"enabled":true})"'
   );
 });
 
