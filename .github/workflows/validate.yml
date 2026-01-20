@@ -20,12 +20,12 @@ jobs:
         with:
           node-version: "24"
       - working-directory: "./oxide-api"
-        run: npm install
+        run: npm ci
       - name: Typecheck client
         working-directory: "./oxide-api"
         run: npm run tsc
       - working-directory: "./oxide-openapi-gen-ts"
-        run: npm install
+        run: npm ci
       # TODO: this probably doesn't make sense anymore, it should be done already
       - name: Generate client
         run: "./tools/gen.sh"
