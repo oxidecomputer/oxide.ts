@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: "24"
       - working-directory: "./oxide-openapi-gen-ts"
-        run: 'npm install'
+        run: 'npm ci'
       - run: ./tools/gen.sh
       - uses: EndBug/add-and-commit@v9
         with:
