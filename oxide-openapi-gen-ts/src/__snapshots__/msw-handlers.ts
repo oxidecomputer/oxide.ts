@@ -215,7 +215,7 @@ export interface MSWHandlers {
 /** `GET /v1/instances/:instance/multicast-groups` */
   instanceMulticastGroupList: (params: { path: Api.InstanceMulticastGroupListPathParams, query: Api.InstanceMulticastGroupListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroupMemberResultsPage>>,
 /** `PUT /v1/instances/:instance/multicast-groups/:multicastGroup` */
-  instanceMulticastGroupJoin: (params: { path: Api.InstanceMulticastGroupJoinPathParams, query: Api.InstanceMulticastGroupJoinQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroupMember>>,
+  instanceMulticastGroupJoin: (params: { path: Api.InstanceMulticastGroupJoinPathParams, query: Api.InstanceMulticastGroupJoinQueryParams, body: Json<Api.InstanceMulticastGroupJoin>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroupMember>>,
 /** `DELETE /v1/instances/:instance/multicast-groups/:multicastGroup` */
   instanceMulticastGroupLeave: (params: { path: Api.InstanceMulticastGroupLeavePathParams, query: Api.InstanceMulticastGroupLeaveQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `POST /v1/instances/:instance/reboot` */
@@ -278,20 +278,10 @@ export interface MSWHandlers {
   siloMetric: (params: { path: Api.SiloMetricPathParams, query: Api.SiloMetricQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>,
 /** `GET /v1/multicast-groups` */
   multicastGroupList: (params: {  query: Api.MulticastGroupListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroupResultsPage>>,
-/** `POST /v1/multicast-groups` */
-  multicastGroupCreate: (params: {   body: Json<Api.MulticastGroupCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroup>>,
 /** `GET /v1/multicast-groups/:multicastGroup` */
   multicastGroupView: (params: { path: Api.MulticastGroupViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroup>>,
-/** `PUT /v1/multicast-groups/:multicastGroup` */
-  multicastGroupUpdate: (params: { path: Api.MulticastGroupUpdatePathParams,  body: Json<Api.MulticastGroupUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroup>>,
-/** `DELETE /v1/multicast-groups/:multicastGroup` */
-  multicastGroupDelete: (params: { path: Api.MulticastGroupDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/multicast-groups/:multicastGroup/members` */
   multicastGroupMemberList: (params: { path: Api.MulticastGroupMemberListPathParams, query: Api.MulticastGroupMemberListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroupMemberResultsPage>>,
-/** `POST /v1/multicast-groups/:multicastGroup/members` */
-  multicastGroupMemberAdd: (params: { path: Api.MulticastGroupMemberAddPathParams, query: Api.MulticastGroupMemberAddQueryParams, body: Json<Api.MulticastGroupMemberAdd>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroupMember>>,
-/** `DELETE /v1/multicast-groups/:multicastGroup/members/:instance` */
-  multicastGroupMemberRemove: (params: { path: Api.MulticastGroupMemberRemovePathParams, query: Api.MulticastGroupMemberRemoveQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/network-interfaces` */
   instanceNetworkInterfaceList: (params: {  query: Api.InstanceNetworkInterfaceListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.InstanceNetworkInterfaceResultsPage>>,
 /** `POST /v1/network-interfaces` */
@@ -420,8 +410,6 @@ export interface MSWHandlers {
   ipPoolServiceRangeRemove: (params: {   body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/metrics/:metricName` */
   systemMetric: (params: { path: Api.SystemMetricPathParams, query: Api.SystemMetricQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>,
-/** `GET /v1/system/multicast-groups/by-ip/:address` */
-  lookupMulticastGroupByIp: (params: { path: Api.LookupMulticastGroupByIpPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroup>>,
 /** `GET /v1/system/networking/address-lot` */
   networkingAddressLotList: (params: {  query: Api.NetworkingAddressLotListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.AddressLotResultsPage>>,
 /** `POST /v1/system/networking/address-lot` */
@@ -806,7 +794,7 @@ http.get('/v1/instances/:instance/external-ips', handler(handlers['instanceExter
 http.post('/v1/instances/:instance/external-ips/ephemeral', handler(handlers['instanceEphemeralIpAttach'], schema.InstanceEphemeralIpAttachParams, schema.EphemeralIpCreate)),
 http.delete('/v1/instances/:instance/external-ips/ephemeral', handler(handlers['instanceEphemeralIpDetach'], schema.InstanceEphemeralIpDetachParams, null)),
 http.get('/v1/instances/:instance/multicast-groups', handler(handlers['instanceMulticastGroupList'], schema.InstanceMulticastGroupListParams, null)),
-http.put('/v1/instances/:instance/multicast-groups/:multicastGroup', handler(handlers['instanceMulticastGroupJoin'], schema.InstanceMulticastGroupJoinParams, null)),
+http.put('/v1/instances/:instance/multicast-groups/:multicastGroup', handler(handlers['instanceMulticastGroupJoin'], schema.InstanceMulticastGroupJoinParams, schema.InstanceMulticastGroupJoin)),
 http.delete('/v1/instances/:instance/multicast-groups/:multicastGroup', handler(handlers['instanceMulticastGroupLeave'], schema.InstanceMulticastGroupLeaveParams, null)),
 http.post('/v1/instances/:instance/reboot', handler(handlers['instanceReboot'], schema.InstanceRebootParams, null)),
 http.get('/v1/instances/:instance/serial-console', handler(handlers['instanceSerialConsole'], schema.InstanceSerialConsoleParams, null)),
@@ -838,13 +826,8 @@ http.get('/v1/me/ssh-keys/:sshKey', handler(handlers['currentUserSshKeyView'], s
 http.delete('/v1/me/ssh-keys/:sshKey', handler(handlers['currentUserSshKeyDelete'], schema.CurrentUserSshKeyDeleteParams, null)),
 http.get('/v1/metrics/:metricName', handler(handlers['siloMetric'], schema.SiloMetricParams, null)),
 http.get('/v1/multicast-groups', handler(handlers['multicastGroupList'], schema.MulticastGroupListParams, null)),
-http.post('/v1/multicast-groups', handler(handlers['multicastGroupCreate'], null, schema.MulticastGroupCreate)),
 http.get('/v1/multicast-groups/:multicastGroup', handler(handlers['multicastGroupView'], schema.MulticastGroupViewParams, null)),
-http.put('/v1/multicast-groups/:multicastGroup', handler(handlers['multicastGroupUpdate'], schema.MulticastGroupUpdateParams, schema.MulticastGroupUpdate)),
-http.delete('/v1/multicast-groups/:multicastGroup', handler(handlers['multicastGroupDelete'], schema.MulticastGroupDeleteParams, null)),
 http.get('/v1/multicast-groups/:multicastGroup/members', handler(handlers['multicastGroupMemberList'], schema.MulticastGroupMemberListParams, null)),
-http.post('/v1/multicast-groups/:multicastGroup/members', handler(handlers['multicastGroupMemberAdd'], schema.MulticastGroupMemberAddParams, schema.MulticastGroupMemberAdd)),
-http.delete('/v1/multicast-groups/:multicastGroup/members/:instance', handler(handlers['multicastGroupMemberRemove'], schema.MulticastGroupMemberRemoveParams, null)),
 http.get('/v1/network-interfaces', handler(handlers['instanceNetworkInterfaceList'], schema.InstanceNetworkInterfaceListParams, null)),
 http.post('/v1/network-interfaces', handler(handlers['instanceNetworkInterfaceCreate'], schema.InstanceNetworkInterfaceCreateParams, schema.InstanceNetworkInterfaceCreate)),
 http.get('/v1/network-interfaces/:interface', handler(handlers['instanceNetworkInterfaceView'], schema.InstanceNetworkInterfaceViewParams, null)),
@@ -909,7 +892,6 @@ http.get('/v1/system/ip-pools-service/ranges', handler(handlers['ipPoolServiceRa
 http.post('/v1/system/ip-pools-service/ranges/add', handler(handlers['ipPoolServiceRangeAdd'], null, schema.IpRange)),
 http.post('/v1/system/ip-pools-service/ranges/remove', handler(handlers['ipPoolServiceRangeRemove'], null, schema.IpRange)),
 http.get('/v1/system/metrics/:metricName', handler(handlers['systemMetric'], schema.SystemMetricParams, null)),
-http.get('/v1/system/multicast-groups/by-ip/:address', handler(handlers['lookupMulticastGroupByIp'], schema.LookupMulticastGroupByIpParams, null)),
 http.get('/v1/system/networking/address-lot', handler(handlers['networkingAddressLotList'], schema.NetworkingAddressLotListParams, null)),
 http.post('/v1/system/networking/address-lot', handler(handlers['networkingAddressLotCreate'], null, schema.AddressLotCreate)),
 http.get('/v1/system/networking/address-lot/:addressLot', handler(handlers['networkingAddressLotView'], schema.NetworkingAddressLotViewParams, null)),

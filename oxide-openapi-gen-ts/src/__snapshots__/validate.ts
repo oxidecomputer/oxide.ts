@@ -58,6 +58,38 @@ export const Address = z.preprocess(processResponseBody,z.object({"address": IpN
 }))
 
 /**
+* The IP address version.
+ */
+export const IpVersion = z.preprocess(processResponseBody,z.enum(["v4","v6"]))
+
+/**
+* Specify which IP pool to allocate from.
+ */
+export const PoolSelector = z.preprocess(processResponseBody,z.union([
+z.object({"pool": NameOrId,
+"type": z.enum(["explicit"]),
+}),
+z.object({"ipVersion": IpVersion.nullable().default(null),
+"type": z.enum(["auto"]),
+}),
+])
+)
+
+/**
+* Specify how to allocate a floating IP address.
+ */
+export const AddressAllocator = z.preprocess(processResponseBody,z.union([
+z.object({"ip": z.union([z.ipv4(), z.ipv6()]),
+"pool": NameOrId.nullable().optional(),
+"type": z.enum(["explicit"]),
+}),
+z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}),
+"type": z.enum(["auto"]),
+}),
+])
+)
+
+/**
 * A set of addresses associated with a port configuration.
  */
 export const AddressConfig = z.preprocess(processResponseBody,z.object({"addresses": Address.array(),
@@ -132,38 +164,6 @@ export const AddressLotResultsPage = z.preprocess(processResponseBody,z.object({
 export const AddressLotViewResponse = z.preprocess(processResponseBody,z.object({"blocks": AddressLotBlock.array(),
 "lot": AddressLot,
 }))
-
-/**
-* The IP address version.
- */
-export const IpVersion = z.preprocess(processResponseBody,z.enum(["v4","v6"]))
-
-/**
-* Specify which IP pool to allocate from.
- */
-export const PoolSelector = z.preprocess(processResponseBody,z.union([
-z.object({"pool": NameOrId,
-"type": z.enum(["explicit"]),
-}),
-z.object({"ipVersion": IpVersion.nullable().default(null),
-"type": z.enum(["auto"]),
-}),
-])
-)
-
-/**
-* Specify how to allocate a floating IP address.
- */
-export const AddressSelector = z.preprocess(processResponseBody,z.union([
-z.object({"ip": z.union([z.ipv4(), z.ipv6()]),
-"pool": NameOrId.nullable().optional(),
-"type": z.enum(["explicit"]),
-}),
-z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}),
-"type": z.enum(["auto"]),
-}),
-])
-)
 
 /**
 * Describes the scope of affinity for the purposes of co-location.
@@ -498,6 +498,12 @@ z.object({"kind": z.enum(["unauthenticated"]),
 )
 
 /**
+* Authentication method used for a request
+ */
+export const AuthMethod = z.preprocess(processResponseBody,z.enum(["session_cookie", "access_token", "scim_token"])
+)
+
+/**
 * Result of an audit log entry
  */
 export const AuditLogEntryResult = z.preprocess(processResponseBody,z.union([
@@ -518,7 +524,8 @@ z.object({"kind": z.enum(["unknown"]),
 * Audit log entry
  */
 export const AuditLogEntry = z.preprocess(processResponseBody,z.object({"actor": AuditLogEntryActor,
-"authMethod": z.string().nullable().optional(),
+"authMethod": AuthMethod.nullable().optional(),
+"credentialId": z.uuid().nullable().optional(),
 "id": z.uuid(),
 "operationId": z.string(),
 "requestId": z.string(),
@@ -1734,7 +1741,7 @@ export const FloatingIpAttach = z.preprocess(processResponseBody,z.object({"kind
 /**
 * Parameters for creating a new floating IP address for instances.
  */
-export const FloatingIpCreate = z.preprocess(processResponseBody,z.object({"addressSelector": AddressSelector.default({"poolSelector":{"ipVersion":null,"type":"auto"},"type":"auto"}),
+export const FloatingIpCreate = z.preprocess(processResponseBody,z.object({"addressAllocator": AddressAllocator.default({"poolSelector":{"ipVersion":null,"type":"auto"},"type":"auto"}),
 "description": z.string(),
 "name": Name,
 }))
@@ -1927,6 +1934,23 @@ z.object({"name": Name,
 )
 
 /**
+* A multicast group identifier
+* 
+* Can be a UUID, a name, or an IP address
+ */
+export const MulticastGroupIdentifier = z.preprocess(processResponseBody,z.string())
+
+/**
+* Specification for joining a multicast group with optional source filtering.
+* 
+* Used in `InstanceCreate` and `InstanceUpdate` to specify multicast group membership along with per-member source IP configuration.
+ */
+export const MulticastGroupJoinSpec = z.preprocess(processResponseBody,z.object({"group": MulticastGroupIdentifier,
+"ipVersion": IpVersion.nullable().default(null),
+"sourceIps": z.union([z.ipv4(), z.ipv6()]).array().nullable().default(null),
+}))
+
+/**
 * How a VPC-private IP address is assigned to a network interface.
  */
 export const Ipv4Assignment = z.preprocess(processResponseBody,z.union([
@@ -2022,13 +2046,22 @@ export const InstanceCreate = z.preprocess(processResponseBody,z.object({"antiAf
 "externalIps": ExternalIpCreate.array().default([]),
 "hostname": Hostname,
 "memory": ByteCount,
-"multicastGroups": NameOrId.array().default([]),
+"multicastGroups": MulticastGroupJoinSpec.array().default([]),
 "name": Name,
 "ncpus": InstanceCpuCount,
 "networkInterfaces": InstanceNetworkInterfaceAttachment.default({"type":"default_dual_stack"}),
 "sshPublicKeys": NameOrId.array().nullable().optional(),
 "start": SafeBoolean.default(true),
 "userData": z.string().default(""),
+}))
+
+/**
+* Parameters for joining an instance to a multicast group.
+* 
+* When joining by IP address, the pool containing the multicast IP is auto-discovered from all linked multicast pools.
+ */
+export const InstanceMulticastGroupJoin = z.preprocess(processResponseBody,z.object({"ipVersion": IpVersion.nullable().default(null),
+"sourceIps": z.union([z.ipv4(), z.ipv6()]).array().nullable().default(null),
 }))
 
 /**
@@ -2125,7 +2158,7 @@ export const InstanceUpdate = z.preprocess(processResponseBody,z.object({"autoRe
 "bootDisk": NameOrId.nullable(),
 "cpuPlatform": InstanceCpuPlatform.nullable(),
 "memory": ByteCount,
-"multicastGroups": NameOrId.array().nullable().default(null),
+"multicastGroups": MulticastGroupJoinSpec.array().nullable().default(null),
 "ncpus": InstanceCpuCount,
 }))
 
@@ -2495,33 +2528,18 @@ export const MulticastGroup = z.preprocess(processResponseBody,z.object({"descri
 }))
 
 /**
-* Create-time parameters for a multicast group.
- */
-export const MulticastGroupCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
-"multicastIp": z.union([z.ipv4(), z.ipv6()]).nullable().default(null),
-"mvlan": z.number().min(0).max(65535).nullable().default(null),
-"name": Name,
-"pool": NameOrId.nullable().default(null),
-"sourceIps": z.union([z.ipv4(), z.ipv6()]).array().nullable().default(null),
-}))
-
-/**
 * View of a Multicast Group Member (instance belonging to a multicast group)
  */
 export const MulticastGroupMember = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "id": z.uuid(),
 "instanceId": z.uuid(),
 "multicastGroupId": z.uuid(),
+"multicastIp": z.union([z.ipv4(), z.ipv6()]),
 "name": Name,
+"sourceIps": z.union([z.ipv4(), z.ipv6()]).array(),
 "state": z.string(),
 "timeCreated": z.coerce.date(),
 "timeModified": z.coerce.date(),
-}))
-
-/**
-* Parameters for adding an instance to a multicast group.
- */
-export const MulticastGroupMemberAdd = z.preprocess(processResponseBody,z.object({"instance": NameOrId,
 }))
 
 /**
@@ -2536,15 +2554,6 @@ export const MulticastGroupMemberResultsPage = z.preprocess(processResponseBody,
  */
 export const MulticastGroupResultsPage = z.preprocess(processResponseBody,z.object({"items": MulticastGroup.array(),
 "nextPage": z.string().nullable().optional(),
-}))
-
-/**
-* Update-time parameters for a multicast group.
- */
-export const MulticastGroupUpdate = z.preprocess(processResponseBody,z.object({"description": z.string().nullable().optional(),
-"mvlan": z.number().min(0).max(65535).nullable().optional(),
-"name": Name.nullable().optional(),
-"sourceIps": z.union([z.ipv4(), z.ipv6()]).array().nullable().optional(),
 }))
 
 /**
@@ -4860,14 +4869,17 @@ export const InstanceMulticastGroupListParams = z.preprocess(processResponseBody
   instance: NameOrId,
   }),
   query: z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
   project: NameOrId.optional(),
+  sortBy: IdSortMode.optional(),
   }),
 }))
 
 export const InstanceMulticastGroupJoinParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   instance: NameOrId,
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
   }),
   query: z.object({
   project: NameOrId.optional(),
@@ -4877,7 +4889,7 @@ export const InstanceMulticastGroupJoinParams = z.preprocess(processResponseBody
 export const InstanceMulticastGroupLeaveParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   instance: NameOrId,
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
   }),
   query: z.object({
   project: NameOrId.optional(),
@@ -5182,32 +5194,9 @@ export const MulticastGroupListParams = z.preprocess(processResponseBody, z.obje
   }),
 }))
 
-export const MulticastGroupCreateParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  }),
-  query: z.object({
-  }),
-}))
-
 export const MulticastGroupViewParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
-  multicastGroup: NameOrId,
-  }),
-  query: z.object({
-  }),
-}))
-
-export const MulticastGroupUpdateParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  multicastGroup: NameOrId,
-  }),
-  query: z.object({
-  }),
-}))
-
-export const MulticastGroupDeleteParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
   }),
   query: z.object({
   }),
@@ -5215,31 +5204,12 @@ export const MulticastGroupDeleteParams = z.preprocess(processResponseBody, z.ob
 
 export const MulticastGroupMemberListParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
   }),
   query: z.object({
   limit: z.number().min(1).max(4294967295).nullable().optional(),
   pageToken: z.string().nullable().optional(),
   sortBy: IdSortMode.optional(),
-  }),
-}))
-
-export const MulticastGroupMemberAddParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  multicastGroup: NameOrId,
-  }),
-  query: z.object({
-  project: NameOrId.optional(),
-  }),
-}))
-
-export const MulticastGroupMemberRemoveParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  instance: NameOrId,
-  multicastGroup: NameOrId,
-  }),
-  query: z.object({
-  project: NameOrId.optional(),
   }),
 }))
 
@@ -5820,14 +5790,6 @@ export const SystemMetricParams = z.preprocess(processResponseBody, z.object({
   pageToken: z.string().nullable().optional(),
   startTime: z.coerce.date().optional(),
   silo: NameOrId.optional(),
-  }),
-}))
-
-export const LookupMulticastGroupByIpParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  address: z.union([z.ipv4(), z.ipv6()]),
-  }),
-  query: z.object({
   }),
 }))
 
