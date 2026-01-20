@@ -59,7 +59,7 @@ test("string format uuid", () => {
 
 test("string format ip", () => {
   schemaToZod({ type: "string", format: "ip" }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.ipv4()"');
+  expect(out.value()).toMatchInlineSnapshot('"z.union([z.ipv4(), z.ipv6()])"');
 });
 
 test("string format ipv4", () => {
