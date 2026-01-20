@@ -55,8 +55,8 @@ export const schemaToZod = makeSchemaGenerator({
     if (schema.format === "uuid") {
       w0("z.uuid()");
     } else if (schema.format === "ip") {
-      // Generic IP becomes IPv4 for backward compatibility
-      w0("z.ipv4()");
+      // Generic IP should accept both IPv4 and IPv6
+      w0("z.union([z.ipv4(), z.ipv6()])");
     } else if (schema.format === "ipv4") {
       w0("z.ipv4()");
     } else if (schema.format === "ipv6") {

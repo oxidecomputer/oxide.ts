@@ -84,16 +84,16 @@ export const AddressLot = z.preprocess(processResponseBody,z.object({"descriptio
 /**
 * An address lot block is a part of an address lot and contains a range of addresses. The range is inclusive.
  */
-export const AddressLotBlock = z.preprocess(processResponseBody,z.object({"firstAddress": z.ipv4(),
+export const AddressLotBlock = z.preprocess(processResponseBody,z.object({"firstAddress": z.union([z.ipv4(), z.ipv6()]),
 "id": z.uuid(),
-"lastAddress": z.ipv4(),
+"lastAddress": z.union([z.ipv4(), z.ipv6()]),
 }))
 
 /**
 * Parameters for creating an address lot block. Fist and last addresses are inclusive.
  */
-export const AddressLotBlockCreate = z.preprocess(processResponseBody,z.object({"firstAddress": z.ipv4(),
-"lastAddress": z.ipv4(),
+export const AddressLotBlockCreate = z.preprocess(processResponseBody,z.object({"firstAddress": z.union([z.ipv4(), z.ipv6()]),
+"lastAddress": z.union([z.ipv4(), z.ipv6()]),
 }))
 
 /**
@@ -155,7 +155,7 @@ z.object({"ipVersion": IpVersion.nullable().default(null),
 * Specify how to allocate a floating IP address.
  */
 export const AddressSelector = z.preprocess(processResponseBody,z.union([
-z.object({"ip": z.ipv4(),
+z.object({"ip": z.union([z.ipv4(), z.ipv6()]),
 "pool": NameOrId.nullable().optional(),
 "type": z.enum(["explicit"]),
 }),
@@ -524,7 +524,7 @@ export const AuditLogEntry = z.preprocess(processResponseBody,z.object({"actor":
 "requestId": z.string(),
 "requestUri": z.string(),
 "result": AuditLogEntryResult,
-"sourceIp": z.ipv4(),
+"sourceIp": z.union([z.ipv4(), z.ipv6()]),
 "timeCompleted": z.coerce.date(),
 "timeStarted": z.coerce.date(),
 "userAgent": z.string().nullable().optional(),
@@ -561,7 +561,7 @@ export const BfdMode = z.preprocess(processResponseBody,z.enum(["single_hop","mu
 /**
 * Information needed to disable a BFD session
  */
-export const BfdSessionDisable = z.preprocess(processResponseBody,z.object({"remote": z.ipv4(),
+export const BfdSessionDisable = z.preprocess(processResponseBody,z.object({"remote": z.union([z.ipv4(), z.ipv6()]),
 "switch": Name,
 }))
 
@@ -569,9 +569,9 @@ export const BfdSessionDisable = z.preprocess(processResponseBody,z.object({"rem
 * Information about a bidirectional forwarding detection (BFD) session.
  */
 export const BfdSessionEnable = z.preprocess(processResponseBody,z.object({"detectionThreshold": z.number().min(0).max(255),
-"local": z.ipv4().nullable().optional(),
+"local": z.union([z.ipv4(), z.ipv6()]).nullable().optional(),
 "mode": BfdMode,
-"remote": z.ipv4(),
+"remote": z.union([z.ipv4(), z.ipv6()]),
 "requiredRx": z.number().min(0),
 "switch": Name,
 }))
@@ -580,9 +580,9 @@ export const BfdState = z.preprocess(processResponseBody,z.enum(["admin_down", "
 )
 
 export const BfdStatus = z.preprocess(processResponseBody,z.object({"detectionThreshold": z.number().min(0).max(255),
-"local": z.ipv4().nullable().optional(),
+"local": z.union([z.ipv4(), z.ipv6()]).nullable().optional(),
 "mode": BfdMode,
-"peer": z.ipv4(),
+"peer": z.union([z.ipv4(), z.ipv6()]),
 "requiredRx": z.number().min(0),
 "state": BfdState,
 "switch": Name,
@@ -680,7 +680,7 @@ z.object({"type": z.enum(["allow"]),
 /**
 * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
  */
-export const BgpPeer = z.preprocess(processResponseBody,z.object({"addr": z.ipv4(),
+export const BgpPeer = z.preprocess(processResponseBody,z.object({"addr": z.union([z.ipv4(), z.ipv6()]),
 "allowedExport": ImportExportPolicy,
 "allowedImport": ImportExportPolicy,
 "bgpConfig": NameOrId,
@@ -713,7 +713,7 @@ export const BgpPeerState = z.preprocess(processResponseBody,z.enum(["idle", "co
 /**
 * The current status of a BGP peer.
  */
-export const BgpPeerStatus = z.preprocess(processResponseBody,z.object({"addr": z.ipv4(),
+export const BgpPeerStatus = z.preprocess(processResponseBody,z.object({"addr": z.union([z.ipv4(), z.ipv6()]),
 "localAsn": z.number().min(0).max(4294967295),
 "remoteAsn": z.number().min(0).max(4294967295),
 "state": BgpPeerState,
@@ -1569,19 +1569,19 @@ export const Error = z.preprocess(processResponseBody,z.object({"errorCode": z.s
 
 export const ExternalIp = z.preprocess(processResponseBody,z.union([
 z.object({"firstPort": z.number().min(0).max(65535),
-"ip": z.ipv4(),
+"ip": z.union([z.ipv4(), z.ipv6()]),
 "ipPoolId": z.uuid(),
 "kind": z.enum(["snat"]),
 "lastPort": z.number().min(0).max(65535),
 }),
-z.object({"ip": z.ipv4(),
+z.object({"ip": z.union([z.ipv4(), z.ipv6()]),
 "ipPoolId": z.uuid(),
 "kind": z.enum(["ephemeral"]),
 }),
 z.object({"description": z.string(),
 "id": z.uuid(),
 "instanceId": z.uuid().nullable().optional(),
-"ip": z.ipv4(),
+"ip": z.union([z.ipv4(), z.ipv6()]),
 "ipPoolId": z.uuid(),
 "kind": z.enum(["floating"]),
 "name": Name,
@@ -1663,7 +1663,7 @@ z.object({"type": z.enum(["u64"]),
 "value": z.number().min(0),
 }),
 z.object({"type": z.enum(["ip_addr"]),
-"value": z.ipv4(),
+"value": z.union([z.ipv4(), z.ipv6()]),
 }),
 z.object({"type": z.enum(["uuid"]),
 "value": z.uuid(),
@@ -1711,7 +1711,7 @@ export const FleetRolePolicy = z.preprocess(processResponseBody,z.object({"roleA
 export const FloatingIp = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "id": z.uuid(),
 "instanceId": z.uuid().nullable().optional(),
-"ip": z.ipv4(),
+"ip": z.union([z.ipv4(), z.ipv6()]),
 "ipPoolId": z.uuid(),
 "name": Name,
 "projectId": z.uuid(),
@@ -2160,7 +2160,7 @@ export const InternetGatewayCreate = z.preprocess(processResponseBody,z.object({
 /**
 * An IP address that is attached to an internet gateway
  */
-export const InternetGatewayIpAddress = z.preprocess(processResponseBody,z.object({"address": z.ipv4(),
+export const InternetGatewayIpAddress = z.preprocess(processResponseBody,z.object({"address": z.union([z.ipv4(), z.ipv6()]),
 "description": z.string(),
 "id": z.uuid(),
 "internetGatewayId": z.uuid(),
@@ -2172,7 +2172,7 @@ export const InternetGatewayIpAddress = z.preprocess(processResponseBody,z.objec
 /**
 * Create-time identity-related parameters
  */
-export const InternetGatewayIpAddressCreate = z.preprocess(processResponseBody,z.object({"address": z.ipv4(),
+export const InternetGatewayIpAddressCreate = z.preprocess(processResponseBody,z.object({"address": z.union([z.ipv4(), z.ipv6()]),
 "description": z.string(),
 "name": Name,
 }))
@@ -2351,7 +2351,7 @@ export const LldpLinkConfigCreate = z.preprocess(processResponseBody,z.object({"
 "enabled": SafeBoolean,
 "linkDescription": z.string().nullable().optional(),
 "linkName": z.string().nullable().optional(),
-"managementIp": z.ipv4().nullable().optional(),
+"managementIp": z.union([z.ipv4(), z.ipv6()]).nullable().optional(),
 "systemDescription": z.string().nullable().optional(),
 "systemName": z.string().nullable().optional(),
 }))
@@ -2392,13 +2392,13 @@ export const LldpLinkConfig = z.preprocess(processResponseBody,z.object({"chassi
 "id": z.uuid(),
 "linkDescription": z.string().nullable().optional(),
 "linkName": z.string().nullable().optional(),
-"managementIp": z.ipv4().nullable().optional(),
+"managementIp": z.union([z.ipv4(), z.ipv6()]).nullable().optional(),
 "systemDescription": z.string().nullable().optional(),
 "systemName": z.string().nullable().optional(),
 }))
 
 export const NetworkAddress = z.preprocess(processResponseBody,z.union([
-z.object({"ipAddr": z.ipv4(),
+z.object({"ipAddr": z.union([z.ipv4(), z.ipv6()]),
 }),
 z.object({"iEEE802": z.number().min(0).max(255).array(),
 }),
@@ -2444,7 +2444,7 @@ export const LoopbackAddress = z.preprocess(processResponseBody,z.object({"addre
 /**
 * Parameters for creating a loopback address on a particular rack switch.
  */
-export const LoopbackAddressCreate = z.preprocess(processResponseBody,z.object({"address": z.ipv4(),
+export const LoopbackAddressCreate = z.preprocess(processResponseBody,z.object({"address": z.union([z.ipv4(), z.ipv6()]),
 "addressLot": NameOrId,
 "anycast": SafeBoolean,
 "mask": z.number().min(0).max(255),
@@ -2485,10 +2485,10 @@ export const MetricType = z.preprocess(processResponseBody,z.enum(["gauge", "del
 export const MulticastGroup = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "id": z.uuid(),
 "ipPoolId": z.uuid(),
-"multicastIp": z.ipv4(),
+"multicastIp": z.union([z.ipv4(), z.ipv6()]),
 "mvlan": z.number().min(0).max(65535).nullable().optional(),
 "name": Name,
-"sourceIps": z.ipv4().array(),
+"sourceIps": z.union([z.ipv4(), z.ipv6()]).array(),
 "state": z.string(),
 "timeCreated": z.coerce.date(),
 "timeModified": z.coerce.date(),
@@ -2498,11 +2498,11 @@ export const MulticastGroup = z.preprocess(processResponseBody,z.object({"descri
 * Create-time parameters for a multicast group.
  */
 export const MulticastGroupCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
-"multicastIp": z.ipv4().nullable().default(null),
+"multicastIp": z.union([z.ipv4(), z.ipv6()]).nullable().default(null),
 "mvlan": z.number().min(0).max(65535).nullable().default(null),
 "name": Name,
 "pool": NameOrId.nullable().default(null),
-"sourceIps": z.ipv4().array().nullable().default(null),
+"sourceIps": z.union([z.ipv4(), z.ipv6()]).array().nullable().default(null),
 }))
 
 /**
@@ -2544,7 +2544,7 @@ export const MulticastGroupResultsPage = z.preprocess(processResponseBody,z.obje
 export const MulticastGroupUpdate = z.preprocess(processResponseBody,z.object({"description": z.string().nullable().optional(),
 "mvlan": z.number().min(0).max(65535).nullable().optional(),
 "name": Name.nullable().optional(),
-"sourceIps": z.ipv4().array().nullable().optional(),
+"sourceIps": z.union([z.ipv4(), z.ipv6()]).array().nullable().optional(),
 }))
 
 /**
@@ -2762,7 +2762,7 @@ export const ProbeCreate = z.preprocess(processResponseBody,z.object({"descripti
 export const ProbeExternalIpKind = z.preprocess(processResponseBody,z.enum(["snat","floating","ephemeral"]))
 
 export const ProbeExternalIp = z.preprocess(processResponseBody,z.object({"firstPort": z.number().min(0).max(65535),
-"ip": z.ipv4(),
+"ip": z.union([z.ipv4(), z.ipv6()]),
 "kind": ProbeExternalIpKind,
 "lastPort": z.number().min(0).max(65535),
 }))
@@ -2851,7 +2851,7 @@ export const RackResultsPage = z.preprocess(processResponseBody,z.object({"items
 * A route to a destination network through a gateway address.
  */
 export const Route = z.preprocess(processResponseBody,z.object({"dst": IpNet,
-"gw": z.ipv4(),
+"gw": z.union([z.ipv4(), z.ipv6()]),
 "ribPriority": z.number().min(0).max(255).nullable().optional(),
 "vid": z.number().min(0).max(65535).nullable().optional(),
 }))
@@ -2870,7 +2870,7 @@ export const RouteConfig = z.preprocess(processResponseBody,z.object({"linkName"
  */
 export const RouteDestination = z.preprocess(processResponseBody,z.union([
 z.object({"type": z.enum(["ip"]),
-"value": z.ipv4(),
+"value": z.union([z.ipv4(), z.ipv6()]),
 }),
 z.object({"type": z.enum(["ip_net"]),
 "value": IpNet,
@@ -2889,7 +2889,7 @@ z.object({"type": z.enum(["subnet"]),
  */
 export const RouteTarget = z.preprocess(processResponseBody,z.union([
 z.object({"type": z.enum(["ip"]),
-"value": z.ipv4(),
+"value": z.union([z.ipv4(), z.ipv6()]),
 }),
 z.object({"type": z.enum(["vpc"]),
 "value": Name,
@@ -3472,7 +3472,7 @@ export const SwitchPortResultsPage = z.preprocess(processResponseBody,z.object({
 * A route configuration for a port settings object.
  */
 export const SwitchPortRouteConfig = z.preprocess(processResponseBody,z.object({"dst": IpNet,
-"gw": z.ipv4(),
+"gw": z.union([z.ipv4(), z.ipv6()]),
 "interfaceName": Name,
 "portSettingsId": z.uuid(),
 "ribPriority": z.number().min(0).max(255).nullable().optional(),
@@ -3796,7 +3796,7 @@ z.object({"type": z.enum(["instance"]),
 "value": Name,
 }),
 z.object({"type": z.enum(["ip"]),
-"value": z.ipv4(),
+"value": z.union([z.ipv4(), z.ipv6()]),
 }),
 z.object({"type": z.enum(["ip_net"]),
 "value": IpNet,
@@ -3842,7 +3842,7 @@ z.object({"type": z.enum(["instance"]),
 "value": Name,
 }),
 z.object({"type": z.enum(["ip"]),
-"value": z.ipv4(),
+"value": z.union([z.ipv4(), z.ipv6()]),
 }),
 z.object({"type": z.enum(["ip_net"]),
 "value": IpNet,
@@ -5825,7 +5825,7 @@ export const SystemMetricParams = z.preprocess(processResponseBody, z.object({
 
 export const LookupMulticastGroupByIpParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
-  address: z.ipv4(),
+  address: z.union([z.ipv4(), z.ipv6()]),
   }),
   query: z.object({
   }),
@@ -6031,7 +6031,7 @@ export const NetworkingLoopbackAddressCreateParams = z.preprocess(processRespons
 
 export const NetworkingLoopbackAddressDeleteParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
-  address: z.ipv4(),
+  address: z.union([z.ipv4(), z.ipv6()]),
   rackId: z.uuid(),
   subnetMask: z.number().min(0).max(255),
   switchLocation: Name,
