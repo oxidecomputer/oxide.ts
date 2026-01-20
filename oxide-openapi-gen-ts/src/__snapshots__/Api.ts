@@ -53,6 +53,50 @@ export type Address =
 "vlanId"?: number | null,};
 
 /**
+* The IP address version.
+ */
+export type IpVersion =
+"v4"
+| "v6"
+;
+
+/**
+* Specify which IP pool to allocate from.
+ */
+export type PoolSelector =
+(/** Use the specified pool by name or ID. */
+| {
+/** The pool to allocate from. */
+"pool": NameOrId,"type": "explicit"
+,}
+/** Use the default pool for the silo. */
+| {
+/** IP version to use when multiple default pools exist. Required if both IPv4 and IPv6 default pools are configured. */
+"ipVersion"?: IpVersion | null,"type": "auto"
+,}
+);
+
+/**
+* Specify how to allocate a floating IP address.
+ */
+export type AddressAllocator =
+(/** Reserve a specific IP address. */
+| {
+/** The IP address to reserve. Must be available in the pool. */
+"ip": string,
+/** The pool containing this address. If not specified, the default pool for the address's IP version is used. */
+"pool"?: NameOrId | null,"type": "explicit"
+,}
+/** Automatically allocate an IP address from a specified pool. */
+| {
+/** Pool selection.
+
+If omitted, this field uses the silo's default pool. If the silo has default pools for both IPv4 and IPv6, the request will fail unless `ip_version` is specified in the pool selector. */
+"poolSelector"?: PoolSelector,"type": "auto"
+,}
+);
+
+/**
 * A set of addresses associated with a port configuration.
  */
 export type AddressConfig =
@@ -163,50 +207,6 @@ export type AddressLotViewResponse =
 "blocks": (AddressLotBlock)[],
 /** The address lot. */
 "lot": AddressLot,};
-
-/**
-* The IP address version.
- */
-export type IpVersion =
-"v4"
-| "v6"
-;
-
-/**
-* Specify which IP pool to allocate from.
- */
-export type PoolSelector =
-(/** Use the specified pool by name or ID. */
-| {
-/** The pool to allocate from. */
-"pool": NameOrId,"type": "explicit"
-,}
-/** Use the default pool for the silo. */
-| {
-/** IP version to use when multiple default pools exist. Required if both IPv4 and IPv6 default pools are configured. */
-"ipVersion"?: IpVersion | null,"type": "auto"
-,}
-);
-
-/**
-* Specify how to allocate a floating IP address.
- */
-export type AddressSelector =
-(/** Reserve a specific IP address. */
-| {
-/** The IP address to reserve. Must be available in the pool. */
-"ip": string,
-/** The pool containing this address. If not specified, the default pool for the address's IP version is used. */
-"pool"?: NameOrId | null,"type": "explicit"
-,}
-/** Automatically allocate an IP address from a specified pool. */
-| {
-/** Pool selection.
-
-If omitted, this field uses the silo's default pool. If the silo has default pools for both IPv4 and IPv6, the request will fail unless `ip_version` is specified in the pool selector. */
-"poolSelector"?: PoolSelector,"type": "auto"
-,}
-);
 
 /**
 * Describes the scope of affinity for the purposes of co-location.
@@ -681,6 +681,21 @@ export type AuditLogEntryActor =
 );
 
 /**
+* Authentication method used for a request
+ */
+export type AuthMethod =
+(/** Console session cookie */
+| "session_cookie"
+
+/** Device access token (OAuth 2.0 device authorization flow) */
+| "access_token"
+
+/** SCIM client bearer token */
+| "scim_token"
+
+);
+
+/**
 * Result of an audit log entry
  */
 export type AuditLogEntryResult =
@@ -704,8 +719,10 @@ export type AuditLogEntryResult =
  */
 export type AuditLogEntry =
 {"actor": AuditLogEntryActor,
-/** How the user authenticated the request. Possible values are "session_cookie" and "access_token". Optional because it will not be defined on unauthenticated requests like login attempts. */
-"authMethod"?: string | null,
+/** How the user authenticated the request (access token, session, or SCIM token). Null for unauthenticated requests like login attempts. */
+"authMethod"?: AuthMethod | null,
+/** ID of the credential used for authentication. Null for unauthenticated requests. The value of `auth_method` indicates what kind of credential it is (access token, session, or SCIM token). */
+"credentialId"?: string | null,
 /** Unique identifier for the audit log entry */
 "id": string,
 /** API endpoint ID, e.g., `project_create` */
@@ -2267,7 +2284,7 @@ export type FloatingIpAttach =
 export type FloatingIpCreate =
 {
 /** IP address allocation method. */
-"addressSelector"?: AddressSelector,"description": string,"name": Name,};
+"addressAllocator"?: AddressAllocator,"description": string,"name": Name,};
 
 /**
 * A single page of results
@@ -2526,6 +2543,28 @@ export type InstanceDiskAttachment =
 );
 
 /**
+* A multicast group identifier
+* 
+* Can be a UUID, a name, or an IP address
+ */
+export type MulticastGroupIdentifier =
+string;
+
+/**
+* Specification for joining a multicast group with optional source filtering.
+* 
+* Used in `InstanceCreate` and `InstanceUpdate` to specify multicast group membership along with per-member source IP configuration.
+ */
+export type MulticastGroupJoinSpec =
+{
+/** The multicast group to join, specified by name, UUID, or IP address. */
+"group": MulticastGroupIdentifier,
+/** IP version for pool selection when creating a group by name. Required if both IPv4 and IPv6 default multicast pools are linked. */
+"ipVersion"?: IpVersion | null,
+/** Source IPs for source-filtered multicast (SSM). Optional for ASM groups, required for SSM groups (232.0.0.0/8, ff3x::/32). */
+"sourceIps"?: (string)[] | null,};
+
+/**
 * How a VPC-private IP address is assigned to a network interface.
  */
 export type Ipv4Assignment =
@@ -2664,10 +2703,10 @@ By default, all instances have outbound connectivity, but no inbound connectivit
 "hostname": Hostname,
 /** The amount of RAM (in bytes) to be allocated to the instance */
 "memory": ByteCount,
-/** The multicast groups this instance should join.
+/** Multicast groups this instance should join at creation.
 
-The instance will be automatically added as a member of the specified multicast groups during creation, enabling it to send and receive multicast traffic for those groups. */
-"multicastGroups"?: (NameOrId)[],"name": Name,
+Groups can be specified by name, UUID, or IP address. Non-existent groups are created automatically. */
+"multicastGroups"?: (MulticastGroupJoinSpec)[],"name": Name,
 /** The number of vCPUs to be allocated to the instance */
 "ncpus": InstanceCpuCount,
 /** The network interfaces to be created for this instance. */
@@ -2680,6 +2719,18 @@ If not provided, all SSH public keys from the user's profile will be sent. If an
 "start"?: boolean,
 /** User data for instance initialization systems (such as cloud-init). Must be a Base64-encoded string, as specified in RFC 4648 § 4 (+ and / characters with padding). Maximum 32 KiB unencoded data. */
 "userData"?: string,};
+
+/**
+* Parameters for joining an instance to a multicast group.
+* 
+* When joining by IP address, the pool containing the multicast IP is auto-discovered from all linked multicast pools.
+ */
+export type InstanceMulticastGroupJoin =
+{
+/** IP version for pool selection when creating a group by name. Required if both IPv4 and IPv6 default multicast pools are linked. */
+"ipVersion"?: IpVersion | null,
+/** Source IPs for source-filtered multicast (SSM). Optional for ASM groups, required for SSM groups (232.0.0.0/8, ff3x::/32). */
+"sourceIps"?: (string)[] | null,};
 
 /**
 * The VPC-private IPv4 stack for a network interface
@@ -2823,8 +2874,10 @@ An instance that does not have a boot disk set will use the boot options specifi
 
 When specified, this replaces the instance's current multicast group membership with the new set of groups. The instance will leave any groups not listed here and join any new groups that are specified.
 
-If not provided (None), the instance's multicast group membership will not be changed. */
-"multicastGroups"?: (NameOrId)[] | null,
+Each entry can specify the group by name, UUID, or IP address, along with optional source IP filtering for SSM (Source-Specific Multicast). When a group doesn't exist, it will be implicitly created using the default multicast pool (or you can specify `ip_version` to disambiguate if needed).
+
+If not provided, the instance's multicast group membership will not be changed. */
+"multicastGroups"?: (MulticastGroupJoinSpec)[] | null,
 /** The number of vCPUs to be allocated to the instance */
 "ncpus": InstanceCpuCount,};
 
@@ -3354,7 +3407,9 @@ export type MulticastGroup =
 "mvlan"?: number | null,
 /** unique, mutable, user-controlled identifier for each resource */
 "name": Name,
-/** Source IP addresses for Source-Specific Multicast (SSM). Empty array means any source is allowed. */
+/** Union of all member source IP addresses (computed, read-only).
+
+This field shows the combined source IPs across all group members. Individual members may subscribe to different sources; this union reflects all sources that any member is subscribed to. Empty array means no members have source filtering enabled. */
 "sourceIps": (string)[],
 /** Current state of the multicast group. */
 "state": string,
@@ -3362,24 +3417,6 @@ export type MulticastGroup =
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
 "timeModified": Date,};
-
-/**
-* Create-time parameters for a multicast group.
- */
-export type MulticastGroupCreate =
-{"description": string,
-/** The multicast IP address to allocate. If None, one will be allocated from the default pool. */
-"multicastIp"?: string | null,
-/** Multicast VLAN (MVLAN) for egress multicast traffic to upstream networks. Tags packets leaving the rack to traverse VLAN-segmented upstream networks.
-
-Valid range: 2-4094 (VLAN IDs 0-1 are reserved by IEEE 802.1Q standard). */
-"mvlan"?: number | null,"name": Name,
-/** Name or ID of the IP pool to allocate from. If None, uses the default multicast pool. */
-"pool"?: NameOrId | null,
-/** Source IP addresses for Source-Specific Multicast (SSM).
-
-None uses default behavior (Any-Source Multicast). Empty list explicitly allows any source (Any-Source Multicast). Non-empty list restricts to specific sources (SSM). */
-"sourceIps"?: (string)[] | null,};
 
 /**
 * View of a Multicast Group Member (instance belonging to a multicast group)
@@ -3394,22 +3431,20 @@ export type MulticastGroupMember =
 "instanceId": string,
 /** The ID of the multicast group this member belongs to. */
 "multicastGroupId": string,
+/** The multicast IP address of the group this member belongs to. */
+"multicastIp": string,
 /** unique, mutable, user-controlled identifier for each resource */
 "name": Name,
+/** Source IP addresses for this member's multicast subscription.
+
+- **ASM**: Sources are optional. Empty array means any source is allowed. Non-empty array enables source filtering (IGMPv3/MLDv2). - **SSM**: Sources are required for SSM addresses (232/8, ff3x::/32). */
+"sourceIps": (string)[],
 /** Current state of the multicast group membership. */
 "state": string,
 /** timestamp when this resource was created */
 "timeCreated": Date,
 /** timestamp when this resource was last modified */
 "timeModified": Date,};
-
-/**
-* Parameters for adding an instance to a multicast group.
- */
-export type MulticastGroupMemberAdd =
-{
-/** Name or ID of the instance to add to the multicast group */
-"instance": NameOrId,};
 
 /**
 * A single page of results
@@ -3430,14 +3465,6 @@ export type MulticastGroupResultsPage =
 "items": (MulticastGroup)[],
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
-
-/**
-* Update-time parameters for a multicast group.
- */
-export type MulticastGroupUpdate =
-{"description"?: string | null,
-/** Multicast VLAN (MVLAN) for egress multicast traffic to upstream networks. Set to null to clear the MVLAN. Valid range: 2-4094 when provided. Omit the field to leave mvlan unchanged. */
-"mvlan"?: number | null,"name"?: Name | null,"sourceIps"?: (string)[] | null,};
 
 /**
 * VPC-private IPv4 configuration for a network interface.
@@ -6096,12 +6123,15 @@ export interface InstanceMulticastGroupListPathParams {
 }
 
 export interface InstanceMulticastGroupListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
   project?: NameOrId,
+  sortBy?: IdSortMode,
 }
 
 export interface InstanceMulticastGroupJoinPathParams {
   instance: NameOrId,
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
 }
 
 export interface InstanceMulticastGroupJoinQueryParams {
@@ -6110,7 +6140,7 @@ export interface InstanceMulticastGroupJoinQueryParams {
 
 export interface InstanceMulticastGroupLeavePathParams {
   instance: NameOrId,
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
 }
 
 export interface InstanceMulticastGroupLeaveQueryParams {
@@ -6320,42 +6350,17 @@ export interface MulticastGroupListQueryParams {
 }
 
 export interface MulticastGroupViewPathParams {
-  multicastGroup: NameOrId,
-}
-
-export interface MulticastGroupUpdatePathParams {
-  multicastGroup: NameOrId,
-}
-
-export interface MulticastGroupDeletePathParams {
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
 }
 
 export interface MulticastGroupMemberListPathParams {
-  multicastGroup: NameOrId,
+  multicastGroup: MulticastGroupIdentifier,
 }
 
 export interface MulticastGroupMemberListQueryParams {
   limit?: number | null,
   pageToken?: string | null,
   sortBy?: IdSortMode,
-}
-
-export interface MulticastGroupMemberAddPathParams {
-  multicastGroup: NameOrId,
-}
-
-export interface MulticastGroupMemberAddQueryParams {
-  project?: NameOrId,
-}
-
-export interface MulticastGroupMemberRemovePathParams {
-  instance: NameOrId,
-  multicastGroup: NameOrId,
-}
-
-export interface MulticastGroupMemberRemoveQueryParams {
-  project?: NameOrId,
 }
 
 export interface InstanceNetworkInterfaceListQueryParams {
@@ -6710,10 +6715,6 @@ export interface SystemMetricQueryParams {
   pageToken?: string | null,
   startTime?: Date,
   silo?: NameOrId,
-}
-
-export interface LookupMulticastGroupByIpPathParams {
-  address: string,
 }
 
 export interface NetworkingAddressLotListQueryParams {
@@ -7194,7 +7195,7 @@ export interface ApiConfig {
        * Pulled from info.version in the OpenAPI schema. Sent in the
        * `api-version` header on all requests.
        */
-      apiVersion = "2026010500.0.0";
+      apiVersion = "2026011600.0.0";
 
       constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
         this.host = host;
@@ -7351,7 +7352,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* View a support bundle
+* View support bundle
  */
 supportBundleView: ({ 
 path, }: {path: SupportBundleViewPathParams,
@@ -7964,7 +7965,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Create a disk
+* Create disk
  */
 diskCreate: ({ 
 query, body, }: {query: DiskCreateQueryParams,
@@ -8503,7 +8504,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* List multicast groups for instance
+* List multicast groups for an instance
  */
 instanceMulticastGroupList: ({ 
 path, query = {}, }: {path: InstanceMulticastGroupListPathParams,
@@ -8518,22 +8519,24 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Join multicast group.
+* Join multicast group by name, IP address, or UUID
  */
 instanceMulticastGroupJoin: ({ 
-path, query = {}, }: {path: InstanceMulticastGroupJoinPathParams,
+path, query = {}, body, }: {path: InstanceMulticastGroupJoinPathParams,
 query?: InstanceMulticastGroupJoinQueryParams,
+body: InstanceMulticastGroupJoin,
 },
 params: FetchParams = {}) => {
          return this.request<MulticastGroupMember>({
            path: `/v1/instances/${path.instance}/multicast-groups/${path.multicastGroup}`,
            method: "PUT",
+  body,
   query,
   ...params,
          })
       },
 /**
-* Leave multicast group.
+* Leave multicast group by name, IP address, or UUID
  */
 instanceMulticastGroupLeave: ({ 
 path, query = {}, }: {path: InstanceMulticastGroupLeavePathParams,
@@ -8548,7 +8551,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Reboot an instance
+* Reboot instance
  */
 instanceReboot: ({ 
 path, query = {}, }: {path: InstanceRebootPathParams,
@@ -8947,7 +8950,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* List all multicast groups.
+* List multicast groups
  */
 multicastGroupList: ({ 
 query = {}, }: {query?: MulticastGroupListQueryParams,
@@ -8961,21 +8964,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Create a multicast group.
- */
-multicastGroupCreate: ({ 
-body, }: {body: MulticastGroupCreate,
-},
-params: FetchParams = {}) => {
-         return this.request<MulticastGroup>({
-           path: `/v1/multicast-groups`,
-           method: "POST",
-  body,
-  ...params,
-         })
-      },
-/**
-* Fetch a multicast group.
+* Fetch multicast group
  */
 multicastGroupView: ({ 
 path, }: {path: MulticastGroupViewPathParams,
@@ -8988,35 +8977,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Update a multicast group.
- */
-multicastGroupUpdate: ({ 
-path, body, }: {path: MulticastGroupUpdatePathParams,
-body: MulticastGroupUpdate,
-},
-params: FetchParams = {}) => {
-         return this.request<MulticastGroup>({
-           path: `/v1/multicast-groups/${path.multicastGroup}`,
-           method: "PUT",
-  body,
-  ...params,
-         })
-      },
-/**
-* Delete a multicast group.
- */
-multicastGroupDelete: ({ 
-path, }: {path: MulticastGroupDeletePathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/v1/multicast-groups/${path.multicastGroup}`,
-           method: "DELETE",
-  ...params,
-         })
-      },
-/**
-* List members of a multicast group.
+* List members of multicast group
  */
 multicastGroupMemberList: ({ 
 path, query = {}, }: {path: MulticastGroupMemberListPathParams,
@@ -9026,38 +8987,6 @@ params: FetchParams = {}) => {
          return this.request<MulticastGroupMemberResultsPage>({
            path: `/v1/multicast-groups/${path.multicastGroup}/members`,
            method: "GET",
-  query,
-  ...params,
-         })
-      },
-/**
-* Add instance to a multicast group.
- */
-multicastGroupMemberAdd: ({ 
-path, query = {}, body, }: {path: MulticastGroupMemberAddPathParams,
-query?: MulticastGroupMemberAddQueryParams,
-body: MulticastGroupMemberAdd,
-},
-params: FetchParams = {}) => {
-         return this.request<MulticastGroupMember>({
-           path: `/v1/multicast-groups/${path.multicastGroup}/members`,
-           method: "POST",
-  body,
-  query,
-  ...params,
-         })
-      },
-/**
-* Remove instance from a multicast group.
- */
-multicastGroupMemberRemove: ({ 
-path, query = {}, }: {path: MulticastGroupMemberRemovePathParams,
-query?: MulticastGroupMemberRemoveQueryParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/v1/multicast-groups/${path.multicastGroup}/members/${path.instance}`,
-           method: "DELETE",
   query,
   ...params,
          })
@@ -9217,7 +9146,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Update a project
+* Update project
  */
 projectUpdate: ({ 
 path, body, }: {path: ProjectUpdatePathParams,
@@ -9361,7 +9290,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Get a physical disk
+* Get physical disk
  */
 physicalDiskView: ({ 
 path, }: {path: PhysicalDiskViewPathParams,
@@ -9813,7 +9742,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Add range to IP pool.
+* Add range to an IP pool
  */
 ipPoolRangeAdd: ({ 
 path, body, }: {path: IpPoolRangeAddPathParams,
@@ -9982,19 +9911,6 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Look up multicast group by IP address.
- */
-lookupMulticastGroupByIp: ({ 
-path, }: {path: LookupMulticastGroupByIpPathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<MulticastGroup>({
-           path: `/v1/system/multicast-groups/by-ip/${path.address}`,
-           method: "GET",
-  ...params,
-         })
-      },
-/**
 * List address lots
  */
 networkingAddressLotList: ({ 
@@ -10089,7 +10005,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Disable a BFD session
+* Disable BFD session
  */
 networkingBfdDisable: ({ 
 body, }: {body: BfdSessionDisable,
@@ -10103,7 +10019,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Enable a BFD session
+* Enable BFD session
  */
 networkingBfdEnable: ({ 
 body, }: {body: BfdSessionEnable,
@@ -10506,7 +10422,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Create a silo
+* Create silo
  */
 siloCreate: ({ 
 body, }: {body: SiloCreate,
@@ -10533,7 +10449,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Delete a silo
+* Delete silo
  */
 siloDelete: ({ 
 path, }: {path: SiloDeletePathParams,
@@ -11263,7 +11179,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Update a VPC
+* Update VPC
  */
 vpcUpdate: ({ 
 path, query = {}, body, }: {path: VpcUpdatePathParams,
