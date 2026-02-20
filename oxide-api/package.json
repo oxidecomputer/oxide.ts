@@ -1,6 +1,6 @@
 {
   "name": "@oxide/api",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "TypeScript client for the Oxide API",
   "engines": {
     "node": ">=24"

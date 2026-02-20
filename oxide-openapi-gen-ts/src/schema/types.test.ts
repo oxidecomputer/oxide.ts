@@ -54,6 +54,8 @@ test("Disk", () => {
       /** unique, mutable, user-controlled identifier for each resource */
       name: Name;
       projectId: string;
+      /** Whether or not this disk is read-only. */
+      readOnly: boolean;
       size: ByteCount;
       /** ID of snapshot from which disk was created, if any */
       snapshotId?: string | null;

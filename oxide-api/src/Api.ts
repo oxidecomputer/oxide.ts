@@ -62,7 +62,7 @@ export type Address = {
 export type IpVersion = "v4" | "v6";
 
 /**
- * Specify which IP pool to allocate from.
+ * Specify which IP or external subnet pool to allocate from.
  */
 export type PoolSelector =
   /** Use the specified pool by name or ID. */
@@ -82,19 +82,17 @@ export type PoolSelector =
  * Specify how to allocate a floating IP address.
  */
 export type AddressAllocator =
-  /** Reserve a specific IP address. */
+  /** Reserve a specific IP address. The pool is inferred from the address since IP pools cannot have overlapping ranges. */
   | {
-      /** The IP address to reserve. Must be available in the pool. */
+      /** The IP address to reserve. */
       ip: string;
-      /** The pool containing this address. If not specified, the default pool for the address's IP version is used. */
-      pool?: NameOrId | null;
       type: "explicit";
     }
-  /** Automatically allocate an IP address from a specified pool. */
+  /** Automatically allocate an IP address from a pool. */
   | {
       /** Pool selection.
 
-If omitted, this field uses the silo's default pool. If the silo has default pools for both IPv4 and IPv6, the request will fail unless `ip_version` is specified in the pool selector. */
+If omitted, the silo's default pool is used. If the silo has default pools for both IPv4 and IPv6, the request will fail unless `ip_version` is specified. */
       poolSelector?: PoolSelector;
       type: "auto";
     };
@@ -150,7 +148,7 @@ export type AddressLotBlock = {
 };
 
 /**
- * Parameters for creating an address lot block. Fist and last addresses are inclusive.
+ * Parameters for creating an address lot block. First and last addresses are inclusive.
  */
 export type AddressLotBlockCreate = {
   /** The first address in the lot (inclusive). */
@@ -523,6 +521,7 @@ export type AlertReceiverKind = {
   /** The URL that webhook notification requests are sent to. */
   endpoint: string;
   kind: "webhook";
+  /** A list containing the IDs of the secret keys used to sign payloads sent to this receiver. */
   secrets: WebhookSecret[];
 };
 
@@ -776,6 +775,18 @@ export type AuthzScope =
 export type Baseboard = { part: string; revision: number; serial: string };
 
 /**
+ * A representation of a Baseboard ID as used in the inventory subsystem.
+ *
+ * This type is essentially the same as a `Baseboard` except it doesn't have a revision or HW type (Gimlet, PC, Unknown).
+ */
+export type BaseboardId = {
+  /** Oxide Part Number */
+  partNumber: string;
+  /** Serial number (unique for a given part number) */
+  serialNumber: string;
+};
+
+/**
  * BFD connection mode.
  */
 export type BfdMode = "single_hop" | "multi_hop";
@@ -879,6 +890,8 @@ export type BgpAnnouncement = {
   network: IpNet;
 };
 
+export type MaxPathConfig = number;
+
 /**
  * A base BGP configuration.
  */
@@ -889,6 +902,8 @@ export type BgpConfig = {
   description: string;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
+  /** Maximum number of paths to use when multiple "best paths" exist */
+  maxPaths: MaxPathConfig;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
   /** timestamp when this resource was created */
@@ -900,13 +915,15 @@ export type BgpConfig = {
 };
 
 /**
- * Parameters for creating a BGP configuration. This includes and autonomous system number (ASN) and a virtual routing and forwarding (VRF) identifier.
+ * Parameters for creating a BGP configuration. This includes an autonomous system number (ASN) and a virtual routing and forwarding (VRF) identifier.
  */
 export type BgpConfigCreate = {
   /** The autonomous system number of this BGP configuration. */
   asn: number;
   bgpAnnounceSetId: NameOrId;
   description: string;
+  /** Maximum number of paths to use when multiple "best paths" exist */
+  maxPaths?: MaxPathConfig;
   name: Name;
   /** Optional virtual routing and forwarding identifier for this BGP configuration. */
   vrf?: Name | null;
@@ -923,23 +940,27 @@ export type BgpConfigResultsPage = {
 };
 
 /**
- * The current status of a BGP peer.
+ * Route exported to a peer.
  */
 export type BgpExported = {
-  /** Exported routes indexed by peer address. */
-  exports: Record<string, Ipv4Net[]>;
+  /** Identifier for the BGP peer. */
+  peerId: string;
+  /** The destination network prefix. */
+  prefix: IpNet;
+  /** Switch the route is exported from. */
+  switch: SwitchLocation;
 };
 
 /**
  * A route imported from a BGP peer.
  */
-export type BgpImportedRouteIpv4 = {
+export type BgpImported = {
   /** BGP identifier of the originating router. */
   id: number;
   /** The nexthop the prefix is reachable through. */
   nexthop: string;
   /** The destination network prefix. */
-  prefix: Ipv4Net;
+  prefix: IpNet;
   /** Switch the route is imported into. */
   switch: SwitchLocation;
 };
@@ -955,8 +976,8 @@ export type ImportExportPolicy =
  * A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
  */
 export type BgpPeer = {
-  /** The address of the host to peer with. */
-  addr: string;
+  /** The address of the host to peer with. If not provided, this is an unnumbered BGP session that will be established over the interface specified by `interface_name`. */
+  addr?: string | null;
   /** Define export policy for a peer. */
   allowedExport: ImportExportPolicy;
   /** Define import policy for a peer. */
@@ -989,6 +1010,8 @@ export type BgpPeer = {
   multiExitDiscriminator?: number | null;
   /** Require that a peer has a specified ASN. */
   remoteAsn?: number | null;
+  /** Router lifetime in seconds for unnumbered BGP peers. */
+  routerLifetime: number;
   /** Associate a VLAN ID with a peer. */
   vlanId?: number | null;
 };
@@ -1035,6 +1058,8 @@ export type BgpPeerStatus = {
   addr: string;
   /** Local autonomous system number. */
   localAsn: number;
+  /** Interface name */
+  peerId: string;
   /** Remote autonomous system number. */
   remoteAsn: number;
   /** State of the peer. */
@@ -1276,7 +1301,7 @@ export type Binuint8 = {
 };
 
 /**
- * disk block size in bytes
+ * Disk block size in bytes
  */
 export type BlockSize = 512 | 2048 | 4096;
 
@@ -1799,9 +1824,9 @@ export type Datum =
   | { datum: MissingDatum; type: "missing" };
 
 export type DerEncodedKeyPair = {
-  /** request signing RSA private key in PKCS#1 format (base64 encoded der file) */
+  /** Request signing RSA private key in PKCS#1 format (base64 encoded DER file) */
   privateKey: string;
-  /** request signing public certificate (base64 encoded der file) */
+  /** Request signing public certificate (base64 encoded DER file) */
   publicCert: string;
 };
 
@@ -1809,7 +1834,9 @@ export type DerEncodedKeyPair = {
  * View of a device access token
  */
 export type DeviceAccessToken = {
-  /** A unique, immutable, system-controlled identifier for the token. Note that this ID is not the bearer token itself, which starts with "oxide-token-" */
+  /** A unique, immutable, system-controlled identifier for the token.
+
+Note that this ID is not the bearer token itself, which starts with "oxide-token-". */
   id: string;
   timeCreated: Date;
   /** Expiration timestamp. A null value means the token does not automatically expire. */
@@ -1893,6 +1920,8 @@ export type Disk = {
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
   projectId: string;
+  /** Whether or not this disk is read-only. */
+  readOnly: boolean;
   size: ByteCount;
   /** ID of snapshot from which disk was created, if any */
   snapshotId?: string | null;
@@ -1909,14 +1938,24 @@ export type Disk = {
 export type DiskSource =
   /** Create a blank disk */
   | {
-      /** size of blocks for this Disk. valid values are: 512, 2048, or 4096 */
+      /** Size of blocks for this disk. Valid values are: 512, 2048, or 4096. */
       blockSize: BlockSize;
       type: "blank";
     }
   /** Create a disk from a disk snapshot */
-  | { snapshotId: string; type: "snapshot" }
+  | {
+      /** If `true`, the disk created from this snapshot will be read-only. */
+      readOnly?: boolean;
+      snapshotId: string;
+      type: "snapshot";
+    }
   /** Create a disk from an image */
-  | { imageId: string; type: "image" }
+  | {
+      imageId: string;
+      /** If `true`, the disk created from this image will be read-only. */
+      readOnly?: boolean;
+      type: "image";
+    }
   /** Create a blank disk that will accept bulk writes or pull blocks from an external source. */
   | { blockSize: BlockSize; type: "importing_blocks" };
 
@@ -2062,6 +2101,89 @@ export type ExternalIpResultsPage = {
   items: ExternalIp[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string | null;
+};
+
+/**
+ * An external subnet allocated from a subnet pool
+ */
+export type ExternalSubnet = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** The instance this subnet is attached to, if any */
+  instanceId?: string | null;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** The project this subnet belongs to */
+  projectId: string;
+  /** The allocated subnet CIDR */
+  subnet: IpNet;
+  /** The subnet pool this was allocated from */
+  subnetPoolId: string;
+  /** The subnet pool member this subnet corresponds to */
+  subnetPoolMemberId: string;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Specify how to allocate an external subnet.
+ */
+export type ExternalSubnetAllocator =
+  /** Reserve a specific subnet. */
+  | {
+      /** The subnet CIDR to reserve. Must be available in the pool. */
+      subnet: IpNet;
+      type: "explicit";
+    }
+  /** Automatically allocate a subnet with the specified prefix length. */
+  | {
+      /** Pool selection.
+
+If omitted, this field uses the silo's default pool. If the silo has default pools for both IPv4 and IPv6, the request will fail unless `ip_version` is specified in the pool selector. */
+      poolSelector?: PoolSelector;
+      /** The prefix length for the allocated subnet (e.g., 24 for a /24). */
+      prefixLen: number;
+      type: "auto";
+    };
+
+/**
+ * Attach an external subnet to an instance
+ */
+export type ExternalSubnetAttach = {
+  /** Name or ID of the instance to attach to */
+  instance: NameOrId;
+};
+
+/**
+ * Create an external subnet
+ */
+export type ExternalSubnetCreate = {
+  /** Subnet allocation method. */
+  allocator: ExternalSubnetAllocator;
+  description: string;
+  name: Name;
+};
+
+/**
+ * A single page of results
+ */
+export type ExternalSubnetResultsPage = {
+  /** list of items on this page of results */
+  items: ExternalSubnet[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
+ * Update an external subnet
+ */
+export type ExternalSubnetUpdate = {
+  description?: string | null;
+  name?: Name | null;
 };
 
 /**
@@ -2291,7 +2413,7 @@ export type IdpMetadataSource =
  * If `project_id` is present then the image is only visible inside that project. If it's not present then the image is visible to all projects in the silo.
  */
 export type Image = {
-  /** size of blocks in bytes */
+  /** Size of blocks in bytes */
   blockSize: ByteCount;
   /** human-readable free-form text about a resource */
   description: string;
@@ -2305,7 +2427,7 @@ export type Image = {
   os: string;
   /** ID of the parent project if the image is a project image */
   projectId?: string | null;
-  /** total size in bytes */
+  /** Total size in bytes */
   size: ByteCount;
   /** timestamp when this resource was created */
   timeCreated: Date;
@@ -2568,7 +2690,7 @@ The IPs will be pulled from the Project's default VPC / VPC Subnet. */
  * Create-time parameters for an `Instance`
  */
 export type InstanceCreate = {
-  /** Anti-Affinity groups which this instance should be added. */
+  /** Anti-affinity groups to which this instance should be added. */
   antiAffinityGroups?: NameOrId[];
   /** The auto-restart policy for this instance.
 
@@ -2813,13 +2935,13 @@ export type InternetGatewayCreate = { description: string; name: Name };
  * An IP address that is attached to an internet gateway
  */
 export type InternetGatewayIpAddress = {
-  /** The associated IP address, */
+  /** The associated IP address */
   address: string;
   /** human-readable free-form text about a resource */
   description: string;
   /** unique, immutable, system-controlled identifier for each resource */
   id: string;
-  /** The associated internet gateway. */
+  /** The associated internet gateway */
   internetGatewayId: string;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
@@ -2910,7 +3032,7 @@ All ranges in a multicast pool must be either ASM or SSM (not mixed). */
   | "multicast";
 
 /**
- * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo
+ * A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo.
  */
 export type IpPool = {
   /** human-readable free-form text about a resource */
@@ -3239,7 +3361,9 @@ export type LoopbackAddressCreate = {
   address: string;
   /** The name or id of the address lot this loopback address will pull an address from. */
   addressLot: NameOrId;
-  /** Address is an anycast address. This allows the address to be assigned to multiple locations simultaneously. */
+  /** Address is an anycast address.
+
+This allows the address to be assigned to multiple locations simultaneously. */
   anycast: boolean;
   /** The subnet mask to use for the address. */
   mask: number;
@@ -3692,7 +3816,7 @@ export type ProjectRolePolicy = {
 export type ProjectUpdate = { description?: string | null; name?: Name | null };
 
 /**
- * View of an Rack
+ * View of a Rack
  */
 export type Rack = {
   /** unique, immutable, system-controlled identifier for each resource */
@@ -3701,6 +3825,32 @@ export type Rack = {
   timeCreated: Date;
   /** timestamp when this resource was last modified */
   timeModified: Date;
+};
+
+export type RackMembershipAddSledsRequest = { sledIds: BaseboardId[] };
+
+export type RackMembershipChangeState = "in_progress" | "committed" | "aborted";
+
+/**
+ * A unique, monotonically increasing number representing the set of active sleds in a rack at a given point in time.
+ */
+export type RackMembershipVersion = number;
+
+/**
+ * Status of the rack membership uniquely identified by the (rack_id, version) pair
+ */
+export type RackMembershipStatus = {
+  /** All members of the rack for this version */
+  members: BaseboardId[];
+  rackId: string;
+  state: RackMembershipChangeState;
+  timeAborted?: Date | null;
+  timeCommitted?: Date | null;
+  timeCreated: Date;
+  /** All members that have not yet confirmed this membership version */
+  unacknowledgedMembers: BaseboardId[];
+  /** Version that uniquely identifies the rack membership at a given point in time */
+  version: RackMembershipVersion;
 };
 
 /**
@@ -3887,23 +4037,23 @@ export type SamlIdentityProvider = {
  * Create-time identity-related parameters
  */
 export type SamlIdentityProviderCreate = {
-  /** service provider endpoint where the response will be sent */
+  /** Service provider endpoint where the response will be sent */
   acsUrl: string;
   description: string;
   /** If set, SAML attributes with this name will be considered to denote a user's group membership, where the attribute value(s) should be a comma-separated list of group names. */
   groupAttributeName?: string | null;
-  /** idp's entity id */
+  /** IdP's entity ID */
   idpEntityId: string;
-  /** the source of an identity provider metadata descriptor */
+  /** The source of an identity provider metadata descriptor */
   idpMetadataSource: IdpMetadataSource;
   name: Name;
-  /** request signing key pair */
+  /** Request signing key pair */
   signingKeypair?: DerEncodedKeyPair | null;
-  /** service provider endpoint where the idp should send log out requests */
+  /** Service provider endpoint where the IdP should send log out requests */
   sloUrl: string;
-  /** sp's client id */
+  /** SP's client ID */
   spClientId: string;
-  /** customer's technical contact for saml configuration */
+  /** Customer's technical contact for SAML configuration */
   technicalContactEmail: string;
 };
 
@@ -4138,6 +4288,38 @@ export type SiloRolePolicy = {
 };
 
 /**
+ * A subnet pool in the context of a silo
+ */
+export type SiloSubnetPool = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** The IP version for the pool. */
+  ipVersion: IpVersion;
+  /** When a pool is the default for a silo, external subnet allocations will come from that pool when no other pool is specified.
+
+A silo can have at most one default pool per IP version (IPv4 or IPv6), allowing up to 2 default pools total. */
+  isDefault: boolean;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * A single page of results
+ */
+export type SiloSubnetPoolResultsPage = {
+  /** list of items on this page of results */
+  items: SiloSubnetPool[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
  * A collection of resource counts used to describe capacity and utilization
  */
 export type VirtualResourceCounts = {
@@ -4153,9 +4335,11 @@ export type VirtualResourceCounts = {
  * View of a silo's resource utilization and capacity
  */
 export type SiloUtilization = {
-  /** Accounts for the total amount of resources reserved for silos via their quotas */
+  /** Accounts for the total amount of resources reserved for silos via their quotas. */
   allocated: VirtualResourceCounts;
-  /** Accounts for resources allocated by in silos like CPU or memory for running instances and storage for disks and snapshots Note that CPU and memory resources associated with a stopped instances are not counted here */
+  /** Accounts for the total resources allocated by the silo, including CPU and memory for running instances and storage for disks and snapshots.
+
+Note that CPU and memory resources associated with stopped instances are not counted here. */
   provisioned: VirtualResourceCounts;
   siloId: string;
   siloName: Name;
@@ -4378,6 +4562,151 @@ export type SshKeyResultsPage = {
   items: SshKey[];
   /** token used to fetch the next page of results (if any) */
   nextPage?: string | null;
+};
+
+/**
+ * A pool of subnets for external subnet allocation
+ */
+export type SubnetPool = {
+  /** human-readable free-form text about a resource */
+  description: string;
+  /** unique, immutable, system-controlled identifier for each resource */
+  id: string;
+  /** The IP version for this pool */
+  ipVersion: IpVersion;
+  /** unique, mutable, user-controlled identifier for each resource */
+  name: Name;
+  /** timestamp when this resource was created */
+  timeCreated: Date;
+  /** timestamp when this resource was last modified */
+  timeModified: Date;
+};
+
+/**
+ * Create a subnet pool
+ */
+export type SubnetPoolCreate = {
+  description: string;
+  /** The IP version for this pool (IPv4 or IPv6). All subnets in the pool must match this version. */
+  ipVersion: IpVersion;
+  name: Name;
+};
+
+/**
+ * Link a subnet pool to a silo
+ */
+export type SubnetPoolLinkSilo = {
+  /** Whether this is the default subnet pool for the silo. When true, external subnet allocations that don't specify a pool use this one. */
+  isDefault: boolean;
+  /** The silo to link */
+  silo: NameOrId;
+};
+
+/**
+ * A member (subnet) within a subnet pool
+ */
+export type SubnetPoolMember = {
+  /** ID of the pool member */
+  id: string;
+  /** Maximum prefix length for allocations from this subnet; a larger prefix means smaller allocations are allowed (e.g. a /24 prefix yields smaller subnet allocations than a /16 prefix). */
+  maxPrefixLength: number;
+  /** Minimum prefix length for allocations from this subnet; a smaller prefix means larger allocations are allowed (e.g. a /16 prefix yields larger subnet allocations than a /24 prefix). */
+  minPrefixLength: number;
+  /** The subnet CIDR */
+  subnet: IpNet;
+  /** ID of the parent subnet pool */
+  subnetPoolId: string;
+  /** Time the pool member was created. */
+  timeCreated: Date;
+};
+
+/**
+ * Add a member (subnet) to a subnet pool
+ */
+export type SubnetPoolMemberAdd = {
+  /** Maximum prefix length for allocations from this subnet; a larger prefix means smaller allocations are allowed (e.g. a /24 prefix yields smaller subnet allocations than a /16 prefix).
+
+Valid values: 0-32 for IPv4, 0-128 for IPv6. Default if not specified is 32 for IPv4 and 128 for IPv6. */
+  maxPrefixLength?: number | null;
+  /** Minimum prefix length for allocations from this subnet; a smaller prefix means larger allocations are allowed (e.g. a /16 prefix yields larger subnet allocations than a /24 prefix).
+
+Valid values: 0-32 for IPv4, 0-128 for IPv6. Default if not specified is equal to the subnet's prefix length. */
+  minPrefixLength?: number | null;
+  /** The subnet to add to the pool */
+  subnet: IpNet;
+};
+
+/**
+ * Remove a subnet from a pool
+ */
+export type SubnetPoolMemberRemove = {
+  /** The subnet to remove from the pool. Must match an existing entry exactly. */
+  subnet: IpNet;
+};
+
+/**
+ * A single page of results
+ */
+export type SubnetPoolMemberResultsPage = {
+  /** list of items on this page of results */
+  items: SubnetPoolMember[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
+ * A single page of results
+ */
+export type SubnetPoolResultsPage = {
+  /** list of items on this page of results */
+  items: SubnetPool[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
+ * A link between a subnet pool and a silo
+ */
+export type SubnetPoolSiloLink = {
+  isDefault: boolean;
+  siloId: string;
+  subnetPoolId: string;
+};
+
+/**
+ * A single page of results
+ */
+export type SubnetPoolSiloLinkResultsPage = {
+  /** list of items on this page of results */
+  items: SubnetPoolSiloLink[];
+  /** token used to fetch the next page of results (if any) */
+  nextPage?: string | null;
+};
+
+/**
+ * Update a subnet pool's silo link
+ */
+export type SubnetPoolSiloUpdate = {
+  /** Whether this is the default subnet pool for the silo */
+  isDefault: boolean;
+};
+
+/**
+ * Update a subnet pool
+ */
+export type SubnetPoolUpdate = {
+  description?: string | null;
+  name?: Name | null;
+};
+
+/**
+ * Utilization information for a subnet pool
+ */
+export type SubnetPoolUtilization = {
+  /** Number of addresses allocated from this pool */
+  allocated: number;
+  /** Total capacity of this pool in addresses */
+  capacity: number;
 };
 
 export type SupportBundleCreate = {
@@ -5008,9 +5337,9 @@ export type UserPassword =
  * Create-time parameters for a `User`
  */
 export type UserCreate = {
-  /** username used to log in */
+  /** Username used to log in */
   externalId: UserId;
-  /** how to set the user's login password */
+  /** How to set the user's login password */
   password: UserPassword;
 };
 
@@ -5036,9 +5365,11 @@ export type UsernamePasswordCredentials = {
  * View of the current silo's resource utilization and capacity
  */
 export type Utilization = {
-  /** The total amount of resources that can be provisioned in this silo Actions that would exceed this limit will fail */
+  /** The total amount of resources that can be provisioned in this silo. Actions that would exceed this limit will fail. */
   capacity: VirtualResourceCounts;
-  /** Accounts for resources allocated to running instances or storage allocated via disks or snapshots Note that CPU and memory resources associated with a stopped instances are not counted here whereas associated disks will still be counted */
+  /** Accounts for resources allocated to running instances or storage allocated via disks or snapshots.
+
+Note that CPU and memory resources associated with stopped instances are not counted here, whereas associated disks will still be counted. */
   provisioned: VirtualResourceCounts;
 };
 
@@ -5056,9 +5387,9 @@ export type Vpc = {
   ipv6Prefix: Ipv6Net;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
-  /** id for the project containing this VPC */
+  /** ID for the project containing this VPC */
   projectId: string;
-  /** id for the system router where subnet default routes are registered */
+  /** ID for the system router where subnet default routes are registered */
   systemRouterId: string;
   /** timestamp when this resource was created */
   timeCreated: Date;
@@ -5257,7 +5588,7 @@ export type VpcRouterUpdate = {
 };
 
 /**
- * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within a IPv4 subnetwork or optionally an IPv6 subnetwork.
+ * A VPC subnet represents a logical grouping for instances that allows network traffic between them, within an IPv4 subnetwork or optionally an IPv6 subnetwork.
  */
 export type VpcSubnet = {
   /** ID for an attached custom router. */
@@ -5357,6 +5688,7 @@ export type WebhookReceiver = {
   id: string;
   /** unique, mutable, user-controlled identifier for each resource */
   name: Name;
+  /** A list containing the IDs of the secret keys used to sign payloads sent to this receiver. */
   secrets: WebhookSecret[];
   /** The list of alert classes to which this receiver is subscribed. */
   subscriptions: AlertSubscription[];
@@ -5792,6 +6124,57 @@ export interface DiskFinalizeImportQueryParams {
   project?: NameOrId;
 }
 
+export interface ExternalSubnetListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  project?: NameOrId;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface ExternalSubnetCreateQueryParams {
+  project: NameOrId;
+}
+
+export interface ExternalSubnetViewPathParams {
+  externalSubnet: NameOrId;
+}
+
+export interface ExternalSubnetViewQueryParams {
+  project?: NameOrId;
+}
+
+export interface ExternalSubnetUpdatePathParams {
+  externalSubnet: NameOrId;
+}
+
+export interface ExternalSubnetUpdateQueryParams {
+  project?: NameOrId;
+}
+
+export interface ExternalSubnetDeletePathParams {
+  externalSubnet: NameOrId;
+}
+
+export interface ExternalSubnetDeleteQueryParams {
+  project?: NameOrId;
+}
+
+export interface ExternalSubnetAttachPathParams {
+  externalSubnet: NameOrId;
+}
+
+export interface ExternalSubnetAttachQueryParams {
+  project?: NameOrId;
+}
+
+export interface ExternalSubnetDetachPathParams {
+  externalSubnet: NameOrId;
+}
+
+export interface ExternalSubnetDetachQueryParams {
+  project?: NameOrId;
+}
+
 export interface FloatingIpListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
@@ -6001,6 +6384,15 @@ export interface InstanceEphemeralIpDetachPathParams {
 }
 
 export interface InstanceEphemeralIpDetachQueryParams {
+  ipVersion?: IpVersion;
+  project?: NameOrId;
+}
+
+export interface InstanceExternalSubnetListPathParams {
+  instance: NameOrId;
+}
+
+export interface InstanceExternalSubnetListQueryParams {
   project?: NameOrId;
 }
 
@@ -6172,13 +6564,13 @@ export interface InternetGatewayDeleteQueryParams {
   vpc?: NameOrId;
 }
 
-export interface ProjectIpPoolListQueryParams {
+export interface IpPoolListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
-export interface ProjectIpPoolViewPathParams {
+export interface IpPoolViewPathParams {
   pool: NameOrId;
 }
 
@@ -6342,6 +6734,16 @@ export interface SnapshotDeleteQueryParams {
   project?: NameOrId;
 }
 
+export interface SubnetPoolListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface SubnetPoolViewPathParams {
+  pool: NameOrId;
+}
+
 export interface AuditLogListQueryParams {
   endTime?: Date | null;
   limit?: number | null;
@@ -6379,6 +6781,22 @@ export interface RackListQueryParams {
 }
 
 export interface RackViewPathParams {
+  rackId: string;
+}
+
+export interface RackMembershipStatusPathParams {
+  rackId: string;
+}
+
+export interface RackMembershipStatusQueryParams {
+  version?: RackMembershipVersion;
+}
+
+export interface RackMembershipAbortPathParams {
+  rackId: string;
+}
+
+export interface RackMembershipAddSledsPathParams {
   rackId: string;
 }
 
@@ -6522,70 +6940,70 @@ export interface SamlIdentityProviderViewQueryParams {
   silo?: NameOrId;
 }
 
-export interface IpPoolListQueryParams {
+export interface SystemIpPoolListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
   sortBy?: NameOrIdSortMode;
 }
 
-export interface IpPoolViewPathParams {
+export interface SystemIpPoolViewPathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolUpdatePathParams {
+export interface SystemIpPoolUpdatePathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolDeletePathParams {
+export interface SystemIpPoolDeletePathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolRangeListPathParams {
+export interface SystemIpPoolRangeListPathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolRangeListQueryParams {
+export interface SystemIpPoolRangeListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
 }
 
-export interface IpPoolRangeAddPathParams {
+export interface SystemIpPoolRangeAddPathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolRangeRemovePathParams {
+export interface SystemIpPoolRangeRemovePathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolSiloListPathParams {
+export interface SystemIpPoolSiloListPathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolSiloListQueryParams {
+export interface SystemIpPoolSiloListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
   sortBy?: IdSortMode;
 }
 
-export interface IpPoolSiloLinkPathParams {
+export interface SystemIpPoolSiloLinkPathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolSiloUpdatePathParams {
-  pool: NameOrId;
-  silo: NameOrId;
-}
-
-export interface IpPoolSiloUnlinkPathParams {
+export interface SystemIpPoolSiloUpdatePathParams {
   pool: NameOrId;
   silo: NameOrId;
 }
 
-export interface IpPoolUtilizationViewPathParams {
+export interface SystemIpPoolSiloUnlinkPathParams {
+  pool: NameOrId;
+  silo: NameOrId;
+}
+
+export interface SystemIpPoolUtilizationViewPathParams {
   pool: NameOrId;
 }
 
-export interface IpPoolServiceRangeListQueryParams {
+export interface SystemIpPoolServiceRangeListQueryParams {
   limit?: number | null;
   pageToken?: string | null;
 }
@@ -6651,11 +7069,11 @@ export interface NetworkingBgpAnnouncementListPathParams {
   announceSet: NameOrId;
 }
 
-export interface NetworkingBgpMessageHistoryQueryParams {
+export interface NetworkingBgpImportedQueryParams {
   asn: number;
 }
 
-export interface NetworkingBgpImportedRoutesIpv4QueryParams {
+export interface NetworkingBgpMessageHistoryQueryParams {
   asn: number;
 }
 
@@ -6755,6 +7173,79 @@ export interface SiloQuotasViewPathParams {
 
 export interface SiloQuotasUpdatePathParams {
   silo: NameOrId;
+}
+
+export interface SiloSubnetPoolListPathParams {
+  silo: NameOrId;
+}
+
+export interface SiloSubnetPoolListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface SystemSubnetPoolListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: NameOrIdSortMode;
+}
+
+export interface SystemSubnetPoolViewPathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolUpdatePathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolDeletePathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolMemberListPathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolMemberListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+}
+
+export interface SystemSubnetPoolMemberAddPathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolMemberRemovePathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolSiloListPathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolSiloListQueryParams {
+  limit?: number | null;
+  pageToken?: string | null;
+  sortBy?: IdSortMode;
+}
+
+export interface SystemSubnetPoolSiloLinkPathParams {
+  pool: NameOrId;
+}
+
+export interface SystemSubnetPoolSiloUpdatePathParams {
+  pool: NameOrId;
+  silo: NameOrId;
+}
+
+export interface SystemSubnetPoolSiloUnlinkPathParams {
+  pool: NameOrId;
+  silo: NameOrId;
+}
+
+export interface SystemSubnetPoolUtilizationViewPathParams {
+  pool: NameOrId;
 }
 
 export interface SystemTimeseriesSchemaListQueryParams {
@@ -7081,7 +7572,7 @@ export class Api {
    * Pulled from info.version in the OpenAPI schema. Sent in the
    * `api-version` header on all requests.
    */
-  apiVersion = "2026011600.0.0";
+  apiVersion = "2026021301.0.0";
 
   constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
     this.host = host;
@@ -8087,6 +8578,144 @@ export class Api {
       });
     },
     /**
+     * List external subnets in a project
+     */
+    externalSubnetList: (
+      { query = {} }: { query?: ExternalSubnetListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ExternalSubnetResultsPage>({
+        path: `/v1/external-subnets`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create an external subnet
+     */
+    externalSubnetCreate: (
+      {
+        query,
+        body,
+      }: { query: ExternalSubnetCreateQueryParams; body: ExternalSubnetCreate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ExternalSubnet>({
+        path: `/v1/external-subnets`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch an external subnet
+     */
+    externalSubnetView: (
+      {
+        path,
+        query = {},
+      }: {
+        path: ExternalSubnetViewPathParams;
+        query?: ExternalSubnetViewQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ExternalSubnet>({
+        path: `/v1/external-subnets/${path.externalSubnet}`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Update an external subnet
+     */
+    externalSubnetUpdate: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: ExternalSubnetUpdatePathParams;
+        query?: ExternalSubnetUpdateQueryParams;
+        body: ExternalSubnetUpdate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ExternalSubnet>({
+        path: `/v1/external-subnets/${path.externalSubnet}`,
+        method: "PUT",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Delete an external subnet
+     */
+    externalSubnetDelete: (
+      {
+        path,
+        query = {},
+      }: {
+        path: ExternalSubnetDeletePathParams;
+        query?: ExternalSubnetDeleteQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/external-subnets/${path.externalSubnet}`,
+        method: "DELETE",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Attach an external subnet to an instance
+     */
+    externalSubnetAttach: (
+      {
+        path,
+        query = {},
+        body,
+      }: {
+        path: ExternalSubnetAttachPathParams;
+        query?: ExternalSubnetAttachQueryParams;
+        body: ExternalSubnetAttach;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ExternalSubnet>({
+        path: `/v1/external-subnets/${path.externalSubnet}/attach`,
+        method: "POST",
+        body,
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Detach an external subnet from an instance
+     */
+    externalSubnetDetach: (
+      {
+        path,
+        query = {},
+      }: {
+        path: ExternalSubnetDetachPathParams;
+        query?: ExternalSubnetDetachQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ExternalSubnet>({
+        path: `/v1/external-subnets/${path.externalSubnet}/detach`,
+        method: "POST",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List floating IPs
      */
     floatingIpList: (
@@ -8101,7 +8730,7 @@ export class Api {
       });
     },
     /**
-     * Create floating IP
+     * Create a floating IP
      */
     floatingIpCreate: (
       {
@@ -8607,6 +9236,26 @@ export class Api {
       });
     },
     /**
+     * List external subnets attached to instance
+     */
+    instanceExternalSubnetList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: InstanceExternalSubnetListPathParams;
+        query?: InstanceExternalSubnetListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<ExternalSubnetResultsPage>({
+        path: `/v1/instances/${path.instance}/external-subnets`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
      * List multicast groups for an instance
      */
     instanceMulticastGroupList: (
@@ -8948,8 +9597,8 @@ export class Api {
     /**
      * List IP pools
      */
-    projectIpPoolList: (
-      { query = {} }: { query?: ProjectIpPoolListQueryParams },
+    ipPoolList: (
+      { query = {} }: { query?: IpPoolListQueryParams },
       params: FetchParams = {},
     ) => {
       return this.request<SiloIpPoolResultsPage>({
@@ -8962,8 +9611,8 @@ export class Api {
     /**
      * Fetch IP pool
      */
-    projectIpPoolView: (
-      { path }: { path: ProjectIpPoolViewPathParams },
+    ipPoolView: (
+      { path }: { path: IpPoolViewPathParams },
       params: FetchParams = {},
     ) => {
       return this.request<SiloIpPool>({
@@ -9465,6 +10114,33 @@ export class Api {
       });
     },
     /**
+     * List subnet pools
+     */
+    subnetPoolList: (
+      { query = {} }: { query?: SubnetPoolListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SiloSubnetPoolResultsPage>({
+        path: `/v1/subnet-pools`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Fetch subnet pool
+     */
+    subnetPoolView: (
+      { path }: { path: SubnetPoolViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SiloSubnetPool>({
+        path: `/v1/subnet-pools/${path.pool}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
      * View audit log
      */
     auditLogList: (
@@ -9549,6 +10225,59 @@ export class Api {
       return this.request<Rack>({
         path: `/v1/system/hardware/racks/${path.rackId}`,
         method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Retrieve the rack cluster membership status
+     */
+    rackMembershipStatus: (
+      {
+        path,
+        query = {},
+      }: {
+        path: RackMembershipStatusPathParams;
+        query?: RackMembershipStatusQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<RackMembershipStatus>({
+        path: `/v1/system/hardware/racks/${path.rackId}/membership`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Abort the latest rack membership change
+     */
+    rackMembershipAbort: (
+      { path }: { path: RackMembershipAbortPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<RackMembershipStatus>({
+        path: `/v1/system/hardware/racks/${path.rackId}/membership/abort`,
+        method: "POST",
+        ...params,
+      });
+    },
+    /**
+     * Add new sleds to rack membership
+     */
+    rackMembershipAddSleds: (
+      {
+        path,
+        body,
+      }: {
+        path: RackMembershipAddSledsPathParams;
+        body: RackMembershipAddSledsRequest;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<RackMembershipStatus>({
+        path: `/v1/system/hardware/racks/${path.rackId}/membership/add`,
+        method: "POST",
+        body,
         ...params,
       });
     },
@@ -9933,8 +10662,8 @@ export class Api {
     /**
      * List IP pools
      */
-    ipPoolList: (
-      { query = {} }: { query?: IpPoolListQueryParams },
+    systemIpPoolList: (
+      { query = {} }: { query?: SystemIpPoolListQueryParams },
       params: FetchParams = {},
     ) => {
       return this.request<IpPoolResultsPage>({
@@ -9947,7 +10676,7 @@ export class Api {
     /**
      * Create IP pool
      */
-    ipPoolCreate: (
+    systemIpPoolCreate: (
       { body }: { body: IpPoolCreate },
       params: FetchParams = {},
     ) => {
@@ -9961,8 +10690,8 @@ export class Api {
     /**
      * Fetch IP pool
      */
-    ipPoolView: (
-      { path }: { path: IpPoolViewPathParams },
+    systemIpPoolView: (
+      { path }: { path: SystemIpPoolViewPathParams },
       params: FetchParams = {},
     ) => {
       return this.request<IpPool>({
@@ -9974,8 +10703,11 @@ export class Api {
     /**
      * Update IP pool
      */
-    ipPoolUpdate: (
-      { path, body }: { path: IpPoolUpdatePathParams; body: IpPoolUpdate },
+    systemIpPoolUpdate: (
+      {
+        path,
+        body,
+      }: { path: SystemIpPoolUpdatePathParams; body: IpPoolUpdate },
       params: FetchParams = {},
     ) => {
       return this.request<IpPool>({
@@ -9988,8 +10720,8 @@ export class Api {
     /**
      * Delete IP pool
      */
-    ipPoolDelete: (
-      { path }: { path: IpPoolDeletePathParams },
+    systemIpPoolDelete: (
+      { path }: { path: SystemIpPoolDeletePathParams },
       params: FetchParams = {},
     ) => {
       return this.request<void>({
@@ -10001,13 +10733,13 @@ export class Api {
     /**
      * List ranges for IP pool
      */
-    ipPoolRangeList: (
+    systemIpPoolRangeList: (
       {
         path,
         query = {},
       }: {
-        path: IpPoolRangeListPathParams;
-        query?: IpPoolRangeListQueryParams;
+        path: SystemIpPoolRangeListPathParams;
+        query?: SystemIpPoolRangeListQueryParams;
       },
       params: FetchParams = {},
     ) => {
@@ -10019,10 +10751,10 @@ export class Api {
       });
     },
     /**
-     * Add range to an IP pool
+     * Add range to IP pool
      */
-    ipPoolRangeAdd: (
-      { path, body }: { path: IpPoolRangeAddPathParams; body: IpRange },
+    systemIpPoolRangeAdd: (
+      { path, body }: { path: SystemIpPoolRangeAddPathParams; body: IpRange },
       params: FetchParams = {},
     ) => {
       return this.request<IpPoolRange>({
@@ -10035,8 +10767,11 @@ export class Api {
     /**
      * Remove range from IP pool
      */
-    ipPoolRangeRemove: (
-      { path, body }: { path: IpPoolRangeRemovePathParams; body: IpRange },
+    systemIpPoolRangeRemove: (
+      {
+        path,
+        body,
+      }: { path: SystemIpPoolRangeRemovePathParams; body: IpRange },
       params: FetchParams = {},
     ) => {
       return this.request<void>({
@@ -10049,11 +10784,14 @@ export class Api {
     /**
      * List IP pool's linked silos
      */
-    ipPoolSiloList: (
+    systemIpPoolSiloList: (
       {
         path,
         query = {},
-      }: { path: IpPoolSiloListPathParams; query?: IpPoolSiloListQueryParams },
+      }: {
+        path: SystemIpPoolSiloListPathParams;
+        query?: SystemIpPoolSiloListQueryParams;
+      },
       params: FetchParams = {},
     ) => {
       return this.request<IpPoolSiloLinkResultsPage>({
@@ -10066,8 +10804,11 @@ export class Api {
     /**
      * Link IP pool to silo
      */
-    ipPoolSiloLink: (
-      { path, body }: { path: IpPoolSiloLinkPathParams; body: IpPoolLinkSilo },
+    systemIpPoolSiloLink: (
+      {
+        path,
+        body,
+      }: { path: SystemIpPoolSiloLinkPathParams; body: IpPoolLinkSilo },
       params: FetchParams = {},
     ) => {
       return this.request<IpPoolSiloLink>({
@@ -10080,11 +10821,11 @@ export class Api {
     /**
      * Make IP pool default for silo
      */
-    ipPoolSiloUpdate: (
+    systemIpPoolSiloUpdate: (
       {
         path,
         body,
-      }: { path: IpPoolSiloUpdatePathParams; body: IpPoolSiloUpdate },
+      }: { path: SystemIpPoolSiloUpdatePathParams; body: IpPoolSiloUpdate },
       params: FetchParams = {},
     ) => {
       return this.request<IpPoolSiloLink>({
@@ -10097,8 +10838,8 @@ export class Api {
     /**
      * Unlink IP pool from silo
      */
-    ipPoolSiloUnlink: (
-      { path }: { path: IpPoolSiloUnlinkPathParams },
+    systemIpPoolSiloUnlink: (
+      { path }: { path: SystemIpPoolSiloUnlinkPathParams },
       params: FetchParams = {},
     ) => {
       return this.request<void>({
@@ -10110,8 +10851,8 @@ export class Api {
     /**
      * Fetch IP pool utilization
      */
-    ipPoolUtilizationView: (
-      { path }: { path: IpPoolUtilizationViewPathParams },
+    systemIpPoolUtilizationView: (
+      { path }: { path: SystemIpPoolUtilizationViewPathParams },
       params: FetchParams = {},
     ) => {
       return this.request<IpPoolUtilization>({
@@ -10123,7 +10864,7 @@ export class Api {
     /**
      * Fetch Oxide service IP pool
      */
-    ipPoolServiceView: (_: EmptyObj, params: FetchParams = {}) => {
+    systemIpPoolServiceView: (_: EmptyObj, params: FetchParams = {}) => {
       return this.request<IpPool>({
         path: `/v1/system/ip-pools-service`,
         method: "GET",
@@ -10133,8 +10874,8 @@ export class Api {
     /**
      * List IP ranges for the Oxide service pool
      */
-    ipPoolServiceRangeList: (
-      { query = {} }: { query?: IpPoolServiceRangeListQueryParams },
+    systemIpPoolServiceRangeList: (
+      { query = {} }: { query?: SystemIpPoolServiceRangeListQueryParams },
       params: FetchParams = {},
     ) => {
       return this.request<IpPoolRangeResultsPage>({
@@ -10147,7 +10888,7 @@ export class Api {
     /**
      * Add IP range to Oxide service pool
      */
-    ipPoolServiceRangeAdd: (
+    systemIpPoolServiceRangeAdd: (
       { body }: { body: IpRange },
       params: FetchParams = {},
     ) => {
@@ -10161,7 +10902,7 @@ export class Api {
     /**
      * Remove IP range from Oxide service pool
      */
-    ipPoolServiceRangeRemove: (
+    systemIpPoolServiceRangeRemove: (
       { body }: { body: IpRange },
       params: FetchParams = {},
     ) => {
@@ -10422,12 +11163,26 @@ export class Api {
       });
     },
     /**
-     * Get BGP exported routes
+     * List BGP exported routes
      */
     networkingBgpExported: (_: EmptyObj, params: FetchParams = {}) => {
-      return this.request<BgpExported>({
+      return this.request<BgpExported[]>({
         path: `/v1/system/networking/bgp-exported`,
         method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Get imported IPv4 BGP routes
+     */
+    networkingBgpImported: (
+      { query }: { query: NetworkingBgpImportedQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<BgpImported[]>({
+        path: `/v1/system/networking/bgp-imported`,
+        method: "GET",
+        query,
         ...params,
       });
     },
@@ -10440,20 +11195,6 @@ export class Api {
     ) => {
       return this.request<AggregateBgpMessageHistory>({
         path: `/v1/system/networking/bgp-message-history`,
-        method: "GET",
-        query,
-        ...params,
-      });
-    },
-    /**
-     * Get imported IPv4 BGP routes
-     */
-    networkingBgpImportedRoutesIpv4: (
-      { query }: { query: NetworkingBgpImportedRoutesIpv4QueryParams },
-      params: FetchParams = {},
-    ) => {
-      return this.request<BgpImportedRouteIpv4[]>({
-        path: `/v1/system/networking/bgp-routes-ipv4`,
         method: "GET",
         query,
         ...params,
@@ -10814,6 +11555,240 @@ export class Api {
         path: `/v1/system/silos/${path.silo}/quotas`,
         method: "PUT",
         body,
+        ...params,
+      });
+    },
+    /**
+     * List subnet pools linked to a silo
+     */
+    siloSubnetPoolList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: SiloSubnetPoolListPathParams;
+        query?: SiloSubnetPoolListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SiloSubnetPoolResultsPage>({
+        path: `/v1/system/silos/${path.silo}/subnet-pools`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * List subnet pools
+     */
+    systemSubnetPoolList: (
+      { query = {} }: { query?: SystemSubnetPoolListQueryParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPoolResultsPage>({
+        path: `/v1/system/subnet-pools`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Create subnet pool
+     */
+    systemSubnetPoolCreate: (
+      { body }: { body: SubnetPoolCreate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPool>({
+        path: `/v1/system/subnet-pools`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Fetch subnet pool
+     */
+    systemSubnetPoolView: (
+      { path }: { path: SystemSubnetPoolViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPool>({
+        path: `/v1/system/subnet-pools/${path.pool}`,
+        method: "GET",
+        ...params,
+      });
+    },
+    /**
+     * Update subnet pool
+     */
+    systemSubnetPoolUpdate: (
+      {
+        path,
+        body,
+      }: { path: SystemSubnetPoolUpdatePathParams; body: SubnetPoolUpdate },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPool>({
+        path: `/v1/system/subnet-pools/${path.pool}`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Delete subnet pool
+     */
+    systemSubnetPoolDelete: (
+      { path }: { path: SystemSubnetPoolDeletePathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/subnet-pools/${path.pool}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * List members in subnet pool
+     */
+    systemSubnetPoolMemberList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: SystemSubnetPoolMemberListPathParams;
+        query?: SystemSubnetPoolMemberListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPoolMemberResultsPage>({
+        path: `/v1/system/subnet-pools/${path.pool}/members`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Add member to subnet pool
+     */
+    systemSubnetPoolMemberAdd: (
+      {
+        path,
+        body,
+      }: {
+        path: SystemSubnetPoolMemberAddPathParams;
+        body: SubnetPoolMemberAdd;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPoolMember>({
+        path: `/v1/system/subnet-pools/${path.pool}/members/add`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Remove member from subnet pool
+     */
+    systemSubnetPoolMemberRemove: (
+      {
+        path,
+        body,
+      }: {
+        path: SystemSubnetPoolMemberRemovePathParams;
+        body: SubnetPoolMemberRemove;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/subnet-pools/${path.pool}/members/remove`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * List silos linked to subnet pool
+     */
+    systemSubnetPoolSiloList: (
+      {
+        path,
+        query = {},
+      }: {
+        path: SystemSubnetPoolSiloListPathParams;
+        query?: SystemSubnetPoolSiloListQueryParams;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPoolSiloLinkResultsPage>({
+        path: `/v1/system/subnet-pools/${path.pool}/silos`,
+        method: "GET",
+        query,
+        ...params,
+      });
+    },
+    /**
+     * Link subnet pool to silo
+     */
+    systemSubnetPoolSiloLink: (
+      {
+        path,
+        body,
+      }: { path: SystemSubnetPoolSiloLinkPathParams; body: SubnetPoolLinkSilo },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPoolSiloLink>({
+        path: `/v1/system/subnet-pools/${path.pool}/silos`,
+        method: "POST",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Update subnet pool's link to silo
+     */
+    systemSubnetPoolSiloUpdate: (
+      {
+        path,
+        body,
+      }: {
+        path: SystemSubnetPoolSiloUpdatePathParams;
+        body: SubnetPoolSiloUpdate;
+      },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPoolSiloLink>({
+        path: `/v1/system/subnet-pools/${path.pool}/silos/${path.silo}`,
+        method: "PUT",
+        body,
+        ...params,
+      });
+    },
+    /**
+     * Unlink subnet pool from silo
+     */
+    systemSubnetPoolSiloUnlink: (
+      { path }: { path: SystemSubnetPoolSiloUnlinkPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<void>({
+        path: `/v1/system/subnet-pools/${path.pool}/silos/${path.silo}`,
+        method: "DELETE",
+        ...params,
+      });
+    },
+    /**
+     * Fetch subnet pool utilization
+     */
+    systemSubnetPoolUtilizationView: (
+      { path }: { path: SystemSubnetPoolUtilizationViewPathParams },
+      params: FetchParams = {},
+    ) => {
+      return this.request<SubnetPoolUtilization>({
+        path: `/v1/system/subnet-pools/${path.pool}/utilization`,
+        method: "GET",
         ...params,
       });
     },
