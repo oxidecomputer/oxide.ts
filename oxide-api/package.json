@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "description": "TypeScript client for the Oxide API",
   "engines": {
-    "node": ">=24"
+    "node": ">=18"
   },
   "type": "module",
   "main": "./dist/Api.js",
