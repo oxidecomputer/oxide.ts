@@ -156,6 +156,20 @@ export interface MSWHandlers {
   diskBulkWriteImportStop: (params: { path: Api.DiskBulkWriteImportStopPathParams, query: Api.DiskBulkWriteImportStopQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `POST /v1/disks/:disk/finalize` */
   diskFinalizeImport: (params: { path: Api.DiskFinalizeImportPathParams, query: Api.DiskFinalizeImportQueryParams, body: Json<Api.FinalizeDisk>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/external-subnets` */
+  externalSubnetList: (params: {  query: Api.ExternalSubnetListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalSubnetResultsPage>>,
+/** `POST /v1/external-subnets` */
+  externalSubnetCreate: (params: {  query: Api.ExternalSubnetCreateQueryParams, body: Json<Api.ExternalSubnetCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalSubnet>>,
+/** `GET /v1/external-subnets/:externalSubnet` */
+  externalSubnetView: (params: { path: Api.ExternalSubnetViewPathParams, query: Api.ExternalSubnetViewQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalSubnet>>,
+/** `PUT /v1/external-subnets/:externalSubnet` */
+  externalSubnetUpdate: (params: { path: Api.ExternalSubnetUpdatePathParams, query: Api.ExternalSubnetUpdateQueryParams, body: Json<Api.ExternalSubnetUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalSubnet>>,
+/** `DELETE /v1/external-subnets/:externalSubnet` */
+  externalSubnetDelete: (params: { path: Api.ExternalSubnetDeletePathParams, query: Api.ExternalSubnetDeleteQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `POST /v1/external-subnets/:externalSubnet/attach` */
+  externalSubnetAttach: (params: { path: Api.ExternalSubnetAttachPathParams, query: Api.ExternalSubnetAttachQueryParams, body: Json<Api.ExternalSubnetAttach>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalSubnet>>,
+/** `POST /v1/external-subnets/:externalSubnet/detach` */
+  externalSubnetDetach: (params: { path: Api.ExternalSubnetDetachPathParams, query: Api.ExternalSubnetDetachQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalSubnet>>,
 /** `GET /v1/floating-ips` */
   floatingIpList: (params: {  query: Api.FloatingIpListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.FloatingIpResultsPage>>,
 /** `POST /v1/floating-ips` */
@@ -212,6 +226,8 @@ export interface MSWHandlers {
   instanceEphemeralIpAttach: (params: { path: Api.InstanceEphemeralIpAttachPathParams, query: Api.InstanceEphemeralIpAttachQueryParams, body: Json<Api.EphemeralIpCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalIp>>,
 /** `DELETE /v1/instances/:instance/external-ips/ephemeral` */
   instanceEphemeralIpDetach: (params: { path: Api.InstanceEphemeralIpDetachPathParams, query: Api.InstanceEphemeralIpDetachQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/instances/:instance/external-subnets` */
+  instanceExternalSubnetList: (params: { path: Api.InstanceExternalSubnetListPathParams, query: Api.InstanceExternalSubnetListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ExternalSubnetResultsPage>>,
 /** `GET /v1/instances/:instance/multicast-groups` */
   instanceMulticastGroupList: (params: { path: Api.InstanceMulticastGroupListPathParams, query: Api.InstanceMulticastGroupListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MulticastGroupMemberResultsPage>>,
 /** `PUT /v1/instances/:instance/multicast-groups/:multicastGroup` */
@@ -251,9 +267,9 @@ export interface MSWHandlers {
 /** `DELETE /v1/internet-gateways/:gateway` */
   internetGatewayDelete: (params: { path: Api.InternetGatewayDeletePathParams, query: Api.InternetGatewayDeleteQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/ip-pools` */
-  projectIpPoolList: (params: {  query: Api.ProjectIpPoolListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloIpPoolResultsPage>>,
+  ipPoolList: (params: {  query: Api.IpPoolListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloIpPoolResultsPage>>,
 /** `GET /v1/ip-pools/:pool` */
-  projectIpPoolView: (params: { path: Api.ProjectIpPoolViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloIpPool>>,
+  ipPoolView: (params: { path: Api.IpPoolViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloIpPool>>,
 /** `POST /v1/login/:siloName/local` */
   loginLocal: (params: { path: Api.LoginLocalPathParams,  body: Json<Api.UsernamePasswordCredentials>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `POST /v1/logout` */
@@ -320,6 +336,10 @@ export interface MSWHandlers {
   snapshotView: (params: { path: Api.SnapshotViewPathParams, query: Api.SnapshotViewQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.Snapshot>>,
 /** `DELETE /v1/snapshots/:snapshot` */
   snapshotDelete: (params: { path: Api.SnapshotDeletePathParams, query: Api.SnapshotDeleteQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/subnet-pools` */
+  subnetPoolList: (params: {  query: Api.SubnetPoolListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloSubnetPoolResultsPage>>,
+/** `GET /v1/subnet-pools/:pool` */
+  subnetPoolView: (params: { path: Api.SubnetPoolViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloSubnetPool>>,
 /** `GET /v1/system/audit-log` */
   auditLogList: (params: {  query: Api.AuditLogListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.AuditLogEntryResultsPage>>,
 /** `GET /v1/system/hardware/disks` */
@@ -332,6 +352,12 @@ export interface MSWHandlers {
   rackList: (params: {  query: Api.RackListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.RackResultsPage>>,
 /** `GET /v1/system/hardware/racks/:rackId` */
   rackView: (params: { path: Api.RackViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.Rack>>,
+/** `GET /v1/system/hardware/racks/:rackId/membership` */
+  rackMembershipStatus: (params: { path: Api.RackMembershipStatusPathParams, query: Api.RackMembershipStatusQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.RackMembershipStatus>>,
+/** `POST /v1/system/hardware/racks/:rackId/membership/abort` */
+  rackMembershipAbort: (params: { path: Api.RackMembershipAbortPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.RackMembershipStatus>>,
+/** `POST /v1/system/hardware/racks/:rackId/membership/add` */
+  rackMembershipAddSleds: (params: { path: Api.RackMembershipAddSledsPathParams,  body: Json<Api.RackMembershipAddSledsRequest>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.RackMembershipStatus>>,
 /** `GET /v1/system/hardware/sleds` */
   sledList: (params: {  query: Api.SledListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SledResultsPage>>,
 /** `POST /v1/system/hardware/sleds` */
@@ -375,39 +401,39 @@ export interface MSWHandlers {
 /** `GET /v1/system/identity-providers/saml/:provider` */
   samlIdentityProviderView: (params: { path: Api.SamlIdentityProviderViewPathParams, query: Api.SamlIdentityProviderViewQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SamlIdentityProvider>>,
 /** `GET /v1/system/ip-pools` */
-  ipPoolList: (params: {  query: Api.IpPoolListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolResultsPage>>,
+  systemIpPoolList: (params: {  query: Api.SystemIpPoolListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolResultsPage>>,
 /** `POST /v1/system/ip-pools` */
-  ipPoolCreate: (params: {   body: Json<Api.IpPoolCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
+  systemIpPoolCreate: (params: {   body: Json<Api.IpPoolCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
 /** `GET /v1/system/ip-pools/:pool` */
-  ipPoolView: (params: { path: Api.IpPoolViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
+  systemIpPoolView: (params: { path: Api.SystemIpPoolViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
 /** `PUT /v1/system/ip-pools/:pool` */
-  ipPoolUpdate: (params: { path: Api.IpPoolUpdatePathParams,  body: Json<Api.IpPoolUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
+  systemIpPoolUpdate: (params: { path: Api.SystemIpPoolUpdatePathParams,  body: Json<Api.IpPoolUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
 /** `DELETE /v1/system/ip-pools/:pool` */
-  ipPoolDelete: (params: { path: Api.IpPoolDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  systemIpPoolDelete: (params: { path: Api.SystemIpPoolDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/ip-pools/:pool/ranges` */
-  ipPoolRangeList: (params: { path: Api.IpPoolRangeListPathParams, query: Api.IpPoolRangeListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>,
+  systemIpPoolRangeList: (params: { path: Api.SystemIpPoolRangeListPathParams, query: Api.SystemIpPoolRangeListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>,
 /** `POST /v1/system/ip-pools/:pool/ranges/add` */
-  ipPoolRangeAdd: (params: { path: Api.IpPoolRangeAddPathParams,  body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRange>>,
+  systemIpPoolRangeAdd: (params: { path: Api.SystemIpPoolRangeAddPathParams,  body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRange>>,
 /** `POST /v1/system/ip-pools/:pool/ranges/remove` */
-  ipPoolRangeRemove: (params: { path: Api.IpPoolRangeRemovePathParams,  body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  systemIpPoolRangeRemove: (params: { path: Api.SystemIpPoolRangeRemovePathParams,  body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/ip-pools/:pool/silos` */
-  ipPoolSiloList: (params: { path: Api.IpPoolSiloListPathParams, query: Api.IpPoolSiloListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolSiloLinkResultsPage>>,
+  systemIpPoolSiloList: (params: { path: Api.SystemIpPoolSiloListPathParams, query: Api.SystemIpPoolSiloListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolSiloLinkResultsPage>>,
 /** `POST /v1/system/ip-pools/:pool/silos` */
-  ipPoolSiloLink: (params: { path: Api.IpPoolSiloLinkPathParams,  body: Json<Api.IpPoolLinkSilo>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolSiloLink>>,
+  systemIpPoolSiloLink: (params: { path: Api.SystemIpPoolSiloLinkPathParams,  body: Json<Api.IpPoolLinkSilo>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolSiloLink>>,
 /** `PUT /v1/system/ip-pools/:pool/silos/:silo` */
-  ipPoolSiloUpdate: (params: { path: Api.IpPoolSiloUpdatePathParams,  body: Json<Api.IpPoolSiloUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolSiloLink>>,
+  systemIpPoolSiloUpdate: (params: { path: Api.SystemIpPoolSiloUpdatePathParams,  body: Json<Api.IpPoolSiloUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolSiloLink>>,
 /** `DELETE /v1/system/ip-pools/:pool/silos/:silo` */
-  ipPoolSiloUnlink: (params: { path: Api.IpPoolSiloUnlinkPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  systemIpPoolSiloUnlink: (params: { path: Api.SystemIpPoolSiloUnlinkPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/ip-pools/:pool/utilization` */
-  ipPoolUtilizationView: (params: { path: Api.IpPoolUtilizationViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolUtilization>>,
+  systemIpPoolUtilizationView: (params: { path: Api.SystemIpPoolUtilizationViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolUtilization>>,
 /** `GET /v1/system/ip-pools-service` */
-  ipPoolServiceView: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
+  systemIpPoolServiceView: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
 /** `GET /v1/system/ip-pools-service/ranges` */
-  ipPoolServiceRangeList: (params: {  query: Api.IpPoolServiceRangeListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>,
+  systemIpPoolServiceRangeList: (params: {  query: Api.SystemIpPoolServiceRangeListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>,
 /** `POST /v1/system/ip-pools-service/ranges/add` */
-  ipPoolServiceRangeAdd: (params: {   body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRange>>,
+  systemIpPoolServiceRangeAdd: (params: {   body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRange>>,
 /** `POST /v1/system/ip-pools-service/ranges/remove` */
-  ipPoolServiceRangeRemove: (params: {   body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  systemIpPoolServiceRangeRemove: (params: {   body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/metrics/:metricName` */
   systemMetric: (params: { path: Api.SystemMetricPathParams, query: Api.SystemMetricQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>,
 /** `GET /v1/system/networking/address-lot` */
@@ -445,11 +471,11 @@ export interface MSWHandlers {
 /** `GET /v1/system/networking/bgp-announce-set/:announceSet/announcement` */
   networkingBgpAnnouncementList: (params: { path: Api.NetworkingBgpAnnouncementListPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpAnnouncement[]>>,
 /** `GET /v1/system/networking/bgp-exported` */
-  networkingBgpExported: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpExported>>,
+  networkingBgpExported: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpExported[]>>,
+/** `GET /v1/system/networking/bgp-imported` */
+  networkingBgpImported: (params: {  query: Api.NetworkingBgpImportedQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpImported[]>>,
 /** `GET /v1/system/networking/bgp-message-history` */
   networkingBgpMessageHistory: (params: {  query: Api.NetworkingBgpMessageHistoryQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.AggregateBgpMessageHistory>>,
-/** `GET /v1/system/networking/bgp-routes-ipv4` */
-  networkingBgpImportedRoutesIpv4: (params: {  query: Api.NetworkingBgpImportedRoutesIpv4QueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpImportedRouteIpv4[]>>,
 /** `GET /v1/system/networking/bgp-status` */
   networkingBgpStatus: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpPeerStatus[]>>,
 /** `GET /v1/system/networking/inbound-icmp` */
@@ -502,6 +528,34 @@ export interface MSWHandlers {
   siloQuotasView: (params: { path: Api.SiloQuotasViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloQuotas>>,
 /** `PUT /v1/system/silos/:silo/quotas` */
   siloQuotasUpdate: (params: { path: Api.SiloQuotasUpdatePathParams,  body: Json<Api.SiloQuotasUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloQuotas>>,
+/** `GET /v1/system/silos/:silo/subnet-pools` */
+  siloSubnetPoolList: (params: { path: Api.SiloSubnetPoolListPathParams, query: Api.SiloSubnetPoolListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SiloSubnetPoolResultsPage>>,
+/** `GET /v1/system/subnet-pools` */
+  systemSubnetPoolList: (params: {  query: Api.SystemSubnetPoolListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolResultsPage>>,
+/** `POST /v1/system/subnet-pools` */
+  systemSubnetPoolCreate: (params: {   body: Json<Api.SubnetPoolCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPool>>,
+/** `GET /v1/system/subnet-pools/:pool` */
+  systemSubnetPoolView: (params: { path: Api.SystemSubnetPoolViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPool>>,
+/** `PUT /v1/system/subnet-pools/:pool` */
+  systemSubnetPoolUpdate: (params: { path: Api.SystemSubnetPoolUpdatePathParams,  body: Json<Api.SubnetPoolUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPool>>,
+/** `DELETE /v1/system/subnet-pools/:pool` */
+  systemSubnetPoolDelete: (params: { path: Api.SystemSubnetPoolDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/system/subnet-pools/:pool/members` */
+  systemSubnetPoolMemberList: (params: { path: Api.SystemSubnetPoolMemberListPathParams, query: Api.SystemSubnetPoolMemberListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolMemberResultsPage>>,
+/** `POST /v1/system/subnet-pools/:pool/members/add` */
+  systemSubnetPoolMemberAdd: (params: { path: Api.SystemSubnetPoolMemberAddPathParams,  body: Json<Api.SubnetPoolMemberAdd>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolMember>>,
+/** `POST /v1/system/subnet-pools/:pool/members/remove` */
+  systemSubnetPoolMemberRemove: (params: { path: Api.SystemSubnetPoolMemberRemovePathParams,  body: Json<Api.SubnetPoolMemberRemove>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/system/subnet-pools/:pool/silos` */
+  systemSubnetPoolSiloList: (params: { path: Api.SystemSubnetPoolSiloListPathParams, query: Api.SystemSubnetPoolSiloListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolSiloLinkResultsPage>>,
+/** `POST /v1/system/subnet-pools/:pool/silos` */
+  systemSubnetPoolSiloLink: (params: { path: Api.SystemSubnetPoolSiloLinkPathParams,  body: Json<Api.SubnetPoolLinkSilo>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolSiloLink>>,
+/** `PUT /v1/system/subnet-pools/:pool/silos/:silo` */
+  systemSubnetPoolSiloUpdate: (params: { path: Api.SystemSubnetPoolSiloUpdatePathParams,  body: Json<Api.SubnetPoolSiloUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolSiloLink>>,
+/** `DELETE /v1/system/subnet-pools/:pool/silos/:silo` */
+  systemSubnetPoolSiloUnlink: (params: { path: Api.SystemSubnetPoolSiloUnlinkPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/system/subnet-pools/:pool/utilization` */
+  systemSubnetPoolUtilizationView: (params: { path: Api.SystemSubnetPoolUtilizationViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolUtilization>>,
 /** `POST /v1/system/timeseries/query` */
   systemTimeseriesQuery: (params: {   body: Json<Api.TimeseriesQuery>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.OxqlQueryResult>>,
 /** `GET /v1/system/timeseries/schemas` */
@@ -765,6 +819,13 @@ http.post('/v1/disks/:disk/bulk-write', handler(handlers['diskBulkWriteImport'],
 http.post('/v1/disks/:disk/bulk-write-start', handler(handlers['diskBulkWriteImportStart'], schema.DiskBulkWriteImportStartParams, null)),
 http.post('/v1/disks/:disk/bulk-write-stop', handler(handlers['diskBulkWriteImportStop'], schema.DiskBulkWriteImportStopParams, null)),
 http.post('/v1/disks/:disk/finalize', handler(handlers['diskFinalizeImport'], schema.DiskFinalizeImportParams, schema.FinalizeDisk)),
+http.get('/v1/external-subnets', handler(handlers['externalSubnetList'], schema.ExternalSubnetListParams, null)),
+http.post('/v1/external-subnets', handler(handlers['externalSubnetCreate'], schema.ExternalSubnetCreateParams, schema.ExternalSubnetCreate)),
+http.get('/v1/external-subnets/:externalSubnet', handler(handlers['externalSubnetView'], schema.ExternalSubnetViewParams, null)),
+http.put('/v1/external-subnets/:externalSubnet', handler(handlers['externalSubnetUpdate'], schema.ExternalSubnetUpdateParams, schema.ExternalSubnetUpdate)),
+http.delete('/v1/external-subnets/:externalSubnet', handler(handlers['externalSubnetDelete'], schema.ExternalSubnetDeleteParams, null)),
+http.post('/v1/external-subnets/:externalSubnet/attach', handler(handlers['externalSubnetAttach'], schema.ExternalSubnetAttachParams, schema.ExternalSubnetAttach)),
+http.post('/v1/external-subnets/:externalSubnet/detach', handler(handlers['externalSubnetDetach'], schema.ExternalSubnetDetachParams, null)),
 http.get('/v1/floating-ips', handler(handlers['floatingIpList'], schema.FloatingIpListParams, null)),
 http.post('/v1/floating-ips', handler(handlers['floatingIpCreate'], schema.FloatingIpCreateParams, schema.FloatingIpCreate)),
 http.get('/v1/floating-ips/:floatingIp', handler(handlers['floatingIpView'], schema.FloatingIpViewParams, null)),
@@ -793,6 +854,7 @@ http.post('/v1/instances/:instance/disks/detach', handler(handlers['instanceDisk
 http.get('/v1/instances/:instance/external-ips', handler(handlers['instanceExternalIpList'], schema.InstanceExternalIpListParams, null)),
 http.post('/v1/instances/:instance/external-ips/ephemeral', handler(handlers['instanceEphemeralIpAttach'], schema.InstanceEphemeralIpAttachParams, schema.EphemeralIpCreate)),
 http.delete('/v1/instances/:instance/external-ips/ephemeral', handler(handlers['instanceEphemeralIpDetach'], schema.InstanceEphemeralIpDetachParams, null)),
+http.get('/v1/instances/:instance/external-subnets', handler(handlers['instanceExternalSubnetList'], schema.InstanceExternalSubnetListParams, null)),
 http.get('/v1/instances/:instance/multicast-groups', handler(handlers['instanceMulticastGroupList'], schema.InstanceMulticastGroupListParams, null)),
 http.put('/v1/instances/:instance/multicast-groups/:multicastGroup', handler(handlers['instanceMulticastGroupJoin'], schema.InstanceMulticastGroupJoinParams, schema.InstanceMulticastGroupJoin)),
 http.delete('/v1/instances/:instance/multicast-groups/:multicastGroup', handler(handlers['instanceMulticastGroupLeave'], schema.InstanceMulticastGroupLeaveParams, null)),
@@ -812,8 +874,8 @@ http.get('/v1/internet-gateways', handler(handlers['internetGatewayList'], schem
 http.post('/v1/internet-gateways', handler(handlers['internetGatewayCreate'], schema.InternetGatewayCreateParams, schema.InternetGatewayCreate)),
 http.get('/v1/internet-gateways/:gateway', handler(handlers['internetGatewayView'], schema.InternetGatewayViewParams, null)),
 http.delete('/v1/internet-gateways/:gateway', handler(handlers['internetGatewayDelete'], schema.InternetGatewayDeleteParams, null)),
-http.get('/v1/ip-pools', handler(handlers['projectIpPoolList'], schema.ProjectIpPoolListParams, null)),
-http.get('/v1/ip-pools/:pool', handler(handlers['projectIpPoolView'], schema.ProjectIpPoolViewParams, null)),
+http.get('/v1/ip-pools', handler(handlers['ipPoolList'], schema.IpPoolListParams, null)),
+http.get('/v1/ip-pools/:pool', handler(handlers['ipPoolView'], schema.IpPoolViewParams, null)),
 http.post('/v1/login/:siloName/local', handler(handlers['loginLocal'], schema.LoginLocalParams, schema.UsernamePasswordCredentials)),
 http.post('/v1/logout', handler(handlers['logout'], null, null)),
 http.get('/v1/me', handler(handlers['currentUserView'], null, null)),
@@ -847,12 +909,17 @@ http.get('/v1/snapshots', handler(handlers['snapshotList'], schema.SnapshotListP
 http.post('/v1/snapshots', handler(handlers['snapshotCreate'], schema.SnapshotCreateParams, schema.SnapshotCreate)),
 http.get('/v1/snapshots/:snapshot', handler(handlers['snapshotView'], schema.SnapshotViewParams, null)),
 http.delete('/v1/snapshots/:snapshot', handler(handlers['snapshotDelete'], schema.SnapshotDeleteParams, null)),
+http.get('/v1/subnet-pools', handler(handlers['subnetPoolList'], schema.SubnetPoolListParams, null)),
+http.get('/v1/subnet-pools/:pool', handler(handlers['subnetPoolView'], schema.SubnetPoolViewParams, null)),
 http.get('/v1/system/audit-log', handler(handlers['auditLogList'], schema.AuditLogListParams, null)),
 http.get('/v1/system/hardware/disks', handler(handlers['physicalDiskList'], schema.PhysicalDiskListParams, null)),
 http.get('/v1/system/hardware/disks/:diskId', handler(handlers['physicalDiskView'], schema.PhysicalDiskViewParams, null)),
 http.get('/v1/system/hardware/rack-switch-port/:rackId/:switchLocation/:port/lldp/neighbors', handler(handlers['networkingSwitchPortLldpNeighbors'], schema.NetworkingSwitchPortLldpNeighborsParams, null)),
 http.get('/v1/system/hardware/racks', handler(handlers['rackList'], schema.RackListParams, null)),
 http.get('/v1/system/hardware/racks/:rackId', handler(handlers['rackView'], schema.RackViewParams, null)),
+http.get('/v1/system/hardware/racks/:rackId/membership', handler(handlers['rackMembershipStatus'], schema.RackMembershipStatusParams, null)),
+http.post('/v1/system/hardware/racks/:rackId/membership/abort', handler(handlers['rackMembershipAbort'], schema.RackMembershipAbortParams, null)),
+http.post('/v1/system/hardware/racks/:rackId/membership/add', handler(handlers['rackMembershipAddSleds'], schema.RackMembershipAddSledsParams, schema.RackMembershipAddSledsRequest)),
 http.get('/v1/system/hardware/sleds', handler(handlers['sledList'], schema.SledListParams, null)),
 http.post('/v1/system/hardware/sleds', handler(handlers['sledAdd'], null, schema.UninitializedSledId)),
 http.get('/v1/system/hardware/sleds/:sledId', handler(handlers['sledView'], schema.SledViewParams, null)),
@@ -874,23 +941,23 @@ http.delete('/v1/system/identity-providers/local/users/:userId', handler(handler
 http.post('/v1/system/identity-providers/local/users/:userId/set-password', handler(handlers['localIdpUserSetPassword'], schema.LocalIdpUserSetPasswordParams, schema.UserPassword)),
 http.post('/v1/system/identity-providers/saml', handler(handlers['samlIdentityProviderCreate'], schema.SamlIdentityProviderCreateParams, schema.SamlIdentityProviderCreate)),
 http.get('/v1/system/identity-providers/saml/:provider', handler(handlers['samlIdentityProviderView'], schema.SamlIdentityProviderViewParams, null)),
-http.get('/v1/system/ip-pools', handler(handlers['ipPoolList'], schema.IpPoolListParams, null)),
-http.post('/v1/system/ip-pools', handler(handlers['ipPoolCreate'], null, schema.IpPoolCreate)),
-http.get('/v1/system/ip-pools/:pool', handler(handlers['ipPoolView'], schema.IpPoolViewParams, null)),
-http.put('/v1/system/ip-pools/:pool', handler(handlers['ipPoolUpdate'], schema.IpPoolUpdateParams, schema.IpPoolUpdate)),
-http.delete('/v1/system/ip-pools/:pool', handler(handlers['ipPoolDelete'], schema.IpPoolDeleteParams, null)),
-http.get('/v1/system/ip-pools/:pool/ranges', handler(handlers['ipPoolRangeList'], schema.IpPoolRangeListParams, null)),
-http.post('/v1/system/ip-pools/:pool/ranges/add', handler(handlers['ipPoolRangeAdd'], schema.IpPoolRangeAddParams, schema.IpRange)),
-http.post('/v1/system/ip-pools/:pool/ranges/remove', handler(handlers['ipPoolRangeRemove'], schema.IpPoolRangeRemoveParams, schema.IpRange)),
-http.get('/v1/system/ip-pools/:pool/silos', handler(handlers['ipPoolSiloList'], schema.IpPoolSiloListParams, null)),
-http.post('/v1/system/ip-pools/:pool/silos', handler(handlers['ipPoolSiloLink'], schema.IpPoolSiloLinkParams, schema.IpPoolLinkSilo)),
-http.put('/v1/system/ip-pools/:pool/silos/:silo', handler(handlers['ipPoolSiloUpdate'], schema.IpPoolSiloUpdateParams, schema.IpPoolSiloUpdate)),
-http.delete('/v1/system/ip-pools/:pool/silos/:silo', handler(handlers['ipPoolSiloUnlink'], schema.IpPoolSiloUnlinkParams, null)),
-http.get('/v1/system/ip-pools/:pool/utilization', handler(handlers['ipPoolUtilizationView'], schema.IpPoolUtilizationViewParams, null)),
-http.get('/v1/system/ip-pools-service', handler(handlers['ipPoolServiceView'], null, null)),
-http.get('/v1/system/ip-pools-service/ranges', handler(handlers['ipPoolServiceRangeList'], schema.IpPoolServiceRangeListParams, null)),
-http.post('/v1/system/ip-pools-service/ranges/add', handler(handlers['ipPoolServiceRangeAdd'], null, schema.IpRange)),
-http.post('/v1/system/ip-pools-service/ranges/remove', handler(handlers['ipPoolServiceRangeRemove'], null, schema.IpRange)),
+http.get('/v1/system/ip-pools', handler(handlers['systemIpPoolList'], schema.SystemIpPoolListParams, null)),
+http.post('/v1/system/ip-pools', handler(handlers['systemIpPoolCreate'], null, schema.IpPoolCreate)),
+http.get('/v1/system/ip-pools/:pool', handler(handlers['systemIpPoolView'], schema.SystemIpPoolViewParams, null)),
+http.put('/v1/system/ip-pools/:pool', handler(handlers['systemIpPoolUpdate'], schema.SystemIpPoolUpdateParams, schema.IpPoolUpdate)),
+http.delete('/v1/system/ip-pools/:pool', handler(handlers['systemIpPoolDelete'], schema.SystemIpPoolDeleteParams, null)),
+http.get('/v1/system/ip-pools/:pool/ranges', handler(handlers['systemIpPoolRangeList'], schema.SystemIpPoolRangeListParams, null)),
+http.post('/v1/system/ip-pools/:pool/ranges/add', handler(handlers['systemIpPoolRangeAdd'], schema.SystemIpPoolRangeAddParams, schema.IpRange)),
+http.post('/v1/system/ip-pools/:pool/ranges/remove', handler(handlers['systemIpPoolRangeRemove'], schema.SystemIpPoolRangeRemoveParams, schema.IpRange)),
+http.get('/v1/system/ip-pools/:pool/silos', handler(handlers['systemIpPoolSiloList'], schema.SystemIpPoolSiloListParams, null)),
+http.post('/v1/system/ip-pools/:pool/silos', handler(handlers['systemIpPoolSiloLink'], schema.SystemIpPoolSiloLinkParams, schema.IpPoolLinkSilo)),
+http.put('/v1/system/ip-pools/:pool/silos/:silo', handler(handlers['systemIpPoolSiloUpdate'], schema.SystemIpPoolSiloUpdateParams, schema.IpPoolSiloUpdate)),
+http.delete('/v1/system/ip-pools/:pool/silos/:silo', handler(handlers['systemIpPoolSiloUnlink'], schema.SystemIpPoolSiloUnlinkParams, null)),
+http.get('/v1/system/ip-pools/:pool/utilization', handler(handlers['systemIpPoolUtilizationView'], schema.SystemIpPoolUtilizationViewParams, null)),
+http.get('/v1/system/ip-pools-service', handler(handlers['systemIpPoolServiceView'], null, null)),
+http.get('/v1/system/ip-pools-service/ranges', handler(handlers['systemIpPoolServiceRangeList'], schema.SystemIpPoolServiceRangeListParams, null)),
+http.post('/v1/system/ip-pools-service/ranges/add', handler(handlers['systemIpPoolServiceRangeAdd'], null, schema.IpRange)),
+http.post('/v1/system/ip-pools-service/ranges/remove', handler(handlers['systemIpPoolServiceRangeRemove'], null, schema.IpRange)),
 http.get('/v1/system/metrics/:metricName', handler(handlers['systemMetric'], schema.SystemMetricParams, null)),
 http.get('/v1/system/networking/address-lot', handler(handlers['networkingAddressLotList'], schema.NetworkingAddressLotListParams, null)),
 http.post('/v1/system/networking/address-lot', handler(handlers['networkingAddressLotCreate'], null, schema.AddressLotCreate)),
@@ -910,8 +977,8 @@ http.put('/v1/system/networking/bgp-announce-set', handler(handlers['networkingB
 http.delete('/v1/system/networking/bgp-announce-set/:announceSet', handler(handlers['networkingBgpAnnounceSetDelete'], schema.NetworkingBgpAnnounceSetDeleteParams, null)),
 http.get('/v1/system/networking/bgp-announce-set/:announceSet/announcement', handler(handlers['networkingBgpAnnouncementList'], schema.NetworkingBgpAnnouncementListParams, null)),
 http.get('/v1/system/networking/bgp-exported', handler(handlers['networkingBgpExported'], null, null)),
+http.get('/v1/system/networking/bgp-imported', handler(handlers['networkingBgpImported'], schema.NetworkingBgpImportedParams, null)),
 http.get('/v1/system/networking/bgp-message-history', handler(handlers['networkingBgpMessageHistory'], schema.NetworkingBgpMessageHistoryParams, null)),
-http.get('/v1/system/networking/bgp-routes-ipv4', handler(handlers['networkingBgpImportedRoutesIpv4'], schema.NetworkingBgpImportedRoutesIpv4Params, null)),
 http.get('/v1/system/networking/bgp-status', handler(handlers['networkingBgpStatus'], null, null)),
 http.get('/v1/system/networking/inbound-icmp', handler(handlers['networkingInboundIcmpView'], null, null)),
 http.put('/v1/system/networking/inbound-icmp', handler(handlers['networkingInboundIcmpUpdate'], null, schema.ServiceIcmpConfig)),
@@ -938,6 +1005,20 @@ http.get('/v1/system/silos/:silo/policy', handler(handlers['siloPolicyView'], sc
 http.put('/v1/system/silos/:silo/policy', handler(handlers['siloPolicyUpdate'], schema.SiloPolicyUpdateParams, schema.SiloRolePolicy)),
 http.get('/v1/system/silos/:silo/quotas', handler(handlers['siloQuotasView'], schema.SiloQuotasViewParams, null)),
 http.put('/v1/system/silos/:silo/quotas', handler(handlers['siloQuotasUpdate'], schema.SiloQuotasUpdateParams, schema.SiloQuotasUpdate)),
+http.get('/v1/system/silos/:silo/subnet-pools', handler(handlers['siloSubnetPoolList'], schema.SiloSubnetPoolListParams, null)),
+http.get('/v1/system/subnet-pools', handler(handlers['systemSubnetPoolList'], schema.SystemSubnetPoolListParams, null)),
+http.post('/v1/system/subnet-pools', handler(handlers['systemSubnetPoolCreate'], null, schema.SubnetPoolCreate)),
+http.get('/v1/system/subnet-pools/:pool', handler(handlers['systemSubnetPoolView'], schema.SystemSubnetPoolViewParams, null)),
+http.put('/v1/system/subnet-pools/:pool', handler(handlers['systemSubnetPoolUpdate'], schema.SystemSubnetPoolUpdateParams, schema.SubnetPoolUpdate)),
+http.delete('/v1/system/subnet-pools/:pool', handler(handlers['systemSubnetPoolDelete'], schema.SystemSubnetPoolDeleteParams, null)),
+http.get('/v1/system/subnet-pools/:pool/members', handler(handlers['systemSubnetPoolMemberList'], schema.SystemSubnetPoolMemberListParams, null)),
+http.post('/v1/system/subnet-pools/:pool/members/add', handler(handlers['systemSubnetPoolMemberAdd'], schema.SystemSubnetPoolMemberAddParams, schema.SubnetPoolMemberAdd)),
+http.post('/v1/system/subnet-pools/:pool/members/remove', handler(handlers['systemSubnetPoolMemberRemove'], schema.SystemSubnetPoolMemberRemoveParams, schema.SubnetPoolMemberRemove)),
+http.get('/v1/system/subnet-pools/:pool/silos', handler(handlers['systemSubnetPoolSiloList'], schema.SystemSubnetPoolSiloListParams, null)),
+http.post('/v1/system/subnet-pools/:pool/silos', handler(handlers['systemSubnetPoolSiloLink'], schema.SystemSubnetPoolSiloLinkParams, schema.SubnetPoolLinkSilo)),
+http.put('/v1/system/subnet-pools/:pool/silos/:silo', handler(handlers['systemSubnetPoolSiloUpdate'], schema.SystemSubnetPoolSiloUpdateParams, schema.SubnetPoolSiloUpdate)),
+http.delete('/v1/system/subnet-pools/:pool/silos/:silo', handler(handlers['systemSubnetPoolSiloUnlink'], schema.SystemSubnetPoolSiloUnlinkParams, null)),
+http.get('/v1/system/subnet-pools/:pool/utilization', handler(handlers['systemSubnetPoolUtilizationView'], schema.SystemSubnetPoolUtilizationViewParams, null)),
 http.post('/v1/system/timeseries/query', handler(handlers['systemTimeseriesQuery'], null, schema.TimeseriesQuery)),
 http.get('/v1/system/timeseries/schemas', handler(handlers['systemTimeseriesSchemaList'], schema.SystemTimeseriesSchemaListParams, null)),
 http.get('/v1/system/update/repositories', handler(handlers['systemUpdateRepositoryList'], schema.SystemUpdateRepositoryListParams, null)),
