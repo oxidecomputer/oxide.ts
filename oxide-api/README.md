@@ -16,7 +16,7 @@ Make sure to use the SDK compatible with your Oxide system version.
 
 | System version | `@oxide/api` version | npm tag |
 | --- | --- | --- |
-| [18](https://docs.oxide.computer/release-notes/system/18) | 0.5.0 | `rel18` |
+| [18](https://docs.oxide.computer/release-notes/system/18) | 0.5.1 | `rel18` |
 
 ## Usage
 
@@ -34,11 +34,8 @@ The easiest way to get a device token is to use the CLI.
 oxide auth login --host https://my-oxide-rack.com
 ```
 
-Then print the token:
-
-```
-oxide auth status --show-token
-```
+You can find the generated token in `~/.config/oxide/credentials.toml`
+(`%USERPROFILE%\.config\oxide\credentials.toml` on Windows).
 
 In the following example, the token is passed to the script through the
 `OXIDE_TOKEN` environment variable on the assumption that you don't want to
