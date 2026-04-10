@@ -346,7 +346,7 @@ export interface MSWHandlers {
   physicalDiskList: (params: {  query: Api.PhysicalDiskListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.PhysicalDiskResultsPage>>,
 /** `GET /v1/system/hardware/disks/:diskId` */
   physicalDiskView: (params: { path: Api.PhysicalDiskViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.PhysicalDisk>>,
-/** `GET /v1/system/hardware/rack-switch-port/:rackId/:switchLocation/:port/lldp/neighbors` */
+/** `GET /v1/system/hardware/rack-switch-port/:rackId/:switchSlot/:port/lldp/neighbors` */
   networkingSwitchPortLldpNeighbors: (params: { path: Api.NetworkingSwitchPortLldpNeighborsPathParams, query: Api.NetworkingSwitchPortLldpNeighborsQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.LldpNeighborResultsPage>>,
 /** `GET /v1/system/hardware/racks` */
   rackList: (params: {  query: Api.RackListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.RackResultsPage>>,
@@ -360,8 +360,6 @@ export interface MSWHandlers {
   rackMembershipAddSleds: (params: { path: Api.RackMembershipAddSledsPathParams,  body: Json<Api.RackMembershipAddSledsRequest>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.RackMembershipStatus>>,
 /** `GET /v1/system/hardware/sleds` */
   sledList: (params: {  query: Api.SledListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SledResultsPage>>,
-/** `POST /v1/system/hardware/sleds` */
-  sledAdd: (params: {   body: Json<Api.UninitializedSledId>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SledId>>,
 /** `GET /v1/system/hardware/sleds/:sledId` */
   sledView: (params: { path: Api.SledViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.Sled>>,
 /** `GET /v1/system/hardware/sleds/:sledId/disks` */
@@ -486,7 +484,7 @@ export interface MSWHandlers {
   networkingLoopbackAddressList: (params: {  query: Api.NetworkingLoopbackAddressListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.LoopbackAddressResultsPage>>,
 /** `POST /v1/system/networking/loopback-address` */
   networkingLoopbackAddressCreate: (params: {   body: Json<Api.LoopbackAddressCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.LoopbackAddress>>,
-/** `DELETE /v1/system/networking/loopback-address/:rackId/:switchLocation/:address/:subnetMask` */
+/** `DELETE /v1/system/networking/loopback-address/:rackId/:switchSlot/:address/:subnetMask` */
   networkingLoopbackAddressDelete: (params: { path: Api.NetworkingLoopbackAddressDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/networking/switch-port-settings` */
   networkingSwitchPortSettingsList: (params: {  query: Api.NetworkingSwitchPortSettingsListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SwitchPortSettingsIdentityResultsPage>>,
@@ -560,6 +558,8 @@ export interface MSWHandlers {
   systemTimeseriesQuery: (params: {   body: Json<Api.TimeseriesQuery>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.OxqlQueryResult>>,
 /** `GET /v1/system/timeseries/schemas` */
   systemTimeseriesSchemaList: (params: {  query: Api.SystemTimeseriesSchemaListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.TimeseriesSchemaResultsPage>>,
+/** `PUT /v1/system/update/recovery-finish` */
+  systemUpdateRecoveryFinish: (params: {   body: Json<Api.SetTargetReleaseParams>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/update/repositories` */
   systemUpdateRepositoryList: (params: {  query: Api.SystemUpdateRepositoryListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.TufRepoResultsPage>>,
 /** `PUT /v1/system/update/repositories` */
@@ -914,14 +914,13 @@ http.get('/v1/subnet-pools/:pool', handler(handlers['subnetPoolView'], schema.Su
 http.get('/v1/system/audit-log', handler(handlers['auditLogList'], schema.AuditLogListParams, null)),
 http.get('/v1/system/hardware/disks', handler(handlers['physicalDiskList'], schema.PhysicalDiskListParams, null)),
 http.get('/v1/system/hardware/disks/:diskId', handler(handlers['physicalDiskView'], schema.PhysicalDiskViewParams, null)),
-http.get('/v1/system/hardware/rack-switch-port/:rackId/:switchLocation/:port/lldp/neighbors', handler(handlers['networkingSwitchPortLldpNeighbors'], schema.NetworkingSwitchPortLldpNeighborsParams, null)),
+http.get('/v1/system/hardware/rack-switch-port/:rackId/:switchSlot/:port/lldp/neighbors', handler(handlers['networkingSwitchPortLldpNeighbors'], schema.NetworkingSwitchPortLldpNeighborsParams, null)),
 http.get('/v1/system/hardware/racks', handler(handlers['rackList'], schema.RackListParams, null)),
 http.get('/v1/system/hardware/racks/:rackId', handler(handlers['rackView'], schema.RackViewParams, null)),
 http.get('/v1/system/hardware/racks/:rackId/membership', handler(handlers['rackMembershipStatus'], schema.RackMembershipStatusParams, null)),
 http.post('/v1/system/hardware/racks/:rackId/membership/abort', handler(handlers['rackMembershipAbort'], schema.RackMembershipAbortParams, null)),
 http.post('/v1/system/hardware/racks/:rackId/membership/add', handler(handlers['rackMembershipAddSleds'], schema.RackMembershipAddSledsParams, schema.RackMembershipAddSledsRequest)),
 http.get('/v1/system/hardware/sleds', handler(handlers['sledList'], schema.SledListParams, null)),
-http.post('/v1/system/hardware/sleds', handler(handlers['sledAdd'], null, schema.UninitializedSledId)),
 http.get('/v1/system/hardware/sleds/:sledId', handler(handlers['sledView'], schema.SledViewParams, null)),
 http.get('/v1/system/hardware/sleds/:sledId/disks', handler(handlers['sledPhysicalDiskList'], schema.SledPhysicalDiskListParams, null)),
 http.get('/v1/system/hardware/sleds/:sledId/instances', handler(handlers['sledInstanceList'], schema.SledInstanceListParams, null)),
@@ -984,7 +983,7 @@ http.get('/v1/system/networking/inbound-icmp', handler(handlers['networkingInbou
 http.put('/v1/system/networking/inbound-icmp', handler(handlers['networkingInboundIcmpUpdate'], null, schema.ServiceIcmpConfig)),
 http.get('/v1/system/networking/loopback-address', handler(handlers['networkingLoopbackAddressList'], schema.NetworkingLoopbackAddressListParams, null)),
 http.post('/v1/system/networking/loopback-address', handler(handlers['networkingLoopbackAddressCreate'], null, schema.LoopbackAddressCreate)),
-http.delete('/v1/system/networking/loopback-address/:rackId/:switchLocation/:address/:subnetMask', handler(handlers['networkingLoopbackAddressDelete'], schema.NetworkingLoopbackAddressDeleteParams, null)),
+http.delete('/v1/system/networking/loopback-address/:rackId/:switchSlot/:address/:subnetMask', handler(handlers['networkingLoopbackAddressDelete'], schema.NetworkingLoopbackAddressDeleteParams, null)),
 http.get('/v1/system/networking/switch-port-settings', handler(handlers['networkingSwitchPortSettingsList'], schema.NetworkingSwitchPortSettingsListParams, null)),
 http.post('/v1/system/networking/switch-port-settings', handler(handlers['networkingSwitchPortSettingsCreate'], null, schema.SwitchPortSettingsCreate)),
 http.delete('/v1/system/networking/switch-port-settings', handler(handlers['networkingSwitchPortSettingsDelete'], schema.NetworkingSwitchPortSettingsDeleteParams, null)),
@@ -1021,6 +1020,7 @@ http.delete('/v1/system/subnet-pools/:pool/silos/:silo', handler(handlers['syste
 http.get('/v1/system/subnet-pools/:pool/utilization', handler(handlers['systemSubnetPoolUtilizationView'], schema.SystemSubnetPoolUtilizationViewParams, null)),
 http.post('/v1/system/timeseries/query', handler(handlers['systemTimeseriesQuery'], null, schema.TimeseriesQuery)),
 http.get('/v1/system/timeseries/schemas', handler(handlers['systemTimeseriesSchemaList'], schema.SystemTimeseriesSchemaListParams, null)),
+http.put('/v1/system/update/recovery-finish', handler(handlers['systemUpdateRecoveryFinish'], null, schema.SetTargetReleaseParams)),
 http.get('/v1/system/update/repositories', handler(handlers['systemUpdateRepositoryList'], schema.SystemUpdateRepositoryListParams, null)),
 http.put('/v1/system/update/repositories', handler(handlers['systemUpdateRepositoryUpload'], schema.SystemUpdateRepositoryUploadParams, null)),
 http.get('/v1/system/update/repositories/:systemVersion', handler(handlers['systemUpdateRepositoryView'], schema.SystemUpdateRepositoryViewParams, null)),

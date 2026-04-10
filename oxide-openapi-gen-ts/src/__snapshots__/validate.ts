@@ -247,14 +247,14 @@ export const BgpMessageHistory = z.preprocess(processResponseBody,z.record(z.str
 /**
 * Identifies switch physical location
  */
-export const SwitchLocation = z.preprocess(processResponseBody,z.enum(["switch0", "switch1"])
+export const SwitchSlot = z.preprocess(processResponseBody,z.enum(["switch0", "switch1"])
 )
 
 /**
 * BGP message history for a particular switch.
  */
 export const SwitchBgpHistory = z.preprocess(processResponseBody,z.object({"history": z.record(z.string(),BgpMessageHistory),
-"switch": SwitchLocation,
+"switch": SwitchSlot,
 }))
 
 /**
@@ -577,7 +577,7 @@ export const BfdMode = z.preprocess(processResponseBody,z.enum(["single_hop","mu
 * Information needed to disable a BFD session
  */
 export const BfdSessionDisable = z.preprocess(processResponseBody,z.object({"remote": z.union([z.ipv4(), z.ipv6()]),
-"switch": Name,
+"switchSlot": SwitchSlot,
 }))
 
 /**
@@ -588,7 +588,7 @@ export const BfdSessionEnable = z.preprocess(processResponseBody,z.object({"dete
 "mode": BfdMode,
 "remote": z.union([z.ipv4(), z.ipv6()]),
 "requiredRx": z.number().min(0),
-"switch": Name,
+"switchSlot": SwitchSlot,
 }))
 
 export const BfdState = z.preprocess(processResponseBody,z.enum(["admin_down", "down", "init", "up"])
@@ -600,7 +600,7 @@ export const BfdStatus = z.preprocess(processResponseBody,z.object({"detectionTh
 "peer": z.union([z.ipv4(), z.ipv6()]),
 "requiredRx": z.number().min(0),
 "state": BfdState,
-"switch": Name,
+"switchSlot": SwitchSlot,
 }))
 
 /**
@@ -674,7 +674,7 @@ export const BgpConfigResultsPage = z.preprocess(processResponseBody,z.object({"
  */
 export const BgpExported = z.preprocess(processResponseBody,z.object({"peerId": z.string(),
 "prefix": IpNet,
-"switch": SwitchLocation,
+"switch": SwitchSlot,
 }))
 
 /**
@@ -683,7 +683,7 @@ export const BgpExported = z.preprocess(processResponseBody,z.object({"peerId": 
 export const BgpImported = z.preprocess(processResponseBody,z.object({"id": z.number().min(0).max(4294967295),
 "nexthop": z.union([z.ipv4(), z.ipv6()]),
 "prefix": IpNet,
-"switch": SwitchLocation,
+"switch": SwitchSlot,
 }))
 
 /**
@@ -741,7 +741,7 @@ export const BgpPeerStatus = z.preprocess(processResponseBody,z.object({"addr": 
 "remoteAsn": z.number().min(0).max(4294967295),
 "state": BgpPeerState,
 "stateDurationMillis": z.number().min(0),
-"switch": SwitchLocation,
+"switch": SwitchSlot,
 }))
 
 /**
@@ -1100,6 +1100,8 @@ export const CurrentUser = z.preprocess(processResponseBody,z.object({"displayNa
 "siloAdmin": SafeBoolean,
 "siloId": z.uuid(),
 "siloName": Name,
+"timeCreated": z.coerce.date(),
+"timeModified": z.coerce.date(),
 }))
 
 /**
@@ -1661,7 +1663,7 @@ z.object({"subnet": IpNet,
 "type": z.enum(["explicit"]),
 }),
 z.object({"poolSelector": PoolSelector.default({"ipVersion":null,"type":"auto"}),
-"prefixLen": z.number().min(0).max(255),
+"prefixLength": z.number().min(0).max(255),
 "type": z.enum(["auto"]),
 }),
 ])
@@ -1842,6 +1844,8 @@ export const FloatingIpUpdate = z.preprocess(processResponseBody,z.object({"desc
 export const Group = z.preprocess(processResponseBody,z.object({"displayName": z.string(),
 "id": z.uuid(),
 "siloId": z.uuid(),
+"timeCreated": z.coerce.date(),
+"timeModified": z.coerce.date(),
 }))
 
 /**
@@ -2547,7 +2551,7 @@ export const LoopbackAddress = z.preprocess(processResponseBody,z.object({"addre
 "addressLotBlockId": z.uuid(),
 "id": z.uuid(),
 "rackId": z.uuid(),
-"switchLocation": z.string(),
+"switchSlot": SwitchSlot,
 }))
 
 /**
@@ -2558,7 +2562,7 @@ export const LoopbackAddressCreate = z.preprocess(processResponseBody,z.object({
 "anycast": SafeBoolean,
 "mask": z.number().min(0).max(255),
 "rackId": z.uuid(),
-"switchLocation": Name,
+"switchSlot": SwitchSlot,
 }))
 
 /**
@@ -2592,10 +2596,10 @@ export const MetricType = z.preprocess(processResponseBody,z.enum(["gauge", "del
 * View of a Multicast Group
  */
 export const MulticastGroup = z.preprocess(processResponseBody,z.object({"description": z.string(),
+"hasAnySourceMember": SafeBoolean,
 "id": z.uuid(),
 "ipPoolId": z.uuid(),
 "multicastIp": z.union([z.ipv4(), z.ipv6()]),
-"mvlan": z.number().min(0).max(65535).nullable().optional(),
 "name": Name,
 "sourceIps": z.union([z.ipv4(), z.ipv6()]).array(),
 "state": z.string(),
@@ -3332,12 +3336,6 @@ export const Sled = z.preprocess(processResponseBody,z.object({"baseboard": Base
 }))
 
 /**
-* The unique ID of a sled.
- */
-export const SledId = z.preprocess(processResponseBody,z.object({"id": z.uuid(),
-}))
-
-/**
 * An operator's view of an instance running on a given sled
  */
 export const SledInstance = z.preprocess(processResponseBody,z.object({"activeSledId": z.uuid(),
@@ -3532,10 +3530,12 @@ export const SubnetPoolUpdate = z.preprocess(processResponseBody,z.object({"desc
 }))
 
 /**
-* Utilization information for a subnet pool
+* Utilization of addresses in a subnet pool.
+* 
+* Note that both the count of remaining addresses and the total capacity are integers, reported as floating point numbers. This accommodates allocations larger than a 64-bit integer, which is common with IPv6 address spaces. With very large subnet pools (> 2**53 addresses), integer precision will be lost, in exchange for representing the entire range. In such a case the pool still has many available addresses.
  */
-export const SubnetPoolUtilization = z.preprocess(processResponseBody,z.object({"allocated": z.number(),
-"capacity": z.number(),
+export const SubnetPoolUtilization = z.preprocess(processResponseBody,z.object({"capacity": z.number(),
+"remaining": z.number(),
 }))
 
 export const SupportBundleCreate = z.preprocess(processResponseBody,z.object({"userComment": z.string().nullable().optional(),
@@ -3619,7 +3619,7 @@ export const SwitchPort = z.preprocess(processResponseBody,z.object({"id": z.uui
 "portName": Name,
 "portSettingsId": z.uuid().nullable().optional(),
 "rackId": z.uuid(),
-"switchLocation": z.string(),
+"switchSlot": SwitchSlot,
 }))
 
 /**
@@ -3870,13 +3870,6 @@ export const UninitializedSled = z.preprocess(processResponseBody,z.object({"bas
 }))
 
 /**
-* The unique hardware ID for a sled
- */
-export const UninitializedSledId = z.preprocess(processResponseBody,z.object({"part": z.string(),
-"serial": z.string(),
-}))
-
-/**
 * A single page of results
  */
 export const UninitializedSledResultsPage = z.preprocess(processResponseBody,z.object({"items": UninitializedSled.array(),
@@ -3910,6 +3903,8 @@ export const UpdatesTrustRootResultsPage = z.preprocess(processResponseBody,z.ob
 export const User = z.preprocess(processResponseBody,z.object({"displayName": z.string(),
 "id": z.uuid(),
 "siloId": z.uuid(),
+"timeCreated": z.coerce.date(),
+"timeModified": z.coerce.date(),
 }))
 
 /**
@@ -4040,6 +4035,9 @@ z.object({"type": z.enum(["tcp"]),
 z.object({"type": z.enum(["udp"]),
 }),
 z.object({"type": z.enum(["icmp"]),
+"value": VpcFirewallIcmpFilter.nullable(),
+}),
+z.object({"type": z.enum(["icmp6"]),
 "value": VpcFirewallIcmpFilter.nullable(),
 }),
 ])
@@ -5723,7 +5721,7 @@ export const NetworkingSwitchPortLldpNeighborsParams = z.preprocess(processRespo
   path: z.object({
   port: Name,
   rackId: z.uuid(),
-  switchLocation: Name,
+  switchSlot: SwitchSlot,
   }),
   query: z.object({
   limit: z.number().min(1).max(4294967295).nullable().optional(),
@@ -5782,13 +5780,6 @@ export const SledListParams = z.preprocess(processResponseBody, z.object({
   limit: z.number().min(1).max(4294967295).nullable().optional(),
   pageToken: z.string().nullable().optional(),
   sortBy: IdSortMode.optional(),
-  }),
-}))
-
-export const SledAddParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  }),
-  query: z.object({
   }),
 }))
 
@@ -5856,7 +5847,7 @@ export const NetworkingSwitchPortLldpConfigViewParams = z.preprocess(processResp
   }),
   query: z.object({
   rackId: z.uuid(),
-  switchLocation: Name,
+  switchSlot: SwitchSlot,
   }),
 }))
 
@@ -5866,7 +5857,7 @@ export const NetworkingSwitchPortLldpConfigUpdateParams = z.preprocess(processRe
   }),
   query: z.object({
   rackId: z.uuid(),
-  switchLocation: Name,
+  switchSlot: SwitchSlot,
   }),
 }))
 
@@ -5876,7 +5867,7 @@ export const NetworkingSwitchPortApplySettingsParams = z.preprocess(processRespo
   }),
   query: z.object({
   rackId: z.uuid(),
-  switchLocation: Name,
+  switchSlot: SwitchSlot,
   }),
 }))
 
@@ -5886,7 +5877,7 @@ export const NetworkingSwitchPortClearSettingsParams = z.preprocess(processRespo
   }),
   query: z.object({
   rackId: z.uuid(),
-  switchLocation: Name,
+  switchSlot: SwitchSlot,
   }),
 }))
 
@@ -5896,7 +5887,7 @@ export const NetworkingSwitchPortStatusParams = z.preprocess(processResponseBody
   }),
   query: z.object({
   rackId: z.uuid(),
-  switchLocation: Name,
+  switchSlot: SwitchSlot,
   }),
 }))
 
@@ -6331,7 +6322,7 @@ export const NetworkingLoopbackAddressDeleteParams = z.preprocess(processRespons
   address: z.union([z.ipv4(), z.ipv6()]),
   rackId: z.uuid(),
   subnetMask: z.number().min(0).max(255),
-  switchLocation: Name,
+  switchSlot: SwitchSlot,
   }),
   query: z.object({
   }),
@@ -6641,6 +6632,13 @@ export const SystemTimeseriesSchemaListParams = z.preprocess(processResponseBody
   query: z.object({
   limit: z.number().min(1).max(4294967295).nullable().optional(),
   pageToken: z.string().nullable().optional(),
+  }),
+}))
+
+export const SystemUpdateRecoveryFinishParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
   }),
 }))
 
