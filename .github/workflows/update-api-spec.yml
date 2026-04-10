@@ -21,7 +21,7 @@ jobs:
       - working-directory: "./oxide-openapi-gen-ts"
         run: 'npm ci'
       - run: ./tools/gen.sh
-      - uses: EndBug/add-and-commit@v9
+      - uses: EndBug/add-and-commit@v10
         with:
           add: .
           message: "Autogenerate config update"
