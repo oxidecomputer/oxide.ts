@@ -16,6 +16,7 @@ Make sure to use the SDK compatible with your Oxide system version.
 
 | System version | `@oxide/api` version | npm tag |
 | --- | --- | --- |
+| [19](https://docs.oxide.computer/release-notes/system/19) | 0.6.0 | `rel19` |
 | [18](https://docs.oxide.computer/release-notes/system/18) | 0.5.1 | `rel18` |
 
 ## Usage

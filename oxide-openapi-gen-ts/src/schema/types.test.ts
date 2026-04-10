@@ -43,15 +43,15 @@ test("Disk", () => {
   expect(genType(schemas.Disk)).toMatchInlineSnapshot(`
     "type X = {
       blockSize: ByteCount;
-      /** human-readable free-form text about a resource */
+      /** Human-readable free-form text about a resource */
       description: string;
       devicePath: string;
       diskType: DiskType;
-      /** unique, immutable, system-controlled identifier for each resource */
+      /** Unique, immutable, system-controlled identifier for each resource */
       id: string;
       /** ID of image from which disk was created, if any */
       imageId?: string | null;
-      /** unique, mutable, user-controlled identifier for each resource */
+      /** Unique, mutable, user-controlled identifier for each resource */
       name: Name;
       projectId: string;
       /** Whether or not this disk is read-only. */
@@ -60,9 +60,9 @@ test("Disk", () => {
       /** ID of snapshot from which disk was created, if any */
       snapshotId?: string | null;
       state: DiskState;
-      /** timestamp when this resource was created */
+      /** Timestamp when this resource was created */
       timeCreated: Date;
-      /** timestamp when this resource was last modified */
+      /** Timestamp when this resource was last modified */
       timeModified: Date;
     };"
   `);
@@ -81,32 +81,32 @@ test("Instance", () => {
 
     This policy determines whether the instance should be automatically restarted by the control plane on failure. If this is \`null\`, the control plane will use the default policy when determining whether or not to automatically restart this instance, which may or may not allow it to be restarted. The value of the \`auto_restart_enabled\` field indicates whether the instance will be auto-restarted, based on its current policy or the default if it has no configured policy. */
       autoRestartPolicy?: InstanceAutoRestartPolicy | null;
-      /** the ID of the disk used to boot this Instance, if a specific one is assigned. */
+      /** The ID of the disk used to boot this instance, if a specific one is assigned */
       bootDiskId?: string | null;
       /** The CPU platform for this instance. If this is \`null\`, the instance requires no particular CPU platform. */
       cpuPlatform?: InstanceCpuPlatform | null;
-      /** human-readable free-form text about a resource */
+      /** Human-readable free-form text about a resource */
       description: string;
-      /** RFC1035-compliant hostname for the Instance. */
+      /** RFC1035-compliant hostname for the instance */
       hostname: string;
-      /** unique, immutable, system-controlled identifier for each resource */
+      /** Unique, immutable, system-controlled identifier for each resource */
       id: string;
-      /** memory allocated for this Instance */
+      /** Memory allocated for this instance */
       memory: ByteCount;
-      /** unique, mutable, user-controlled identifier for each resource */
+      /** Unique, mutable, user-controlled identifier for each resource */
       name: Name;
-      /** number of CPUs allocated for this Instance */
+      /** Number of CPUs allocated for this instance */
       ncpus: InstanceCpuCount;
-      /** id for the project containing this Instance */
+      /** ID for the project containing this instance */
       projectId: string;
       runState: InstanceState;
-      /** timestamp when this resource was created */
+      /** Timestamp when this resource was created */
       timeCreated: Date;
       /** The timestamp of the most recent time this instance was automatically restarted by the control plane.
 
     If this is not present, then this instance has not been automatically restarted. */
       timeLastAutoRestarted?: Date | null;
-      /** timestamp when this resource was last modified */
+      /** Timestamp when this resource was last modified */
       timeModified: Date;
       timeRunStateUpdated: Date;
     };"
