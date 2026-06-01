@@ -7,6 +7,7 @@
  */
 
 import { beforeEach, expect, test } from "vitest";
+
 import { initIO, TestWritable } from "../io";
 import { schemaToZod } from "./zod";
 
@@ -75,6 +76,13 @@ test("string format ipv6", () => {
 test("boolean nullable", () => {
   schemaToZod({ type: "boolean", nullable: true }, io);
   expect(out.value()).toMatchInlineSnapshot('"SafeBoolean.nullable()"');
+});
+
+test("boolean nullable with default", () => {
+  schemaToZod({ type: "boolean", nullable: true, default: null }, io);
+  expect(out.value()).toMatchInlineSnapshot(
+    '"SafeBoolean.nullable().default(null)"'
+  );
 });
 
 test("number", () => {
