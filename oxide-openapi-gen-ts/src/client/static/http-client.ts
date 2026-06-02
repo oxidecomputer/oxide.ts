@@ -61,7 +61,11 @@ function encodeQueryParam(key: string, value: unknown) {
 }
 
 export async function handleResponse<Data>(
-  response: Response
+  response: Response,
+  // Converts `date-time` fields to `Date` in place. The generated client passes
+  // the parser for the endpoint's success type; defaults to a no-op so this
+  // file stays testable without generating anything.
+  parseResponse: (data: unknown) => unknown = (data) => data
 ): Promise<ApiResult<Data>> {
   const respText = await response.text();
 
@@ -93,7 +97,7 @@ export async function handleResponse<Data>(
   return {
     type: "success",
     response,
-    data: respJson as Data,
+    data: parseResponse(respJson) as Data,
   };
 }
 
@@ -115,6 +119,8 @@ export interface FullParams extends FetchParams {
   body?: unknown;
   host?: string;
   method?: string;
+  /** Parses `date-time` fields in the response body to `Date`. */
+  parseResponse?: (data: unknown) => unknown;
 }
 
 export function mergeParams(a: FetchParams, b: FetchParams): FetchParams {

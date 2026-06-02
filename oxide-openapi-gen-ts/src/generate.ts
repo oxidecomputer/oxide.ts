@@ -10,11 +10,12 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIV3 } from "openapi-types";
 
 import { copyStaticFiles, generateApi } from "./client/api";
+import { buildDateParsers } from "./client/dateParsers";
 import { generateMSWHandlers } from "./client/msw-handlers";
 import { generateTypeTests } from "./client/type-tests";
 import { generateZodValidators } from "./client/zodValidators";
-import { resolve } from "node:path";
-import { existsSync } from "node:fs";
+import { resolve, join } from "node:path";
+import { existsSync, writeFileSync } from "node:fs";
 
 export type Feature = "zod" | "msw" | "typetests";
 export const ALL_FEATURES: Feature[] = ["zod", "msw", "typetests"];
@@ -45,7 +46,11 @@ export async function generate(
   const spec = rawSpec as OpenAPIV3.Document;
 
   copyStaticFiles(destDirAbs);
-  await generateApi(spec, destDirAbs);
+  // Date parsing is driven by `format: date-time` in the schema, compiled to
+  // small per-type functions in date-parsers.ts that Api.ts references.
+  const dateParsers = buildDateParsers(spec);
+  writeFileSync(join(destDirAbs, "date-parsers.ts"), dateParsers.content);
+  await generateApi(spec, destDirAbs, dateParsers);
   if (features.typetests) await generateTypeTests(spec, destDirAbs);
   if (features.msw) await generateMSWHandlers(spec, destDirAbs);
   // msw requires zod

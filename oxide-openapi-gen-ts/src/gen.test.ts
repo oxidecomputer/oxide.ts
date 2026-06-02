@@ -7,7 +7,10 @@
  */
 
 import { test, expect, beforeAll, afterAll } from "vitest";
+import SwaggerParser from "@apidevtools/swagger-parser";
+import type { OpenAPIV3 } from "openapi-types";
 import { generate } from "./generate";
+import { buildDateParsers } from "./client/dateParsers";
 import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
@@ -18,10 +21,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SPEC_FILE = getSpecFilePath(join(__dirname, "../../OMICRON_VERSION"));
 
 let tempDir: string;
+// schema name -> parser expression (e.g. "P.n20"), the same mapping the
+// generator bakes into Api.ts. Lets the behavioral test below resolve parsers
+// by type name instead of hard-coding `nXX`, which renumbers when the spec does.
+let parserExpr: (successType: string | null) => string | null;
 
 beforeAll(async () => {
   tempDir = mkdtempSync(join(tmpdir(), "gen-test-"));
   await generate(SPEC_FILE, tempDir, { zod: true, msw: true, typetests: true });
+  const spec = (await SwaggerParser.parse(SPEC_FILE)) as OpenAPIV3.Document;
+  parserExpr = buildDateParsers(spec).parserExpr;
 });
 
 afterAll(() => {
@@ -54,6 +63,66 @@ test("type-test.ts", async () => {
 
 test("util.ts", async () => {
   await expect(read("util.ts")).toMatchFileSnapshot("./__snapshots__/util.ts");
+});
+
+test("date-parsers.ts", async () => {
+  await expect(read("date-parsers.ts")).toMatchFileSnapshot(
+    "./__snapshots__/date-parsers.ts"
+  );
+});
+
+test("generated date parsers convert dates in place", async () => {
+  // import the freshly generated module and exercise a few representative
+  // shapes: a flat type, a results page, an array-of-dates, and an array
+  // success wrapper. Resolve each parser by schema name via parserExpr rather
+  // than hard-coding `nXX`, so the test keeps asserting the right type even
+  // when the spec changes and the generated function numbers shift.
+  const P = (await import(join(tempDir, "date-parsers.ts"))) as Record<
+    string,
+    <T>(o: T) => T
+  >;
+  const parser = (successType: string) => {
+    const expr = parserExpr(successType);
+    if (!expr) throw new Error(`no date parser for '${successType}'`);
+    return P[expr.slice(2)]; // strip the "P." prefix Api.ts imports under
+  };
+
+  const iso = "2022-05-01T02:03:04Z";
+  const date = new Date(Date.UTC(2022, 4, 1, 2, 3, 4));
+
+  // Instance: flat date fields, including a nullable one left untouched
+  expect(
+    parser("Instance")({
+      timeCreated: iso,
+      timeModified: iso,
+      timeLastAutoRestarted: null,
+    })
+  ).toEqual({
+    timeCreated: date,
+    timeModified: date,
+    timeLastAutoRestarted: null,
+  });
+
+  // a results page recurses into items
+  const page = parser("AddressLotResultsPage")({
+    items: [{ timeCreated: iso, timeModified: iso }],
+  });
+  expect(page.items[0]).toEqual({ timeCreated: date, timeModified: date });
+
+  // Points: arrays of dates
+  expect(parser("Points")({ timestamps: [iso, iso] })).toEqual({
+    timestamps: [date, date],
+  });
+
+  // unparseable strings are left alone, absent fields are not added
+  expect(parser("Instance")({ timeCreated: "nope" })).toEqual({
+    timeCreated: "nope",
+  });
+
+  // array success wrapper maps the element parser over the array
+  expect(parser("ScimClientBearerToken[]")([{ timeCreated: iso }])).toEqual([
+    { timeCreated: date },
+  ]);
 });
 
 test("validate.ts", async () => {

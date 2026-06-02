@@ -45,27 +45,13 @@ export const mapObj =
     return newObj;
   };
 
-const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
-
-export const parseIfDate = (k: string | undefined, v: unknown) => {
-  if (
-    typeof v === "string" &&
-    isoDateRegex.test(v) &&
-    (k?.startsWith("time_") ||
-      k?.endsWith("_time") ||
-      k?.endsWith("_expiration") ||
-      k === "timestamp")
-  ) {
-    const d = new Date(v);
-    if (isNaN(d.getTime())) return v;
-    return d;
-  }
-  return v;
-};
-
 export const snakeify = mapObj(camelToSnake);
 
-export const processResponseBody = mapObj(snakeToCamel, parseIfDate);
+// Snake-case to camel-case key conversion only. Date parsing used to happen
+// here via a field-name heuristic; it now lives in the generated
+// date-parsers.ts, which is driven by `format: date-time` in the schema and
+// applied per-endpoint via the `parseResponse` callback in handleResponse.
+export const processResponseBody = mapObj(snakeToCamel);
 
 export function isNotNull<T>(value: T): value is NonNullable<T> {
   return value != null;
