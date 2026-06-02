@@ -6,10 +6,11 @@
  * Copyright Oxide Computer Company
  */
 
-import { type IO } from "../io";
-import { makeSchemaGenerator, refToSchemaName } from "./base";
 import { type OpenAPIV3 } from "openapi-types";
+
+import { type IO } from "../io";
 import { camelify, snakeToCamel } from "../util";
+import { makeSchemaGenerator, refToSchemaName } from "./base";
 
 /**
  * Generate the .default() method call with transformed default value
@@ -35,8 +36,9 @@ export const schemaToZod = makeSchemaGenerator({
 
   boolean(schema, { w0 }) {
     w0(`SafeBoolean`);
-    w0(getDefaultString(schema));
+    // .nullable() must come before the default so .default(null) is valid
     if (schema.nullable) w0(".nullable()");
+    w0(getDefaultString(schema));
   },
 
   enum(schema, io) {
