@@ -8,9 +8,9 @@
 
 import { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
-import { schemaToZod } from "../schema/zod";
-import { extractDoc, processParamName, snakeToPascal } from "../util";
-import { docComment, getSortedSchemas } from "./base";
+import { createSchemaToZod } from "../schema/zod";
+import { extractDoc, findCyclicSchemas, processParamName, snakeToPascal } from "../util";
+import { docComment, getSchemaEdges, getSortedSchemas } from "./base";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -45,6 +45,13 @@ export async function generateZodValidators(
   /** Helper to ensure booleans provided as strings end up with the correct value */
   const SafeBoolean = z.preprocess(v => v === "false" ? false : v, z.coerce.boolean())
   `);
+
+  // Detect schemas involved in circular dependencies so that
+  // $refs to them are wrapped in z.lazy(), avoiding invalid
+  // forward references in the generated output.
+  const edges = getSchemaEdges(spec);
+  const cyclicSchemas = findCyclicSchemas(edges);
+  const schemaToZod = createSchemaToZod(cyclicSchemas);
 
   const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {

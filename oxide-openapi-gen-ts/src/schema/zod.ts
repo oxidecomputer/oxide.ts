@@ -10,7 +10,7 @@ import { type OpenAPIV3 } from "openapi-types";
 
 import { type IO } from "../io";
 import { camelify, snakeToCamel } from "../util";
-import { makeSchemaGenerator, refToSchemaName } from "./base";
+import { type Schema, makeSchemaGenerator, refToSchemaName } from "./base";
 
 /**
  * Generate the .default() method call with transformed default value
@@ -27,190 +27,216 @@ function getDefaultString(schema: OpenAPIV3.SchemaObject): string {
   return `.default(${JSON.stringify(defaultValue)})`;
 }
 
-export const schemaToZod = makeSchemaGenerator({
-  ref(schema, { w0 }) {
-    if ("$ref" in schema) {
-      w0(refToSchemaName(schema.$ref));
-    }
-  },
+/**
+ * Create a schema-to-zod generator. When `lazySchemas` is provided, any
+ * `$ref` pointing to a name in that set is wrapped in `z.lazy()` to break
+ * circular references in the generated output.
+ */
+export function createSchemaToZod(
+  lazySchemas: Set<string> = new Set()
+): (schema: Schema, io: IO) => void {
+  // Forward-declare so the recursive handlers can close over it.
+  let generator: (schema: Schema, io: IO) => void;
 
-  boolean(schema, { w0 }) {
-    w0(`SafeBoolean`);
-    // .nullable() must come before the default so .default(null) is valid
-    if (schema.nullable) w0(".nullable()");
-    w0(getDefaultString(schema));
-  },
-
-  enum(schema, io) {
-    if (schema.type === "string") {
-      io.w0(`z.enum(${JSON.stringify(schema.enum)})`);
-    } else if (schema.type === "integer") {
-      schemaToZodInt(schema, io);
-    } else {
-      throw new Error(`Unsupported enum type ${schema.type}`);
-    }
-    if (schema.nullable) io.w0(".nullable()");
-  },
-
-  string(schema, { w0 }) {
-    // Handle special formats that become standalone in Zod v4
-    if (schema.format === "uuid") {
-      w0("z.uuid()");
-    } else if (schema.format === "ip") {
-      // Generic IP should accept both IPv4 and IPv6
-      w0("z.union([z.ipv4(), z.ipv6()])");
-    } else if (schema.format === "ipv4") {
-      w0("z.ipv4()");
-    } else if (schema.format === "ipv6") {
-      w0("z.ipv6()");
-    } else {
-      // Regular string handling
-      w0(`z.string()`);
-
-      if ("minLength" in schema) {
-        w0(`.min(${schema.minLength})`);
+  generator = makeSchemaGenerator({
+    ref(schema, { w0 }) {
+      if ("$ref" in schema) {
+        const name = refToSchemaName(schema.$ref);
+        if (lazySchemas.has(name)) {
+          w0(`z.lazy(() => ${name})`);
+        } else {
+          w0(name);
+        }
       }
-      if ("maxLength" in schema) {
-        w0(`.max(${schema.maxLength})`);
-      }
-      if ("pattern" in schema) {
-        w0(`.regex(${new RegExp(schema.pattern!).toString()})`);
-      }
-    }
+    },
 
-    if (schema.nullable) w0(".nullable()");
-    w0(getDefaultString(schema));
-  },
+    boolean(schema, { w0 }) {
+      w0(`SafeBoolean`);
+      // .nullable() must come before the default so .default(null) is valid
+      if (schema.nullable) w0(".nullable()");
+      w0(getDefaultString(schema));
+    },
 
-  date(schema, { w0 }) {
-    w0("z.coerce.date()");
-    if (schema.nullable) w0(".nullable()");
-  },
-
-  number(schema, { w0 }) {
-    w0("z.number()");
-    if (schema.nullable) w0(".nullable()");
-    w0(getDefaultString(schema));
-  },
-
-  integer(schema, io) {
-    schemaToZodInt(schema, io);
-    if (schema.nullable) io.w0(".nullable()");
-    io.w0(getDefaultString(schema));
-  },
-
-  array(schema, io) {
-    const { w0 } = io;
-    schemaToZod(schema.items, io);
-    w0(".array()");
-    if (schema.nullable) io.w0(".nullable()");
-    w0(getDefaultString(schema));
-    if (schema.uniqueItems) w0(`.refine(...uniqueItems)`);
-  },
-
-  object(schema, io) {
-    const { w0, w } = io;
-    // record type, which only tells us the type of the values
-    if (!schema.properties || Object.keys(schema.properties).length === 0) {
-      w0("z.record(z.string(),");
-      if (typeof schema.additionalProperties === "object") {
-        schemaToZod(schema.additionalProperties, io);
+    enum(schema, io) {
+      if (schema.type === "string") {
+        io.w0(`z.enum(${JSON.stringify(schema.enum)})`);
+      } else if (schema.type === "integer") {
+        schemaToZodInt(schema, io);
       } else {
-        w0("z.unknown()");
+        throw new Error(`Unsupported enum type ${schema.type}`);
       }
-      w0(")");
       if (schema.nullable) io.w0(".nullable()");
-      return;
-    }
+    },
 
-    w0("z.object({");
-    for (const [name, subSchema] of Object.entries(schema.properties || {})) {
-      w0(`${JSON.stringify(snakeToCamel(name))}: `);
-      schemaToZod(subSchema, io);
-      // Only add .optional() if the property is not required AND doesn't have a default value
-      // .default() already makes the input optional, and adding .optional() would prevent the default from being applied
-      // Use getDefaultString to ensure we match actual default emission
-      const hasDefault =
-        "$ref" in subSchema ? false : getDefaultString(subSchema) !== "";
-      if (!schema.required?.includes(name) && !hasDefault) {
-        w0(`.optional()`);
+    string(schema, { w0 }) {
+      // Handle special formats that become standalone in Zod v4
+      if (schema.format === "uuid") {
+        w0("z.uuid()");
+      } else if (schema.format === "ip") {
+        // Generic IP should accept both IPv4 and IPv6
+        w0("z.union([z.ipv4(), z.ipv6()])");
+      } else if (schema.format === "ipv4") {
+        w0("z.ipv4()");
+      } else if (schema.format === "ipv6") {
+        w0("z.ipv6()");
+      } else {
+        // Regular string handling
+        w0(`z.string()`);
+
+        if ("minLength" in schema) {
+          w0(`.min(${schema.minLength})`);
+        }
+        if ("maxLength" in schema) {
+          w0(`.max(${schema.maxLength})`);
+        }
+        if ("pattern" in schema) {
+          w0(`.regex(${new RegExp(schema.pattern!).toString()})`);
+        }
       }
-      w(",");
-    }
-    w0("})");
-    if (schema.nullable) io.w0(".nullable()");
-    w0(getDefaultString(schema));
-  },
 
-  oneOf(schema, io) {
-    if (!schema.oneOf) return;
-    const { w } = io;
+      if (schema.nullable) w0(".nullable()");
+      w0(getDefaultString(schema));
+    },
 
-    if (schema.oneOf.length === 1) {
-      schemaToZod(schema.oneOf[0], io);
+    date(schema, { w0 }) {
+      w0("z.coerce.date()");
+      if (schema.nullable) w0(".nullable()");
+    },
+
+    number(schema, { w0 }) {
+      w0("z.number()");
+      if (schema.nullable) w0(".nullable()");
+      w0(getDefaultString(schema));
+    },
+
+    integer(schema, io) {
+      schemaToZodInt(schema, io);
       if (schema.nullable) io.w0(".nullable()");
-      return;
-    }
+      io.w0(getDefaultString(schema));
+    },
 
-    /**
-     * When dropshot serializes an enum sometimes it breaks it down into a `oneOf` with
-     * single element enums such that each individual enum can contain its own description. For zod
-     * this translates into a union of single element enums which is unnecessarily complex. We just
-     * flatten it down to a single enum here.
-     *
-     * @see https://github.com/oxidecomputer/oxide.ts/issues/178 for more details
-     */
-    if (schema.oneOf.every((s) => s && "enum" in s && s.enum?.length === 1)) {
-      const enums = schema.oneOf.map(
-        (s) => (s as OpenAPIV3.SchemaObject).enum![0]
-      );
-      w(`z.enum([${enums.map((e) => JSON.stringify(e)).join(", ")}])`);
+    array(schema, io) {
+      const { w0 } = io;
+      generator(schema.items, io);
+      w0(".array()");
       if (schema.nullable) io.w0(".nullable()");
-      return;
-    }
+      w0(getDefaultString(schema));
+      if (schema.uniqueItems) w0(`.refine(...uniqueItems)`);
+    },
 
-    w("z.union([");
-    for (const s of schema.oneOf) {
-      schemaToZod(s, io);
-      w(",");
-    }
-    w("])");
-    if (schema.nullable) io.w0(".nullable()");
-  },
+    object(schema, io) {
+      const { w0, w } = io;
+      // record type, which only tells us the type of the values
+      if (!schema.properties || Object.keys(schema.properties).length === 0) {
+        w0("z.record(z.string(),");
+        if (typeof schema.additionalProperties === "object") {
+          generator(schema.additionalProperties, io);
+        } else {
+          w0("z.unknown()");
+        }
+        w0(")");
+        if (schema.nullable) io.w0(".nullable()");
+        return;
+      }
 
-  allOf(schema, io) {
-    if (!schema.allOf) return;
-    const { w, w0 } = io;
+      w0("z.object({");
+      for (const [name, subSchema] of Object.entries(
+        schema.properties || {}
+      )) {
+        w0(`${JSON.stringify(snakeToCamel(name))}: `);
+        generator(subSchema, io);
+        // Only add .optional() if the property is not required AND doesn't have a default value
+        // .default() already makes the input optional, and adding .optional() would prevent the default from being applied
+        // Use getDefaultString to ensure we match actual default emission
+        const hasDefault =
+          "$ref" in subSchema ? false : getDefaultString(subSchema) !== "";
+        if (!schema.required?.includes(name) && !hasDefault) {
+          w0(`.optional()`);
+        }
+        w(",");
+      }
+      w0("})");
+      if (schema.nullable) io.w0(".nullable()");
+      w0(getDefaultString(schema));
+    },
 
-    if (schema.allOf.length === 0) {
-      throw new Error(
-        `Unexpected "allOf" should have at least one schema: ${schema}`
-      );
-    }
+    oneOf(schema, io) {
+      if (!schema.oneOf) return;
+      const { w } = io;
 
-    if (schema.allOf.length === 1) {
-      schemaToZod(schema.allOf[0], io);
-    } else {
-      w("z.intersection([");
-      for (const s of schema.allOf) {
-        schemaToZod(s, io);
+      if (schema.oneOf.length === 1) {
+        generator(schema.oneOf[0], io);
+        if (schema.nullable) io.w0(".nullable()");
+        return;
+      }
+
+      /**
+       * When dropshot serializes an enum sometimes it breaks it down into a `oneOf` with
+       * single element enums such that each individual enum can contain its own description. For zod
+       * this translates into a union of single element enums which is unnecessarily complex. We just
+       * flatten it down to a single enum here.
+       *
+       * @see https://github.com/oxidecomputer/oxide.ts/issues/178 for more details
+       */
+      if (
+        schema.oneOf.every((s) => s && "enum" in s && s.enum?.length === 1)
+      ) {
+        const enums = schema.oneOf.map(
+          (s) => (s as OpenAPIV3.SchemaObject).enum![0]
+        );
+        w(`z.enum([${enums.map((e) => JSON.stringify(e)).join(", ")}])`);
+        if (schema.nullable) io.w0(".nullable()");
+        return;
+      }
+
+      w("z.union([");
+      for (const s of schema.oneOf) {
+        generator(s, io);
         w(",");
       }
       w("])");
-    }
+      if (schema.nullable) io.w0(".nullable()");
+    },
 
-    if (schema.nullable) w0(".nullable()");
-    w0(getDefaultString(schema));
-  },
+    allOf(schema, io) {
+      if (!schema.allOf) return;
+      const { w, w0 } = io;
 
-  empty({ w0 }) {
-    w0("z.record(z.string(), z.unknown())");
-  },
+      if (schema.allOf.length === 0) {
+        throw new Error(
+          `Unexpected "allOf" should have at least one schema: ${schema}`
+        );
+      }
 
-  default(schema) {
-    throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(schema, null, 2)}`);
-  },
-});
+      if (schema.allOf.length === 1) {
+        generator(schema.allOf[0], io);
+      } else {
+        w("z.intersection([");
+        for (const s of schema.allOf) {
+          generator(s, io);
+          w(",");
+        }
+        w("])");
+      }
+
+      if (schema.nullable) w0(".nullable()");
+      w0(getDefaultString(schema));
+    },
+
+    empty({ w0 }) {
+      w0("z.record(z.string(), z.unknown())");
+    },
+
+    default(schema) {
+      throw Error(`UNHANDLED SCHEMA: ${JSON.stringify(schema, null, 2)}`);
+    },
+  });
+
+  return generator;
+}
+
+/** Default generator with no lazy schemas, for use outside of full codegen. */
+export const schemaToZod = createSchemaToZod();
 
 function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   if ("enum" in schema) {

@@ -9,7 +9,7 @@
 import { beforeEach, expect, test } from "vitest";
 
 import { initIO, TestWritable } from "../io";
-import { schemaToZod } from "./zod";
+import { createSchemaToZod, schemaToZod } from "./zod";
 
 const out = new TestWritable();
 const io = initIO(out);
@@ -648,4 +648,48 @@ test("default null with nullable should emit default", () => {
     "value": z.string().nullable().default(null),
     })"
   `);
+});
+
+test("ref with lazy schema", () => {
+  const lazyZod = createSchemaToZod(new Set(["MyType"]));
+  lazyZod({ $ref: "#/components/schemas/MyType" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"z.lazy(() => MyType)"');
+});
+
+test("ref without lazy schema unchanged", () => {
+  const lazyZod = createSchemaToZod(new Set(["OtherType"]));
+  lazyZod({ $ref: "#/components/schemas/MyType" }, io);
+  expect(out.value()).toMatchInlineSnapshot('"MyType"');
+});
+
+test("object with lazy ref property", () => {
+  const lazyZod = createSchemaToZod(new Set(["TypeB"]));
+  lazyZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        other: { $ref: "#/components/schemas/TypeB" },
+      },
+      required: ["name"],
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "other": z.lazy(() => TypeB).optional(),
+    })"
+  `);
+});
+
+test("array of lazy ref", () => {
+  const lazyZod = createSchemaToZod(new Set(["TreeNode"]));
+  lazyZod(
+    {
+      type: "array",
+      items: { $ref: "#/components/schemas/TreeNode" },
+    },
+    io
+  );
+  expect(out.value()).toMatchInlineSnapshot('"z.lazy(() => TreeNode).array()"');
 });
