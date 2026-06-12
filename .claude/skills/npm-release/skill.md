@@ -1,6 +1,6 @@
 ---
 name: npm-release
-description: Bump @oxide/api to a new omicron release tag, make the PR, merge it, publish to npm, and tag the repo.
+description: Bump @oxide/api to a new omicron release tag, open the PR, and (after the user merges) hand off the npm publish commands.
 user_invocable: true
 ---
 
@@ -75,21 +75,34 @@ Ask the user for:
    branches and may create an "Autogenerate config update" commit — this is
    expected. The `validate` workflow must pass.
 
-10. **Merge the PR** once CI is green. Confirm with the user before merging.
-    ```
-    gh pr merge <number> --squash
-    ```
+10. **Hand off to the user for review and merge.** Once CI is green, report
+    that the PR is ready and stop. The user will review and merge the PR
+    themselves, then tell you to continue. Do not merge the PR yourself.
 
 ### Phase 3: Publish
 
-11. **Publish to npm.** From `oxide-api/`:
+Do **not** run these steps yourself. `npm publish` and `npm dist-tag` require
+interactive npm auth (a browser one-time-password flow) that won't work from an
+automated tool call. Instead, present the exact commands — with `<version>`
+and `<N>` already substituted for this release — and let the user
+run them. Give the commands one step at a time (or as a short numbered list),
+and wait for the user to confirm each is done before relying on it.
+
+11. **Pull main.** After the PR is merged, update the local working copy so the
+    publish builds from the merged commit:
+    ```
+    jj git fetch
+    jj new main
+    ```
+
+12. **Publish to npm.** From `oxide-api/`:
     ```
     npm publish
     ```
-    The `prepublishOnly` script runs `npm run build` (tsup) automatically.
-    The user must be logged into npm with publish access to the `@oxide` scope.
+    The `prepublishOnly` script runs `npm run build` (tsup) automatically. The
+    user must be logged into npm with publish access to the `@oxide` scope.
 
-12. **Add npm dist-tag.** Tag the published version with the release name so
+13. **Add npm dist-tag.** Tag the published version with the release name so
     consumers can pin to it:
     ```
     npm dist-tag add @oxide/api@<version> rel<N>
@@ -97,15 +110,6 @@ Ask the user for:
     where `<N>` is the system release number (e.g., `19` for `rel/v19/rc0`).
     Note: bare version numbers like `v10` are not allowed by npm because they
     parse as semver — use the `rel` prefix.
-
-13. **Tag the repo.** After the merge commit lands on main, pull and tag:
-    ```
-    jj git fetch
-    jj tag create <tag-name> -r main
-    jj git push --tag <tag-name>
-    ```
-    Use a tag name that matches the omicron release, e.g., `v19` for
-    `rel/v19/rc0`, or ask the user what tag name they want.
 
 ### Notes
 
