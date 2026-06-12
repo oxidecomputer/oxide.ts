@@ -55,7 +55,9 @@ export const topologicalSort = (edges: Map<string, string[]>) => {
  * Find all schemas involved in dependency cycles using Tarjan's algorithm.
  * Returns a set of schema names that are part of any cycle (including self-loops).
  */
-export const findCyclicSchemas = (edges: Map<string, string[]>): Set<string> => {
+export const findCyclicSchemas = (
+  edges: Map<string, string[]>
+): Set<string> => {
   const cyclic = new Set<string>();
   const indexMap = new Map<string, number>();
   const lowlinkMap = new Map<string, number>();

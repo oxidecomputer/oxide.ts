@@ -23,6 +23,11 @@ export interface IO {
    * and continue running, we must explicitly wait for the streams.
    */
   end: () => Promise<void>;
+  /**
+   * Names of schemas involved in reference cycles. Only used by the zod
+   * generator, which wraps refs to these schemas in z.lazy().
+   */
+  lazySchemas?: Set<string>;
 }
 
 // not a class because we want to destructure w and w0 in the calling code, and
