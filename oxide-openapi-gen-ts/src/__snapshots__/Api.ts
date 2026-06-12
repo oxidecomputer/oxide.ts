@@ -3,6 +3,7 @@
     import type { FetchParams, FullParams, ApiResult } from "./http-client";
     import { dateReplacer, handleResponse, mergeParams, toQueryString } from './http-client'
     import { snakeify } from './util'
+    import * as P from './date-parsers'
 
     export type { ApiResult, ErrorBody, ErrorResult } from './http-client'
     
@@ -7749,6 +7750,7 @@ export interface ApiConfig {
         path,
         query,
         host,
+        parseResponse,
         ...fetchParams
       }: FullParams): Promise<ApiResult<Data>> {
         const url = (host || this.host) + path + toQueryString(query);
@@ -7756,7 +7758,7 @@ export interface ApiConfig {
           ...mergeParams(this.baseParams, fetchParams),
           body: JSON.stringify(snakeify(body), dateReplacer),
         };
-        return handleResponse(await fetch(url, init));
+        return handleResponse(await fetch(url, init), parseResponse);
       }
        
       methods = {
@@ -7823,6 +7825,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -7867,6 +7870,7 @@ params: FetchParams = {}) => {
            path: `/experimental/v1/system/support-bundles`,
            method: "GET",
   query,
+  parseResponse: P.n22,
   ...params,
          })
       },
@@ -7881,6 +7885,7 @@ params: FetchParams = {}) => {
            path: `/experimental/v1/system/support-bundles`,
            method: "POST",
   body,
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -7894,6 +7899,7 @@ params: FetchParams = {}) => {
          return this.request<SupportBundleInfo>({
            path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
            method: "GET",
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -7909,6 +7915,7 @@ params: FetchParams = {}) => {
            path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
            method: "PUT",
   body,
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -8014,6 +8021,7 @@ params: FetchParams = {}) => {
            path: `/v1/affinity-groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8030,6 +8038,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8045,6 +8054,7 @@ params: FetchParams = {}) => {
            path: `/v1/affinity-groups/${path.affinityGroup}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8062,6 +8072,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8165,6 +8176,7 @@ params: FetchParams = {}) => {
            path: `/v1/alert-receivers`,
            method: "GET",
   query,
+  parseResponse: P.n11,
   ...params,
          })
       },
@@ -8178,6 +8190,7 @@ params: FetchParams = {}) => {
          return this.request<AlertReceiver>({
            path: `/v1/alert-receivers/${path.receiver}`,
            method: "GET",
+  parseResponse: P.n10,
   ...params,
          })
       },
@@ -8206,6 +8219,7 @@ params: FetchParams = {}) => {
            path: `/v1/alert-receivers/${path.receiver}/deliveries`,
            method: "GET",
   query,
+  parseResponse: P.n6,
   ...params,
          })
       },
@@ -8221,6 +8235,7 @@ params: FetchParams = {}) => {
            path: `/v1/alert-receivers/${path.receiver}/probe`,
            method: "POST",
   query,
+  parseResponse: P.n7,
   ...params,
          })
       },
@@ -8278,6 +8293,7 @@ params: FetchParams = {}) => {
            path: `/v1/anti-affinity-groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8294,6 +8310,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8309,6 +8326,7 @@ params: FetchParams = {}) => {
            path: `/v1/anti-affinity-groups/${path.antiAffinityGroup}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8326,6 +8344,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8440,6 +8459,7 @@ params: FetchParams = {}) => {
            path: `/v1/certificates`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8454,6 +8474,7 @@ params: FetchParams = {}) => {
            path: `/v1/certificates`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8467,6 +8488,7 @@ params: FetchParams = {}) => {
          return this.request<Certificate>({
            path: `/v1/certificates/${path.certificate}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8494,6 +8516,7 @@ params: FetchParams = {}) => {
            path: `/v1/disks`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8510,6 +8533,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8525,6 +8549,7 @@ params: FetchParams = {}) => {
            path: `/v1/disks/${path.disk}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8618,6 +8643,7 @@ params: FetchParams = {}) => {
            path: `/v1/external-subnets`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8634,6 +8660,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8649,6 +8676,7 @@ params: FetchParams = {}) => {
            path: `/v1/external-subnets/${path.externalSubnet}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8666,6 +8694,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8698,6 +8727,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8713,6 +8743,7 @@ params: FetchParams = {}) => {
            path: `/v1/external-subnets/${path.externalSubnet}/detach`,
            method: "POST",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8727,6 +8758,7 @@ params: FetchParams = {}) => {
            path: `/v1/floating-ips`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8743,6 +8775,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8758,6 +8791,7 @@ params: FetchParams = {}) => {
            path: `/v1/floating-ips/${path.floatingIp}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8775,6 +8809,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8807,6 +8842,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8822,6 +8858,7 @@ params: FetchParams = {}) => {
            path: `/v1/floating-ips/${path.floatingIp}/detach`,
            method: "POST",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8836,6 +8873,7 @@ params: FetchParams = {}) => {
            path: `/v1/groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8849,6 +8887,7 @@ params: FetchParams = {}) => {
          return this.request<Group>({
            path: `/v1/groups/${path.groupId}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8863,6 +8902,7 @@ params: FetchParams = {}) => {
            path: `/v1/images`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -8879,6 +8919,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8894,6 +8935,7 @@ params: FetchParams = {}) => {
            path: `/v1/images/${path.image}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8924,6 +8966,7 @@ params: FetchParams = {}) => {
            path: `/v1/images/${path.image}/demote`,
            method: "POST",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8939,6 +8982,7 @@ params: FetchParams = {}) => {
            path: `/v1/images/${path.image}/promote`,
            method: "POST",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -8953,6 +8997,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances`,
            method: "GET",
   query,
+  parseResponse: P.n21,
   ...params,
          })
       },
@@ -8969,6 +9014,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n20,
   ...params,
          })
       },
@@ -8984,6 +9030,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}`,
            method: "GET",
   query,
+  parseResponse: P.n20,
   ...params,
          })
       },
@@ -9001,6 +9048,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n20,
   ...params,
          })
       },
@@ -9031,6 +9079,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/affinity-groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9046,6 +9095,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/anti-affinity-groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9061,6 +9111,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/disks`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9078,6 +9129,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9095,6 +9147,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9110,6 +9163,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/external-ips`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9127,6 +9181,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9157,6 +9212,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/external-subnets`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9172,6 +9228,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/multicast-groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9189,6 +9246,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9219,6 +9277,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/reboot`,
            method: "POST",
   query,
+  parseResponse: P.n20,
   ...params,
          })
       },
@@ -9249,6 +9308,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/ssh-public-keys`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9264,6 +9324,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/start`,
            method: "POST",
   query,
+  parseResponse: P.n20,
   ...params,
          })
       },
@@ -9279,6 +9340,7 @@ params: FetchParams = {}) => {
            path: `/v1/instances/${path.instance}/stop`,
            method: "POST",
   query,
+  parseResponse: P.n20,
   ...params,
          })
       },
@@ -9293,6 +9355,7 @@ params: FetchParams = {}) => {
            path: `/v1/internet-gateway-ip-addresses`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9309,6 +9372,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9338,6 +9402,7 @@ params: FetchParams = {}) => {
            path: `/v1/internet-gateway-ip-pools`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9354,6 +9419,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9383,6 +9449,7 @@ params: FetchParams = {}) => {
            path: `/v1/internet-gateways`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9399,6 +9466,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9414,6 +9482,7 @@ params: FetchParams = {}) => {
            path: `/v1/internet-gateways/${path.gateway}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9443,6 +9512,7 @@ params: FetchParams = {}) => {
            path: `/v1/ip-pools`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9456,6 +9526,7 @@ params: FetchParams = {}) => {
          return this.request<SiloIpPool>({
            path: `/v1/ip-pools/${path.pool}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9493,6 +9564,7 @@ params: FetchParams = {}) => {
          return this.request<CurrentUser>({
            path: `/v1/me`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9507,6 +9579,7 @@ params: FetchParams = {}) => {
            path: `/v1/me/access-tokens`,
            method: "GET",
   query,
+  parseResponse: P.n19,
   ...params,
          })
       },
@@ -9534,6 +9607,7 @@ params: FetchParams = {}) => {
            path: `/v1/me/groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9548,6 +9622,7 @@ params: FetchParams = {}) => {
            path: `/v1/me/ssh-keys`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9562,6 +9637,7 @@ params: FetchParams = {}) => {
            path: `/v1/me/ssh-keys`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9575,6 +9651,7 @@ params: FetchParams = {}) => {
          return this.request<SshKey>({
            path: `/v1/me/ssh-keys/${path.sshKey}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9603,6 +9680,7 @@ params: FetchParams = {}) => {
            path: `/v1/metrics/${path.metricName}`,
            method: "GET",
   query,
+  parseResponse: P.n26,
   ...params,
          })
       },
@@ -9617,6 +9695,7 @@ params: FetchParams = {}) => {
            path: `/v1/multicast-groups`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9630,6 +9709,7 @@ params: FetchParams = {}) => {
          return this.request<MulticastGroup>({
            path: `/v1/multicast-groups/${path.multicastGroup}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9645,6 +9725,7 @@ params: FetchParams = {}) => {
            path: `/v1/multicast-groups/${path.multicastGroup}/members`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9659,6 +9740,7 @@ params: FetchParams = {}) => {
            path: `/v1/network-interfaces`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9675,6 +9757,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9690,6 +9773,7 @@ params: FetchParams = {}) => {
            path: `/v1/network-interfaces/${path.interface}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9707,6 +9791,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9772,6 +9857,7 @@ params: FetchParams = {}) => {
            path: `/v1/projects`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9786,6 +9872,7 @@ params: FetchParams = {}) => {
            path: `/v1/projects`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9799,6 +9886,7 @@ params: FetchParams = {}) => {
          return this.request<Project>({
            path: `/v1/projects/${path.project}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9814,6 +9902,7 @@ params: FetchParams = {}) => {
            path: `/v1/projects/${path.project}`,
            method: "PUT",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9869,6 +9958,7 @@ params: FetchParams = {}) => {
            path: `/v1/snapshots`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9885,6 +9975,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9900,6 +9991,7 @@ params: FetchParams = {}) => {
            path: `/v1/snapshots/${path.snapshot}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9929,6 +10021,7 @@ params: FetchParams = {}) => {
            path: `/v1/subnet-pools`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -9942,6 +10035,7 @@ params: FetchParams = {}) => {
          return this.request<SiloSubnetPool>({
            path: `/v1/subnet-pools/${path.pool}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -9956,6 +10050,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/audit-log`,
            method: "GET",
   query,
+  parseResponse: P.n13,
   ...params,
          })
       },
@@ -10011,6 +10106,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/disks`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10024,6 +10120,7 @@ params: FetchParams = {}) => {
          return this.request<PhysicalDisk>({
            path: `/v1/system/hardware/disks/${path.diskId}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10053,6 +10150,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/rack-switch-port/${path.rackId}/${path.switchSlot}/${path.port}/lldp/neighbors`,
            method: "GET",
   query,
+  parseResponse: P.n24,
   ...params,
          })
       },
@@ -10067,6 +10165,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/racks`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10080,6 +10179,7 @@ params: FetchParams = {}) => {
          return this.request<Rack>({
            path: `/v1/system/hardware/racks/${path.rackId}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10095,6 +10195,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/racks/${path.rackId}/membership`,
            method: "GET",
   query,
+  parseResponse: P.n31,
   ...params,
          })
       },
@@ -10108,6 +10209,7 @@ params: FetchParams = {}) => {
          return this.request<RackMembershipStatus>({
            path: `/v1/system/hardware/racks/${path.rackId}/membership/abort`,
            method: "POST",
+  parseResponse: P.n31,
   ...params,
          })
       },
@@ -10123,6 +10225,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/racks/${path.rackId}/membership/add`,
            method: "POST",
   body,
+  parseResponse: P.n31,
   ...params,
          })
       },
@@ -10137,6 +10240,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/sleds`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10150,6 +10254,7 @@ params: FetchParams = {}) => {
          return this.request<Sled>({
            path: `/v1/system/hardware/sleds/${path.sledId}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10165,6 +10270,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/sleds/${path.sledId}/disks`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10180,6 +10286,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/sleds/${path.sledId}/instances`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10316,6 +10423,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/hardware/switches`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10329,6 +10437,7 @@ params: FetchParams = {}) => {
          return this.request<Switch>({
            path: `/v1/system/hardware/switches/${path.switchId}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10343,6 +10452,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/identity-providers`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10359,6 +10469,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10407,6 +10518,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10422,6 +10534,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/identity-providers/saml/${path.provider}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10436,6 +10549,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/ip-pools`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10450,6 +10564,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/ip-pools`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10463,6 +10578,7 @@ params: FetchParams = {}) => {
          return this.request<IpPool>({
            path: `/v1/system/ip-pools/${path.pool}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10478,6 +10594,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/ip-pools/${path.pool}`,
            method: "PUT",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10506,6 +10623,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/ip-pools/${path.pool}/ranges`,
            method: "GET",
   query,
+  parseResponse: P.n22,
   ...params,
          })
       },
@@ -10521,6 +10639,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/ip-pools/${path.pool}/ranges/add`,
            method: "POST",
   body,
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -10618,6 +10737,7 @@ params: FetchParams = {}) => {
          return this.request<IpPool>({
            path: `/v1/system/ip-pools-service`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10632,6 +10752,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/ip-pools-service/ranges`,
            method: "GET",
   query,
+  parseResponse: P.n22,
   ...params,
          })
       },
@@ -10646,6 +10767,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/ip-pools-service/ranges/add`,
            method: "POST",
   body,
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -10675,6 +10797,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/metrics/${path.metricName}`,
            method: "GET",
   query,
+  parseResponse: P.n26,
   ...params,
          })
       },
@@ -10689,6 +10812,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/address-lot`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10703,6 +10827,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/address-lot`,
            method: "POST",
   body,
+  parseResponse: P.n1,
   ...params,
          })
       },
@@ -10716,6 +10841,7 @@ params: FetchParams = {}) => {
          return this.request<AddressLotViewResponse>({
            path: `/v1/system/networking/address-lot/${path.addressLot}`,
            method: "GET",
+  parseResponse: P.n1,
   ...params,
          })
       },
@@ -10755,6 +10881,7 @@ params: FetchParams = {}) => {
          return this.request<AllowList>({
            path: `/v1/system/networking/allow-list`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10769,6 +10896,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/allow-list`,
            method: "PUT",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10822,6 +10950,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/bgp`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -10836,6 +10965,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/bgp`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -10864,6 +10994,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/bgp-announce-set`,
            method: "GET",
   query,
+  parseResponse: P.n39,
   ...params,
          })
       },
@@ -10878,6 +11009,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/bgp-announce-set`,
            method: "PUT",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11059,6 +11191,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/switch-port-settings`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11073,6 +11206,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/networking/switch-port-settings`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11100,6 +11234,7 @@ params: FetchParams = {}) => {
          return this.request<SwitchPortSettings>({
            path: `/v1/system/networking/switch-port-settings/${path.port}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11139,6 +11274,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/scim/tokens`,
            method: "GET",
   query,
+  parseResponse: P.n40,
   ...params,
          })
       },
@@ -11153,6 +11289,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/scim/tokens`,
            method: "POST",
   query,
+  parseResponse: P.n18,
   ...params,
          })
       },
@@ -11168,6 +11305,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/scim/tokens/${path.tokenId}`,
            method: "GET",
   query,
+  parseResponse: P.n18,
   ...params,
          })
       },
@@ -11211,6 +11349,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/silos`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11225,6 +11364,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/silos`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11238,6 +11378,7 @@ params: FetchParams = {}) => {
          return this.request<Silo>({
            path: `/v1/system/silos/${path.silo}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11266,6 +11407,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/silos/${path.silo}/ip-pools`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11337,6 +11479,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/silos/${path.silo}/subnet-pools`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11351,6 +11494,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/subnet-pools`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11365,6 +11509,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/subnet-pools`,
            method: "POST",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11378,6 +11523,7 @@ params: FetchParams = {}) => {
          return this.request<SubnetPool>({
            path: `/v1/system/subnet-pools/${path.pool}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11393,6 +11539,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/subnet-pools/${path.pool}`,
            method: "PUT",
   body,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11421,6 +11568,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/subnet-pools/${path.pool}/members`,
            method: "GET",
   query,
+  parseResponse: P.n22,
   ...params,
          })
       },
@@ -11436,6 +11584,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/subnet-pools/${path.pool}/members/add`,
            method: "POST",
   body,
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -11536,6 +11685,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/timeseries/query`,
            method: "POST",
   body,
+  parseResponse: P.n30,
   ...params,
          })
       },
@@ -11550,6 +11700,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/timeseries/schemas`,
            method: "GET",
   query,
+  parseResponse: P.n34,
   ...params,
          })
       },
@@ -11578,6 +11729,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/update/repositories`,
            method: "GET",
   query,
+  parseResponse: P.n22,
   ...params,
          })
       },
@@ -11592,6 +11744,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/update/repositories`,
            method: "PUT",
   query,
+  parseResponse: P.n35,
   ...params,
          })
       },
@@ -11605,6 +11758,7 @@ params: FetchParams = {}) => {
          return this.request<TufRepo>({
            path: `/v1/system/update/repositories/${path.systemVersion}`,
            method: "GET",
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -11616,6 +11770,7 @@ params: FetchParams = {}) => {
          return this.request<UpdateStatus>({
            path: `/v1/system/update/status`,
            method: "GET",
+  parseResponse: P.n36,
   ...params,
          })
       },
@@ -11644,6 +11799,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/update/trust-roots`,
            method: "GET",
   query,
+  parseResponse: P.n22,
   ...params,
          })
       },
@@ -11655,6 +11811,7 @@ params: FetchParams = {}) => {
          return this.request<UpdatesTrustRoot>({
            path: `/v1/system/update/trust-roots`,
            method: "POST",
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -11668,6 +11825,7 @@ params: FetchParams = {}) => {
          return this.request<UpdatesTrustRoot>({
            path: `/v1/system/update/trust-roots/${path.trustRootId}`,
            method: "GET",
+  parseResponse: P.n8,
   ...params,
          })
       },
@@ -11695,6 +11853,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/users`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11710,6 +11869,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/users/${path.userId}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11724,6 +11884,7 @@ params: FetchParams = {}) => {
            path: `/v1/system/users-builtin`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11737,6 +11898,7 @@ params: FetchParams = {}) => {
          return this.request<UserBuiltin>({
            path: `/v1/system/users-builtin/${path.user}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11780,6 +11942,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n30,
   ...params,
          })
       },
@@ -11794,6 +11957,7 @@ params: FetchParams = {}) => {
            path: `/v1/users`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11807,6 +11971,7 @@ params: FetchParams = {}) => {
          return this.request<User>({
            path: `/v1/users/${path.userId}`,
            method: "GET",
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11822,6 +11987,7 @@ params: FetchParams = {}) => {
            path: `/v1/users/${path.userId}/access-tokens`,
            method: "GET",
   query,
+  parseResponse: P.n19,
   ...params,
          })
       },
@@ -11850,6 +12016,7 @@ params: FetchParams = {}) => {
            path: `/v1/users/${path.userId}/sessions`,
            method: "GET",
   query,
+  parseResponse: P.n15,
   ...params,
          })
       },
@@ -11875,6 +12042,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-firewall-rules`,
            method: "GET",
   query,
+  parseResponse: P.n37,
   ...params,
          })
       },
@@ -11891,6 +12059,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n37,
   ...params,
          })
       },
@@ -11905,6 +12074,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-router-routes`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11921,6 +12091,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11936,6 +12107,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-router-routes/${path.route}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11953,6 +12125,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -11982,6 +12155,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-routers`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -11998,6 +12172,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12013,6 +12188,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-routers/${path.router}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12030,6 +12206,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12059,6 +12236,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-subnets`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -12075,6 +12253,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12090,6 +12269,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-subnets/${path.subnet}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12107,6 +12287,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12137,6 +12318,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpc-subnets/${path.subnet}/network-interfaces`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -12151,6 +12333,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpcs`,
            method: "GET",
   query,
+  parseResponse: P.n2,
   ...params,
          })
       },
@@ -12167,6 +12350,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12182,6 +12366,7 @@ params: FetchParams = {}) => {
            path: `/v1/vpcs/${path.vpc}`,
            method: "GET",
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12199,6 +12384,7 @@ params: FetchParams = {}) => {
            method: "PUT",
   body,
   query,
+  parseResponse: P.n0,
   ...params,
          })
       },
@@ -12228,6 +12414,7 @@ params: FetchParams = {}) => {
            path: `/v1/webhook-receivers`,
            method: "POST",
   body,
+  parseResponse: P.n38,
   ...params,
          })
       },
@@ -12257,6 +12444,7 @@ params: FetchParams = {}) => {
            path: `/v1/webhook-secrets`,
            method: "GET",
   query,
+  parseResponse: P.n9,
   ...params,
          })
       },
@@ -12273,6 +12461,7 @@ params: FetchParams = {}) => {
            method: "POST",
   body,
   query,
+  parseResponse: P.n8,
   ...params,
          })
       },

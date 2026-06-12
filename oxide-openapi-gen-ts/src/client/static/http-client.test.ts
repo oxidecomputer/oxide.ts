@@ -50,28 +50,42 @@ describe("handleResponse", () => {
     expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
-  it("parses dates and converts to camel case", async () => {
+  it("converts keys to camel case but does not parse dates on its own", async () => {
     const resp = json({ time_created: "2022-05-01T02:03:04Z" });
     const { response, ...rest } = await handleResponse(resp);
     expect(rest).toMatchObject({
       type: "success",
-      data: {
-        timeCreated: new Date(Date.UTC(2022, 4, 1, 2, 3, 4)),
-      },
+      // no parseResponse callback, so the date stays a string
+      data: { timeCreated: "2022-05-01T02:03:04Z" },
     });
     expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
-  it("leaves unparseable dates alone", async () => {
-    const resp = json({ time_created: "abc" });
-    const { response, ...rest } = await handleResponse(resp);
+  // mimics what a generated date-parser does
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parseTimeCreated = (data: any) => {
+    if (data?.timeCreated) data.timeCreated = new Date(data.timeCreated);
+    return data;
+  };
+
+  it("applies parseResponse on success", async () => {
+    const resp = json({ time_created: "2022-05-01T02:03:04Z" });
+    const { response, ...rest } = await handleResponse(resp, parseTimeCreated);
     expect(rest).toMatchObject({
       type: "success",
-      data: {
-        timeCreated: "abc",
-      },
+      data: { timeCreated: new Date(Date.UTC(2022, 4, 1, 2, 3, 4)) },
     });
     expect(response.headers.get("Content-Type")).toBe("application/json");
+  });
+
+  it("does not apply parseResponse on error", async () => {
+    const resp = json({ time_created: "2022-05-01T02:03:04Z" }, 400);
+    const { response, ...rest } = await handleResponse(resp, parseTimeCreated);
+    expect(rest).toMatchObject({
+      type: "error",
+      data: { timeCreated: "2022-05-01T02:03:04Z" },
+    });
+    expect(response.status).toEqual(400);
   });
 });
 

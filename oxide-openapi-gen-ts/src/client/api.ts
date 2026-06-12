@@ -27,6 +27,7 @@ import {
   getSortedSchemas,
   getOperations,
 } from "./base";
+import type { DateParsers } from "./dateParsers";
 import { schemaToTypes } from "../schema/types";
 
 /**
@@ -115,7 +116,11 @@ function genParamsInterface(
   io.w("}\n");
 }
 
-export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
+export async function generateApi(
+  spec: OpenAPIV3.Document,
+  destDir: string,
+  dateParsers: DateParsers
+) {
   if (!spec.components) return;
 
   const outFile = path.resolve(destDir, "Api.ts");
@@ -128,6 +133,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     import type { FetchParams, FullParams, ApiResult } from "./http-client";
     import { dateReplacer, handleResponse, mergeParams, toQueryString } from './http-client'
     import { snakeify } from './util'
+    import * as P from './date-parsers'
 
     export type { ApiResult, ErrorBody, ErrorResult } from './http-client'
     `);
@@ -218,6 +224,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
         path,
         query,
         host,
+        parseResponse,
         ...fetchParams
       }: FullParams): Promise<ApiResult<Data>> {
         const url = (host || this.host) + path + toQueryString(query);
@@ -225,7 +232,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
           ...mergeParams(this.baseParams, fetchParams),
           body: JSON.stringify(snakeify(body), dateReplacer),
         };
-        return handleResponse(await fetch(url, init));
+        return handleResponse(await fetch(url, init), parseResponse);
       }
        
       methods = {`);
@@ -270,6 +277,10 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     }
     if (queryParams.length > 0) {
       w("  query,");
+    }
+    const parseExpr = dateParsers.parserExpr(successType);
+    if (parseExpr) {
+      w(`  parseResponse: ${parseExpr},`);
     }
     w(`  ...params,
          })
