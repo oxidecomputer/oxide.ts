@@ -157,15 +157,15 @@ test("uniqueItems", () => {
   expect(schema.safeParse(["z", "y"]).success).toBe(true);
   expect(schema.safeParse(["z", "y", "x"]).success).toBe(true);
   expect(schema.safeParse(["x", "x"])).toMatchInlineSnapshot(`
+    {
+      "error": [ZodError: [
       {
-        "error": [ZodError: [
-        {
-          "code": "custom",
-          "message": "Items must be unique",
-          "path": []
-        }
-      ]],
-        "success": false,
+        "code": "custom",
+        "path": [],
+        "message": "Items must be unique"
       }
-    `);
+    ]],
+      "success": false,
+    }
+  `);
 });
