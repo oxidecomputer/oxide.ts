@@ -687,6 +687,21 @@ export const BgpImported = z.preprocess(processResponseBody,z.object({"id": z.nu
 }))
 
 /**
+* Router lifetime in seconds for unnumbered BGP peers
+ */
+export const RouterLifetimeConfig = z.preprocess(processResponseBody,z.number().min(0).max(9000))
+
+export const RouterPeerType = z.preprocess(processResponseBody,z.union([
+z.object({"routerLifetime": RouterLifetimeConfig,
+"type": z.enum(["unnumbered"]),
+}),
+z.object({"ip": z.union([z.ipv4(), z.ipv6()]),
+"type": z.enum(["numbered"]),
+}),
+])
+)
+
+/**
 * Define policy relating to the import and export of prefixes from a BGP peer.
  */
 export const ImportExportPolicy = z.preprocess(processResponseBody,z.union([
@@ -699,9 +714,9 @@ z.object({"type": z.enum(["allow"]),
 )
 
 /**
-* A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer identified by `addr`. The `bgp_config` parameter is a reference to global BGP parameters. The `interface_name` indicates what interface the peer should be contacted on.
+* A BGP peer configuration for an interface. Includes the set of announcements that will be advertised to the peer. The `bgp_config` parameter is a reference to global BGP parameters.
  */
-export const BgpPeer = z.preprocess(processResponseBody,z.object({"addr": z.union([z.ipv4(), z.ipv6()]).nullable().optional(),
+export const BgpPeer = z.preprocess(processResponseBody,z.object({"addr": RouterPeerType,
 "allowedExport": ImportExportPolicy,
 "allowedImport": ImportExportPolicy,
 "bgpConfig": NameOrId,
@@ -711,14 +726,12 @@ export const BgpPeer = z.preprocess(processResponseBody,z.object({"addr": z.unio
 "enforceFirstAs": SafeBoolean,
 "holdTime": z.number().min(0).max(4294967295),
 "idleHoldTime": z.number().min(0).max(4294967295),
-"interfaceName": Name,
 "keepalive": z.number().min(0).max(4294967295),
 "localPref": z.number().min(0).max(4294967295).nullable().optional(),
 "md5AuthKey": z.string().nullable().optional(),
 "minTtl": z.number().min(0).max(255).nullable().optional(),
 "multiExitDiscriminator": z.number().min(0).max(4294967295).nullable().optional(),
 "remoteAsn": z.number().min(0).max(4294967295).nullable().optional(),
-"routerLifetime": z.number().min(0).max(65535),
 "vlanId": z.number().min(0).max(65535).nullable().optional(),
 }))
 
@@ -1005,7 +1018,9 @@ export const Binuint8 = z.preprocess(processResponseBody,z.object({"count": z.nu
 }))
 
 /**
-* Disk block size in bytes
+* Block size in bytes
+* 
+* Valid values are: 512, 2048, or 4096.
  */
 export const BlockSize = z.preprocess(processResponseBody,IntEnum([512,2048,4096] as const))
 
@@ -1481,7 +1496,7 @@ z.object({"state": z.enum(["faulted"]),
 /**
 * View of a Disk
  */
-export const Disk = z.preprocess(processResponseBody,z.object({"blockSize": ByteCount,
+export const Disk = z.preprocess(processResponseBody,z.object({"blockSize": BlockSize,
 "description": z.string(),
 "devicePath": z.string(),
 "diskType": DiskType,
@@ -1904,7 +1919,7 @@ z.object({"data": z.string(),
 * 
 * If `project_id` is present then the image is only visible inside that project. If it's not present then the image is visible to all projects in the silo.
  */
-export const Image = z.preprocess(processResponseBody,z.object({"blockSize": ByteCount,
+export const Image = z.preprocess(processResponseBody,z.object({"blockSize": BlockSize,
 "description": z.string(),
 "digest": Digest.nullable().optional(),
 "id": z.uuid(),
@@ -1965,9 +1980,9 @@ export const InstanceAutoRestartPolicy = z.preprocess(processResponseBody,z.enum
 * 
 * If an instance does not specify a required CPU platform, then when it starts, the control plane selects a host for the instance and then supplies the guest with the "minimum" CPU platform supported by that host. This maximizes the number of hosts that can run the VM if it later needs to migrate to another host.
 * 
-* In all cases, the CPU features presented by a given CPU platform are a subset of what the corresponding hardware may actually support; features which cannot be used from a virtual environment or do not have full hypervisor support may be masked off. See RFD 314 for specific CPU features in a CPU platform.
+* In all cases, the CPU features presented by a given CPU platform are a subset of what the corresponding hardware may actually support; features which cannot be used from a virtual environment or do not have full hypervisor support may be masked off.
  */
-export const InstanceCpuPlatform = z.preprocess(processResponseBody,z.enum(["amd_milan", "amd_turin"])
+export const InstanceCpuPlatform = z.preprocess(processResponseBody,z.enum(["amd_milan", "amd_turin", "amd_turin_v2"])
 )
 
 /**
@@ -1984,6 +1999,7 @@ export const Instance = z.preprocess(processResponseBody,z.object({"autoRestartC
 "bootDiskId": z.uuid().nullable().optional(),
 "cpuPlatform": InstanceCpuPlatform.nullable().optional(),
 "description": z.string(),
+"enableJumboFrames": SafeBoolean,
 "hostname": z.string(),
 "id": z.uuid(),
 "memory": ByteCount,
@@ -2123,6 +2139,7 @@ export const InstanceCreate = z.preprocess(processResponseBody,z.object({"antiAf
 "cpuPlatform": InstanceCpuPlatform.nullable().default(null),
 "description": z.string(),
 "disks": InstanceDiskAttachment.array().default([]),
+"enableJumboFrames": SafeBoolean.default(false),
 "externalIps": ExternalIpCreate.array().default([]),
 "hostname": Hostname,
 "memory": ByteCount,
@@ -2237,6 +2254,7 @@ export const InstanceSerialConsoleData = z.preprocess(processResponseBody,z.obje
 export const InstanceUpdate = z.preprocess(processResponseBody,z.object({"autoRestartPolicy": InstanceAutoRestartPolicy.nullable(),
 "bootDisk": NameOrId.nullable(),
 "cpuPlatform": InstanceCpuPlatform.nullable(),
+"enableJumboFrames": SafeBoolean,
 "memory": ByteCount,
 "multicastGroups": MulticastGroupJoinSpec.array().nullable().default(null),
 "ncpus": InstanceCpuCount,
@@ -2817,6 +2835,31 @@ export const PhysicalDisk = z.preprocess(processResponseBody,z.object({"formFact
 }))
 
 /**
+* The unique identity of a physical disk provided by the manufacturer
+ */
+export const PhysicalDiskManufacturerIdentity = z.preprocess(processResponseBody,z.object({"model": z.string(),
+"serial": z.string(),
+"vendor": z.string(),
+}))
+
+export const PhysicalDiskAdoptionRequestUuid = z.preprocess(processResponseBody,z.uuid())
+
+/**
+* A request to adopt a physical disk into the control plane
+ */
+export const PhysicalDiskAdoptionRequest = z.preprocess(processResponseBody,z.object({"diskId": PhysicalDiskManufacturerIdentity,
+"id": PhysicalDiskAdoptionRequestUuid,
+"timeCreated": z.coerce.date(),
+}))
+
+/**
+* A single page of results
+ */
+export const PhysicalDiskAdoptionRequestResultsPage = z.preprocess(processResponseBody,z.object({"items": PhysicalDiskAdoptionRequest.array(),
+"nextPage": z.string().nullable().optional(),
+}))
+
+/**
 * A single page of results
  */
 export const PhysicalDiskResultsPage = z.preprocess(processResponseBody,z.object({"items": PhysicalDisk.array(),
@@ -2829,7 +2872,7 @@ export const Ping = z.preprocess(processResponseBody,z.object({"status": PingSta
 }))
 
 /**
-* Identity-related metadata that's included in nearly all public API objects
+* A networking probe
  */
 export const Probe = z.preprocess(processResponseBody,z.object({"description": z.string(),
 "id": z.uuid(),
@@ -3068,7 +3111,7 @@ export const RouterRouteUpdate = z.preprocess(processResponseBody,z.object({"des
 }))
 
 /**
-* Identity-related metadata that's included in nearly all public API objects
+* A SAML identity provider
  */
 export const SamlIdentityProvider = z.preprocess(processResponseBody,z.object({"acsUrl": z.string(),
 "description": z.string(),
@@ -3378,6 +3421,8 @@ export const SledResultsPage = z.preprocess(processResponseBody,z.object({"items
 "nextPage": z.string().nullable().optional(),
 }))
 
+export const SledUuid = z.preprocess(processResponseBody,z.uuid())
+
 export const SnapshotState = z.preprocess(processResponseBody,z.enum(["creating","ready","faulted","destroyed"]))
 
 /**
@@ -3573,22 +3618,6 @@ export const Switch = z.preprocess(processResponseBody,z.object({"baseboard": Ba
 }))
 
 /**
-* Describes the kind of an switch interface.
- */
-export const SwitchInterfaceKind2 = z.preprocess(processResponseBody,z.enum(["primary", "vlan", "loopback"])
-)
-
-/**
-* A switch port interface configuration for a port settings object.
- */
-export const SwitchInterfaceConfig = z.preprocess(processResponseBody,z.object({"id": z.uuid(),
-"interfaceName": Name,
-"kind": SwitchInterfaceKind2,
-"portSettingsId": z.uuid(),
-"v6Enabled": SafeBoolean,
-}))
-
-/**
 * Indicates the kind for a switch interface.
  */
 export const SwitchInterfaceKind = z.preprocess(processResponseBody,z.union([
@@ -3601,6 +3630,16 @@ z.object({"type": z.enum(["loopback"]),
 }),
 ])
 )
+
+/**
+* A switch port interface configuration for a port settings object.
+ */
+export const SwitchInterfaceConfig = z.preprocess(processResponseBody,z.object({"id": z.uuid(),
+"interfaceName": Name,
+"kind": SwitchInterfaceKind,
+"portSettingsId": z.uuid(),
+"v6Enabled": SafeBoolean,
+}))
 
 /**
 * A layer-3 switch interface configuration. When IPv6 is enabled, a link local address will be created for the interface.
@@ -3643,36 +3682,20 @@ export const SwitchPortApplySettings = z.preprocess(processResponseBody,z.object
 /**
 * The link geometry associated with a switch port.
  */
-export const SwitchPortGeometry2 = z.preprocess(processResponseBody,z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
+export const SwitchPortGeometry = z.preprocess(processResponseBody,z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
 )
 
 /**
 * A physical port configuration for a port settings object.
  */
-export const SwitchPortConfig = z.preprocess(processResponseBody,z.object({"geometry": SwitchPortGeometry2,
+export const SwitchPortConfig = z.preprocess(processResponseBody,z.object({"geometry": SwitchPortGeometry,
 "portSettingsId": z.uuid(),
 }))
-
-/**
-* The link geometry associated with a switch port.
- */
-export const SwitchPortGeometry = z.preprocess(processResponseBody,z.enum(["qsfp28x1", "qsfp28x2", "sfp28x4"])
-)
 
 /**
 * Physical switch port configuration.
  */
 export const SwitchPortConfigCreate = z.preprocess(processResponseBody,z.object({"geometry": SwitchPortGeometry,
-}))
-
-/**
-* Per-port tx-eq overrides.  This can be used to fine-tune the transceiver equalization settings to improve signal integrity.
- */
-export const TxEqConfig2 = z.preprocess(processResponseBody,z.object({"main": z.number().min(-2147483647).max(2147483647).nullable().optional(),
-"post1": z.number().min(-2147483647).max(2147483647).nullable().optional(),
-"post2": z.number().min(-2147483647).max(2147483647).nullable().optional(),
-"pre1": z.number().min(-2147483647).max(2147483647).nullable().optional(),
-"pre2": z.number().min(-2147483647).max(2147483647).nullable().optional(),
 }))
 
 /**
@@ -3685,7 +3708,7 @@ export const SwitchPortLinkConfig = z.preprocess(processResponseBody,z.object({"
 "mtu": z.number().min(0).max(65535),
 "portSettingsId": z.uuid(),
 "speed": LinkSpeed,
-"txEqConfig": TxEqConfig2.nullable().optional(),
+"txEqConfig": TxEqConfig.nullable().optional(),
 }))
 
 /**
@@ -3714,13 +3737,6 @@ export const SwitchPortSettingsGroups = z.preprocess(processResponseBody,z.objec
 }))
 
 /**
-* A switch port VLAN interface configuration for a port settings object.
- */
-export const SwitchVlanInterfaceConfig = z.preprocess(processResponseBody,z.object({"interfaceConfigId": z.uuid(),
-"vlanId": z.number().min(0).max(65535),
-}))
-
-/**
 * This structure contains all port settings information in one place. It's a convenience data structure for getting a complete view of a particular port's settings.
  */
 export const SwitchPortSettings = z.preprocess(processResponseBody,z.object({"addresses": SwitchPortAddressView.array(),
@@ -3735,7 +3751,6 @@ export const SwitchPortSettings = z.preprocess(processResponseBody,z.object({"ad
 "routes": SwitchPortRouteConfig.array(),
 "timeCreated": z.coerce.date(),
 "timeModified": z.coerce.date(),
-"vlanInterfaces": SwitchVlanInterfaceConfig.array(),
 }))
 
 /**
@@ -3777,6 +3792,18 @@ export const SwitchResultsPage = z.preprocess(processResponseBody,z.object({"ite
 }))
 
 /**
+* Fleet-wide networking settings. Only fleet viewers may view these settings. Only fleet admins can modify them.
+ */
+export const SystemNetworkingSettings = z.preprocess(processResponseBody,z.object({"externalJumboFramesOptInEnabled": SafeBoolean,
+}))
+
+/**
+* Parameters for updating the fleet-wide networking settings.
+ */
+export const SystemNetworkingSettingsUpdate = z.preprocess(processResponseBody,z.object({"externalJumboFramesOptInEnabled": SafeBoolean.default(false),
+}))
+
+/**
 * View of a system software target release
  */
 export const TargetRelease = z.preprocess(processResponseBody,z.object({"timeRequested": z.coerce.date(),
@@ -3807,7 +3834,7 @@ export const TimeseriesQuery = z.preprocess(processResponseBody,z.object({"query
 * Measurement units for timeseries samples.
  */
 export const Units = z.preprocess(processResponseBody,z.union([
-z.enum(["count","bytes","seconds","nanoseconds","volts","amps","watts","degrees_celsius"]),
+z.enum(["count","bytes","seconds","nanoseconds","volts","amps","watts","degrees_celsius","joules"]),
 z.enum(["none"]),
 z.enum(["rpm"]),
 ])
@@ -3862,6 +3889,22 @@ export const TufRepoUpload = z.preprocess(processResponseBody,z.object({"repo": 
 }))
 
 /**
+* A physical disk that has not yet been adopted by the control plane
+ */
+export const UnadoptedPhysicalDisk = z.preprocess(processResponseBody,z.object({"diskId": PhysicalDiskManufacturerIdentity,
+"sledId": SledUuid,
+"slot": z.number(),
+"variant": PhysicalDiskKind,
+}))
+
+/**
+* A single page of results
+ */
+export const UnadoptedPhysicalDiskResultsPage = z.preprocess(processResponseBody,z.object({"items": UnadoptedPhysicalDisk.array(),
+"nextPage": z.string().nullable().optional(),
+}))
+
+/**
 * A sled that has not been added to an initialized rack yet
  */
 export const UninitializedSled = z.preprocess(processResponseBody,z.object({"baseboard": Baseboard,
@@ -3877,6 +3920,7 @@ export const UninitializedSledResultsPage = z.preprocess(processResponseBody,z.o
 }))
 
 export const UpdateStatus = z.preprocess(processResponseBody,z.object({"componentsByReleaseVersion": z.record(z.string(),z.number().min(0)),
+"contactSupport": SafeBoolean,
 "suspended": SafeBoolean,
 "targetRelease": TargetRelease.nullable(),
 "timeLastStepPlanned": z.coerce.date(),
@@ -5699,6 +5743,31 @@ export const AuditLogListParams = z.preprocess(processResponseBody, z.object({
   }),
 }))
 
+export const PhysicalDiskEnableAdoptionParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  }),
+}))
+
+export const PhysicalDiskDisableAdoptionParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  physicalDiskAdoptionReqId: z.uuid(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const PhysicalDiskListAdoptionRequestsParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: IdSortMode.optional(),
+  }),
+}))
+
 export const PhysicalDiskListParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   }),
@@ -5714,6 +5783,15 @@ export const PhysicalDiskViewParams = z.preprocess(processResponseBody, z.object
   diskId: z.uuid(),
   }),
   query: z.object({
+  }),
+}))
+
+export const PhysicalDiskListUnadoptedParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  limit: z.number().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
   }),
 }))
 
@@ -6323,6 +6401,20 @@ export const NetworkingLoopbackAddressDeleteParams = z.preprocess(processRespons
   rackId: z.uuid(),
   subnetMask: z.number().min(0).max(255),
   switchSlot: SwitchSlot,
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SystemNetworkingSettingsViewParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SystemNetworkingSettingsUpdateParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
   }),
   query: z.object({
   }),
