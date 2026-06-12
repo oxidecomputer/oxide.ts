@@ -42,7 +42,7 @@ test("empty schema", () => {
 test("Disk", () => {
   expect(genType(schemas.Disk)).toMatchInlineSnapshot(`
     "type X = {
-      blockSize: ByteCount;
+      blockSize: BlockSize;
       /** Human-readable free-form text about a resource */
       description: string;
       devicePath: string;
@@ -87,6 +87,8 @@ test("Instance", () => {
       cpuPlatform?: InstanceCpuPlatform | null;
       /** Human-readable free-form text about a resource */
       description: string;
+      /** When true, this instance has opted in to jumbo frames (8500 byte MTU) on its primary network interface. The effective MTU also depends on the fleet-wide jumbo-frames opt-in; if that is disabled, the primary interface uses the default MTU regardless of this value. Changes only take effect on the next instance restart. */
+      enableJumboFrames: boolean;
       /** RFC1035-compliant hostname for the instance */
       hostname: string;
       /** Unique, immutable, system-controlled identifier for each resource */
