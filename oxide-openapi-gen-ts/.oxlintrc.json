@@ -1,15 +1,73 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript"],
+  // No "plugins" key: that would OVERWRITE oxlint's default set. Omitting it keeps
+  // the defaults (eslint core + typescript + unicorn + oxc), which is what we want.
   "categories": {
     "correctness": "error"
   },
   "ignorePatterns": ["dist/"],
   "rules": {
+    // --- carried over from the previous eslint config ---
     "typescript/consistent-type-imports": [
       "error",
       { "prefer": "type-imports" }
     ],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+
+    // Previously off via no-empty-interface; this is its v8 successor. Kept off
+    // because generated/static code declares empty interfaces (e.g. FetchParams).
+    "typescript/no-empty-object-type": "off",
+
+    // --- @typescript-eslint/strict (restores what the old config enforced) ---
+    // array-type, consistent-type-definitions, no-non-null-assertion are intentionally
+    // omitted: the old config turned them off, and oxlint leaves them off by default.
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-array-constructor": "error",
+    "typescript/no-duplicate-enum-values": "error",
+    "typescript/no-dynamic-delete": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-extra-non-null-assertion": "error",
+    "typescript/no-extraneous-class": "error",
+    "typescript/no-invalid-void-type": "error",
+    "typescript/no-misused-new": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-non-null-asserted-nullish-coalescing": "error",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-this-alias": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-declaration-merging": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/no-unused-expressions": "error",
+    "typescript/no-useless-constructor": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/prefer-literal-enum-member": "error",
+    "typescript/prefer-namespace-keyword": "error",
+    "typescript/triple-slash-reference": "error",
+    "typescript/unified-signatures": "error",
+
+    // --- @typescript-eslint/stylistic (restores what the old config enforced) ---
+    "typescript/adjacent-overload-signatures": "error",
+    "typescript/ban-tslint-comment": "error",
+    "typescript/class-literal-property-style": "error",
+    "typescript/consistent-generic-constructors": "error",
+    "typescript/consistent-indexed-object-style": "error",
+    "typescript/consistent-type-assertions": "error",
+    "typescript/no-confusing-non-null-assertion": "error",
+    "typescript/no-empty-function": "error",
+    "typescript/no-inferrable-types": "error",
+    "typescript/prefer-for-of": "error",
+    "typescript/prefer-function-type": "error",
+
+    // --- new rules, not enforced before (all currently zero violations) ---
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
+    "prefer-const": "error",
+    "radix": "error",
+    "no-param-reassign": "error",
+    "no-return-assign": "error",
+    "no-unneeded-ternary": "error",
+    "no-useless-concat": "error",
+    "no-extra-bind": "error"
   }
 }

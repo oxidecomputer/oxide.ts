@@ -233,16 +233,16 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
     w0(`.min(${schema.minimum})`);
   } else if (unsigned) {
     w0(`.min(0)`);
-  } else if (size && parseInt(size) < 64) {
-    w0(`.min(-${Math.pow(2, parseInt(size) - 1) - 1})`);
+  } else if (size && parseInt(size, 10) < 64) {
+    w0(`.min(-${Math.pow(2, parseInt(size, 10) - 1) - 1})`);
   }
 
   if ("maximum" in schema) {
     w0(`.max(${schema.maximum})`);
-  } else if (size && unsigned && parseInt(size) < 64) {
-    w0(`.max(${Math.pow(2, parseInt(size)) - 1})`);
-  } else if (size && parseInt(size) < 64) {
+  } else if (size && unsigned && parseInt(size, 10) < 64) {
+    w0(`.max(${Math.pow(2, parseInt(size, 10)) - 1})`);
+  } else if (size && parseInt(size, 10) < 64) {
     // It's signed so remove the most significant bit
-    w0(`.max(${Math.pow(2, parseInt(size) - 1) - 1})`);
+    w0(`.max(${Math.pow(2, parseInt(size, 10) - 1) - 1})`);
   }
 }
