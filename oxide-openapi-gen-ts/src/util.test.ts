@@ -12,6 +12,7 @@ import {
   snakeToPascal,
   pascalToCamel,
   topologicalSort,
+  findCyclicSchemas,
 } from "./util";
 import { expect, test } from "vitest";
 
@@ -41,11 +42,65 @@ test("pascalToCamel", () => {
 
 test("topologicalSort", () => {
   expect(
-    topologicalSort([
-      ["a", ["b", "c"]],
-      ["b", ["c"]],
-      ["c", undefined],
-      ["d", []],
-    ])
+    topologicalSort(
+      new Map([
+        ["a", ["b", "c"]],
+        ["b", ["c"]],
+        ["c", []],
+        ["d", []],
+      ])
+    )
   ).toEqual(["c", "b", "a", "d"]);
+});
+
+test("findCyclicSchemas: no cycles", () => {
+  expect(
+    findCyclicSchemas(
+      new Map([
+        ["a", ["b"]],
+        ["b", ["c"]],
+        ["c", []],
+      ])
+    )
+  ).toEqual(new Set());
+});
+
+test("findCyclicSchemas: simple cycle", () => {
+  expect(
+    findCyclicSchemas(
+      new Map([
+        ["a", ["b"]],
+        ["b", ["a"]],
+      ])
+    )
+  ).toEqual(new Set(["a", "b"]));
+});
+
+test("findCyclicSchemas: self-referencing", () => {
+  expect(findCyclicSchemas(new Map([["a", ["a"]]]))).toEqual(new Set(["a"]));
+});
+
+test("findCyclicSchemas: mixed cyclic and non-cyclic", () => {
+  expect(
+    findCyclicSchemas(
+      new Map([
+        ["a", ["b"]],
+        ["b", ["a"]],
+        ["c", ["a"]],
+        ["d", []],
+      ])
+    )
+  ).toEqual(new Set(["a", "b"]));
+});
+
+test("findCyclicSchemas: longer cycle", () => {
+  expect(
+    findCyclicSchemas(
+      new Map([
+        ["a", ["b"]],
+        ["b", ["c"]],
+        ["c", ["a"]],
+      ])
+    )
+  ).toEqual(new Set(["a", "b", "c"]));
 });

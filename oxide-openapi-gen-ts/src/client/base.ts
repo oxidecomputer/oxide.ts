@@ -14,17 +14,23 @@ import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 
 /**
- * Returns a list of schema names sorted by dependency order.
+ * Extract dependency edges from the OpenAPI schema definitions.
+ * Maps each schema name to the list of schema names it references.
  */
-export const getSortedSchemas = (spec: OpenAPIV3.Document) => {
-  return topologicalSort(
+export const getSchemaEdges = (
+  spec: OpenAPIV3.Document
+): Map<string, string[]> =>
+  new Map(
     Object.keys(spec.components?.schemas || {}).map((name) => [
       name,
       JSON.stringify(spec.components!.schemas![name])
         .match(/#\/components\/schemas\/[a-zA-Z0-9.\-_]+/g)
-        ?.map((s) => s.replace("#/components/schemas/", "")),
+        ?.map((s) => s.replace("#/components/schemas/", "")) ?? [],
     ])
   );
+
+export const getSortedSchemas = (spec: OpenAPIV3.Document) => {
+  return topologicalSort(getSchemaEdges(spec));
 };
 /**
  * Convert ``[`Vpc`](crate::external_api::views::Vpc)`` or plain ``[`Vpc`]`` to

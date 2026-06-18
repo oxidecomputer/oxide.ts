@@ -28,9 +28,7 @@ const segmentToInterpolation = (s: string) =>
 export const pathToTemplateStr = (s: string) =>
   "`" + s.split("/").map(segmentToInterpolation).join("/") + "`";
 
-export const topologicalSort = (
-  edges: [vertex: string, adjacents: string[] | undefined][]
-) => {
+export const topologicalSort = (edges: Map<string, string[]>) => {
   const result: string[] = [];
   const visited: Record<string, boolean> = {};
 
@@ -38,7 +36,7 @@ export const topologicalSort = (
     visited[vertex] = true;
     for (const adj of adjacents) {
       if (!visited[adj]) {
-        visit(adj, edges.find(([v]) => v === adj)?.[1]);
+        visit(adj, edges.get(adj) ?? []);
       }
     }
     result.push(vertex);
@@ -51,6 +49,68 @@ export const topologicalSort = (
   }
 
   return result;
+};
+
+/**
+ * Find all schemas involved in dependency cycles using Tarjan's algorithm.
+ * Returns a set of schema names that are part of any cycle (including self-loops).
+ */
+export const findCyclicSchemas = (
+  edges: Map<string, string[]>
+): Set<string> => {
+  const cyclic = new Set<string>();
+  const indexMap = new Map<string, number>();
+  const lowlinkMap = new Map<string, number>();
+  const onStack = new Set<string>();
+  const stack: string[] = [];
+  let index = 0;
+
+  const strongconnect = (v: string) => {
+    indexMap.set(v, index);
+    lowlinkMap.set(v, index);
+    index++;
+    stack.push(v);
+    onStack.add(v);
+
+    for (const w of edges.get(v) ?? []) {
+      if (!indexMap.has(w)) {
+        strongconnect(w);
+        lowlinkMap.set(v, Math.min(lowlinkMap.get(v)!, lowlinkMap.get(w)!));
+      } else if (onStack.has(w)) {
+        lowlinkMap.set(v, Math.min(lowlinkMap.get(v)!, indexMap.get(w)!));
+      }
+    }
+
+    if (lowlinkMap.get(v) === indexMap.get(v)) {
+      const scc: string[] = [];
+      let w: string;
+      do {
+        w = stack.pop()!;
+        onStack.delete(w);
+        scc.push(w);
+      } while (w !== v);
+
+      if (scc.length > 1) {
+        for (const node of scc) {
+          cyclic.add(node);
+        }
+      } else {
+        // Single-node SCC: check for self-loop
+        const adj = edges.get(scc[0]) ?? [];
+        if (adj.includes(scc[0])) {
+          cyclic.add(scc[0]);
+        }
+      }
+    }
+  };
+
+  for (const [vertex] of edges) {
+    if (!indexMap.has(vertex)) {
+      strongconnect(vertex);
+    }
+  }
+
+  return cyclic;
 };
 
 export const extractDoc = (schema: OpenAPIV3.SchemaObject): string =>

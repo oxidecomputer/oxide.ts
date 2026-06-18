@@ -649,3 +649,47 @@ test("default null with nullable should emit default", () => {
     })"
   `);
 });
+
+test("ref with lazy schema", () => {
+  const lazyIO = { ...io, lazySchemas: new Set(["MyType"]) };
+  schemaToZod({ $ref: "#/components/schemas/MyType" }, lazyIO);
+  expect(out.value()).toMatchInlineSnapshot('"z.lazy(() => MyType)"');
+});
+
+test("ref without lazy schema unchanged", () => {
+  const lazyIO = { ...io, lazySchemas: new Set(["OtherType"]) };
+  schemaToZod({ $ref: "#/components/schemas/MyType" }, lazyIO);
+  expect(out.value()).toMatchInlineSnapshot('"MyType"');
+});
+
+test("object with lazy ref property", () => {
+  const lazyIO = { ...io, lazySchemas: new Set(["TypeB"]) };
+  schemaToZod(
+    {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        other: { $ref: "#/components/schemas/TypeB" },
+      },
+      required: ["name"],
+    },
+    lazyIO
+  );
+  expect(out.value()).toMatchInlineSnapshot(`
+    "z.object({"name": z.string(),
+    "other": z.lazy(() => TypeB).optional(),
+    })"
+  `);
+});
+
+test("array of lazy ref", () => {
+  const lazyIO = { ...io, lazySchemas: new Set(["TreeNode"]) };
+  schemaToZod(
+    {
+      type: "array",
+      items: { $ref: "#/components/schemas/TreeNode" },
+    },
+    lazyIO
+  );
+  expect(out.value()).toMatchInlineSnapshot('"z.lazy(() => TreeNode).array()"');
+});

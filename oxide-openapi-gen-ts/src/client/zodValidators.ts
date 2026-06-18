@@ -9,8 +9,13 @@
 import { OpenAPIV3 } from "openapi-types";
 import { initIO } from "../io";
 import { schemaToZod } from "../schema/zod";
-import { extractDoc, processParamName, snakeToPascal } from "../util";
-import { docComment, getSortedSchemas } from "./base";
+import {
+  extractDoc,
+  findCyclicSchemas,
+  processParamName,
+  snakeToPascal,
+} from "../util";
+import { docComment, getSchemaEdges, getSortedSchemas } from "./base";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -24,7 +29,14 @@ export async function generateZodValidators(
 
   const outFile = path.resolve(destDir, "validate.ts");
   const out = fs.createWriteStream(outFile, { flags: "w" });
-  const io = initIO(out);
+
+  // Schemas involved in reference cycles get special treatment: refs to them
+  // are wrapped in z.lazy() (see the zod ref handler) and their consts get
+  // explicit type annotations, without which TS cannot infer a type for the
+  // cycle and errors out
+  const cyclicSchemas = findCyclicSchemas(getSchemaEdges(spec));
+
+  const io = { ...initIO(out), lazySchemas: cyclicSchemas };
   const { w, w0 } = io;
 
   w(`/* eslint-disable */
@@ -46,6 +58,10 @@ export async function generateZodValidators(
   const SafeBoolean = z.preprocess(v => v === "false" ? false : v, z.coerce.boolean())
   `);
 
+  if (cyclicSchemas.size > 0) {
+    w(`import type * as Api from './Api';\n`);
+  }
+
   const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {
     const schema = spec.components!.schemas![schemaName];
@@ -54,7 +70,12 @@ export async function generateZodValidators(
       docComment(extractDoc(schema), schemaNames, io);
     }
 
-    w0(`export const ${schemaName} = z.preprocess(processResponseBody,`);
+    const annotation = cyclicSchemas.has(schemaName)
+      ? `: ZodType<Api.${schemaName}>`
+      : "";
+    w0(
+      `export const ${schemaName}${annotation} = z.preprocess(processResponseBody,`
+    );
     schemaToZod(schema, io);
     w(")\n");
   }

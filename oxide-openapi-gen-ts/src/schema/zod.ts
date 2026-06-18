@@ -28,9 +28,17 @@ function getDefaultString(schema: OpenAPIV3.SchemaObject): string {
 }
 
 export const schemaToZod = makeSchemaGenerator({
-  ref(schema, { w0 }) {
+  ref(schema, io) {
     if ("$ref" in schema) {
-      w0(refToSchemaName(schema.$ref));
+      const name = refToSchemaName(schema.$ref);
+      // Wrap refs to schemas involved in reference cycles in z.lazy() so the
+      // generated consts don't reference each other during module init,
+      // where one of them would necessarily be in its temporal dead zone
+      if (io.lazySchemas?.has(name)) {
+        io.w0(`z.lazy(() => ${name})`);
+      } else {
+        io.w0(name);
+      }
     }
   },
 
