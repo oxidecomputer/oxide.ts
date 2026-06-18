@@ -65,6 +65,8 @@ new Command()
   .action((specFile, destDir, opts) => {
     // default features handled here instead of option definition because
     // otherwise the object gets plopped confusingly into the help text
-    generate(specFile, destDir, opts.features ?? DEFAULT_FEATURES);
+    // fire-and-forget: the process stays alive for the async work, and a
+    // rejection surfaces as an unhandled rejection (non-zero exit)
+    void generate(specFile, destDir, opts.features ?? DEFAULT_FEATURES);
   })
   .parse();

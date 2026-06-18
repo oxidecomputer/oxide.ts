@@ -21,7 +21,7 @@ export const getSchemaEdges = (
   spec: OpenAPIV3.Document
 ): Map<string, string[]> =>
   new Map(
-    Object.keys(spec.components?.schemas || {}).map((name) => [
+    Object.keys(spec.components?.schemas ?? {}).map((name) => [
       name,
       JSON.stringify(spec.components!.schemas![name])
         .match(/#\/components\/schemas\/[a-zA-Z0-9.\-_]+/g)
@@ -45,7 +45,7 @@ export function contentRef(
   o: Schema | OpenAPIV3.RequestBodyObject | undefined,
   prefix = ""
 ) {
-  if (!(o && "content" in o && o.content?.["application/json"]?.schema)) {
+  if (!(o && "content" in o && o.content["application/json"]?.schema)) {
     return null;
   }
   const schema = o.content["application/json"].schema;
@@ -105,7 +105,7 @@ function getSuccessResponse(
   responses: OpenAPIV3.ResponsesObject
 ): OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject | undefined {
   return (
-    responses["200"] || responses["201"] || responses["202"] || responses["204"]
+    responses["200"] ?? responses["201"] ?? responses["202"] ?? responses["204"]
   );
 }
 
@@ -115,7 +115,7 @@ function extractParams(params: OpenAPIV3.ParameterObject[] | undefined): {
 } {
   const pathParams: Param[] = [];
   const queryParams: Param[] = [];
-  for (const param of params || []) {
+  for (const param of params ?? []) {
     if ("name" in param && param.schema) {
       if (param.in === "path") {
         pathParams.push(param as Param);
@@ -139,7 +139,7 @@ export function getOperations(spec: OpenAPIV3.Document): Operation[] {
 
     for (const method of Object.values(HttpMethods)) {
       const conf = handlers[method];
-      if (!conf || !conf.operationId) continue;
+      if (!conf?.operationId) continue;
 
       const { pathParams, queryParams } = extractParams(
         conf.parameters as OpenAPIV3.ParameterObject[] | undefined

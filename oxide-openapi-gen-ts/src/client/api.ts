@@ -134,7 +134,8 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
   const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {
-    const schema = spec.components!.schemas![schemaName];
+    const schema = spec.components.schemas![schemaName];
+    if (!schema) continue;
     // Special case for Error type for two reasons:
     //   1) Error is already a thing in JS, so we rename to ErrorBody. This
     //      rename only works because no other types refer to this one

@@ -33,7 +33,7 @@ export async function generateTypeTests(
   `);
 
   for (const name of schemaNames) {
-    const schema = spec.components!.schemas![name];
+    const schema = spec.components.schemas![name];
     if (!schema) continue;
 
     w(`assert<Equals<A.${name}, z.infer<typeof V.${name}>>>();`);

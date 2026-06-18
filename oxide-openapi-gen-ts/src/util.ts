@@ -11,13 +11,13 @@ import type { OpenAPIV3 } from "openapi-types";
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");
 
-const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : "");
+const cap = (s: string) => (s ? s[0]!.toUpperCase() + s.slice(1) : "");
 
 export const snakeToPascal = snakeTo(cap);
 export const snakeToCamel = snakeTo((w, i) => (i > 0 ? cap(w) : w));
 
 export const pascalToCamel = (s: string) =>
-  s ? s[0].toLowerCase() + s.slice(1) : s;
+  s ? s[0]!.toLowerCase() + s.slice(1) : s;
 
 export const processParamName = (s: string) => snakeToCamel(s);
 
@@ -96,9 +96,10 @@ export const findCyclicSchemas = (
         }
       } else {
         // Single-node SCC: check for self-loop
-        const adj = edges.get(scc[0]) ?? [];
-        if (adj.includes(scc[0])) {
-          cyclic.add(scc[0]);
+        const node = scc[0]!;
+        const adj = edges.get(node) ?? [];
+        if (adj.includes(node)) {
+          cyclic.add(node);
         }
       }
     }

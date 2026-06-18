@@ -66,7 +66,7 @@ export const schemaToTypes = makeSchemaGenerator({
     }
 
     w0("{");
-    for (const [name, subSchema] of Object.entries(schema.properties || {})) {
+    for (const [name, subSchema] of Object.entries(schema.properties)) {
       const optional = schema.required?.includes(name) ? "" : "?";
       if ("description" in subSchema) {
         w(`\n/** ${subSchema.description} */`);
@@ -80,7 +80,7 @@ export const schemaToTypes = makeSchemaGenerator({
   },
   oneOf(schema, io) {
     if (schema.oneOf!.length === 1) {
-      return schemaToTypes(schema.oneOf![0], io);
+      return schemaToTypes(schema.oneOf![0]!, io);
     }
     io.w0("(");
     for (const s of schema.oneOf!) {
@@ -96,7 +96,7 @@ export const schemaToTypes = makeSchemaGenerator({
   },
   allOf(schema, io) {
     if (schema.allOf!.length === 1) {
-      schemaToTypes(schema.allOf![0], io);
+      schemaToTypes(schema.allOf![0]!, io);
       if (schema.nullable) io.w0(" | null");
     } else {
       // note: in the nexus schema, this arm is never hit
