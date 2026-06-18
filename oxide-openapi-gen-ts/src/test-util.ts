@@ -18,7 +18,7 @@ import { readFileSync, existsSync } from "node:fs";
 export function getSpecFilePath(omicronVersionPath: string): string {
   // Use split("\n")[0] to match bash's `head -n 1` behavior
   const OMICRON_SHA = readFileSync(omicronVersionPath, "utf-8")
-    .split("\n")[0]
+    .split("\n")[0]!
     .trim();
   const SPEC_CACHE_DIR = "/tmp/openapi-gen-ts-schemas";
   const SPEC_FILE = `${SPEC_CACHE_DIR}/${OMICRON_SHA}.json`;

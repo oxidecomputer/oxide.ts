@@ -7,11 +7,12 @@
     "experimentalDecorators": true,
     "lib": ["es2019", "dom", "DOM.Iterable"],
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "target": "ES2020",
     "types": ["node", "vite/client", "vitest/importMeta"]
   },

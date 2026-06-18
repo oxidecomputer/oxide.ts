@@ -64,7 +64,8 @@ export async function generateZodValidators(
 
   const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {
-    const schema = spec.components!.schemas![schemaName];
+    const schema = spec.components.schemas![schemaName];
+    if (!schema) continue;
 
     if ("description" in schema || "title" in schema) {
       docComment(extractDoc(schema), schemaNames, io);
@@ -94,7 +95,7 @@ export async function generateZodValidators(
       );
 
       w("  path: z.object({");
-      for (const param of params || []) {
+      for (const param of params ?? []) {
         if ("name" in param && param.schema && param.in === "path") {
           if ("description" in param.schema || "title" in param.schema) {
             docComment(extractDoc(param.schema), schemaNames, io);
@@ -109,7 +110,7 @@ export async function generateZodValidators(
       w("  }),");
 
       w("  query: z.object({");
-      for (const param of params || []) {
+      for (const param of params ?? []) {
         if ("name" in param && param.schema && param.in === "query") {
           if ("description" in param.schema || "title" in param.schema) {
             docComment(extractDoc(param.schema), schemaNames, io);

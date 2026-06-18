@@ -132,7 +132,7 @@ export const schemaToZod = makeSchemaGenerator({
     }
 
     w0("z.object({");
-    for (const [name, subSchema] of Object.entries(schema.properties || {})) {
+    for (const [name, subSchema] of Object.entries(schema.properties)) {
       w0(`${JSON.stringify(snakeToCamel(name))}: `);
       schemaToZod(subSchema, io);
       // Only add .optional() if the property is not required AND doesn't have a default value
@@ -155,7 +155,7 @@ export const schemaToZod = makeSchemaGenerator({
     const { w } = io;
 
     if (schema.oneOf.length === 1) {
-      schemaToZod(schema.oneOf[0], io);
+      schemaToZod(schema.oneOf[0]!, io);
       if (schema.nullable) io.w0(".nullable()");
       return;
     }
@@ -168,7 +168,7 @@ export const schemaToZod = makeSchemaGenerator({
      *
      * @see https://github.com/oxidecomputer/oxide.ts/issues/178 for more details
      */
-    if (schema.oneOf.every((s) => s && "enum" in s && s.enum?.length === 1)) {
+    if (schema.oneOf.every((s) => "enum" in s && s.enum?.length === 1)) {
       const enums = schema.oneOf.map(
         (s) => (s as OpenAPIV3.SchemaObject).enum![0]
       );
@@ -192,12 +192,14 @@ export const schemaToZod = makeSchemaGenerator({
 
     if (schema.allOf.length === 0) {
       throw new Error(
-        `Unexpected "allOf" should have at least one schema: ${schema}`
+        `Unexpected "allOf" should have at least one schema: ${JSON.stringify(
+          schema
+        )}`
       );
     }
 
     if (schema.allOf.length === 1) {
-      schemaToZod(schema.allOf[0], io);
+      schemaToZod(schema.allOf[0]!, io);
     } else {
       w("z.intersection([");
       for (const s of schema.allOf) {
@@ -228,7 +230,7 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
     w0(`z.number()`);
   }
 
-  const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) || [];
+  const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) ?? [];
   if ("minimum" in schema) {
     w0(`.min(${schema.minimum})`);
   } else if (unsigned) {

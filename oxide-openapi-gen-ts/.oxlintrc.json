@@ -5,7 +5,7 @@
   "categories": {
     "correctness": "error"
   },
-  "ignorePatterns": ["dist/"],
+  "ignorePatterns": ["dist/", "src/__snapshots__"],
   "rules": {
     // --- carried over from the previous eslint config ---
     "typescript/consistent-type-imports": [
@@ -68,6 +68,56 @@
     "no-return-assign": "error",
     "no-unneeded-ternary": "error",
     "no-useless-concat": "error",
-    "no-extra-bind": "error"
+    "no-extra-bind": "error",
+
+    // --- type-aware rules (run via `oxlint --type-aware`, needs oxlint-tsgolint) ---
+    // These are @typescript-eslint's *-type-checked-only sets. The old eslint config
+    // was not type-checked, so all of this is new enforcement. The no-unsafe-* family
+    // (no-unsafe-call/member-access/assignment/argument/return/enum-comparison/unary-minus)
+    // is deliberately omitted: this code processes untyped OpenAPI schema objects, so
+    // those rules fire pervasively and would force `any`-plumbing throughout.
+    "typescript/await-thenable": "error",
+    "typescript/no-array-delete": "error",
+    "typescript/no-base-to-string": "error",
+    "typescript/no-duplicate-type-constituents": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-for-in-array": "error",
+    "typescript/no-implied-eval": "error",
+    "typescript/no-meaningless-void-operator": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-misused-spread": "error",
+    "typescript/no-mixed-enums": "error",
+    "typescript/no-redundant-type-constituents": "error",
+    "typescript/no-unnecessary-boolean-literal-compare": "error",
+    "typescript/no-unnecessary-condition": "error",
+    "typescript/no-unnecessary-template-expression": "error",
+    "typescript/no-unnecessary-type-arguments": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/no-unnecessary-type-conversion": "error",
+    "typescript/no-unnecessary-type-parameters": "error",
+    "typescript/only-throw-error": "error",
+    "typescript/prefer-promise-reject-errors": "error",
+    "typescript/prefer-reduce-type-parameter": "error",
+    "typescript/prefer-return-this-type": "error",
+    "typescript/related-getter-setter-pairs": "error",
+    "typescript/require-await": "error",
+    "typescript/restrict-plus-operands": "error",
+    "typescript/restrict-template-expressions": "error",
+    "typescript/return-await": "error",
+    "typescript/unbound-method": "error",
+    "typescript/use-unknown-in-catch-callback-variable": "error",
+    "typescript/dot-notation": "error",
+    "typescript/non-nullable-type-assertion-style": "error",
+    "typescript/prefer-find": "error",
+    "typescript/prefer-includes": "error",
+    // ignorePrimitives.string: a `string` `||` fallback (e.g. `summary || description`)
+    // is often intentional (fall back on ""), so only enforce ?? on non-string operands.
+    "typescript/prefer-nullish-coalescing": [
+      "error",
+      { "ignorePrimitives": { "string": true } }
+    ],
+    "typescript/prefer-optional-chain": "error",
+    "typescript/prefer-regexp-exec": "error",
+    "typescript/prefer-string-starts-ends-with": "error"
   }
 }

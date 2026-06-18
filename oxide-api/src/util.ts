@@ -10,7 +10,7 @@ export const camelToSnake = (s: string) =>
   s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 
 export const snakeToCamel = (s: string) =>
-  s.replace(/_./g, (l) => l[1].toUpperCase());
+  s.replace(/_./g, (l) => l[1]!.toUpperCase());
 
 export const isObjectOrArray = (o: unknown) =>
   typeof o === "object" &&
@@ -72,6 +72,6 @@ export function isNotNull<T>(value: T): value is NonNullable<T> {
 }
 
 export const uniqueItems = [
-  <T>(arr: T[]) => new Set(arr).size === arr.length,
+  (arr: unknown[]) => new Set(arr).size === arr.length,
   { message: "Items must be unique" },
 ] as const;
