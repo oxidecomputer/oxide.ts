@@ -28,7 +28,7 @@ describe("handleResponse", () => {
 
   it('API error returns type "error"', async () => {
     const { response, ...rest } = await handleResponse(
-      json({ bad_stuff: "hi" }, 400)
+      json({ bad_stuff: "hi" }, 400),
     );
     expect(rest).toMatchObject({
       data: { badStuff: "hi" },
@@ -100,8 +100,8 @@ describe("mergeParams", () => {
     expect(
       mergeParams(
         { redirect: "follow", headers: { "Content-Type": "x" } },
-        { redirect: "error", headers: { "Content-Type": "y" } }
-      )
+        { redirect: "error", headers: { "Content-Type": "y" } },
+      ),
     ).toEqual({
       redirect: "error",
       headers: new Headers({ "Content-Type": "y" }),

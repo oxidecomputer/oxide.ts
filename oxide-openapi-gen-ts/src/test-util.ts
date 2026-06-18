@@ -27,7 +27,7 @@ export function getSpecFilePath(omicronVersionPath: string): string {
   if (!existsSync(SPEC_FILE)) {
     throw new Error(
       `Spec file not found at ${SPEC_FILE}. ` +
-        `Please run \`npm run pretest\` or \`../tools/gen.sh\` to download the spec file first.`
+        `Please run \`npm run pretest\` or \`../tools/gen.sh\` to download the spec file first.`,
     );
   }
 

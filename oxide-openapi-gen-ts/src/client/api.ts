@@ -52,7 +52,7 @@ function checkErrorSchema(schema: Schema) {
       },
       required: ["message", "request_id"],
     },
-    "Error schema does not match the one hard-coded as ErrorBody in http-client.ts."
+    "Error schema does not match the one hard-coded as ErrorBody in http-client.ts.",
   );
 }
 
@@ -67,7 +67,7 @@ function genParamTypes(
   pathParams: Param[],
   queryParams: Param[],
   opNameType: string,
-  io: IO
+  io: IO,
 ) {
   if (pathParams.length > 0) {
     io.w(`path: ${pathParamsType(opNameType)},`);
@@ -99,7 +99,7 @@ function genParamsInterface(
   params: Param[],
   interfaceName: string,
   schemaNames: string[],
-  io: IO
+  io: IO,
 ) {
   io.w(`export interface ${interfaceName} {`);
   for (const param of params) {
@@ -165,7 +165,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
         op.pathParams,
         pathParamsType(opName),
         schemaNames,
-        io
+        io,
       );
     }
     if (op.queryParams.length > 0) {
@@ -173,7 +173,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
         op.queryParams,
         queryParamsType(opName),
         schemaNames,
-        io
+        io,
       );
     }
   }

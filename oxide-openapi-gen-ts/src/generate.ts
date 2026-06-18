@@ -23,7 +23,7 @@ export type Features = Record<Feature, boolean>;
 export async function generate(
   specFile: string,
   destDir: string,
-  features: Features
+  features: Features,
 ) {
   // destination directory is resolved relative to CWD
   const destDirAbs = resolve(process.cwd(), destDir);

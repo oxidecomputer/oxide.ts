@@ -18,7 +18,7 @@ const HttpMethods = O.HttpMethods;
  * Maps each schema name to the list of schema names it references.
  */
 export const getSchemaEdges = (
-  spec: OpenAPIV3.Document
+  spec: OpenAPIV3.Document,
 ): Map<string, string[]> =>
   new Map(
     Object.keys(spec.components?.schemas ?? {}).map((name) => [
@@ -26,7 +26,7 @@ export const getSchemaEdges = (
       JSON.stringify(spec.components!.schemas![name])
         .match(/#\/components\/schemas\/[a-zA-Z0-9.\-_]+/g)
         ?.map((s) => s.replace("#/components/schemas/", "")) ?? [],
-    ])
+    ]),
   );
 
 export const getSortedSchemas = (spec: OpenAPIV3.Document) => {
@@ -38,12 +38,12 @@ export const getSortedSchemas = (spec: OpenAPIV3.Document) => {
  */
 export const jsdocLinkify = (s: string, schemaNames: string[]) =>
   s.replace(/\[`([^`]+)`](\([^)]+\))?/g, (_, label) =>
-    schemaNames.includes(label) ? `{@link ${label}}` : "`" + label + "`"
+    schemaNames.includes(label) ? `{@link ${label}}` : "`" + label + "`",
   );
 
 export function contentRef(
   o: Schema | OpenAPIV3.RequestBodyObject | undefined,
-  prefix = ""
+  prefix = "",
 ) {
   if (!(o && "content" in o && o.content["application/json"]?.schema)) {
     return null;
@@ -71,7 +71,7 @@ export function contentRef(
 export function docComment(
   s: string | undefined,
   schemaNames: string[],
-  { w }: IO
+  { w }: IO,
 ) {
   if (s) {
     const processed = jsdocLinkify(s, schemaNames);
@@ -102,7 +102,7 @@ export interface Operation {
 }
 
 function getSuccessResponse(
-  responses: OpenAPIV3.ResponsesObject
+  responses: OpenAPIV3.ResponsesObject,
 ): OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject | undefined {
   return (
     responses["200"] ?? responses["201"] ?? responses["202"] ?? responses["204"]
@@ -142,7 +142,7 @@ export function getOperations(spec: OpenAPIV3.Document): Operation[] {
       if (!conf?.operationId) continue;
 
       const { pathParams, queryParams } = extractParams(
-        conf.parameters as OpenAPIV3.ParameterObject[] | undefined
+        conf.parameters as OpenAPIV3.ParameterObject[] | undefined,
       );
 
       operations.push({

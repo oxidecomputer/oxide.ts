@@ -54,13 +54,13 @@ new Command()
   .option(
     "-f, --features <features>",
     `Comma-separated list of features (${ALL_FEATURES.join(", ")})`,
-    parseFeatures
+    parseFeatures,
   )
   .addHelpText(
     "after",
     "\n" +
       heading("Example") +
-      ":\n  openapi-gen-ts nexus.json api/__generated__ --features zod,msw"
+      ":\n  openapi-gen-ts nexus.json api/__generated__ --features zod,msw",
   )
   .action((specFile, destDir, opts) => {
     // default features handled here instead of option definition because

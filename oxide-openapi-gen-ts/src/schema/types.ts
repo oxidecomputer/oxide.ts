@@ -82,7 +82,11 @@ export const schemaToTypes = makeSchemaGenerator({
     if (schema.oneOf!.length === 1) {
       return schemaToTypes(schema.oneOf![0]!, io);
     }
-    io.w0("(");
+    // newline after ( so a leading member comment lands on its own line;
+    // otherwise oxfmt hangs it on the `=` line and fails to indent the arms
+    // (diverging from prettier).
+    // See https://github.com/oxc-project/oxc/issues/19240
+    io.w("(");
     for (const s of schema.oneOf!) {
       if ("description" in s) {
         io.w(`/** ${s.description} */`);

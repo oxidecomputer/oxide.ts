@@ -18,7 +18,7 @@ const formatPath = (path: string) =>
 
 export async function generateMSWHandlers(
   spec: OpenAPIV3.Document,
-  destDir: string
+  destDir: string,
 ) {
   if (!spec.components) return;
 
@@ -208,8 +208,8 @@ export async function generateMSWHandlers(
 
     w(
       `http.${method}('${formatPath(
-        path
-      )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`
+        path,
+      )}', handler(handlers['${handler}'], ${paramSchema}, ${bodySchema})),`,
     );
   }
   w(`]}`);

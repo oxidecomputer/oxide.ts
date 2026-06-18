@@ -14,7 +14,7 @@ import path from "node:path";
 
 export async function generateTypeTests(
   spec: OpenAPIV3.Document,
-  destDir: string
+  destDir: string,
 ) {
   if (!spec.components) return;
 

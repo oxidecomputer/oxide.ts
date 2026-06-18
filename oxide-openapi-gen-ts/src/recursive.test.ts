@@ -214,7 +214,7 @@ test("self-referencing type rejects bad data at depth", () => {
     v.TreeNode.safeParse({
       value: "root",
       child_nodes: [{ value: "kid", child_nodes: [{ value: 5 }] }],
-    }).success
+    }).success,
   ).toBe(false);
 });
 
@@ -227,7 +227,7 @@ test("mutually recursive types parse", () => {
 
   expect(
     v.TypeA.safeParse({ name: "a1", b: { label: "b1", a: { name: 5 } } })
-      .success
+      .success,
   ).toBe(false);
 });
 
@@ -245,7 +245,7 @@ test("recursive tagged union parses", () => {
     v.Filter.safeParse({
       type: "and",
       operands: [{ type: "value", value: 5 }],
-    }).success
+    }).success,
   ).toBe(false);
 });
 
@@ -254,13 +254,13 @@ test("externally tagged union parses", () => {
   expect(
     v.ExtTagged.parse({
       all_of: [{ literal: "x" }, { all_of: [{ literal: "y" }] }],
-    })
+    }),
   ).toEqual({
     allOf: [{ literal: "x" }, { allOf: [{ literal: "y" }] }],
   });
 
   expect(v.ExtTagged.safeParse({ all_of: [{ literal: 5 }] }).success).toBe(
-    false
+    false,
   );
 });
 
@@ -292,17 +292,17 @@ test("nullable allOf-wrapped self ref parses, with coercions at depth", () => {
         time_created: "2026-06-12T01:00:00Z",
         version: 3,
       },
-    }).success
+    }).success,
   ).toBe(false);
 });
 
 test("newtype array cycle parses", () => {
   expect(
-    v.Forest.parse([{ value: "a", forest: [{ value: "b" }] }, { value: "c" }])
+    v.Forest.parse([{ value: "a", forest: [{ value: "b" }] }, { value: "c" }]),
   ).toEqual([{ value: "a", forest: [{ value: "b" }] }, { value: "c" }]);
 
   expect(v.Tree.safeParse({ value: "a", forest: [{ value: 5 }] }).success).toBe(
-    false
+    false,
   );
 });
 
@@ -311,7 +311,7 @@ test("record cycle parses", () => {
   expect(v.NodeMap.parse(map)).toEqual(map);
 
   expect(
-    v.NodeMap.safeParse({ children: { a: { children: { b: 5 } } } }).success
+    v.NodeMap.safeParse({ children: { a: { children: { b: 5 } } } }).success,
   ).toBe(false);
 });
 
@@ -331,6 +331,6 @@ test("non-recursive type still works", () => {
 
 test("generated code snapshot", async () => {
   await expect(
-    readFileSync(join(genDir, "validate.ts"), "utf-8")
+    readFileSync(join(genDir, "validate.ts"), "utf-8"),
   ).toMatchFileSnapshot("./__snapshots__/recursive-validate.ts");
 });

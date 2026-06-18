@@ -30,7 +30,7 @@ function genType(schema: unknown) {
 
 test("empty schema", () => {
   expect(genType({})).toMatchInlineSnapshot(
-    `"type X = Record<string, unknown>"`
+    `"type X = Record<string, unknown>"`,
   );
 });
 
@@ -107,7 +107,7 @@ test("number", () => {
       type: "integer",
       format: "uint32",
       minimum: 1,
-    })
+    }),
   ).toMatchInlineSnapshot(`"type X = number | null"`);
 });
 
@@ -116,13 +116,14 @@ test("string", () => {
     genType({
       nullable: true,
       type: "string",
-    })
+    }),
   ).toMatchInlineSnapshot(`"type X = string | null"`);
 });
 
 test("oneOf to string union (AddressLotKind)", () => {
   expect(genType(schemas.AddressLotKind)).toMatchInlineSnapshot(`
-    "type X = (/** Infrastructure address lots are used for network infrastructure like addresses assigned to rack switches. */
+    "type X = (
+    /** Infrastructure address lots are used for network infrastructure like addresses assigned to rack switches. */
     | "infra"
 
     /** Pool address lots are used by IP pools. */
@@ -144,13 +145,14 @@ test("ResultsPage array (InternetGatewayResultsPage)", () => {
 
 test("VpcRouterUpdate", () => {
   expect(genType(schemas.VpcRouterUpdate)).toMatchInlineSnapshot(
-    `"type X = {"description"?: string | null,"name"?: Name | null,}"`
+    `"type X = {"description"?: string | null,"name"?: Name | null,}"`,
   );
 });
 
 test("discriminated union (VpcFirewallRuleTarget)", () => {
   expect(genType(schemas.VpcFirewallRuleTarget)).toMatchInlineSnapshot(`
-    "type X = (/** The rule applies to all instances in the VPC */
+    "type X = (
+    /** The rule applies to all instances in the VPC */
     | {"type": "vpc"
     ,"value": Name,}
     /** The rule applies to all instances in the VPC Subnet */
@@ -171,7 +173,8 @@ test("discriminated union (VpcFirewallRuleTarget)", () => {
 
 test("Array of nullable item (ValueArray)", () => {
   expect(genType(schemas.ValueArray)).toMatchInlineSnapshot(`
-    "type X = (| {"type": "integer"
+    "type X = (
+    | {"type": "integer"
     ,"values": (number | null)[],}
     | {"type": "double"
     ,"values": (number | null)[],}
