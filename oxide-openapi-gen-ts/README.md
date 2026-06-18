@@ -11,7 +11,7 @@ npx @oxide/openapi-gen-ts@version <schema url or file> <output dir>
 ```
 
 Note that fixing a version with `@0.1.0` is important because you don't want
-your generated output to between runs. See the Versioning section below for
+your generated output to change between runs. See the Versioning section below for
 details.
 
 ## Interesting files
