@@ -56,7 +56,7 @@ export const topologicalSort = (edges: Map<string, string[]>) => {
  * Returns a set of schema names that are part of any cycle (including self-loops).
  */
 export const findCyclicSchemas = (
-  edges: Map<string, string[]>
+  edges: Map<string, string[]>,
 ): Set<string> => {
   const cyclic = new Set<string>();
   const indexMap = new Map<string, number>();
@@ -136,7 +136,7 @@ const isObjectOrArray = (o: unknown) =>
 const mapObj =
   (
     kf: (k: string) => string,
-    vf: (k: string | undefined, v: unknown) => unknown = (_, v) => v
+    vf: (k: string | undefined, v: unknown) => unknown = (_, v) => v,
   ) =>
   (o: unknown): unknown => {
     if (!isObjectOrArray(o)) return o;

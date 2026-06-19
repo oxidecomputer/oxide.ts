@@ -36,19 +36,19 @@ test("Api.ts", async () => {
 
 test("http-client.ts", async () => {
   await expect(read("http-client.ts")).toMatchFileSnapshot(
-    "./__snapshots__/http-client.ts"
+    "./__snapshots__/http-client.ts",
   );
 });
 
 test("msw-handlers.ts", async () => {
   await expect(read("msw-handlers.ts")).toMatchFileSnapshot(
-    "./__snapshots__/msw-handlers.ts"
+    "./__snapshots__/msw-handlers.ts",
   );
 });
 
 test("type-test.ts", async () => {
   await expect(read("type-test.ts")).toMatchFileSnapshot(
-    "./__snapshots__/type-test.ts"
+    "./__snapshots__/type-test.ts",
   );
 });
 
@@ -58,6 +58,6 @@ test("util.ts", async () => {
 
 test("validate.ts", async () => {
   await expect(read("validate.ts")).toMatchFileSnapshot(
-    "./__snapshots__/validate.ts"
+    "./__snapshots__/validate.ts",
   );
 });

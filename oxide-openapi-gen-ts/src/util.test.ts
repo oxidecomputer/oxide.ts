@@ -18,7 +18,7 @@ import { expect, test } from "vitest";
 
 test("pathToTemplateStr", () => {
   expect(
-    pathToTemplateStr("/projects/{project_name}/disks/{disk_name}")
+    pathToTemplateStr("/projects/{project_name}/disks/{disk_name}"),
   ).toEqual("`/projects/${path.projectName}/disks/${path.diskName}`");
 });
 
@@ -48,8 +48,8 @@ test("topologicalSort", () => {
         ["b", ["c"]],
         ["c", []],
         ["d", []],
-      ])
-    )
+      ]),
+    ),
   ).toEqual(["c", "b", "a", "d"]);
 });
 
@@ -60,8 +60,8 @@ test("findCyclicSchemas: no cycles", () => {
         ["a", ["b"]],
         ["b", ["c"]],
         ["c", []],
-      ])
-    )
+      ]),
+    ),
   ).toEqual(new Set());
 });
 
@@ -71,8 +71,8 @@ test("findCyclicSchemas: simple cycle", () => {
       new Map([
         ["a", ["b"]],
         ["b", ["a"]],
-      ])
-    )
+      ]),
+    ),
   ).toEqual(new Set(["a", "b"]));
 });
 
@@ -88,8 +88,8 @@ test("findCyclicSchemas: mixed cyclic and non-cyclic", () => {
         ["b", ["a"]],
         ["c", ["a"]],
         ["d", []],
-      ])
-    )
+      ]),
+    ),
   ).toEqual(new Set(["a", "b"]));
 });
 
@@ -100,7 +100,7 @@ test("findCyclicSchemas: longer cycle", () => {
         ["a", ["b"]],
         ["b", ["c"]],
         ["c", ["a"]],
-      ])
-    )
+      ]),
+    ),
   ).toEqual(new Set(["a", "b", "c"]));
 });

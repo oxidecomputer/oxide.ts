@@ -55,7 +55,7 @@ export class TestWritable extends Writable {
   _write(
     chunk: Uint8Array,
     _encoding: BufferEncoding,
-    callback: (error?: Error | null) => void
+    callback: (error?: Error | null) => void,
   ): void {
     const result = new Uint8Array(this.buffer.length + chunk.length);
     result.set(this.buffer, 0);

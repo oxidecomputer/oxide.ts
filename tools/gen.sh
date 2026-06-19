@@ -21,7 +21,7 @@ HEADER=$(cat <<'EOF'
 EOF
 )
 
-ROOT_DIR="$(dirname "$0")/.."
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 OMICRON_SHA=$(head -n 1 "$ROOT_DIR/OMICRON_VERSION")
 DEST_DIR="$ROOT_DIR/oxide-api/src"
 
@@ -53,4 +53,4 @@ API_FILE="$DEST_DIR/Api.ts"
 (printf '%s\n\n' "$HEADER"; cat "$API_FILE") > "${API_FILE}.tmp"
 mv "${API_FILE}.tmp" "$API_FILE"
 
-npx prettier@3.2.5 --write --log-level error "$DEST_DIR"
+npx oxfmt@0.55.0 "$DEST_DIR"

@@ -23,7 +23,7 @@ const HttpMethods = OpenAPIV3.HttpMethods;
 
 export async function generateZodValidators(
   spec: OpenAPIV3.Document,
-  destDir: string
+  destDir: string,
 ) {
   if (!spec.components) return;
 
@@ -75,7 +75,7 @@ export async function generateZodValidators(
       ? `: ZodType<Api.${schemaName}>`
       : "";
     w0(
-      `export const ${schemaName}${annotation} = z.preprocess(processResponseBody,`
+      `export const ${schemaName}${annotation} = z.preprocess(processResponseBody,`,
     );
     schemaToZod(schema, io);
     w(")\n");
@@ -91,7 +91,7 @@ export async function generateZodValidators(
       const opName = snakeToPascal(conf.operationId);
       const params = conf.parameters;
       w(
-        `export const ${opName}Params = z.preprocess(processResponseBody, z.object({`
+        `export const ${opName}Params = z.preprocess(processResponseBody, z.object({`,
       );
 
       w("  path: z.object({");

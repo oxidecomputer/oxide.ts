@@ -38,7 +38,7 @@ export const makeSchemaGenerator =
       .with({ enum: P.array(P.not(P.nullish)) }, (s) => handlers.enum(s, io))
       .with({ type: "boolean" }, (s) => handlers.boolean(s, io))
       .with({ type: "string", format: "date-time" }, (s) =>
-        handlers.date(s, io)
+        handlers.date(s, io),
       )
       .with({ type: "string" }, (s) => handlers.string(s, io))
       .with({ type: "number" }, (s) => handlers.number(s, io))

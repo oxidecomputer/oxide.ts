@@ -170,7 +170,7 @@ export const schemaToZod = makeSchemaGenerator({
      */
     if (schema.oneOf.every((s) => "enum" in s && s.enum?.length === 1)) {
       const enums = schema.oneOf.map(
-        (s) => (s as OpenAPIV3.SchemaObject).enum![0]
+        (s) => (s as OpenAPIV3.SchemaObject).enum![0],
       );
       w(`z.enum([${enums.map((e) => JSON.stringify(e)).join(", ")}])`);
       if (schema.nullable) io.w0(".nullable()");
@@ -193,8 +193,8 @@ export const schemaToZod = makeSchemaGenerator({
     if (schema.allOf.length === 0) {
       throw new Error(
         `Unexpected "allOf" should have at least one schema: ${JSON.stringify(
-          schema
-        )}`
+          schema,
+        )}`,
       );
     }
 

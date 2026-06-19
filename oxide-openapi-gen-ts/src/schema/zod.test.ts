@@ -81,7 +81,7 @@ test("boolean nullable", () => {
 test("boolean nullable with default", () => {
   schemaToZod({ type: "boolean", nullable: true, default: null }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"SafeBoolean.nullable().default(null)"'
+    '"SafeBoolean.nullable().default(null)"',
   );
 });
 
@@ -103,7 +103,7 @@ test("number with default", () => {
 test("number nullable with default", () => {
   schemaToZod({ type: "number", nullable: true, default: null }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().nullable().default(null)"'
+    '"z.number().nullable().default(null)"',
   );
 });
 
@@ -120,7 +120,7 @@ test("integer with format uint8", () => {
 test("integer with format int16", () => {
   schemaToZod({ type: "integer", format: "int16" }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().min(-32767).max(32767)"'
+    '"z.number().min(-32767).max(32767)"',
   );
 });
 
@@ -137,7 +137,7 @@ test("integer with default", () => {
 test("integer with constraints and default", () => {
   schemaToZod({ type: "integer", minimum: 0, maximum: 65535, default: 0 }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().min(0).max(65535).default(0)"'
+    '"z.number().min(0).max(65535).default(0)"',
   );
 });
 
@@ -150,10 +150,10 @@ test("integer nullable with constraints and default", () => {
       nullable: true,
       default: null,
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().min(0).max(65535).nullable().default(null)"'
+    '"z.number().min(0).max(65535).nullable().default(null)"',
   );
 });
 
@@ -210,20 +210,20 @@ test("array nullable with default", () => {
       nullable: true,
       default: [1, 2],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().array().nullable().default([1,2])"'
+    '"z.number().array().nullable().default([1,2])"',
   );
 });
 
 test("array with uniqueItems", () => {
   schemaToZod(
     { type: "array", items: { type: "string" }, uniqueItems: true },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.string().array().refine(...uniqueItems)"'
+    '"z.string().array().refine(...uniqueItems)"',
   );
 });
 
@@ -242,7 +242,7 @@ test("object with properties", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -261,7 +261,7 @@ test("object with optional property that has default", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -280,7 +280,7 @@ test("object with optional array that has default", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -299,7 +299,7 @@ test("object with optional nullable property that has default", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -319,7 +319,7 @@ test("object with optional property WITHOUT default", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -341,7 +341,7 @@ test("object mixing required, optional without default, and optional with defaul
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -360,7 +360,7 @@ test("object nullable", () => {
       required: ["id"],
       nullable: true,
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"id": z.string(),
@@ -371,21 +371,21 @@ test("object nullable", () => {
 test("object as record with additionalProperties", () => {
   schemaToZod({ type: "object", additionalProperties: { type: "number" } }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.record(z.string(),z.number())"'
+    '"z.record(z.string(),z.number())"',
   );
 });
 
 test("object as record without additionalProperties", () => {
   schemaToZod({ type: "object" }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.record(z.string(),z.unknown())"'
+    '"z.record(z.string(),z.unknown())"',
   );
 });
 
 test("object as record nullable", () => {
   schemaToZod({ type: "object", nullable: true }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.record(z.string(),z.unknown()).nullable()"'
+    '"z.record(z.string(),z.unknown()).nullable()"',
   );
 });
 
@@ -403,7 +403,7 @@ test("oneOf flattened single-element enums", () => {
         { type: "string", enum: ["c"] },
       ],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`"z.enum(["a", "b", "c"])"`);
 });
@@ -413,7 +413,7 @@ test("oneOf union", () => {
     {
       oneOf: [{ type: "string" }, { type: "number" }],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.union([
@@ -429,7 +429,7 @@ test("oneOf nullable", () => {
       oneOf: [{ type: "string" }, { type: "number" }],
       nullable: true,
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.union([
@@ -453,7 +453,7 @@ test("allOf intersection", () => {
         { $ref: "#/components/schemas/Extended" },
       ],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.intersection([
@@ -469,7 +469,7 @@ test("allOf nullable", () => {
       allOf: [{ type: "string" }],
       nullable: true,
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot('"z.string().nullable()"');
 });
@@ -480,17 +480,17 @@ test("allOf with default", () => {
       allOf: [{ $ref: "#/components/schemas/Config" }],
       default: { enabled: true },
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"Config.default({"enabled":true})"'
+    '"Config.default({"enabled":true})"',
   );
 });
 
 test("empty schema", () => {
   schemaToZod({}, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.record(z.string(), z.unknown())"'
+    '"z.record(z.string(), z.unknown())"',
   );
 });
 
@@ -504,7 +504,7 @@ test("object property with default: undefined should still be optional", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -521,10 +521,10 @@ test("array default", () => {
 test("array default with values", () => {
   schemaToZod(
     { type: "array", items: { type: "number" }, default: [1, 2, 3] },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().array().default([1,2,3])"'
+    '"z.number().array().default([1,2,3])"',
   );
 });
 
@@ -534,10 +534,10 @@ test("object default", () => {
       allOf: [{ $ref: "#/components/schemas/Config" }],
       default: { enabled: true },
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"Config.default({"enabled":true})"'
+    '"Config.default({"enabled":true})"',
   );
 });
 
@@ -551,7 +551,7 @@ test("$ref property should be optional when not required", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -578,7 +578,7 @@ test("object-typed property with default", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -604,7 +604,7 @@ test("object-typed property with default should not get .optional()", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   const result = out.value();
   // Should have .default() but NOT .optional()
@@ -622,7 +622,7 @@ test("default null without nullable should be skipped and property marked option
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -641,7 +641,7 @@ test("default null with nullable should emit default", () => {
       },
       required: ["name"],
     },
-    io
+    io,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -673,7 +673,7 @@ test("object with lazy ref property", () => {
       },
       required: ["name"],
     },
-    lazyIO
+    lazyIO,
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
@@ -689,7 +689,7 @@ test("array of lazy ref", () => {
       type: "array",
       items: { $ref: "#/components/schemas/TreeNode" },
     },
-    lazyIO
+    lazyIO,
   );
   expect(out.value()).toMatchInlineSnapshot('"z.lazy(() => TreeNode).array()"');
 });

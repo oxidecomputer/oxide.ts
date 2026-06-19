@@ -23,7 +23,8 @@ export type Ipv6Net =
 string;
 
 export type IpNet =
-(| Ipv4Net
+(
+| Ipv4Net
 | Ipv6Net
 );
 
@@ -36,7 +37,8 @@ export type Name =
 string;
 
 export type NameOrId =
-(| string
+(
+| string
 | Name
 );
 
@@ -64,7 +66,8 @@ export type IpVersion =
 * Specify which IP or external subnet pool to allocate from.
  */
 export type PoolSelector =
-(/** Use the specified pool by name or ID. */
+(
+/** Use the specified pool by name or ID. */
 | {
 /** The pool to allocate from. */
 "pool": NameOrId,"type": "explicit"
@@ -80,7 +83,8 @@ export type PoolSelector =
 * Specify how to allocate a floating IP address.
  */
 export type AddressAllocator =
-(/** Reserve a specific IP address. The pool is inferred from the address since IP pools cannot have overlapping ranges. */
+(
+/** Reserve a specific IP address. The pool is inferred from the address since IP pools cannot have overlapping ranges. */
 | {
 /** The IP address to reserve. */
 "ip": string,"type": "explicit"
@@ -108,7 +112,8 @@ export type AddressConfig =
 * The kind associated with an address lot.
  */
 export type AddressLotKind =
-(/** Infrastructure address lots are used for network infrastructure like addresses assigned to rack switches. */
+(
+/** Infrastructure address lots are used for network infrastructure like addresses assigned to rack switches. */
 | "infra"
 
 /** Pool address lots are used by IP pools. */
@@ -219,7 +224,8 @@ export type FailureDomain =
 * Used for both Affinity and Anti-Affinity Groups
  */
 export type AffinityPolicy =
-(/** If the affinity request cannot be satisfied, allow it anyway.
+(
+/** If the affinity request cannot be satisfied, allow it anyway.
 
 This enables a "best-effort" attempt to satisfy the affinity policy. */
 | "allow"
@@ -257,7 +263,8 @@ export type AffinityGroupCreate =
 * This typically reflects whether it's starting, running, stopping, or stopped, but also includes states related to the Instance's lifecycle
  */
 export type InstanceState =
-(/** The instance is being created. */
+(
+/** The instance is being created. */
 | "creating"
 
 /** The instance is currently starting up. */
@@ -333,7 +340,8 @@ Record<string, unknown>;
 * Identifies switch physical location
  */
 export type SwitchSlot =
-(/** Switch in upper slot */
+(
+/** Switch in upper slot */
 | "switch0"
 
 /** Switch in lower slot */
@@ -390,7 +398,8 @@ export type WebhookDeliveryResponse =
 "status": number,};
 
 export type WebhookDeliveryAttemptResult =
-(/** The webhook event has been delivered successfully. */
+(
+/** The webhook event has been delivered successfully. */
 | "succeeded"
 
 /** A webhook request was sent to the endpoint, and it returned a HTTP error status code indicating an error. */
@@ -430,7 +439,8 @@ export type AlertDeliveryAttempts =
 * The state of a webhook delivery attempt.
  */
 export type AlertDeliveryState =
-(/** The webhook event has not yet been delivered successfully.
+(
+/** The webhook event has not yet been delivered successfully.
 
 Either no delivery attempts have yet been performed, or the delivery has failed at least once but has retries remaining. */
 | "pending"
@@ -447,7 +457,8 @@ Either no delivery attempts have yet been performed, or the delivery has failed 
 * The reason an alert was delivered
  */
 export type AlertDeliveryTrigger =
-(/** Delivery was triggered by the alert itself. */
+(
+/** Delivery was triggered by the alert itself. */
 | "alert"
 
 /** Delivery was triggered by a request to resend the alert. */
@@ -580,7 +591,8 @@ export type AlertSubscriptionCreated =
 * Description of source IPs allowed to reach rack services.
  */
 export type AllowedSourceIps =
-(/** Allow traffic from any external IP address. */
+(
+/** Allow traffic from any external IP address. */
 | {"allow": "any"
 ,}
 /** Restrict access to a specific set of source IP addresses or subnets.
@@ -670,7 +682,8 @@ export type AntiAffinityGroupUpdate =
 {"description"?: string | null,"name"?: Name | null,};
 
 export type AuditLogEntryActor =
-(| {"kind": "user_builtin"
+(
+| {"kind": "user_builtin"
 ,"userBuiltinId": string,}
 | {"kind": "silo_user"
 ,"siloId": string,"siloUserId": string,}
@@ -684,7 +697,8 @@ export type AuditLogEntryActor =
 * Authentication method used for a request
  */
 export type AuthMethod =
-(/** Console session cookie */
+(
+/** Console session cookie */
 | "session_cookie"
 
 /** Device access token (OAuth 2.0 device authorization flow) */
@@ -699,7 +713,8 @@ export type AuthMethod =
 * Result of an audit log entry
  */
 export type AuditLogEntryResult =
-(/** The operation completed successfully */
+(
+/** The operation completed successfully */
 | {
 /** HTTP status code */
 "httpStatusCode": number,"kind": "success"
@@ -758,7 +773,8 @@ export type AuditLogEntryResultsPage =
 * This describes the level at which a user must be authorized to read data from a timeseries. For example, fleet-scoping means the data is only visible to an operator or fleet reader. Project-scoped, on the other hand, indicates that a user will see data limited to the projects on which they have read permissions.
  */
 export type AuthzScope =
-(/** Timeseries data is limited to fleet readers. */
+(
+/** Timeseries data is limited to fleet readers. */
 | "fleet"
 
 /** Timeseries data is limited to the authorized silo for a user. */
@@ -827,7 +843,8 @@ export type BfdSessionEnable =
 "switchSlot": SwitchSlot,};
 
 export type BfdState =
-(/** A stable down state. Non-responsive to incoming messages. */
+(
+/** A stable down state. Non-responsive to incoming messages. */
 | "admin_down"
 
 /** The initial state. */
@@ -970,7 +987,8 @@ export type RouterLifetimeConfig =
 number;
 
 export type RouterPeerType =
-(| {
+(
+| {
 /** Router lifetime in seconds for unnumbered BGP peers. */
 "routerLifetime": RouterLifetimeConfig,"type": "unnumbered"
 ,}
@@ -984,7 +1002,8 @@ export type RouterPeerType =
 * Define policy relating to the import and export of prefixes from a BGP peer.
  */
 export type ImportExportPolicy =
-(/** Do not perform any filtering. */
+(
+/** Do not perform any filtering. */
 | {"type": "no_filtering"
 ,}
 | {"type": "allow"
@@ -1040,7 +1059,8 @@ export type BgpPeerConfig =
 * The current state of a BGP peer.
  */
 export type BgpPeerState =
-(/** Initial state. Refuse all incoming BGP connections. No resources allocated to peer. */
+(
+/** Initial state. Refuse all incoming BGP connections. No resources allocated to peer. */
 | "idle"
 
 /** Waiting for the TCP connection to be completed. */
@@ -1092,7 +1112,8 @@ export type BgpPeerStatus =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangedouble =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1109,7 +1130,8 @@ export type BinRangedouble =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangefloat =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1126,7 +1148,8 @@ export type BinRangefloat =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeint16 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1143,7 +1166,8 @@ export type BinRangeint16 =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeint32 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1160,7 +1184,8 @@ export type BinRangeint32 =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeint64 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1177,7 +1202,8 @@ export type BinRangeint64 =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeint8 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1194,7 +1220,8 @@ export type BinRangeint8 =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeuint16 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1211,7 +1238,8 @@ export type BinRangeuint16 =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeuint32 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1228,7 +1256,8 @@ export type BinRangeuint32 =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeuint64 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1245,7 +1274,8 @@ export type BinRangeuint64 =
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export type BinRangeuint8 =
-(/** A range unbounded below and exclusively above, `..end`. */
+(
+/** A range unbounded below and exclusively above, `..end`. */
 | {"end": number,"type": "range_to"
 ,}
 /** A range bounded inclusively below and exclusively above, `start..end`. */
@@ -1864,7 +1894,8 @@ export type MissingDatum =
 * A `Datum` is a single sampled data point from a metric.
  */
 export type Datum =
-(| {"datum": boolean,"type": "bool"
+(
+| {"datum": boolean,"type": "bool"
 ,}
 | {"datum": number,"type": "i8"
 ,}
@@ -1979,7 +2010,8 @@ export type DiskType =
 * State of a Disk
  */
 export type DiskState =
-(/** Disk is being initialized */
+(
+/** Disk is being initialized */
 | {"state": "creating"
 ,}
 /** Disk is ready but detached from any Instance */
@@ -2043,7 +2075,8 @@ export type Disk =
 * Different sources for a Distributed Disk
  */
 export type DiskSource =
-(/** Create a blank disk */
+(
+/** Create a blank disk */
 | {
 /** Size of blocks for this disk. Valid values are: 512, 2048, or 4096. */
 "blockSize": BlockSize,"type": "blank"
@@ -2067,7 +2100,8 @@ export type DiskSource =
 * The source of a `Disk`'s blocks
  */
 export type DiskBackend =
-(| {"type": "local"
+(
+| {"type": "local"
 ,}
 | {
 /** The initial source for this disk */
@@ -2125,7 +2159,8 @@ export type EphemeralIpCreate =
 "poolSelector"?: PoolSelector,};
 
 export type ExternalIp =
-(/** A source NAT IP address.
+(
+/** A source NAT IP address.
 
 SNAT addresses are ephemeral addresses used only for outbound connectivity. */
 | {
@@ -2167,7 +2202,8 @@ SNAT addresses are ephemeral addresses used only for outbound connectivity. */
 * Parameters for creating an external IP address for instances.
  */
 export type ExternalIpCreate =
-(/** An IP address providing both inbound and outbound access. The address is automatically assigned from a pool. */
+(
+/** An IP address providing both inbound and outbound access. The address is automatically assigned from a pool. */
 | {
 /** Pool to allocate from. */
 "poolSelector"?: PoolSelector,"type": "ephemeral"
@@ -2219,7 +2255,8 @@ export type ExternalSubnet =
 * Specify how to allocate an external subnet.
  */
 export type ExternalSubnetAllocator =
-(/** Reserve a specific subnet. */
+(
+/** Reserve a specific subnet. */
 | {
 /** The subnet CIDR to reserve. Must be available in the pool. */
 "subnet": IpNet,"type": "explicit"
@@ -2303,7 +2340,8 @@ export type FieldSchema =
 * The `FieldValue` contains the value of a target or metric field.
  */
 export type FieldValue =
-(| {"type": "string"
+(
+| {"type": "string"
 ,"value": string,}
 | {"type": "i8"
 ,"value": number,}
@@ -2507,7 +2545,8 @@ export type IdentityProviderResultsPage =
 "nextPage"?: string | null,};
 
 export type IdpMetadataSource =
-(| {"type": "url"
+(
+| {"type": "url"
 ,"url": string,}
 | {"data": string,"type": "base64_encoded_xml"
 ,}
@@ -2582,7 +2621,8 @@ export type ImportBlocksBulkWrite =
 * A policy determining when an instance should be automatically restarted by the control plane.
  */
 export type InstanceAutoRestartPolicy =
-(/** The instance should not be automatically restarted by the control plane if it fails. */
+(
+/** The instance should not be automatically restarted by the control plane if it fails. */
 | "never"
 
 /** If this instance is running and unexpectedly fails (e.g. due to a host software crash or unexpected host reboot), the control plane will make a best-effort attempt to restart it. The control plane may choose not to restart the instance to preserve the overall availability of the system. */
@@ -2604,7 +2644,8 @@ export type InstanceAutoRestartPolicy =
 * In all cases, the CPU features presented by a given CPU platform are a subset of what the corresponding hardware may actually support; features which cannot be used from a virtual environment or do not have full hypervisor support may be masked off.
  */
 export type InstanceCpuPlatform =
-(/** An AMD Milan-like CPU platform. */
+(
+/** An AMD Milan-like CPU platform. */
 | "amd_milan"
 
 /** An AMD Turin-like CPU platform. Prefer `amd_turin_v2` over this; this CPU platform is retained for instances that specifically requested it before `amd_turin_v2` was added.
@@ -2673,7 +2714,8 @@ If this is not present, then this instance has not been automatically restarted.
 * Describe the instance's disks at creation time
  */
 export type InstanceDiskAttachment =
-(/** During instance creation, create and attach disks */
+(
+/** During instance creation, create and attach disks */
 | {"description": string,
 /** The source for this `Disk`'s blocks */
 "diskBackend": DiskBackend,"name": Name,
@@ -2713,7 +2755,8 @@ export type MulticastGroupJoinSpec =
 * How a VPC-private IP address is assigned to a network interface.
  */
 export type Ipv4Assignment =
-(/** Automatically assign an IP address from the VPC Subnet. */
+(
+/** Automatically assign an IP address from the VPC Subnet. */
 | {"type": "auto"
 ,}
 /** Explicitly assign a specific address, if available. */
@@ -2735,7 +2778,8 @@ export type PrivateIpv4StackCreate =
 * How a VPC-private IP address is assigned to a network interface.
  */
 export type Ipv6Assignment =
-(/** Automatically assign an IP address from the VPC Subnet. */
+(
+/** Automatically assign an IP address from the VPC Subnet. */
 | {"type": "auto"
 ,}
 /** Explicitly assign a specific address, if available. */
@@ -2757,7 +2801,8 @@ export type PrivateIpv6StackCreate =
 * Create parameters for a network interface's IP stack.
  */
 export type PrivateIpStackCreate =
-(/** The interface has only an IPv4 stack. */
+(
+/** The interface has only an IPv4 stack. */
 | {"type": "v4"
 ,"value": PrivateIpv4StackCreate,}
 /** The interface has only an IPv6 stack. */
@@ -2786,7 +2831,8 @@ If not provided, a default configuration will be used, which creates a dual-stac
 * Describes an attachment of an `InstanceNetworkInterface` to an `Instance`, at the time the instance is created.
  */
 export type InstanceNetworkInterfaceAttachment =
-(/** Create one or more `InstanceNetworkInterface`s for the `Instance`.
+(
+/** Create one or more `InstanceNetworkInterface`s for the `Instance`.
 
 If more than one interface is provided, then the first will be designated the primary interface for the instance. */
 | {"params": (InstanceNetworkInterfaceCreate)[],"type": "create"
@@ -2903,7 +2949,8 @@ export type PrivateIpv6Stack =
 * The VPC-private IP stack for a network interface.
  */
 export type PrivateIpStack =
-(/** The interface has only an IPv4 stack. */
+(
+/** The interface has only an IPv4 stack. */
 | {"type": "v4"
 ,"value": PrivateIpv4Stack,}
 /** The interface has only an IPv6 stack. */
@@ -3031,7 +3078,8 @@ If not provided, the instance's multicast group membership will not be changed. 
 "ncpus": InstanceCpuCount,};
 
 export type InterfaceNum =
-(| {"unknown": number,}
+(
+| {"unknown": number,}
 | {"ifIndex": number,}
 | {"portNumber": number,}
 );
@@ -3146,7 +3194,8 @@ export type InternetGatewayResultsPage =
 * Type of IP pool.
  */
 export type IpPoolType =
-(/** Unicast IP pool for standard IP allocations. */
+(
+/** Unicast IP pool for standard IP allocations. */
 | "unicast"
 
 /** Multicast IP pool for multicast group allocations.
@@ -3216,7 +3265,8 @@ export type Ipv6Range =
 {"first": string,"last": string,};
 
 export type IpRange =
-(| Ipv4Range
+(
+| Ipv4Range
 | Ipv6Range
 );
 
@@ -3300,7 +3350,8 @@ string;
 * The forward error correction mode of a link.
  */
 export type LinkFec =
-(/** Firecode forward error correction. */
+(
+/** Firecode forward error correction. */
 | "firecode"
 
 /** No forward error correction. */
@@ -3335,7 +3386,8 @@ export type LldpLinkConfigCreate =
 * The speed of a link.
  */
 export type LinkSpeed =
-(/** Zero gigabits per second. */
+(
+/** Zero gigabits per second. */
 | "speed0_g"
 
 /** 1 gigabit per second. */
@@ -3423,7 +3475,8 @@ export type LldpLinkConfig =
 "systemName"?: string | null,};
 
 export type NetworkAddress =
-(| {"ipAddr": string,}
+(
+| {"ipAddr": string,}
 | {"iEEE802": (number)[],}
 );
 
@@ -3530,7 +3583,8 @@ export type MeasurementResultsPage =
 * The type of the metric itself, indicating what its values represent.
  */
 export type MetricType =
-(/** The value represents an instantaneous measurement in time. */
+(
+/** The value represents an instantaneous measurement in time. */
 | "gauge"
 
 /** The value represents a difference between two points in time. */
@@ -3647,7 +3701,8 @@ export type PrivateIpv6Config =
 * VPC-private IP address configuration for a network interface.
  */
 export type PrivateIpConfig =
-(/** The interface has only an IPv4 configuration. */
+(
+/** The interface has only an IPv4 configuration. */
 | {"type": "v4"
 ,"value": PrivateIpv4Config,}
 /** The interface has only an IPv6 configuration. */
@@ -3666,7 +3721,8 @@ export type PrivateIpConfig =
 * The type of network interface
  */
 export type NetworkInterfaceKind =
-(/** A vNIC attached to a guest instance */
+(
+/** A vNIC attached to a guest instance */
 | {"id": string,"type": "instance"
 ,}
 /** A vNIC associated with an internal service */
@@ -3695,7 +3751,8 @@ export type NetworkInterface =
 * Each element is an option, where `None` represents a missing sample.
  */
 export type ValueArray =
-(| {"type": "integer"
+(
+| {"type": "integer"
 ,"values": (number | null)[],}
 | {"type": "double"
 ,"values": (number | null)[],}
@@ -3773,7 +3830,8 @@ export type PhysicalDiskKind =
 * The operator-defined policy of a physical disk.
  */
 export type PhysicalDiskPolicy =
-(/** The operator has indicated that the disk is in-service. */
+(
+/** The operator has indicated that the disk is in-service. */
 | {"kind": "in_service"
 ,}
 /** The operator has indicated that the disk has been permanently removed from service.
@@ -3789,7 +3847,8 @@ An expunged disk is always non-provisionable. */
 * The current state of the disk, as determined by Nexus.
  */
 export type PhysicalDiskState =
-(/** The disk is currently active, and has resources allocated on it. */
+(
+/** The disk is currently active, and has resources allocated on it. */
 | "active"
 
 /** The disk has been permanently removed from service.
@@ -4051,7 +4110,8 @@ export type RouteConfig =
 * When traffic is to be sent to a destination that is within a given `RouteDestination`, the corresponding `RouterRoute` applies, and traffic will be forward to the `RouteTarget` for that rule.
  */
 export type RouteDestination =
-(/** Route applies to traffic destined for the specified IP address */
+(
+/** Route applies to traffic destined for the specified IP address */
 | {"type": "ip"
 ,"value": string,}
 /** Route applies to traffic destined for the specified IP subnet */
@@ -4069,7 +4129,8 @@ export type RouteDestination =
 * A `RouteTarget` describes the possible locations that traffic matching a route destination can be sent.
  */
 export type RouteTarget =
-(/** Forward traffic to a particular IP address. */
+(
+/** Forward traffic to a particular IP address. */
 | {"type": "ip"
 ,"value": string,}
 /** Forward traffic to a VPC */
@@ -4095,7 +4156,8 @@ export type RouteTarget =
 * The kind determines certain attributes such as if the route is modifiable and describes how or where the route was created.
  */
 export type RouterRouteKind =
-(/** Determines the default destination of traffic, such as whether it goes to the internet or not.
+(
+/** Determines the default destination of traffic, such as whether it goes to the internet or not.
 
 `Destination: An Internet Gateway` `Modifiable: true` */
 | "default"
@@ -4252,7 +4314,8 @@ export type SetTargetReleaseParams =
 * Describes how identities are managed and users are authenticated in this Silo
  */
 export type SiloIdentityMode =
-(/** Users are authenticated with SAML using an external authentication provider.  The system updates information about users and groups only during successful authentication (i.e,. "JIT provisioning" of users and groups). */
+(
+/** Users are authenticated with SAML using an external authentication provider.  The system updates information about users and groups only during successful authentication (i.e,. "JIT provisioning" of users and groups). */
 | "saml_jit"
 
 /** The system is the source of truth about users.  There is no linkage to an external authentication provider or identity provider. */
@@ -4512,7 +4575,8 @@ export type SiloUtilizationResultsPage =
 * This controls whether new resources are going to be provisioned on this sled.
  */
 export type SledProvisionPolicy =
-(/** New resources will be provisioned on this sled. */
+(
+/** New resources will be provisioned on this sled. */
 | "provisionable"
 
 /** New resources will not be provisioned on this sled. However, if the sled is currently in service, existing resources will continue to be on this sled unless manually migrated off. */
@@ -4524,7 +4588,8 @@ export type SledProvisionPolicy =
 * The operator-defined policy of a sled.
  */
 export type SledPolicy =
-(/** The operator has indicated that the sled is in-service. */
+(
+/** The operator has indicated that the sled is in-service. */
 | {"kind": "in_service"
 ,
 /** Determines whether new resources can be provisioned onto the sled. */
@@ -4542,7 +4607,8 @@ An expunged sled is always non-provisionable. */
 * The current state of the sled.
  */
 export type SledState =
-(/** The sled is currently active, and has resources allocated on it. */
+(
+/** The sled is currently active, and has resources allocated on it. */
 | "active"
 
 /** The sled has been permanently removed from service.
@@ -4852,7 +4918,8 @@ export type SupportBundleCreate =
 "userComment"?: string | null,};
 
 export type SupportBundleState =
-(/** Support Bundle still actively being collected.
+(
+/** Support Bundle still actively being collected.
 
 This is the initial state for a Support Bundle, and it will automatically transition to either "Failing" or "Active".
 
@@ -4910,7 +4977,8 @@ export type Switch =
 * Indicates the kind for a switch interface.
  */
 export type SwitchInterfaceKind =
-(/** Primary interfaces are associated with physical links. There is exactly one primary interface per physical link. */
+(
+/** Primary interfaces are associated with physical links. There is exactly one primary interface per physical link. */
 | {"type": "primary"
 ,}
 /** VLAN interfaces allow physical interfaces to be multiplexed onto multiple logical links, each distinguished by a 12-bit 802.1Q Ethernet tag. */
@@ -5002,7 +5070,8 @@ export type SwitchPortApplySettings =
 * The link geometry associated with a switch port.
  */
 export type SwitchPortGeometry =
-(/** The port contains a single QSFP28 link with four lanes. */
+(
+/** The port contains a single QSFP28 link with four lanes. */
 | "qsfp28x1"
 
 /** The port contains two QSFP28 links each with two lanes. */
@@ -5225,7 +5294,8 @@ export type TimeseriesQuery =
 * Measurement units for timeseries samples.
  */
 export type Units =
-(| "count"
+(
+| "count"
 | "bytes"
 | "seconds"
 | "nanoseconds"
@@ -5293,7 +5363,8 @@ export type TufRepoResultsPage =
 * Whether the uploaded TUF repo already existed or was new and had to be inserted. Part of `TufRepoUpload`.
  */
 export type TufRepoUploadStatus =
-(/** The repository already existed in the database */
+(
+/** The repository already existed in the database */
 | "already_exists"
 
 /** The repository did not exist, and was inserted into the database */
@@ -5439,7 +5510,8 @@ string;
 * Parameters for setting a user's password
  */
 export type UserPassword =
-(/** Sets the user's password to the provided value */
+(
+/** Sets the user's password to the provided value */
 | {"mode": "password"
 ,"value": Password,}
 /** Invalidates any current password (disabling password authentication) */
@@ -5536,7 +5608,8 @@ export type VpcFirewallRuleDirection =
 * The `VpcFirewallRuleHostFilter` is used to filter traffic on the basis of its source or destination host.
  */
 export type VpcFirewallRuleHostFilter =
-(/** The rule applies to traffic from/to all instances in the VPC */
+(
+/** The rule applies to traffic from/to all instances in the VPC */
 | {"type": "vpc"
 ,"value": Name,}
 /** The rule applies to traffic from/to all instances in the VPC Subnet */
@@ -5557,7 +5630,8 @@ export type VpcFirewallRuleHostFilter =
 * The protocols that may be specified in a firewall rule's filter
  */
 export type VpcFirewallRuleProtocol =
-(| {"type": "tcp"
+(
+| {"type": "tcp"
 ,}
 | {"type": "udp"
 ,}
@@ -5588,7 +5662,8 @@ export type VpcFirewallRuleStatus =
 * A `VpcFirewallRuleTarget` is used to specify the set of instances to which a firewall rule applies. You can target instances directly by name, or specify a VPC, VPC subnet, IP, or IP subnet, which will apply the rule to traffic going to all matching instances. Targets are additive: the rule applies to instances matching ANY target.
  */
 export type VpcFirewallRuleTarget =
-(/** The rule applies to all instances in the VPC */
+(
+/** The rule applies to all instances in the VPC */
 | {"type": "vpc"
 ,"value": Name,}
 /** The rule applies to all instances in the VPC Subnet */
@@ -5849,7 +5924,8 @@ export type WebhookSecrets =
 * Supported set of sort modes for scanning by name or id
  */
 export type NameOrIdSortMode =
-(/** Sort in increasing order of "name" */
+(
+/** Sort in increasing order of "name" */
 | "name_ascending"
 
 /** Sort in decreasing order of "name" */
@@ -5864,7 +5940,8 @@ export type NameOrIdSortMode =
 * Supported set of sort modes for scanning by timestamp and ID
  */
 export type TimeAndIdSortMode =
-(/** Sort in increasing order of timestamp and ID, i.e., earliest first */
+(
+/** Sort in increasing order of timestamp and ID, i.e., earliest first */
 | "time_and_id_ascending"
 
 /** Sort in increasing order of timestamp and ID, i.e., most recent first */
@@ -5899,7 +5976,8 @@ export type PaginationOrder =
 * Supported sort modes when scanning by semantic version
  */
 export type VersionSortMode =
-(/** Sort in increasing semantic version order (oldest first) */
+(
+/** Sort in increasing semantic version order (oldest first) */
 | "version_ascending"
 
 /** Sort in decreasing semantic version order (newest first) */
