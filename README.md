@@ -27,10 +27,10 @@ npm version patch --no-git-tag-version   # or minor/major — bumps package.json
 ```
 
 On every push to `main`, CI checks whether each package's `package.json`
-version is already on the registry. If not, it publishes and pushes a matching
-tag like `api-v0.7.2` or `openapi-gen-ts-v0.15.2` as a record. Publishing uses
+version is already on the registry and publishes it if not. Publishing uses
 npm [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so
-no tokens are involved.
+no tokens are involved, and the provenance attestation on the registry records
+which commit each release was built from.
 
 To publish a canary build of a PR, go to the [Release
 workflow](https://github.com/oxidecomputer/oxide.ts/actions/workflows/release.yml),
