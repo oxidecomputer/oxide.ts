@@ -16,6 +16,28 @@ any other schemas and is unlikely to handle them well.
 
 See the [README](./oxide-api/README.md) for the `@oxide/api` package.
 
+## Releases
+
+To publish a release of either package, bump its version and land the change
+on `main`:
+
+```
+cd oxide-api  # or oxide-openapi-gen-ts
+npm version patch --no-git-tag-version   # or minor/major — bumps package.json
+```
+
+On every push to `main`, CI checks whether each package's `package.json`
+version is already on the registry. If not, it publishes and pushes a matching
+tag like `api-v0.7.2` or `openapi-gen-ts-v0.15.2` as a record. Publishing uses
+npm [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so
+no tokens are involved.
+
+To publish a canary build of a PR, go to the [Release
+workflow](https://github.com/oxidecomputer/oxide.ts/actions/workflows/release.yml),
+click "Run workflow", choose a package, and enter the PR number. It publishes
+the PR's head as `<version>-canary.<pr>.<sha>` under the `canary` dist-tag and
+comments the version on the PR.
+
 ## Contributing
 
 We prefer to keep the generator as simple as possible and narrowly scoped to our

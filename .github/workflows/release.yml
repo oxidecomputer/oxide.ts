@@ -1,0 +1,132 @@
+# Publishes @oxide/api and @oxide/openapi-gen-ts to npm via trusted publishers
+# (OIDC) configured on npmjs.com for this repo + workflow filename — no token,
+# and provenance attestations are generated automatically
+# (https://docs.npmjs.com/trusted-publishers).
+#
+# Two modes:
+#   Release: bump the version in a package's package.json and land it on main.
+#     The workflow publishes any version not yet on the registry and pushes a
+#     matching tag (e.g. api-v0.7.2) as a record. Full recipe in the README.
+#   Canary:  Actions tab → Release → Run workflow → choose a package and enter
+#     a PR number. Publishes that PR's head as <version>-canary.<pr>.<sha>
+#     under the `canary` dist-tag and comments the version on the PR.
+#     Dispatching publishes the PR's code under @oxide — review the diff first.
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish a canary for'
+        required: true
+        type: choice
+        options: [oxide-api, oxide-openapi-gen-ts]
+      pr-number:
+        description: 'PR number to publish a canary for'
+        required: true
+
+jobs:
+  # Main-branch validation runs here (rather than on validate.yml's own push
+  # trigger) so publishing can depend on it.
+  validate:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/validate.yml
+
+  publish:
+    if: github.event_name == 'push'
+    needs: validate
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to push the release tag
+      id-token: write # required for OIDC trusted publishing
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [oxide-api, oxide-openapi-gen-ts]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Check whether package.json version is already published
+        id: check
+        run: |
+          NAME=$(node --print "require('./package.json').name")
+          VERSION=$(node --print "require('./package.json').version")
+          echo "tag=${NAME#@oxide/}-v${VERSION}" >> "$GITHUB_OUTPUT"
+          # empty output = version not on the registry. (npm view's exit code
+          # for a missing version has varied across npm versions; its output
+          # hasn't.)
+          if [ -n "$(npm view "${NAME}@${VERSION}" version 2>/dev/null)" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        if: steps.check.outputs.published == 'false'
+        with:
+          node-version: 24 # npm >=11.5.1 required for trusted publishing
+          registry-url: 'https://registry.npmjs.org'
+          # npm recommends not restoring a dependency cache in release builds
+          package-manager-cache: false
+      - name: Install
+        if: steps.check.outputs.published == 'false'
+        run: npm ci
+      - name: Publish # prepack runs the build
+        if: steps.check.outputs.published == 'false'
+        run: npm publish
+      # Runs even when publish was skipped, so a rerun after a failed tag push
+      # can still create the tag. No-op when the tag already exists.
+      - name: Tag release
+        env:
+          TAG: ${{ steps.check.outputs.tag }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" > /dev/null; then
+            echo "Tag ${TAG} already exists"
+          else
+            git tag "${TAG}"
+            git push origin "${TAG}"
+          fi
+
+  canary:
+    if: github.event_name == 'workflow_dispatch'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for OIDC trusted publishing
+      pull-requests: write # to comment the canary version on the PR
+    defaults:
+      run:
+        working-directory: ${{ inputs.package }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          # works for fork PRs too; the workflow itself always runs from main
+          ref: refs/pull/${{ inputs.pr-number }}/head
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      - name: Install
+        run: npm ci
+      - name: Set canary version
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          BASE=$(node --print "require('./package.json').version")
+          npm version "${BASE}-canary.${{ inputs.pr-number }}.${SHA}" --no-git-tag-version
+      - name: Publish canary # prepack runs the build
+        run: npm publish --tag canary
+      - name: Comment version on PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NAME=$(node --print "require('./package.json').name")
+          VERSION=$(node --print "require('./package.json').version")
+          gh pr comment ${{ inputs.pr-number }} --repo ${{ github.repository }} \
+            --body "Canary published: \`${NAME}@${VERSION}\`"

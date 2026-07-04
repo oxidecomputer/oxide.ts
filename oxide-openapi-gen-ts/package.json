@@ -30,7 +30,7 @@
     "fmt:check": "oxfmt --check",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --type-aware --fix",
-    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
     "pretest": "../tools/gen.sh",
     "test": "vitest",
     "test:ui": "vitest --ui",

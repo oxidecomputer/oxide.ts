@@ -1,10 +1,9 @@
 name: Validate
 
+# On pushes to main this runs as part of the Release workflow (via
+# workflow_call), which gates publishing on it.
 on:
   workflow_call:
-  push:
-    branches:
-      - main
   pull_request:
 
 concurrency:
@@ -15,8 +14,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: "24"
       - working-directory: "./oxide-api"
