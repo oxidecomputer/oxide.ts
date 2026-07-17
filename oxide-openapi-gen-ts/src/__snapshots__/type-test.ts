@@ -85,6 +85,7 @@ assert<Equals<A.MaxPathConfig, z.infer<typeof V.MaxPathConfig>>>();
 assert<Equals<A.BgpConfig, z.infer<typeof V.BgpConfig>>>();
 assert<Equals<A.BgpConfigCreate, z.infer<typeof V.BgpConfigCreate>>>();
 assert<Equals<A.BgpConfigResultsPage, z.infer<typeof V.BgpConfigResultsPage>>>();
+assert<Equals<A.BgpConfigUpdate, z.infer<typeof V.BgpConfigUpdate>>>();
 assert<Equals<A.BgpExported, z.infer<typeof V.BgpExported>>>();
 assert<Equals<A.BgpImported, z.infer<typeof V.BgpImported>>>();
 assert<Equals<A.RouterLifetimeConfig, z.infer<typeof V.RouterLifetimeConfig>>>();
