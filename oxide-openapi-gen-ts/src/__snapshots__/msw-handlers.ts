@@ -464,6 +464,8 @@ export interface MSWHandlers {
   networkingBfdStatus: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BfdStatus[]>>,
 /** `GET /v1/system/networking/bgp` */
   networkingBgpConfigList: (params: {  query: Api.NetworkingBgpConfigListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpConfigResultsPage>>,
+/** `PUT /v1/system/networking/bgp` */
+  networkingBgpConfigUpdate: (params: {  query: Api.NetworkingBgpConfigUpdateQueryParams, body: Json<Api.BgpConfigUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpConfig>>,
 /** `POST /v1/system/networking/bgp` */
   networkingBgpConfigCreate: (params: {   body: Json<Api.BgpConfigCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.BgpConfig>>,
 /** `DELETE /v1/system/networking/bgp` */
@@ -985,6 +987,7 @@ http.post('/v1/system/networking/bfd-disable', handler(handlers['networkingBfdDi
 http.post('/v1/system/networking/bfd-enable', handler(handlers['networkingBfdEnable'], null, schema.BfdSessionEnable)),
 http.get('/v1/system/networking/bfd-status', handler(handlers['networkingBfdStatus'], null, null)),
 http.get('/v1/system/networking/bgp', handler(handlers['networkingBgpConfigList'], schema.NetworkingBgpConfigListParams, null)),
+http.put('/v1/system/networking/bgp', handler(handlers['networkingBgpConfigUpdate'], schema.NetworkingBgpConfigUpdateParams, schema.BgpConfigUpdate)),
 http.post('/v1/system/networking/bgp', handler(handlers['networkingBgpConfigCreate'], null, schema.BgpConfigCreate)),
 http.delete('/v1/system/networking/bgp', handler(handlers['networkingBgpConfigDelete'], schema.NetworkingBgpConfigDeleteParams, null)),
 http.get('/v1/system/networking/bgp-announce-set', handler(handlers['networkingBgpAnnounceSetList'], schema.NetworkingBgpAnnounceSetListParams, null)),
