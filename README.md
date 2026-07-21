@@ -27,16 +27,20 @@ npm version patch --no-git-tag-version   # or minor/major — bumps package.json
 ```
 
 On every push to `main`, CI checks whether each package's `package.json`
-version is already on the registry and publishes it if not. Publishing uses
-npm [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so
-no tokens are involved, and the provenance attestation on the registry records
-which commit each release was built from.
+version is already on the registry. If either needs publishing, the Release
+workflow pauses in a "waiting for review" state. A required reviewer must
+approve the `release` environment deployment from the workflow run before the
+publish proceeds. Publishing uses npm [trusted
+publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), so no tokens are
+involved, and the provenance attestation on the registry records which commit
+each release was built from.
 
 To publish a canary build of a PR, go to the [Release
 workflow](https://github.com/oxidecomputer/oxide.ts/actions/workflows/release.yml),
 click "Run workflow", choose a package, and enter the PR number. It publishes
 the PR's head as `<version>-canary.<pr>.<sha>` under the `canary` dist-tag and
-comments the version on the PR.
+comments the version on the PR. The dispatched workflow requires the same
+`release` environment approval before publishing.
 
 ## Contributing
 

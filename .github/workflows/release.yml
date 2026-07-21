@@ -1,16 +1,18 @@
 # Publishes @oxide/api and @oxide/openapi-gen-ts to npm via trusted publishers
-# (OIDC) configured on npmjs.com for this repo + workflow filename — no token,
-# and provenance attestations are generated automatically
-# (https://docs.npmjs.com/trusted-publishers).
+# (OIDC) configured on npmjs.com for this repo + workflow filename + the
+# `release` environment — no token, and provenance attestations are generated
+# automatically (https://docs.npmjs.com/trusted-publishers).
 #
 # Two modes:
 #   Release: bump the version in a package's package.json and land it on main.
-#     The workflow publishes any version not yet on the registry. Full recipe
-#     in the README.
+#     The workflow publishes any version not yet on the registry after a
+#     required reviewer approves the `release` environment deployment. Full
+#     recipe in the README.
 #   Canary:  Actions tab → Release → Run workflow → choose a package and enter
 #     a PR number. Publishes that PR's head as <version>-canary.<pr>.<sha>
 #     under the `canary` dist-tag and comments the version on the PR.
-#     Dispatching publishes the PR's code under @oxide — review the diff first.
+#     Dispatching publishes the PR's code under @oxide after the same `release`
+#     environment approval — review the diff first.
 
 name: Release
 
@@ -35,25 +37,18 @@ jobs:
     if: github.event_name == 'push'
     uses: ./.github/workflows/validate.yml
 
-  publish:
+  check:
     if: github.event_name == 'push'
     needs: validate
-    timeout-minutes: 10
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write # required for OIDC trusted publishing
-    strategy:
-      fail-fast: false
-      matrix:
-        package: [oxide-api, oxide-openapi-gen-ts]
-    defaults:
-      run:
-        working-directory: ${{ matrix.package }}
+    outputs:
+      oxide-api: ${{ steps.oxide_api.outputs['needs-publishing'] }}
+      oxide-openapi-gen-ts: ${{ steps.oxide_openapi_gen_ts.outputs['needs-publishing'] }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Check whether package.json version is already published
-        id: check
+      - name: Check whether @oxide/api version needs publishing
+        id: oxide_api
+        working-directory: oxide-api
         run: |
           NAME=$(node --print "require('./package.json').name")
           VERSION=$(node --print "require('./package.json').version")
@@ -61,26 +56,64 @@ jobs:
           # for a missing version has varied across npm versions; its output
           # hasn't.)
           if [ -n "$(npm view "${NAME}@${VERSION}" version 2>/dev/null)" ]; then
-            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "needs-publishing=false" >> "$GITHUB_OUTPUT"
           else
-            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "needs-publishing=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Check whether @oxide/openapi-gen-ts version needs publishing
+        id: oxide_openapi_gen_ts
+        working-directory: oxide-openapi-gen-ts
+        run: |
+          NAME=$(node --print "require('./package.json').name")
+          VERSION=$(node --print "require('./package.json').version")
+          # empty output = version not on the registry. (npm view's exit code
+          # for a missing version has varied across npm versions; its output
+          # hasn't.)
+          if [ -n "$(npm view "${NAME}@${VERSION}" version 2>/dev/null)" ]; then
+            echo "needs-publishing=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs-publishing=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    if: >-
+      needs.check.outputs['oxide-api'] == 'true' ||
+      needs.check.outputs['oxide-openapi-gen-ts'] == 'true'
+    needs: check
+    environment: release
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for OIDC trusted publishing
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        if: steps.check.outputs.published == 'false'
         with:
           node-version: 24 # npm >=11.5.1 required for trusted publishing
           registry-url: 'https://registry.npmjs.org'
           # npm recommends not restoring a dependency cache in release builds
           package-manager-cache: false
-      - name: Install
-        if: steps.check.outputs.published == 'false'
+      - name: Install @oxide/api
+        if: needs.check.outputs['oxide-api'] == 'true'
+        working-directory: oxide-api
         run: npm ci
-      - name: Publish # prepack runs the build
-        if: steps.check.outputs.published == 'false'
+      - name: Publish @oxide/api # prepack runs the build
+        if: needs.check.outputs['oxide-api'] == 'true'
+        working-directory: oxide-api
+        run: npm publish
+      - name: Install @oxide/openapi-gen-ts
+        if: needs.check.outputs['oxide-openapi-gen-ts'] == 'true'
+        working-directory: oxide-openapi-gen-ts
+        run: npm ci
+      - name: Publish @oxide/openapi-gen-ts # prepack runs the build
+        if: needs.check.outputs['oxide-openapi-gen-ts'] == 'true'
+        working-directory: oxide-openapi-gen-ts
         run: npm publish
 
   canary:
     if: github.event_name == 'workflow_dispatch'
+    environment: release
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
@@ -93,7 +126,9 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          # works for fork PRs too; the workflow itself always runs from main
+          # works for fork PRs too. The workflow definition comes from the ref
+          # the run is dispatched on, but the `release` environment only
+          # allows deployments from main, so in practice that's always main.
           ref: refs/pull/${{ inputs.pr-number }}/head
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:

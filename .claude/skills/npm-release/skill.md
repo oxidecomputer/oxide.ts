@@ -81,9 +81,12 @@ Ask the user for:
 
 ### Phase 3: Publish (automatic) and dist-tag (manual)
 
-11. **Wait for the automatic publish.** Merging the PR triggers the `Release`
-    workflow on main, which runs validation and then publishes any package
-    version not already on the registry via npm trusted publishing — no manual
+11. **Approve and wait for the automatic publish.** Merging the PR triggers the
+    `Release` workflow on main, which runs validation and then waits for a
+    required reviewer to approve the `release` environment deployment. Tell
+    the user to approve it (or ask another required reviewer to approve it) in
+    the Actions run UI. The workflow then publishes any package version not
+    already on the registry via npm trusted publishing — no manual
     `npm publish`. Watch it with
     `gh run watch $(gh run list --workflow=release.yml --limit 1 --json databaseId --jq '.[0].databaseId')`
     and confirm with `npm view @oxide/api version`, which should show the new
