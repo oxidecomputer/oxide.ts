@@ -1,6 +1,6 @@
 ---
 name: npm-release
-description: Bump @oxide/api to a new omicron release tag, open the PR, and (after the user merges) hand off the npm publish commands.
+description: Bump @oxide/api to a new omicron release tag, open the PR, and (after the user merges and CI publishes) hand off the npm dist-tag command.
 user_invocable: true
 ---
 
@@ -79,30 +79,20 @@ Ask the user for:
     that the PR is ready and stop. The user will review and merge the PR
     themselves, then tell you to continue. Do not merge the PR yourself.
 
-### Phase 3: Publish
+### Phase 3: Publish (automatic) and dist-tag (manual)
 
-Do **not** run these steps yourself. `npm publish` and `npm dist-tag` require
-interactive npm auth (a browser one-time-password flow) that won't work from an
-automated tool call. Instead, present the exact commands — with `<version>`
-and `<N>` already substituted for this release — and let the user
-run them. Give the commands one step at a time (or as a short numbered list),
-and wait for the user to confirm each is done before relying on it.
+11. **Approve and wait for the automatic publish.** Merging the PR triggers the
+    `Release` workflow on main, which runs validation and then waits for a
+    required reviewer to approve the `release` environment deployment. Tell
+    the user to approve it (or ask another required reviewer to approve it) in
+    the Actions run UI. The workflow then publishes any package version not
+    already on the registry via npm trusted publishing — no manual
+    `npm publish`. Watch it with
+    `gh run watch $(gh run list --workflow=release.yml --limit 1 --json databaseId --jq '.[0].databaseId')`
+    and confirm with `npm view @oxide/api version`, which should show the new
+    version.
 
-11. **Pull main.** After the PR is merged, update the local working copy so the
-    publish builds from the merged commit:
-    ```
-    jj git fetch
-    jj new main
-    ```
-
-12. **Publish to npm.** From `oxide-api/`:
-    ```
-    npm publish
-    ```
-    The `prepublishOnly` script runs `npm run build` (tsup) automatically. The
-    user must be logged into npm with publish access to the `@oxide` scope.
-
-13. **Add npm dist-tag.** Tag the published version with the release name so
+12. **Add npm dist-tag.** Tag the published version with the release name so
     consumers can pin to it:
     ```
     npm dist-tag add @oxide/api@<version> rel<N>
@@ -110,6 +100,12 @@ and wait for the user to confirm each is done before relying on it.
     where `<N>` is the system release number (e.g., `19` for `rel/v19/rc0`).
     Note: bare version numbers like `v10` are not allowed by npm because they
     parse as semver — use the `rel` prefix.
+
+    Do **not** run this yourself. It requires interactive npm auth (a browser
+    one-time-password flow) that won't work from an automated tool call, and
+    CI can't do it either — the trusted-publishing OIDC credential only works
+    for `npm publish`, not `dist-tag`. Present the exact command with
+    `<version>` and `<N>` already substituted and let the user run it.
 
 ### Notes
 
