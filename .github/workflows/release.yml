@@ -30,6 +30,17 @@ on:
         description: 'PR number to publish a canary for'
         required: true
 
+# A newer run cancels an older one in the same group — including one paused
+# waiting for release-environment approval (tested; the docs don't say). So a
+# stale unapproved release can't be approved once a newer merge lands, and the
+# newest run publishes everything still unpublished. The cost: merging two
+# bumps of the same package before the first is approved skips the first
+# version. Canary runs are grouped per PR so they don't cancel releases or
+# each other's PRs.
+concurrency:
+  group: release-${{ inputs.pr-number || 'main' }}
+  cancel-in-progress: true
+
 jobs:
   # Main-branch validation runs here (rather than on validate.yml's own push
   # trigger) so publishing can depend on it.
