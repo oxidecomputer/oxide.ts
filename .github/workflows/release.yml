@@ -105,10 +105,14 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           # npm recommends not restoring a dependency cache in release builds
           package-manager-cache: false
+      # --ignore-scripts: a dependency install script running in this job
+      # could mint a publish credential (id-token: write is job-scoped).
+      # Nothing in either tree needs install scripts, and npm 12 will block
+      # them by default anyway.
       - name: Install @oxide/api
         if: needs.check.outputs['oxide-api'] == 'true'
         working-directory: oxide-api
-        run: npm ci
+        run: npm ci --ignore-scripts
       - name: Publish @oxide/api # prepack runs the build
         if: needs.check.outputs['oxide-api'] == 'true'
         working-directory: oxide-api
@@ -116,7 +120,7 @@ jobs:
       - name: Install @oxide/openapi-gen-ts
         if: needs.check.outputs['oxide-openapi-gen-ts'] == 'true'
         working-directory: oxide-openapi-gen-ts
-        run: npm ci
+        run: npm ci --ignore-scripts
       - name: Publish @oxide/openapi-gen-ts # prepack runs the build
         if: needs.check.outputs['oxide-openapi-gen-ts'] == 'true'
         working-directory: oxide-openapi-gen-ts
@@ -160,8 +164,8 @@ jobs:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
-      - name: Install
-        run: npm ci
+      - name: Install # --ignore-scripts for the same reason as the publish job
+        run: npm ci --ignore-scripts
       - name: Set canary version
         run: |
           SHA=$(git rev-parse --short HEAD)
