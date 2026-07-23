@@ -50,8 +50,8 @@ jobs:
         id: oxide_api
         working-directory: oxide-api
         run: |
-          NAME=$(node --print "require('./package.json').name")
-          VERSION=$(node --print "require('./package.json').version")
+          NAME=$(jq --raw-output .name package.json)
+          VERSION=$(jq --raw-output .version package.json)
           # empty output = version not on the registry. (npm view's exit code
           # for a missing version has varied across npm versions; its output
           # hasn't.)
@@ -64,8 +64,8 @@ jobs:
         id: oxide_openapi_gen_ts
         working-directory: oxide-openapi-gen-ts
         run: |
-          NAME=$(node --print "require('./package.json').name")
-          VERSION=$(node --print "require('./package.json').version")
+          NAME=$(jq --raw-output .name package.json)
+          VERSION=$(jq --raw-output .version package.json)
           # empty output = version not on the registry. (npm view's exit code
           # for a missing version has varied across npm versions; its output
           # hasn't.)
@@ -140,7 +140,7 @@ jobs:
       - name: Set canary version
         run: |
           SHA=$(git rev-parse --short HEAD)
-          BASE=$(node --print "require('./package.json').version")
+          BASE=$(jq --raw-output .version package.json)
           npm version "${BASE}-canary.${{ inputs.pr-number }}.${SHA}" --no-git-tag-version
       - name: Publish canary # prepack runs the build
         run: npm publish --tag canary
@@ -148,7 +148,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          NAME=$(node --print "require('./package.json').name")
-          VERSION=$(node --print "require('./package.json').version")
+          NAME=$(jq --raw-output .name package.json)
+          VERSION=$(jq --raw-output .version package.json)
           gh pr comment ${{ inputs.pr-number }} --repo ${{ github.repository }} \
             --body "Canary published: \`${NAME}@${VERSION}\`"
