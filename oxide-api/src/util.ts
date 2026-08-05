@@ -64,8 +64,8 @@ export const makeParseIfDate =
   (dateProps: Set<string>, dateArrayProps: Set<string>): ValueMapper =>
   (k, v) => {
     if (k === undefined) return v;
-    if (Array.isArray(v)) return dateArrayProps.has(k) ? v.map(parseDate) : v;
     if (dateProps.has(k)) return parseDate(v);
+    if (dateArrayProps.has(k) && Array.isArray(v)) return v.map(parseDate);
     return v;
   };
 

@@ -66,9 +66,9 @@ function encodeQueryParam(key: string, value: unknown) {
   )}`;
 }
 
-export const handleResponseWithMapper = (valueMapper: ValueMapper) => {
-  const processResponseBody = mapObj(snakeToCamel, valueMapper);
-  return async <Data>(response: Response): Promise<ApiResult<Data>> => {
+export const handleResponseWithMapper =
+  (valueMapper: ValueMapper) =>
+  async <Data>(response: Response): Promise<ApiResult<Data>> => {
     const respText = await response.text();
 
     // catch JSON parse or processing errors
@@ -77,7 +77,9 @@ export const handleResponseWithMapper = (valueMapper: ValueMapper) => {
       // don't bother trying to parse empty responses like 204s
       // TODO: is empty object what we want here?
       respJson =
-        respText.length > 0 ? processResponseBody(JSON.parse(respText)) : {};
+        respText.length > 0
+          ? mapObj(snakeToCamel, valueMapper)(JSON.parse(respText))
+          : {};
     } catch (e) {
       return {
         type: "client_error",
@@ -102,7 +104,6 @@ export const handleResponseWithMapper = (valueMapper: ValueMapper) => {
       data: respJson as Data,
     };
   };
-};
 
 // has to be any. the particular query params types don't like unknown
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
