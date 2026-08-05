@@ -19,8 +19,11 @@ export const isObjectOrArray = (o: unknown) =>
   !(o instanceof Error) &&
   o !== null;
 
+export type ValueMapper = (k: string | undefined, v: unknown) => unknown;
+
 /**
- * Recursively map (k, v) pairs using Object.entries
+ * Recursively map (k, v) pairs using Object.entries. Recursion happens after
+ * mapping, so objects and arrays may themselves be mapped.
  *
  * Note that value transform function takes both k and v so we can use the key
  * to decide whether to transform the value.
@@ -29,10 +32,7 @@ export const isObjectOrArray = (o: unknown) =>
  * @param vf maps key + value to value
  */
 export const mapObj =
-  (
-    kf: (k: string) => string,
-    vf: (k: string | undefined, v: unknown) => unknown = (_, v) => v,
-  ) =>
+  (kf: (k: string) => string, vf: ValueMapper = (_, v) => v) =>
   (o: unknown): unknown => {
     if (!isObjectOrArray(o)) return o;
 
@@ -40,32 +40,36 @@ export const mapObj =
 
     const newObj: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(o as Record<string, unknown>)) {
-      newObj[kf(k)] = isObjectOrArray(v) ? mapObj(kf, vf)(v) : vf(k, v);
+      const mapped = vf(k, v);
+      newObj[kf(k)] = isObjectOrArray(mapped) ? mapObj(kf, vf)(mapped) : mapped;
     }
     return newObj;
   };
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 
-export const parseIfDate = (k: string | undefined, v: unknown) => {
-  if (
-    typeof v === "string" &&
-    isoDateRegex.test(v) &&
-    (k?.startsWith("time_") ||
-      k?.endsWith("_time") ||
-      k?.endsWith("_expiration") ||
-      k === "timestamp")
-  ) {
-    const d = new Date(v);
-    if (isNaN(d.getTime())) return v;
-    return d;
-  }
-  return v;
+/**
+ * Parse an ISO date string to a Date, or return unchanged.
+ */
+const parseDate = (v: unknown) => {
+  if (typeof v !== "string" || !isoDateRegex.test(v)) return v;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? v : d;
 };
 
-export const snakeify = mapObj(camelToSnake);
+/**
+ * Build a date parser sensitive only to the keys provided.
+ */
+export const makeParseIfDate =
+  (dateProps: Set<string>, dateArrayProps: Set<string>): ValueMapper =>
+  (k, v) => {
+    if (k === undefined) return v;
+    if (Array.isArray(v)) return dateArrayProps.has(k) ? v.map(parseDate) : v;
+    if (dateProps.has(k)) return parseDate(v);
+    return v;
+  };
 
-export const processResponseBody = mapObj(snakeToCamel, parseIfDate);
+export const snakeify = mapObj(camelToSnake);
 
 export function isNotNull<T>(value: T): value is NonNullable<T> {
   return value != null;

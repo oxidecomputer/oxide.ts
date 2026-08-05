@@ -6,7 +6,13 @@
  * Copyright Oxide Computer Company
  */
 
-import { camelToSnake, processResponseBody, isNotNull } from "./util";
+import {
+  camelToSnake,
+  mapObj,
+  snakeToCamel,
+  isNotNull,
+  type ValueMapper,
+} from "./util";
 
 /** Success responses from the API */
 export type ApiSuccess<Data> = {
@@ -60,42 +66,43 @@ function encodeQueryParam(key: string, value: unknown) {
   )}`;
 }
 
-export async function handleResponse<Data>(
-  response: Response,
-): Promise<ApiResult<Data>> {
-  const respText = await response.text();
+export const handleResponseWithMapper = (valueMapper: ValueMapper) => {
+  const processResponseBody = mapObj(snakeToCamel, valueMapper);
+  return async <Data>(response: Response): Promise<ApiResult<Data>> => {
+    const respText = await response.text();
 
-  // catch JSON parse or processing errors
-  let respJson;
-  try {
-    // don't bother trying to parse empty responses like 204s
-    // TODO: is empty object what we want here?
-    respJson =
-      respText.length > 0 ? processResponseBody(JSON.parse(respText)) : {};
-  } catch (e) {
+    // catch JSON parse or processing errors
+    let respJson;
+    try {
+      // don't bother trying to parse empty responses like 204s
+      // TODO: is empty object what we want here?
+      respJson =
+        respText.length > 0 ? processResponseBody(JSON.parse(respText)) : {};
+    } catch (e) {
+      return {
+        type: "client_error",
+        response,
+        error: e as Error,
+        text: respText,
+      };
+    }
+
+    if (!response.ok) {
+      return {
+        type: "error",
+        response,
+        data: respJson as ErrorBody,
+      };
+    }
+
+    // don't validate respJson, just assume it matches the type
     return {
-      type: "client_error",
+      type: "success",
       response,
-      error: e as Error,
-      text: respText,
+      data: respJson as Data,
     };
-  }
-
-  if (!response.ok) {
-    return {
-      type: "error",
-      response,
-      data: respJson as ErrorBody,
-    };
-  }
-
-  // don't validate respJson, just assume it matches the type
-  return {
-    type: "success",
-    response,
-    data: respJson as Data,
   };
-}
+};
 
 // has to be any. the particular query params types don't like unknown
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
