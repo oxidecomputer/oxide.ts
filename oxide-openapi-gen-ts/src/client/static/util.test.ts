@@ -9,9 +9,8 @@
 import {
   camelToSnake,
   isObjectOrArray,
+  makeParseIfDate,
   mapObj,
-  parseIfDate,
-  processResponseBody,
   snakeify,
   snakeToCamel,
   uniqueItems,
@@ -58,40 +57,45 @@ describe("mapObj", () => {
     expect(fn({ x: 5, y: { z: 3 } })).toEqual({ x_: 10, y_: { z_: 6 } });
     expect(fn([{ x: 5 }, "abc"])).toEqual([{ x_: 10 }, "abc"]);
   });
-});
 
-test("processResponseBody", () => {
-  expect(processResponseBody({})).toEqual({});
-
-  const date = new Date();
-  const dateStr = date.toISOString();
-  const resp = {
-    id: "big-uuid",
-    another_prop: "abc",
-    time_created: dateStr,
-  };
-  expect(processResponseBody(resp)).toMatchObject({
-    id: "big-uuid",
-    anotherProp: "abc",
-    timeCreated: expect.any(Date),
+  it("maps over objects and arrays before recursing", () => {
+    const doubleArray = mapObj(
+      (k) => k + "_",
+      (k, v) =>
+        k === "a" && Array.isArray(v)
+          ? v.map((n) => (typeof n === "number" ? n * 2 : n))
+          : v,
+    );
+    expect(
+      doubleArray({
+        a: [1, { a: 2 }, [3]],
+        b: [1, 2, 3],
+      }),
+    ).toEqual({
+      a_: [2, { a_: 2 }, [3]],
+      b_: [1, 2, 3],
+    });
   });
 });
 
-describe("parseIfDate", () => {
-  it("passes through non-date values", () => {
-    expect(parseIfDate("abc", 123)).toEqual(123);
-    expect(parseIfDate("abc", "def")).toEqual("def");
-  });
+describe("makeParseIfDate", () => {
+  const datePropertyNames = ["time_created", "timestamp"];
+  const dateArrayPropertyNames = ["start_times"];
+  const dateProps = new Set(datePropertyNames);
+  const dateArrayProps = new Set(dateArrayPropertyNames);
+  const parseIfDate = makeParseIfDate(dateProps, dateArrayProps);
 
   const timestamp = 1643092429315;
   const dateStr = new Date(timestamp).toISOString();
 
-  it("doesn't parse dates if key doesn't start with time_", () => {
+  it("doesn't parse dates if key isn't a known date property", () => {
+    expect(parseIfDate("abc", 123)).toEqual(123);
     expect(parseIfDate("abc", dateStr)).toEqual(dateStr);
+    expect(parseIfDate(undefined, dateStr)).toEqual(dateStr);
   });
 
-  it.each(["time_whatever", "auto_thing_expiration", "timestamp"])(
-    "parses dates if key is '%s'",
+  it.each(datePropertyNames)(
+    "parses dates if the key is a known date property name ('%s')",
     (key) => {
       const value = parseIfDate(key, dateStr);
       expect(value).toBeInstanceOf(Date);
@@ -99,9 +103,32 @@ describe("parseIfDate", () => {
     },
   );
 
-  it("passes through values that fail to parse as dates", () => {
-    const value = parseIfDate("time_whatever", "blah");
-    expect(value).toEqual("blah");
+  it("passes through values that fail to parse as dates, even if key is known", () => {
+    expect(parseIfDate(datePropertyNames[0], "blah")).toEqual("blah");
+  });
+
+  it.each(dateArrayPropertyNames)(
+    "parses arrays of dates if the key is a known date-array property name ('%s')",
+    () => {
+      const value = parseIfDate(dateArrayPropertyNames[0], [
+        dateStr,
+        dateStr,
+      ]) as unknown[];
+      expect(value.map((d) => (d as Date).getTime())).toEqual([
+        timestamp,
+        timestamp,
+      ]);
+    },
+  );
+
+  it("parses just the date-like elements of a mixed array", () => {
+    const value = parseIfDate(dateArrayPropertyNames[0], [
+      "blah",
+      dateStr,
+    ]) as unknown[];
+    expect(value[0]).toBe("blah");
+    expect(value[1]).toBeInstanceOf(Date);
+    expect((value[1] as Date).getTime()).toEqual(timestamp);
   });
 
   it.each([
@@ -116,8 +143,7 @@ describe("parseIfDate", () => {
     "2023-01-01T12:00:00.123456789123Z",
     "2023-01-01T12:00:00.123456789123123Z",
   ])("parses dates with fractional digits: %s", (dateString) => {
-    const value = parseIfDate("time_whatever", dateString);
-    expect(value).toBeInstanceOf(Date);
+    expect(parseIfDate(datePropertyNames[0], dateString)).toBeInstanceOf(Date);
   });
 });
 

@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { test, expect, beforeAll, afterAll } from "vitest";
+import { test, describe, expect, beforeAll, afterAll } from "vitest";
 import { generate } from "./generate";
 import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -32,6 +32,41 @@ const read = (file: string) => readFileSync(join(tempDir, file), "utf-8");
 
 test("Api.ts", async () => {
   await expect(read("Api.ts")).toMatchFileSnapshot("./__snapshots__/Api.ts");
+});
+
+describe("Api.ts handleResponse date and date array mapping", () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let handleResponse: (response: Response) => Promise<any>;
+  beforeAll(async () => {
+    const { parseIfDate } = await import(join(tempDir, "Api.ts"));
+    const { handleResponseWithMapper } = await import(
+      join(tempDir, "http-client.ts")
+    );
+    handleResponse = handleResponseWithMapper(parseIfDate);
+  });
+
+  const timestamp = 1643092429315;
+  const dateStr = new Date(timestamp).toISOString();
+  const json = (body: unknown) =>
+    new Response(JSON.stringify(body), {
+      headers: { "Content-Type": "application/json" },
+    });
+
+  test("maps a date property to a Date", async () => {
+    const { data } = await handleResponse(json({ time_created: dateStr }));
+    expect(data.timeCreated).toBeInstanceOf(Date);
+    expect((data.timeCreated as Date).getTime()).toEqual(timestamp);
+  });
+
+  test("maps a date-array property to Date[]", async () => {
+    const { data } = await handleResponse(
+      json({ start_times: [dateStr, dateStr, dateStr] }),
+    );
+    expect(Array.isArray(data.startTimes)).toBe(true);
+    expect(data.startTimes[0]).toBeInstanceOf(Date);
+    expect(data.startTimes[1]).toBeInstanceOf(Date);
+    expect((data.startTimes[0] as Date).getTime()).toEqual(timestamp);
+  });
 });
 
 test("http-client.ts", async () => {

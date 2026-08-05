@@ -42,7 +42,7 @@ export async function generateZodValidators(
   w(`/* eslint-disable */
 
   import { z, ZodType } from 'zod/v4';
-  import { processResponseBody, uniqueItems } from './util';
+  import { mapObj, snakeToCamel, uniqueItems } from './util';
 
   /**
    * Zod only supports string enums at the moment. A previous issue was opened
@@ -56,7 +56,13 @@ export async function generateZodValidators(
 
   /** Helper to ensure booleans provided as strings end up with the correct value */
   const SafeBoolean = z.preprocess(v => v === "false" ? false : v, z.coerce.boolean())
-  `);
+
+  /**
+   * Right now, the only value mapping we do is from ISO string to Date object,
+   * which zod handles fine on its own.
+   */
+  const processResponseBody = mapObj(snakeToCamel, (_, v) => v);
+`);
 
   if (cyclicSchemas.size > 0) {
     w(`import type * as Api from './Api';\n`);
