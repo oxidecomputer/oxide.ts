@@ -416,6 +416,8 @@ export interface MSWHandlers {
   systemIpPoolUpdate: (params: { path: Api.SystemIpPoolUpdatePathParams,  body: Json<Api.IpPoolUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
 /** `DELETE /v1/system/ip-pools/:pool` */
   systemIpPoolDelete: (params: { path: Api.SystemIpPoolDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `POST /v1/system/ip-pools/:pool/assignment` */
+  systemIpPoolAssign: (params: { path: Api.SystemIpPoolAssignPathParams,  body: Json<Api.IpPoolAssignParam>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
 /** `GET /v1/system/ip-pools/:pool/ranges` */
   systemIpPoolRangeList: (params: { path: Api.SystemIpPoolRangeListPathParams, query: Api.SystemIpPoolRangeListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>,
 /** `POST /v1/system/ip-pools/:pool/ranges/add` */
@@ -432,14 +434,6 @@ export interface MSWHandlers {
   systemIpPoolSiloUnlink: (params: { path: Api.SystemIpPoolSiloUnlinkPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/ip-pools/:pool/utilization` */
   systemIpPoolUtilizationView: (params: { path: Api.SystemIpPoolUtilizationViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolUtilization>>,
-/** `GET /v1/system/ip-pools-service` */
-  systemIpPoolServiceView: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPool>>,
-/** `GET /v1/system/ip-pools-service/ranges` */
-  systemIpPoolServiceRangeList: (params: {  query: Api.SystemIpPoolServiceRangeListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRangeResultsPage>>,
-/** `POST /v1/system/ip-pools-service/ranges/add` */
-  systemIpPoolServiceRangeAdd: (params: {   body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.IpPoolRange>>,
-/** `POST /v1/system/ip-pools-service/ranges/remove` */
-  systemIpPoolServiceRangeRemove: (params: {   body: Json<Api.IpRange>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/metrics/:metricName` */
   systemMetric: (params: { path: Api.SystemMetricPathParams, query: Api.SystemMetricQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.MeasurementResultsPage>>,
 /** `GET /v1/system/networking/address-lot` */
@@ -963,6 +957,7 @@ http.post('/v1/system/ip-pools', handler(handlers['systemIpPoolCreate'], null, s
 http.get('/v1/system/ip-pools/:pool', handler(handlers['systemIpPoolView'], schema.SystemIpPoolViewParams, null)),
 http.put('/v1/system/ip-pools/:pool', handler(handlers['systemIpPoolUpdate'], schema.SystemIpPoolUpdateParams, schema.IpPoolUpdate)),
 http.delete('/v1/system/ip-pools/:pool', handler(handlers['systemIpPoolDelete'], schema.SystemIpPoolDeleteParams, null)),
+http.post('/v1/system/ip-pools/:pool/assignment', handler(handlers['systemIpPoolAssign'], schema.SystemIpPoolAssignParams, schema.IpPoolAssignParam)),
 http.get('/v1/system/ip-pools/:pool/ranges', handler(handlers['systemIpPoolRangeList'], schema.SystemIpPoolRangeListParams, null)),
 http.post('/v1/system/ip-pools/:pool/ranges/add', handler(handlers['systemIpPoolRangeAdd'], schema.SystemIpPoolRangeAddParams, schema.IpRange)),
 http.post('/v1/system/ip-pools/:pool/ranges/remove', handler(handlers['systemIpPoolRangeRemove'], schema.SystemIpPoolRangeRemoveParams, schema.IpRange)),
@@ -971,10 +966,6 @@ http.post('/v1/system/ip-pools/:pool/silos', handler(handlers['systemIpPoolSiloL
 http.put('/v1/system/ip-pools/:pool/silos/:silo', handler(handlers['systemIpPoolSiloUpdate'], schema.SystemIpPoolSiloUpdateParams, schema.IpPoolSiloUpdate)),
 http.delete('/v1/system/ip-pools/:pool/silos/:silo', handler(handlers['systemIpPoolSiloUnlink'], schema.SystemIpPoolSiloUnlinkParams, null)),
 http.get('/v1/system/ip-pools/:pool/utilization', handler(handlers['systemIpPoolUtilizationView'], schema.SystemIpPoolUtilizationViewParams, null)),
-http.get('/v1/system/ip-pools-service', handler(handlers['systemIpPoolServiceView'], null, null)),
-http.get('/v1/system/ip-pools-service/ranges', handler(handlers['systemIpPoolServiceRangeList'], schema.SystemIpPoolServiceRangeListParams, null)),
-http.post('/v1/system/ip-pools-service/ranges/add', handler(handlers['systemIpPoolServiceRangeAdd'], null, schema.IpRange)),
-http.post('/v1/system/ip-pools-service/ranges/remove', handler(handlers['systemIpPoolServiceRangeRemove'], null, schema.IpRange)),
 http.get('/v1/system/metrics/:metricName', handler(handlers['systemMetric'], schema.SystemMetricParams, null)),
 http.get('/v1/system/networking/address-lot', handler(handlers['networkingAddressLotList'], schema.NetworkingAddressLotListParams, null)),
 http.post('/v1/system/networking/address-lot', handler(handlers['networkingAddressLotCreate'], null, schema.AddressLotCreate)),

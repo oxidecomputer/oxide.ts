@@ -2361,15 +2361,22 @@ export const InternetGatewayResultsPage = z.preprocess(processResponseBody,z.obj
 }))
 
 /**
+* Assignment of an IP pool to resources and services.
+ */
+export const IpPoolAssignment = z.preprocess(processResponseBody,z.enum(["silos", "system_services"])
+)
+
+/**
 * Type of IP pool.
  */
 export const IpPoolType = z.preprocess(processResponseBody,z.enum(["unicast", "multicast"])
 )
 
 /**
-* A collection of IP ranges. If a pool is linked to a silo, IP addresses from the pool can be allocated within that silo.
+* A collection of IP ranges.
  */
-export const IpPool = z.preprocess(processResponseBody,z.object({"description": z.string(),
+export const IpPool = z.preprocess(processResponseBody,z.object({"assignment": IpPoolAssignment,
+"description": z.string(),
 "id": z.uuid(),
 "ipVersion": IpVersion,
 "name": Name,
@@ -2379,13 +2386,20 @@ export const IpPool = z.preprocess(processResponseBody,z.object({"description": 
 }))
 
 /**
+* Body parameters for reassigning an IP pool.
+ */
+export const IpPoolAssignParam = z.preprocess(processResponseBody,z.object({"assignment": IpPoolAssignment,
+}))
+
+/**
 * Create-time parameters for an `IpPool`.
 * 
 * For multicast pools, all ranges must be either Any-Source Multicast (ASM) or Source-Specific Multicast (SSM), but not both. Mixing ASM and SSM ranges in the same pool is not allowed.
 * 
 * ASM: IPv4 addresses outside 232.0.0.0/8, IPv6 addresses with flag field != 3 SSM: IPv4 addresses in 232.0.0.0/8, IPv6 addresses with flag field = 3
  */
-export const IpPoolCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
+export const IpPoolCreate = z.preprocess(processResponseBody,z.object({"assignment": IpPoolAssignment.default("silos"),
+"description": z.string(),
 "ipVersion": IpVersion.default("v4"),
 "name": Name,
 "poolType": IpPoolType.default("unicast"),
@@ -5418,8 +5432,10 @@ export const IpPoolListParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   }),
   query: z.object({
+  ipVersion: IpVersion.optional(),
   limit: z.number().min(1).max(4294967295).nullable().optional(),
   pageToken: z.string().nullable().optional(),
+  poolType: IpPoolType.optional(),
   sortBy: NameOrIdSortMode.optional(),
   }),
 }))
@@ -6056,8 +6072,11 @@ export const SystemIpPoolListParams = z.preprocess(processResponseBody, z.object
   path: z.object({
   }),
   query: z.object({
+  assignment: IpPoolAssignment.optional(),
+  ipVersion: IpVersion.optional(),
   limit: z.number().min(1).max(4294967295).nullable().optional(),
   pageToken: z.string().nullable().optional(),
+  poolType: IpPoolType.optional(),
   sortBy: NameOrIdSortMode.optional(),
   }),
 }))
@@ -6086,6 +6105,14 @@ export const SystemIpPoolUpdateParams = z.preprocess(processResponseBody, z.obje
 }))
 
 export const SystemIpPoolDeleteParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  pool: NameOrId,
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SystemIpPoolAssignParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   pool: NameOrId,
   }),
@@ -6159,36 +6186,6 @@ export const SystemIpPoolSiloUnlinkParams = z.preprocess(processResponseBody, z.
 export const SystemIpPoolUtilizationViewParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   pool: NameOrId,
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SystemIpPoolServiceViewParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SystemIpPoolServiceRangeListParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  }),
-  query: z.object({
-  limit: z.number().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-  }),
-}))
-
-export const SystemIpPoolServiceRangeAddParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SystemIpPoolServiceRangeRemoveParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
   }),
   query: z.object({
   }),

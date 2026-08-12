@@ -233,8 +233,10 @@ assert<Equals<A.InternetGatewayIpPool, z.infer<typeof V.InternetGatewayIpPool>>>
 assert<Equals<A.InternetGatewayIpPoolCreate, z.infer<typeof V.InternetGatewayIpPoolCreate>>>();
 assert<Equals<A.InternetGatewayIpPoolResultsPage, z.infer<typeof V.InternetGatewayIpPoolResultsPage>>>();
 assert<Equals<A.InternetGatewayResultsPage, z.infer<typeof V.InternetGatewayResultsPage>>>();
+assert<Equals<A.IpPoolAssignment, z.infer<typeof V.IpPoolAssignment>>>();
 assert<Equals<A.IpPoolType, z.infer<typeof V.IpPoolType>>>();
 assert<Equals<A.IpPool, z.infer<typeof V.IpPool>>>();
+assert<Equals<A.IpPoolAssignParam, z.infer<typeof V.IpPoolAssignParam>>>();
 assert<Equals<A.IpPoolCreate, z.infer<typeof V.IpPoolCreate>>>();
 assert<Equals<A.IpPoolLinkSilo, z.infer<typeof V.IpPoolLinkSilo>>>();
 assert<Equals<A.Ipv4Range, z.infer<typeof V.Ipv4Range>>>();
