@@ -1,6 +1,6 @@
 ---
 name: npm-release
-description: Bump @oxide/api to a new omicron release tag, open the PR, and (after the user merges and CI publishes) hand off the npm dist-tag command.
+description: Bump @oxide/api to a new omicron release tag locally, then (after the user pushes, merges, and CI publishes) hand off the npm dist-tag command.
 user_invocable: true
 ---
 
@@ -60,28 +60,24 @@ Ask the user for:
    - `cd oxide-api && npm ci && npm run tsc`
    - `cd oxide-openapi-gen-ts && npm run tsc && npm run lint && npm run fmt:check`
 
-### Phase 2: PR
+### Phase 2: Hand off (do not push)
 
-8. **Create a branch and PR.** Use jj to create a new commit, then push a
-   branch and open a PR:
-   ```
-   jj desc -m 'Bump API to <tag> (<version>)'
-   jj git push --change @
-   ```
-   Then create the PR with `gh pr create`. Use a title like
-   `Bump API to rel/v19/rc0 (0.6.0)` and mention the omicron tag in the body.
+8. **Describe the commit and stop.** Set the commit description with
+   `jj desc -m 'Bump API to <tag> (<version>)'` and leave the change in the
+   working copy for the user to review.
 
-9. **Wait for CI.** The `update-api-spec` workflow runs on push to non-main
-   branches and may create an "Autogenerate config update" commit — this is
-   expected. The `validate` workflow must pass.
+   Do **not** push a branch, and do **not** open a PR. No `jj git push`, no
+   `gh pr create`. The user pushes and opens the PR themselves. Report what
+   changed (the files touched and any notable spec changes) and stop there.
 
-10. **Hand off to the user for review and merge.** Once CI is green, report
-    that the PR is ready and stop. The user will review and merge the PR
-    themselves, then tell you to continue. Do not merge the PR yourself.
+   Note for when the PR does exist: the `update-api-spec` workflow runs on push
+   to non-main branches and may create an "Autogenerate config update" commit —
+   that is expected. The `validate` workflow must pass. The user reviews and
+   merges; never merge the PR yourself.
 
 ### Phase 3: Publish (automatic) and dist-tag (manual)
 
-11. **Approve and wait for the automatic publish.** Merging the PR triggers the
+9. **Approve and wait for the automatic publish.** Merging the PR triggers the
     `Release` workflow on main, which runs validation and then waits for a
     required reviewer to approve the `release` environment deployment. Tell
     the user to approve it (or ask another required reviewer to approve it) in
@@ -92,7 +88,7 @@ Ask the user for:
     and confirm with `npm view @oxide/api version`, which should show the new
     version.
 
-12. **Add npm dist-tag.** Tag the published version with the release name so
+10. **Add npm dist-tag.** Tag the published version with the release name so
     consumers can pin to it:
     ```
     npm dist-tag add @oxide/api@<version> rel<N>
