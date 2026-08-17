@@ -122,12 +122,14 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
   const out = fs.createWriteStream(outFile, { flags: "w" });
   const io = initIO(out);
   const { w, w0 } = io;
+  const dateTimeProperties = new Set<string>();
+  const dateTimeArrayProperties = new Set<string>();
 
   w(`/* eslint-disable */
 
     import type { FetchParams, FullParams, ApiResult } from "./http-client";
-    import { dateReplacer, handleResponse, mergeParams, toQueryString } from './http-client'
-    import { snakeify } from './util'
+    import { dateReplacer, handleResponseWithMapper, mergeParams, toQueryString } from './http-client'
+    import { makeParseIfDate, snakeify } from './util'
 
     export type { ApiResult, ErrorBody, ErrorResult } from './http-client'
     `);
@@ -153,7 +155,37 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
     w(`export type ${schemaName} =`);
     schemaToTypes(schema, io);
     w(";\n");
+
+    // Collect the property names of date-like strings and arrays of such
+    if (!("$ref" in schema) && schema.properties) {
+      for (const [property, pSchema] of Object.entries(schema.properties)) {
+        if ("$ref" in pSchema) continue;
+        if (pSchema.format === "date-time") {
+          dateTimeProperties.add(property);
+        } else if (
+          pSchema.type === "array" &&
+          !("$ref" in pSchema.items) &&
+          pSchema.items.format === "date-time"
+        ) {
+          dateTimeArrayProperties.add(property);
+        }
+      }
+    }
   }
+
+  const setToCode = (name: string, items: Set<string>) =>
+    `const ${name} = new Set<string>([\n${[...items]
+      .sort()
+      .map((s) => `  "${s}"`)
+      .join(",\n")}\n]);`;
+
+  w(setToCode("dateTimeProperties", dateTimeProperties));
+  w(setToCode("dateTimeArrayProperties", dateTimeArrayProperties));
+
+  w(`
+export const parseIfDate = makeParseIfDate(dateTimeProperties, dateTimeArrayProperties);
+const handleResponse = handleResponseWithMapper(parseIfDate);
+`);
 
   const operations = getOperations(spec);
 

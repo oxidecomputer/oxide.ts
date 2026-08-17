@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { handleResponse, mergeParams } from "./http-client";
+import { handleResponseWithMapper, mergeParams } from "./http-client";
 import { describe, expect, it } from "vitest";
 
 const headers = { "Content-Type": "application/json" };
@@ -17,7 +17,9 @@ const json = (body: any, status = 200) =>
 
 describe("handleResponse", () => {
   it("handles success", async () => {
-    const { response, ...rest } = await handleResponse(json({ abc: 123 }));
+    const { response, ...rest } = await handleResponseWithMapper((_, a) => a)(
+      json({ abc: 123 }),
+    );
     expect(rest).toMatchObject({
       data: { abc: 123 },
       type: "success",
@@ -27,7 +29,7 @@ describe("handleResponse", () => {
   });
 
   it('API error returns type "error"', async () => {
-    const { response, ...rest } = await handleResponse(
+    const { response, ...rest } = await handleResponseWithMapper((_, a) => a)(
       json({ bad_stuff: "hi" }, 400),
     );
     expect(rest).toMatchObject({
@@ -40,7 +42,9 @@ describe("handleResponse", () => {
 
   it("non-json response causes client_error w/ text and error", async () => {
     const resp = new Response("not json", { headers });
-    const { response, ...rest } = await handleResponse(resp);
+    const { response, ...rest } = await handleResponseWithMapper((_, a) => a)(
+      resp,
+    );
     expect(rest).toMatchObject({
       error: expect.any(SyntaxError),
       text: "not json",
@@ -50,25 +54,13 @@ describe("handleResponse", () => {
     expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
-  it("parses dates and converts to camel case", async () => {
+  it("applies the given mapper", async () => {
     const resp = json({ time_created: "2022-05-01T02:03:04Z" });
-    const { response, ...rest } = await handleResponse(resp);
+    const { response, ...rest } = await handleResponseWithMapper(() => 1)(resp);
     expect(rest).toMatchObject({
       type: "success",
       data: {
-        timeCreated: new Date(Date.UTC(2022, 4, 1, 2, 3, 4)),
-      },
-    });
-    expect(response.headers.get("Content-Type")).toBe("application/json");
-  });
-
-  it("leaves unparseable dates alone", async () => {
-    const resp = json({ time_created: "abc" });
-    const { response, ...rest } = await handleResponse(resp);
-    expect(rest).toMatchObject({
-      type: "success",
-      data: {
-        timeCreated: "abc",
+        timeCreated: 1,
       },
     });
     expect(response.headers.get("Content-Type")).toBe("application/json");

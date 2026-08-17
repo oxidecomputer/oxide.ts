@@ -11,11 +11,11 @@
 import type { FetchParams, FullParams, ApiResult } from "./http-client";
 import {
   dateReplacer,
-  handleResponse,
+  handleResponseWithMapper,
   mergeParams,
   toQueryString,
 } from "./http-client";
-import { snakeify } from "./util";
+import { makeParseIfDate, snakeify } from "./util";
 
 export type { ApiResult, ErrorBody, ErrorResult } from "./http-client";
 
@@ -5861,6 +5861,35 @@ export type VersionSortMode =
  * Currently, we only support scanning in ascending order.
  */
 export type NameSortMode = "name_ascending";
+
+const dateTimeProperties = new Set<string>([
+  "auto_restart_cooldown_expiration",
+  "created",
+  "first_seen",
+  "last_seen",
+  "start_time",
+  "time_aborted",
+  "time_committed",
+  "time_completed",
+  "time_created",
+  "time_expires",
+  "time_last_auto_restarted",
+  "time_last_step_planned",
+  "time_last_used",
+  "time_modified",
+  "time_requested",
+  "time_run_state_updated",
+  "time_sent",
+  "time_started",
+  "timestamp",
+]);
+const dateTimeArrayProperties = new Set<string>(["start_times", "timestamps"]);
+
+export const parseIfDate = makeParseIfDate(
+  dateTimeProperties,
+  dateTimeArrayProperties,
+);
+const handleResponse = handleResponseWithMapper(parseIfDate);
 
 export interface ProbeListQueryParams {
   limit?: number | null;
