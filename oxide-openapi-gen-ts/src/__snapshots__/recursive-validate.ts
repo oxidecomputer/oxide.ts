@@ -63,6 +63,6 @@ export const Forest: ZodType<Api.Forest> = z.preprocess(processResponseBody,z.la
 export const NodeMap: ZodType<Api.NodeMap> = z.preprocess(processResponseBody,z.object({"children": z.record(z.string(),z.lazy(() => NodeMap)).optional(),
 }))
 
-export const Plain = z.preprocess(processResponseBody,z.object({"id": z.number(),
+export const Plain = z.preprocess(processResponseBody,z.object({"id": z.number().refine(Number.isInteger, "Expected integer"),
 }))
 
