@@ -7,12 +7,13 @@
  */
 
 import { test, expect, beforeAll, afterAll } from "vitest";
-import { mkdtempSync, rmSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { generate } from "./generate";
+import { type OpenAPIV3 } from "openapi-types";
+import { generateTestValidators } from "./test-util";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -23,7 +24,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * runtime — not about how the generator achieves that, so the implementation
  * can change freely.
  */
-const recursiveSpec = {
+const recursiveSpec: OpenAPIV3.Document = {
   openapi: "3.0.0",
   info: { title: "Recursive Test", version: "0.0.0" },
   paths: {},
@@ -166,10 +167,7 @@ let v: Record<string, any>;
 
 beforeAll(async () => {
   genDir = mkdtempSync(join(tmpdir(), "recursive-test-"));
-  const specFile = join(genDir, "spec.json");
-  writeFileSync(specFile, JSON.stringify(recursiveSpec));
-  await generate(specFile, genDir, { zod: true, msw: false, typetests: false });
-  v = await import(join(genDir, "validate.ts"));
+  v = await generateTestValidators(recursiveSpec, genDir);
 });
 
 afterAll(() => {

@@ -6,7 +6,26 @@
  * Copyright Oxide Computer Company
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { type OpenAPIV3 } from "openapi-types";
+import { type ZodType } from "zod/v4";
+import { generate } from "./generate";
+
+/** Generate and import validators in a temporary directory owned by the caller. */
+export async function generateTestValidators(
+  spec: OpenAPIV3.Document,
+  destDir: string,
+): Promise<Record<string, ZodType>> {
+  const specFile = join(destDir, "spec.json");
+  writeFileSync(specFile, JSON.stringify(spec));
+  await generate(specFile, destDir, {
+    zod: true,
+    msw: false,
+    typetests: false,
+  });
+  return import(join(destDir, "validate.ts"));
+}
 
 /**
  * Gets the path to the cached OpenAPI spec file based on OMICRON_VERSION.

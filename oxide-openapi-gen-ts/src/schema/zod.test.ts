@@ -6,11 +6,15 @@
  * Copyright Oxide Computer Company
  */
 
-import { beforeEach, expect, test } from "vitest";
+import { beforeAll, afterAll, beforeEach, expect, test } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { type OpenAPIV3 } from "openapi-types";
-import { z } from "zod/v4";
+import { type ZodType } from "zod/v4";
 
 import { initIO, TestWritable } from "../io";
+import { generateTestValidators } from "../test-util";
 import { schemaToZod } from "./zod";
 
 const out = new TestWritable();
@@ -20,11 +24,31 @@ beforeEach(() => {
   out.clear();
 });
 
-// Evaluate the generated expression so these tests exercise validation behavior.
-function generateValidator(schema: OpenAPIV3.SchemaObject): z.ZodType {
-  schemaToZod(schema, io);
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval -- Execute generator output from test fixtures only.
-  return new Function("z", `return ${out.value()}`)(z);
+let genDir: string;
+
+beforeAll(() => {
+  genDir = mkdtempSync(join(tmpdir(), "zod-schema-test-"));
+});
+
+afterAll(() => {
+  rmSync(genDir, { recursive: true, force: true });
+});
+
+async function generateValidator(
+  schema: OpenAPIV3.SchemaObject,
+): Promise<ZodType> {
+  // Each fixture needs a distinct module path to avoid reusing cached imports.
+  const destDir = mkdtempSync(join(genDir, "validator-"));
+  const { Validator } = await generateTestValidators(
+    {
+      openapi: "3.0.0",
+      info: { title: "Schema Test", version: "0.0.0" },
+      paths: {},
+      components: { schemas: { Validator: schema } },
+    },
+    destDir,
+  );
+  return Validator!;
 }
 
 test.each([
@@ -37,18 +61,21 @@ test.each([
   "uint32",
   "int64",
   "uint64",
-])("integer format %s rejects fractions and accepts integers", (format) => {
-  const validator = generateValidator({ type: "integer", format });
-  for (const value of [2.5, 24.5, -2.5]) {
-    expect(validator.safeParse(value).success).toBe(false);
-  }
-  for (const value of [0, 2, 24]) {
-    expect(validator.parse(value)).toBe(value);
-  }
-  for (const value of [NaN, Infinity, -Infinity, "2", null, undefined]) {
-    expect(validator.safeParse(value).success).toBe(false);
-  }
-});
+])(
+  "integer format %s rejects fractions and accepts integers",
+  async (format) => {
+    const validator = await generateValidator({ type: "integer", format });
+    for (const value of [2.5, 24.5, -2.5]) {
+      expect(validator.safeParse(value).success).toBe(false);
+    }
+    for (const value of [0, 2, 24]) {
+      expect(validator.parse(value)).toBe(value);
+    }
+    for (const value of [NaN, Infinity, -Infinity, "2", null, undefined]) {
+      expect(validator.safeParse(value).success).toBe(false);
+    }
+  },
+);
 
 test.each([
   ["int8", -127, 127],
@@ -59,9 +86,8 @@ test.each([
   ["uint32", 0, 4294967295],
 ] as const)(
   "integer format %s preserves existing bounds",
-  (format, min, max) => {
-    const validator = generateValidator({ type: "integer", format });
-    expect(out.value()).toMatch(/^z\.int\(\)/);
+  async (format, min, max) => {
+    const validator = await generateValidator({ type: "integer", format });
     expect(validator.parse(min)).toBe(min);
     expect(validator.parse(max)).toBe(max);
     expect(validator.safeParse(min - 1).success).toBe(false);
@@ -71,14 +97,13 @@ test.each([
 
 test.each([undefined, "int8", "uint8", "int64", "uint64"])(
   "explicit integer bounds override format %s bounds",
-  (format) => {
-    const validator = generateValidator({
+  async (format) => {
+    const validator = await generateValidator({
       type: "integer",
       format,
       minimum: -200,
       maximum: 300,
     });
-    expect(out.value()).toMatch(/^z\.int\(\)/);
     expect(validator.parse(-200)).toBe(-200);
     expect(validator.parse(300)).toBe(300);
     for (const value of [-201, 301, 2.5]) {
@@ -89,8 +114,8 @@ test.each([undefined, "int8", "uint8", "int64", "uint64"])(
 
 test.each([undefined, "int64", "uint64"])(
   "integer format %s preserves values beyond the safe-integer range",
-  (format) => {
-    const validator = generateValidator({ type: "integer", format });
+  async (format) => {
+    const validator = await generateValidator({ type: "integer", format });
     for (const value of [
       Number.MAX_SAFE_INTEGER,
       2 ** 53,
@@ -105,8 +130,8 @@ test.each([undefined, "int64", "uint64"])(
 
 test.each([undefined, "int32", "uint32", "int64", "uint64"])(
   "integer format %s can have explicit bounds beyond the safe-integer range",
-  (format) => {
-    const validator = generateValidator({
+  async (format) => {
+    const validator = await generateValidator({
       type: "integer",
       format,
       minimum: -(2 ** 54),
@@ -119,13 +144,16 @@ test.each([undefined, "int32", "uint32", "int64", "uint64"])(
   },
 );
 
-test("integer byte counts do not require whole GiB", () => {
-  const validator = generateValidator({ type: "integer", format: "uint64" });
+test("integer byte counts do not require whole GiB", async () => {
+  const validator = await generateValidator({
+    type: "integer",
+    format: "uint64",
+  });
   expect(validator.parse(1.5 * 2 ** 30)).toBe(1610612736);
 });
 
-test("integer properties preserve required, optional, nullable, and default behavior", () => {
-  const validator = generateValidator({
+test("integer properties preserve required, optional, nullable, and default behavior", async () => {
+  const validator = await generateValidator({
     type: "object",
     properties: {
       required: { type: "integer" },
@@ -160,8 +188,8 @@ test("integer properties preserve required, optional, nullable, and default beha
 
 test.each([undefined, "float", "double"])(
   "number format %s still accepts fractions",
-  (format) => {
-    const validator = generateValidator({ type: "number", format });
+  async (format) => {
+    const validator = await generateValidator({ type: "number", format });
     for (const value of [2.5, 24.5, -2.5]) {
       expect(validator.parse(value)).toBe(value);
     }
@@ -316,9 +344,16 @@ test("integer nullable", () => {
   );
 });
 
-test("integer enum", () => {
+test("integer enum", async () => {
   schemaToZod({ type: "integer", enum: [1, 2, 3] }, io);
   expect(out.value()).toMatchInlineSnapshot('"IntEnum([1,2,3] as const)"');
+  const validator = await generateValidator({
+    type: "integer",
+    enum: [1, 2, 3],
+  });
+  expect(validator.parse(2)).toBe(2);
+  expect(validator.safeParse(2.5).success).toBe(false);
+  expect(validator.safeParse(4).success).toBe(false);
 });
 
 test("string enum", () => {
