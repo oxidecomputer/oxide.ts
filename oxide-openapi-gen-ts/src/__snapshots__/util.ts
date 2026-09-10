@@ -10,7 +10,7 @@ export const camelToSnake = (s: string) =>
   s.replace(/[A-Z]/g, (l) => "_" + l.toLowerCase());
 
 export const snakeToCamel = (s: string) =>
-  s.replace(/_./g, (l) => l[1]!.toUpperCase());
+  s.replace(/_./g, (l) => l.slice(1).toUpperCase());
 
 export const isObjectOrArray = (o: unknown) =>
   typeof o === "object" &&
