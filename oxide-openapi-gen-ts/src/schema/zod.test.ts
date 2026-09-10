@@ -6,9 +6,15 @@
  * Copyright Oxide Computer Company
  */
 
-import { beforeEach, expect, test } from "vitest";
+import { beforeAll, afterAll, beforeEach, expect, test } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { type OpenAPIV3 } from "openapi-types";
+import { type ZodType } from "zod/v4";
 
 import { initIO, TestWritable } from "../io";
+import { generateTestValidators } from "../test-util";
 import { schemaToZod } from "./zod";
 
 const out = new TestWritable();
@@ -17,6 +23,170 @@ const io = initIO(out);
 beforeEach(() => {
   out.clear();
 });
+
+let genDir: string;
+
+beforeAll(() => {
+  genDir = mkdtempSync(join(tmpdir(), "zod-schema-test-"));
+});
+
+afterAll(() => {
+  rmSync(genDir, { recursive: true, force: true });
+});
+
+async function generateValidator(
+  schema: OpenAPIV3.SchemaObject,
+): Promise<ZodType> {
+  // Each fixture needs a distinct module path to avoid reusing cached imports.
+  const destDir = mkdtempSync(join(genDir, "validator-"));
+  const { Validator } = await generateTestValidators(
+    {
+      openapi: "3.0.0",
+      info: { title: "Schema Test", version: "0.0.0" },
+      paths: {},
+      components: { schemas: { Validator: schema } },
+    },
+    destDir,
+  );
+  return Validator!;
+}
+
+test.each([
+  undefined,
+  "int8",
+  "uint8",
+  "int16",
+  "uint16",
+  "int32",
+  "uint32",
+  "int64",
+  "uint64",
+])(
+  "integer format %s rejects fractions and accepts integers",
+  async (format) => {
+    const validator = await generateValidator({ type: "integer", format });
+    for (const value of [2.5, 24.5, -2.5]) {
+      expect(validator.safeParse(value).success).toBe(false);
+    }
+    for (const value of [0, 2, 24]) {
+      expect(validator.parse(value)).toBe(value);
+    }
+    for (const value of [NaN, Infinity, -Infinity, "2", null, undefined]) {
+      expect(validator.safeParse(value).success).toBe(false);
+    }
+  },
+);
+
+test.each([
+  ["int8", -128, 127],
+  ["uint8", 0, 255],
+  ["int16", -32768, 32767],
+  ["uint16", 0, 65535],
+  ["int32", -2147483648, 2147483647],
+  ["uint32", 0, 4294967295],
+] as const)(
+  "integer format %s preserves existing bounds",
+  async (format, min, max) => {
+    const validator = await generateValidator({ type: "integer", format });
+    expect(validator.parse(min)).toBe(min);
+    expect(validator.parse(max)).toBe(max);
+    expect(validator.safeParse(min - 1).success).toBe(false);
+    expect(validator.safeParse(max + 1).success).toBe(false);
+  },
+);
+
+test.each([undefined, "int8", "uint8", "int64", "uint64"])(
+  "explicit integer bounds override format %s bounds",
+  async (format) => {
+    const validator = await generateValidator({
+      type: "integer",
+      format,
+      minimum: -200,
+      maximum: 300,
+    });
+    expect(validator.parse(-200)).toBe(-200);
+    expect(validator.parse(300)).toBe(300);
+    for (const value of [-201, 301, 2.5]) {
+      expect(validator.safeParse(value).success).toBe(false);
+    }
+  },
+);
+
+test.each([undefined, "int64", "uint64"])(
+  "integer format %s preserves values beyond the safe-integer range",
+  async (format) => {
+    const validator = await generateValidator({ type: "integer", format });
+    for (const value of [
+      Number.MAX_SAFE_INTEGER,
+      2 ** 53,
+      2 ** 64,
+      Number.MAX_VALUE,
+    ]) {
+      expect(validator.parse(value)).toBe(value);
+      expect(validator.safeParse(-value).success).toBe(format !== "uint64");
+    }
+  },
+);
+
+test.each([undefined, "int32", "uint32", "int64", "uint64"])(
+  "integer format %s can have explicit bounds beyond the safe-integer range",
+  async (format) => {
+    const validator = await generateValidator({
+      type: "integer",
+      format,
+      minimum: -(2 ** 54),
+      maximum: 2 ** 54,
+    });
+    expect(validator.parse(-(2 ** 54))).toBe(-(2 ** 54));
+    expect(validator.parse(2 ** 54)).toBe(2 ** 54);
+    expect(validator.safeParse(-(2 ** 55)).success).toBe(false);
+    expect(validator.safeParse(2 ** 55).success).toBe(false);
+  },
+);
+
+test("integer properties preserve required, optional, nullable, and default behavior", async () => {
+  const validator = await generateValidator({
+    type: "object",
+    properties: {
+      required: { type: "integer" },
+      optional: { type: "integer" },
+      nullable: { type: "integer", nullable: true },
+      defaulted: { type: "integer", minimum: 0, maximum: 10, default: 0 },
+      nullDefault: { type: "integer", nullable: true, default: null },
+    },
+    required: ["required", "nullable"],
+  });
+  const input = { required: 2, nullable: null };
+  expect(validator.parse(input)).toEqual({
+    ...input,
+    defaulted: 0,
+    nullDefault: null,
+  });
+  expect(validator.safeParse({ nullable: null }).success).toBe(false);
+  expect(validator.safeParse({ required: 2 }).success).toBe(false);
+  expect(validator.safeParse({ ...input, optional: null }).success).toBe(false);
+  expect(validator.safeParse({ ...input, defaulted: 11 }).success).toBe(false);
+  for (const key of [
+    "required",
+    "optional",
+    "nullable",
+    "defaulted",
+    "nullDefault",
+  ]) {
+    expect(validator.safeParse({ ...input, [key]: 2.5 }).success).toBe(false);
+    expect(validator.parse({ ...input, [key]: 3 })).toMatchObject({ [key]: 3 });
+  }
+});
+
+test.each([undefined, "float", "double"])(
+  "number format %s still accepts fractions",
+  async (format) => {
+    const validator = await generateValidator({ type: "number", format });
+    for (const value of [2.5, 24.5, -2.5]) {
+      expect(validator.parse(value)).toBe(value);
+    }
+  },
+);
 
 test("boolean", () => {
   schemaToZod({ type: "boolean" }, io);
@@ -109,35 +279,33 @@ test("number nullable with default", () => {
 
 test("integer", () => {
   schemaToZod({ type: "integer" }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.number()"');
+  expect(out.value()).toMatchInlineSnapshot(`"LargeInt"`);
 });
 
 test("integer with format uint8", () => {
   schemaToZod({ type: "integer", format: "uint8" }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.number().min(0).max(255)"');
+  expect(out.value()).toMatchInlineSnapshot(`"z.int().min(0).max(255)"`);
 });
 
 test("integer with format int16", () => {
   schemaToZod({ type: "integer", format: "int16" }, io);
-  expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().min(-32767).max(32767)"',
-  );
+  expect(out.value()).toMatchInlineSnapshot(`"z.int().min(-32768).max(32767)"`);
 });
 
 test("integer with explicit min/max", () => {
   schemaToZod({ type: "integer", minimum: 5, maximum: 10 }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.number().min(5).max(10)"');
+  expect(out.value()).toMatchInlineSnapshot(`"z.int().min(5).max(10)"`);
 });
 
 test("integer with default", () => {
   schemaToZod({ type: "integer", default: 42 }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.number().default(42)"');
+  expect(out.value()).toMatchInlineSnapshot(`"LargeInt.default(42)"`);
 });
 
 test("integer with constraints and default", () => {
   schemaToZod({ type: "integer", minimum: 0, maximum: 65535, default: 0 }, io);
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().min(0).max(65535).default(0)"',
+    `"z.int().min(0).max(65535).default(0)"`,
   );
 });
 
@@ -153,18 +321,25 @@ test("integer nullable with constraints and default", () => {
     io,
   );
   expect(out.value()).toMatchInlineSnapshot(
-    '"z.number().min(0).max(65535).nullable().default(null)"',
+    `"z.int().min(0).max(65535).nullable().default(null)"`,
   );
 });
 
 test("integer nullable", () => {
   schemaToZod({ type: "integer", nullable: true }, io);
-  expect(out.value()).toMatchInlineSnapshot('"z.number().nullable()"');
+  expect(out.value()).toMatchInlineSnapshot(`"LargeInt.nullable()"`);
 });
 
-test("integer enum", () => {
+test("integer enum", async () => {
   schemaToZod({ type: "integer", enum: [1, 2, 3] }, io);
   expect(out.value()).toMatchInlineSnapshot('"IntEnum([1,2,3] as const)"');
+  const validator = await generateValidator({
+    type: "integer",
+    enum: [1, 2, 3],
+  });
+  expect(validator.parse(2)).toBe(2);
+  expect(validator.safeParse(2.5).success).toBe(false);
+  expect(validator.safeParse(4).success).toBe(false);
 });
 
 test("string enum", () => {
@@ -246,7 +421,7 @@ test("object with properties", () => {
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
-    "age": z.number().optional(),
+    "age": LargeInt.optional(),
     })"
   `);
 });
@@ -265,7 +440,7 @@ test("object with optional property that has default", () => {
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
-    "count": z.number().default(0),
+    "count": LargeInt.default(0),
     })"
   `);
 });
@@ -345,8 +520,8 @@ test("object mixing required, optional without default, and optional with defaul
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
-    "age": z.number().optional(),
-    "count": z.number().default(0),
+    "age": LargeInt.optional(),
+    "count": LargeInt.default(0),
     "tags": z.string().array().default([]),
     })"
   `);
@@ -583,7 +758,7 @@ test("object-typed property with default", () => {
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
     "config": z.object({"enableFeature": SafeBoolean,
-    "maxRetries": z.number(),
+    "maxRetries": LargeInt,
     }).default({"enableFeature":true,"maxRetries":3}),
     })"
   `);

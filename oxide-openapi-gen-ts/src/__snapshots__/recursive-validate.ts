@@ -15,6 +15,13 @@
 
   /** Helper to ensure booleans provided as strings end up with the correct value */
   const SafeBoolean = z.preprocess(v => v === "false" ? false : v, z.coerce.boolean())
+
+  /**
+   * z.int() rejects values outside the JS safe-integer range, so it can't be
+   * used for int64/uint64 or for integers with explicit bounds beyond that
+   * range. This accepts any integral number instead.
+   */
+  const LargeInt = z.number().refine(Number.isInteger, "Invalid input: expected int, received number")
   
 import type * as Api from './Api';
 
@@ -63,6 +70,6 @@ export const Forest: ZodType<Api.Forest> = z.preprocess(processResponseBody,z.la
 export const NodeMap: ZodType<Api.NodeMap> = z.preprocess(processResponseBody,z.object({"children": z.record(z.string(),z.lazy(() => NodeMap)).optional(),
 }))
 
-export const Plain = z.preprocess(processResponseBody,z.object({"id": z.number(),
+export const Plain = z.preprocess(processResponseBody,z.object({"id": LargeInt,
 }))
 

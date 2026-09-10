@@ -223,28 +223,31 @@ export const schemaToZod = makeSchemaGenerator({
 });
 
 function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
+  const [, unsigned, sizeStr] = schema.format?.match(/(u?)int(\d+)/) ?? [];
+  const bits = sizeStr ? parseInt(sizeStr, 10) : undefined;
+  // 64-bit formats exceed JS number precision, so leave them unbounded
+  const bounded = bits !== undefined && bits < 64;
+  const minimum =
+    schema.minimum ?? (unsigned ? 0 : bounded ? -(2 ** (bits - 1)) : undefined);
+  const maximum =
+    schema.maximum ??
+    (bounded ? 2 ** (bits - (unsigned ? 0 : 1)) - 1 : undefined);
+
   if ("enum" in schema) {
     /**  See comment in {@link setupZod} */
     w0(`IntEnum(${JSON.stringify(schema.enum)} as const)`);
+  } else if (
+    minimum !== undefined &&
+    minimum >= Number.MIN_SAFE_INTEGER &&
+    maximum !== undefined &&
+    maximum <= Number.MAX_SAFE_INTEGER
+  ) {
+    w0(`z.int()`);
   } else {
-    w0(`z.number()`);
+    /**  See comment in {@link setupZod} */
+    w0(`LargeInt`);
   }
 
-  const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) ?? [];
-  if ("minimum" in schema) {
-    w0(`.min(${schema.minimum})`);
-  } else if (unsigned) {
-    w0(`.min(0)`);
-  } else if (size && parseInt(size, 10) < 64) {
-    w0(`.min(-${Math.pow(2, parseInt(size, 10) - 1) - 1})`);
-  }
-
-  if ("maximum" in schema) {
-    w0(`.max(${schema.maximum})`);
-  } else if (size && unsigned && parseInt(size, 10) < 64) {
-    w0(`.max(${Math.pow(2, parseInt(size, 10)) - 1})`);
-  } else if (size && parseInt(size, 10) < 64) {
-    // It's signed so remove the most significant bit
-    w0(`.max(${Math.pow(2, parseInt(size, 10) - 1) - 1})`);
-  }
+  if (minimum !== undefined) w0(`.min(${minimum})`);
+  if (maximum !== undefined) w0(`.max(${maximum})`);
 }
