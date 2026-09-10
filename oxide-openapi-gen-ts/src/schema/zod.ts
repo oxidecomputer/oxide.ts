@@ -230,7 +230,7 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
     if (unsigned) {
       minimum = 0;
     } else if (size && parseInt(size, 10) < 64) {
-      minimum = -(Math.pow(2, parseInt(size, 10) - 1) - 1);
+      minimum = -Math.pow(2, parseInt(size, 10) - 1);
     }
   }
 

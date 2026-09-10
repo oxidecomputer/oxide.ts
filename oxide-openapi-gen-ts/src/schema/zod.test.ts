@@ -78,11 +78,11 @@ test.each([
 );
 
 test.each([
-  ["int8", -127, 127],
+  ["int8", -128, 127],
   ["uint8", 0, 255],
-  ["int16", -32767, 32767],
+  ["int16", -32768, 32767],
   ["uint16", 0, 65535],
-  ["int32", -2147483647, 2147483647],
+  ["int32", -2147483648, 2147483647],
   ["uint32", 0, 4294967295],
 ] as const)(
   "integer format %s preserves existing bounds",
@@ -299,7 +299,7 @@ test("integer with format uint8", () => {
 
 test("integer with format int16", () => {
   schemaToZod({ type: "integer", format: "int16" }, io);
-  expect(out.value()).toMatchInlineSnapshot(`"z.int().min(-32767).max(32767)"`);
+  expect(out.value()).toMatchInlineSnapshot(`"z.int().min(-32768).max(32767)"`);
 });
 
 test("integer with explicit min/max", () => {
