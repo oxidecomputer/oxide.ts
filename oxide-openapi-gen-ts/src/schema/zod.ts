@@ -223,21 +223,15 @@ export const schemaToZod = makeSchemaGenerator({
 });
 
 function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
-  const [, unsigned, size] = schema.format?.match(/(u?)int(\d+)/) ?? [];
-  let minimum = schema.minimum;
-  let maximum = schema.maximum;
-  if (!("minimum" in schema)) {
-    if (unsigned) {
-      minimum = 0;
-    } else if (size && parseInt(size, 10) < 64) {
-      minimum = -Math.pow(2, parseInt(size, 10) - 1);
-    }
-  }
-
-  if (!("maximum" in schema) && size && parseInt(size, 10) < 64) {
-    // For signed integers, remove the most significant bit.
-    maximum = Math.pow(2, parseInt(size, 10) - (unsigned ? 0 : 1)) - 1;
-  }
+  const [, unsigned, sizeStr] = schema.format?.match(/(u?)int(\d+)/) ?? [];
+  const bits = sizeStr ? parseInt(sizeStr, 10) : undefined;
+  // 64-bit formats exceed JS number precision, so leave them unbounded
+  const bounded = bits !== undefined && bits < 64;
+  const minimum =
+    schema.minimum ?? (unsigned ? 0 : bounded ? -(2 ** (bits - 1)) : undefined);
+  const maximum =
+    schema.maximum ??
+    (bounded ? 2 ** (bits - (unsigned ? 0 : 1)) - 1 : undefined);
 
   if ("enum" in schema) {
     /**  See comment in {@link setupZod} */
@@ -250,9 +244,8 @@ function schemaToZodInt(schema: OpenAPIV3.SchemaObject, { w0 }: IO) {
   ) {
     w0(`z.int()`);
   } else {
-    // z.int() also imposes safe-integer bounds. Preserve wider or unbounded
-    // ranges (including int64/uint64) with an integer-only refinement.
-    w0(`z.number().refine(Number.isInteger, "Expected integer")`);
+    /**  See comment in {@link setupZod} */
+    w0(`LargeInt`);
   }
 
   if (minimum !== undefined) w0(`.min(${minimum})`);

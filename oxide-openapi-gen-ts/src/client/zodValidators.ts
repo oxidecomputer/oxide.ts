@@ -56,6 +56,13 @@ export async function generateZodValidators(
 
   /** Helper to ensure booleans provided as strings end up with the correct value */
   const SafeBoolean = z.preprocess(v => v === "false" ? false : v, z.coerce.boolean())
+
+  /**
+   * z.int() rejects values outside the JS safe-integer range, so it can't be
+   * used for int64/uint64 or for integers with explicit bounds beyond that
+   * range. This accepts any integral number instead.
+   */
+  const LargeInt = z.number().refine(Number.isInteger, "Invalid input: expected int, received number")
   `);
 
   if (cyclicSchemas.size > 0) {

@@ -15,6 +15,13 @@
 
   /** Helper to ensure booleans provided as strings end up with the correct value */
   const SafeBoolean = z.preprocess(v => v === "false" ? false : v, z.coerce.boolean())
+
+  /**
+   * z.int() rejects values outside the JS safe-integer range, so it can't be
+   * used for int64/uint64 or for integers with explicit bounds beyond that
+   * range. This accepts any integral number instead.
+   */
+  const LargeInt = z.number().refine(Number.isInteger, "Invalid input: expected int, received number")
   
 /**
 * An IPv4 subnet
@@ -280,7 +287,7 @@ export const AlertClassResultsPage = z.preprocess(processResponseBody,z.object({
 /**
 * The response received from a webhook receiver endpoint.
  */
-export const WebhookDeliveryResponse = z.preprocess(processResponseBody,z.object({"durationMs": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const WebhookDeliveryResponse = z.preprocess(processResponseBody,z.object({"durationMs": LargeInt.min(0),
 "status": z.int().min(0).max(65535),
 }))
 
@@ -292,7 +299,7 @@ export const WebhookDeliveryAttemptResult = z.preprocess(processResponseBody,z.e
 * 
 * This represents a single HTTP request that was sent to the receiver, and its outcome.
  */
-export const WebhookDeliveryAttempt = z.preprocess(processResponseBody,z.object({"attempt": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const WebhookDeliveryAttempt = z.preprocess(processResponseBody,z.object({"attempt": LargeInt.min(0),
 "response": WebhookDeliveryResponse.nullable().optional(),
 "result": WebhookDeliveryAttemptResult,
 "timeSent": z.coerce.date(),
@@ -345,7 +352,7 @@ export const AlertDeliveryResultsPage = z.preprocess(processResponseBody,z.objec
 * Data describing the result of an alert receiver liveness probe attempt.
  */
 export const AlertProbeResult = z.preprocess(processResponseBody,z.object({"probe": AlertDelivery,
-"resendsStarted": z.number().refine(Number.isInteger, "Expected integer").min(0).nullable().optional(),
+"resendsStarted": LargeInt.min(0).nullable().optional(),
 }))
 
 /**
@@ -587,7 +594,7 @@ export const BfdSessionEnable = z.preprocess(processResponseBody,z.object({"dete
 "local": z.union([z.ipv4(), z.ipv6()]).nullable().optional(),
 "mode": BfdMode,
 "remote": z.union([z.ipv4(), z.ipv6()]),
-"requiredRx": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"requiredRx": LargeInt.min(0),
 "switchSlot": SwitchSlot,
 }))
 
@@ -598,7 +605,7 @@ export const BfdStatus = z.preprocess(processResponseBody,z.object({"detectionTh
 "local": z.union([z.ipv4(), z.ipv6()]).nullable().optional(),
 "mode": BfdMode,
 "peer": z.union([z.ipv4(), z.ipv6()]),
-"requiredRx": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"requiredRx": LargeInt.min(0),
 "state": BfdState,
 "switchSlot": SwitchSlot,
 }))
@@ -764,7 +771,7 @@ export const BgpPeerStatus = z.preprocess(processResponseBody,z.object({"addr": 
 "peerId": z.string(),
 "remoteAsn": z.int().min(0).max(4294967295),
 "state": BgpPeerState,
-"stateDurationMillis": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"stateDurationMillis": LargeInt.min(0),
 "switch": SwitchSlot,
 }))
 
@@ -850,14 +857,14 @@ z.object({"start": z.int().min(-2147483648).max(2147483647),
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeint64 = z.preprocess(processResponseBody,z.union([
-z.object({"end": z.number().refine(Number.isInteger, "Expected integer"),
+z.object({"end": LargeInt,
 "type": z.enum(["range_to"]),
 }),
-z.object({"end": z.number().refine(Number.isInteger, "Expected integer"),
-"start": z.number().refine(Number.isInteger, "Expected integer"),
+z.object({"end": LargeInt,
+"start": LargeInt,
 "type": z.enum(["range"]),
 }),
-z.object({"start": z.number().refine(Number.isInteger, "Expected integer"),
+z.object({"start": LargeInt,
 "type": z.enum(["range_from"]),
 }),
 ])
@@ -926,14 +933,14 @@ z.object({"start": z.int().min(0).max(4294967295),
 * This type supports ranges similar to the `RangeTo`, `Range` and `RangeFrom` types in the standard library. Those cover `(..end)`, `(start..end)`, and `(start..)` respectively.
  */
 export const BinRangeuint64 = z.preprocess(processResponseBody,z.union([
-z.object({"end": z.number().refine(Number.isInteger, "Expected integer").min(0),
+z.object({"end": LargeInt.min(0),
 "type": z.enum(["range_to"]),
 }),
-z.object({"end": z.number().refine(Number.isInteger, "Expected integer").min(0),
-"start": z.number().refine(Number.isInteger, "Expected integer").min(0),
+z.object({"end": LargeInt.min(0),
+"start": LargeInt.min(0),
 "type": z.enum(["range"]),
 }),
-z.object({"start": z.number().refine(Number.isInteger, "Expected integer").min(0),
+z.object({"start": LargeInt.min(0),
 "type": z.enum(["range_from"]),
 }),
 ])
@@ -961,70 +968,70 @@ z.object({"start": z.int().min(0).max(255),
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Bindouble = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Bindouble = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangedouble,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binfloat = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binfloat = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangefloat,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binint16 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binint16 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeint16,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binint32 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binint32 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeint32,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binint64 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binint64 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeint64,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binint8 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binint8 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeint8,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binuint16 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binuint16 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeuint16,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binuint32 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binuint32 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeuint32,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binuint64 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binuint64 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeuint64,
 }))
 
 /**
 * Type storing bin edges and a count of samples within it.
  */
-export const Binuint8 = z.preprocess(processResponseBody,z.object({"count": z.number().refine(Number.isInteger, "Expected integer").min(0),
+export const Binuint8 = z.preprocess(processResponseBody,z.object({"count": LargeInt.min(0),
 "range": BinRangeuint8,
 }))
 
@@ -1038,7 +1045,7 @@ export const BlockSize = z.preprocess(processResponseBody,IntEnum([512,2048,4096
 /**
 * Byte count to express memory or storage capacity.
  */
-export const ByteCount = z.preprocess(processResponseBody,z.number().refine(Number.isInteger, "Expected integer").min(0))
+export const ByteCount = z.preprocess(processResponseBody,LargeInt.min(0))
 
 /**
 * The service intended to use this certificate.
@@ -1107,14 +1114,14 @@ export const Cumulativefloat = z.preprocess(processResponseBody,z.object({"start
 * A cumulative or counter data type.
  */
 export const Cumulativeint64 = z.preprocess(processResponseBody,z.object({"startTime": z.coerce.date(),
-"value": z.number().refine(Number.isInteger, "Expected integer"),
+"value": LargeInt,
 }))
 
 /**
 * A cumulative or counter data type.
  */
 export const Cumulativeuint64 = z.preprocess(processResponseBody,z.object({"startTime": z.coerce.date(),
-"value": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"value": LargeInt.min(0),
 }))
 
 /**
@@ -1139,7 +1146,7 @@ export const CurrentUser = z.preprocess(processResponseBody,z.object({"displayNa
  */
 export const Quantile = z.preprocess(processResponseBody,z.object({"desiredMarkerPositions": z.number().array(),
 "markerHeights": z.number().array(),
-"markerPositions": z.number().refine(Number.isInteger, "Expected integer").min(0).array(),
+"markerPositions": LargeInt.min(0).array(),
 "p": z.number(),
 }))
 
@@ -1153,13 +1160,13 @@ export const Quantile = z.preprocess(processResponseBody,z.object({"desiredMarke
 export const Histogramint8 = z.preprocess(processResponseBody,z.object({"bins": Binint8.array(),
 "max": z.int().min(-128).max(127),
 "min": z.int().min(-128).max(127),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1172,13 +1179,13 @@ export const Histogramint8 = z.preprocess(processResponseBody,z.object({"bins": 
 export const Histogramuint8 = z.preprocess(processResponseBody,z.object({"bins": Binuint8.array(),
 "max": z.int().min(0).max(255),
 "min": z.int().min(0).max(255),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1191,13 +1198,13 @@ export const Histogramuint8 = z.preprocess(processResponseBody,z.object({"bins":
 export const Histogramint16 = z.preprocess(processResponseBody,z.object({"bins": Binint16.array(),
 "max": z.int().min(-32768).max(32767),
 "min": z.int().min(-32768).max(32767),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1210,13 +1217,13 @@ export const Histogramint16 = z.preprocess(processResponseBody,z.object({"bins":
 export const Histogramuint16 = z.preprocess(processResponseBody,z.object({"bins": Binuint16.array(),
 "max": z.int().min(0).max(65535),
 "min": z.int().min(0).max(65535),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1229,13 +1236,13 @@ export const Histogramuint16 = z.preprocess(processResponseBody,z.object({"bins"
 export const Histogramint32 = z.preprocess(processResponseBody,z.object({"bins": Binint32.array(),
 "max": z.int().min(-2147483648).max(2147483647),
 "min": z.int().min(-2147483648).max(2147483647),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1248,13 +1255,13 @@ export const Histogramint32 = z.preprocess(processResponseBody,z.object({"bins":
 export const Histogramuint32 = z.preprocess(processResponseBody,z.object({"bins": Binuint32.array(),
 "max": z.int().min(0).max(4294967295),
 "min": z.int().min(0).max(4294967295),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1265,15 +1272,15 @@ export const Histogramuint32 = z.preprocess(processResponseBody,z.object({"bins"
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramint64 = z.preprocess(processResponseBody,z.object({"bins": Binint64.array(),
-"max": z.number().refine(Number.isInteger, "Expected integer"),
-"min": z.number().refine(Number.isInteger, "Expected integer"),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"max": LargeInt,
+"min": LargeInt,
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1284,15 +1291,15 @@ export const Histogramint64 = z.preprocess(processResponseBody,z.object({"bins":
 * Note that any gaps, unsorted bins, or non-finite values will result in an error.
  */
 export const Histogramuint64 = z.preprocess(processResponseBody,z.object({"bins": Binuint64.array(),
-"max": z.number().refine(Number.isInteger, "Expected integer").min(0),
-"min": z.number().refine(Number.isInteger, "Expected integer").min(0),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"max": LargeInt.min(0),
+"min": LargeInt.min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
 "squaredMean": z.number(),
 "startTime": z.coerce.date(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1305,7 +1312,7 @@ export const Histogramuint64 = z.preprocess(processResponseBody,z.object({"bins"
 export const Histogramfloat = z.preprocess(processResponseBody,z.object({"bins": Binfloat.array(),
 "max": z.number(),
 "min": z.number(),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
@@ -1324,7 +1331,7 @@ export const Histogramfloat = z.preprocess(processResponseBody,z.object({"bins":
 export const Histogramdouble = z.preprocess(processResponseBody,z.object({"bins": Bindouble.array(),
 "max": z.number(),
 "min": z.number(),
-"nSamples": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"nSamples": LargeInt.min(0),
 "p50": Quantile,
 "p90": Quantile,
 "p99": Quantile,
@@ -1367,10 +1374,10 @@ z.object({"datum": z.int().min(-2147483648).max(2147483647),
 z.object({"datum": z.int().min(0).max(4294967295),
 "type": z.enum(["u32"]),
 }),
-z.object({"datum": z.number().refine(Number.isInteger, "Expected integer"),
+z.object({"datum": LargeInt,
 "type": z.enum(["i64"]),
 }),
-z.object({"datum": z.number().refine(Number.isInteger, "Expected integer").min(0),
+z.object({"datum": LargeInt.min(0),
 "type": z.enum(["u64"]),
 }),
 z.object({"datum": z.number(),
@@ -1581,7 +1588,7 @@ export const DiskResultsPage = z.preprocess(processResponseBody,z.object({"items
 * Min, max, and the p-* quantiles are treated as optional due to the possibility of distribution operations, like subtraction.
  */
 export const Distributiondouble = z.preprocess(processResponseBody,z.object({"bins": z.number().array(),
-"counts": z.number().refine(Number.isInteger, "Expected integer").min(0).array(),
+"counts": LargeInt.min(0).array(),
 "max": z.number().nullable().optional(),
 "min": z.number().nullable().optional(),
 "p50": z.number().nullable().optional(),
@@ -1596,15 +1603,15 @@ export const Distributiondouble = z.preprocess(processResponseBody,z.object({"bi
 * 
 * Min, max, and the p-* quantiles are treated as optional due to the possibility of distribution operations, like subtraction.
  */
-export const Distributionint64 = z.preprocess(processResponseBody,z.object({"bins": z.number().refine(Number.isInteger, "Expected integer").array(),
-"counts": z.number().refine(Number.isInteger, "Expected integer").min(0).array(),
-"max": z.number().refine(Number.isInteger, "Expected integer").nullable().optional(),
-"min": z.number().refine(Number.isInteger, "Expected integer").nullable().optional(),
+export const Distributionint64 = z.preprocess(processResponseBody,z.object({"bins": LargeInt.array(),
+"counts": LargeInt.min(0).array(),
+"max": LargeInt.nullable().optional(),
+"min": LargeInt.nullable().optional(),
 "p50": z.number().nullable().optional(),
 "p90": z.number().nullable().optional(),
 "p99": z.number().nullable().optional(),
 "squaredMean": z.number(),
-"sumOfSamples": z.number().refine(Number.isInteger, "Expected integer"),
+"sumOfSamples": LargeInt,
 }))
 
 /**
@@ -1768,10 +1775,10 @@ z.object({"type": z.enum(["u32"]),
 "value": z.int().min(0).max(4294967295),
 }),
 z.object({"type": z.enum(["i64"]),
-"value": z.number().refine(Number.isInteger, "Expected integer"),
+"value": LargeInt,
 }),
 z.object({"type": z.enum(["u64"]),
-"value": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"value": LargeInt.min(0),
 }),
 z.object({"type": z.enum(["ip_addr"]),
 "value": z.union([z.ipv4(), z.ipv6()]),
@@ -1971,7 +1978,7 @@ export const ImageResultsPage = z.preprocess(processResponseBody,z.object({"item
 * Parameters for importing blocks with a bulk write
  */
 export const ImportBlocksBulkWrite = z.preprocess(processResponseBody,z.object({"base64EncodedData": z.string(),
-"offset": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"offset": LargeInt.min(0),
 }))
 
 /**
@@ -2256,7 +2263,7 @@ export const InstanceResultsPage = z.preprocess(processResponseBody,z.object({"i
 * Contents of an Instance's serial console buffer.
  */
 export const InstanceSerialConsoleData = z.preprocess(processResponseBody,z.object({"data": z.int().min(0).max(255).array(),
-"lastByteOffset": z.number().refine(Number.isInteger, "Expected integer").min(0),
+"lastByteOffset": LargeInt.min(0),
 }))
 
 /**
@@ -2754,7 +2761,7 @@ export const NetworkInterface = z.preprocess(processResponseBody,z.object({"id":
  */
 export const ValueArray = z.preprocess(processResponseBody,z.union([
 z.object({"type": z.enum(["integer"]),
-"values": z.number().refine(Number.isInteger, "Expected integer").nullable().array(),
+"values": LargeInt.nullable().array(),
 }),
 z.object({"type": z.enum(["double"]),
 "values": z.number().nullable().array(),
@@ -3005,7 +3012,7 @@ export const RackMembershipChangeState = z.preprocess(processResponseBody,z.enum
 /**
 * A unique, monotonically increasing number representing the set of active sleds in a rack at a given point in time.
  */
-export const RackMembershipVersion = z.preprocess(processResponseBody,z.number().refine(Number.isInteger, "Expected integer").min(0))
+export const RackMembershipVersion = z.preprocess(processResponseBody,LargeInt.min(0))
 
 /**
 * Status of the rack membership uniquely identified by the (rack_id, version) pair
@@ -3231,7 +3238,7 @@ export const SiloAuthSettingsUpdate = z.preprocess(processResponseBody,z.object(
 /**
 * The amount of provisionable resources for a Silo
  */
-export const SiloQuotasCreate = z.preprocess(processResponseBody,z.object({"cpus": z.number().refine(Number.isInteger, "Expected integer"),
+export const SiloQuotasCreate = z.preprocess(processResponseBody,z.object({"cpus": LargeInt,
 "memory": ByteCount,
 "storage": ByteCount,
 }))
@@ -3272,7 +3279,7 @@ export const SiloIpPoolResultsPage = z.preprocess(processResponseBody,z.object({
 /**
 * A collection of resource counts used to set the virtual capacity of a silo
  */
-export const SiloQuotas = z.preprocess(processResponseBody,z.object({"cpus": z.number().refine(Number.isInteger, "Expected integer"),
+export const SiloQuotas = z.preprocess(processResponseBody,z.object({"cpus": LargeInt,
 "memory": ByteCount,
 "siloId": z.uuid(),
 "storage": ByteCount,
@@ -3288,7 +3295,7 @@ export const SiloQuotasResultsPage = z.preprocess(processResponseBody,z.object({
 /**
 * Updateable properties of a Silo's resource limits. If a value is omitted it will not be updated.
  */
-export const SiloQuotasUpdate = z.preprocess(processResponseBody,z.object({"cpus": z.number().refine(Number.isInteger, "Expected integer").nullable().optional(),
+export const SiloQuotasUpdate = z.preprocess(processResponseBody,z.object({"cpus": LargeInt.nullable().optional(),
 "memory": ByteCount.nullable().optional(),
 "storage": ByteCount.nullable().optional(),
 }))
@@ -3342,7 +3349,7 @@ export const SiloSubnetPoolResultsPage = z.preprocess(processResponseBody,z.obje
 /**
 * A collection of resource counts used to describe capacity and utilization
  */
-export const VirtualResourceCounts = z.preprocess(processResponseBody,z.object({"cpus": z.number().refine(Number.isInteger, "Expected integer"),
+export const VirtualResourceCounts = z.preprocess(processResponseBody,z.object({"cpus": LargeInt,
 "memory": ByteCount,
 "storage": ByteCount,
 }))
@@ -3408,10 +3415,10 @@ export const Sled = z.preprocess(processResponseBody,z.object({"baseboard": Base
  */
 export const SledInstance = z.preprocess(processResponseBody,z.object({"activeSledId": z.uuid(),
 "id": z.uuid(),
-"memory": z.number().refine(Number.isInteger, "Expected integer"),
+"memory": LargeInt,
 "migrationId": z.uuid().nullable().optional(),
 "name": Name,
-"ncpus": z.number().refine(Number.isInteger, "Expected integer"),
+"ncpus": LargeInt,
 "projectName": Name,
 "siloName": Name,
 "state": InstanceState,
@@ -3918,7 +3925,7 @@ export const TufRepoUpload = z.preprocess(processResponseBody,z.object({"repo": 
  */
 export const UnadoptedPhysicalDisk = z.preprocess(processResponseBody,z.object({"diskId": PhysicalDiskManufacturerIdentity,
 "sledId": SledUuid,
-"slot": z.number().refine(Number.isInteger, "Expected integer"),
+"slot": LargeInt,
 "variant": PhysicalDiskKind,
 }))
 
@@ -3944,7 +3951,7 @@ export const UninitializedSledResultsPage = z.preprocess(processResponseBody,z.o
 "nextPage": z.string().nullable().optional(),
 }))
 
-export const UpdateStatus = z.preprocess(processResponseBody,z.object({"componentsByReleaseVersion": z.record(z.string(),z.number().refine(Number.isInteger, "Expected integer").min(0)),
+export const UpdateStatus = z.preprocess(processResponseBody,z.object({"componentsByReleaseVersion": z.record(z.string(),LargeInt.min(0)),
 "contactSupport": SafeBoolean,
 "suspended": SafeBoolean,
 "targetRelease": TargetRelease.nullable(),
@@ -5269,9 +5276,9 @@ export const InstanceSerialConsoleParams = z.preprocess(processResponseBody, z.o
   instance: NameOrId,
   }),
   query: z.object({
-  fromStart: z.number().refine(Number.isInteger, "Expected integer").min(0).nullable().optional(),
-  maxBytes: z.number().refine(Number.isInteger, "Expected integer").min(0).nullable().optional(),
-  mostRecent: z.number().refine(Number.isInteger, "Expected integer").min(0).nullable().optional(),
+  fromStart: LargeInt.min(0).nullable().optional(),
+  maxBytes: LargeInt.min(0).nullable().optional(),
+  mostRecent: LargeInt.min(0).nullable().optional(),
   project: NameOrId.optional(),
   }),
 }))
@@ -5281,7 +5288,7 @@ export const InstanceSerialConsoleStreamParams = z.preprocess(processResponseBod
   instance: NameOrId,
   }),
   query: z.object({
-  mostRecent: z.number().refine(Number.isInteger, "Expected integer").min(0).nullable().optional(),
+  mostRecent: LargeInt.min(0).nullable().optional(),
   project: NameOrId.optional(),
   }),
 }))

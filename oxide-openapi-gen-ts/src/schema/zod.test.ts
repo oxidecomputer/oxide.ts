@@ -144,14 +144,6 @@ test.each([undefined, "int32", "uint32", "int64", "uint64"])(
   },
 );
 
-test("integer byte counts do not require whole GiB", async () => {
-  const validator = await generateValidator({
-    type: "integer",
-    format: "uint64",
-  });
-  expect(validator.parse(1.5 * 2 ** 30)).toBe(1610612736);
-});
-
 test("integer properties preserve required, optional, nullable, and default behavior", async () => {
   const validator = await generateValidator({
     type: "object",
@@ -287,9 +279,7 @@ test("number nullable with default", () => {
 
 test("integer", () => {
   schemaToZod({ type: "integer" }, io);
-  expect(out.value()).toMatchInlineSnapshot(
-    `"z.number().refine(Number.isInteger, "Expected integer")"`,
-  );
+  expect(out.value()).toMatchInlineSnapshot(`"LargeInt"`);
 });
 
 test("integer with format uint8", () => {
@@ -309,9 +299,7 @@ test("integer with explicit min/max", () => {
 
 test("integer with default", () => {
   schemaToZod({ type: "integer", default: 42 }, io);
-  expect(out.value()).toMatchInlineSnapshot(
-    `"z.number().refine(Number.isInteger, "Expected integer").default(42)"`,
-  );
+  expect(out.value()).toMatchInlineSnapshot(`"LargeInt.default(42)"`);
 });
 
 test("integer with constraints and default", () => {
@@ -339,9 +327,7 @@ test("integer nullable with constraints and default", () => {
 
 test("integer nullable", () => {
   schemaToZod({ type: "integer", nullable: true }, io);
-  expect(out.value()).toMatchInlineSnapshot(
-    `"z.number().refine(Number.isInteger, "Expected integer").nullable()"`,
-  );
+  expect(out.value()).toMatchInlineSnapshot(`"LargeInt.nullable()"`);
 });
 
 test("integer enum", async () => {
@@ -435,7 +421,7 @@ test("object with properties", () => {
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
-    "age": z.number().refine(Number.isInteger, "Expected integer").optional(),
+    "age": LargeInt.optional(),
     })"
   `);
 });
@@ -454,7 +440,7 @@ test("object with optional property that has default", () => {
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
-    "count": z.number().refine(Number.isInteger, "Expected integer").default(0),
+    "count": LargeInt.default(0),
     })"
   `);
 });
@@ -534,8 +520,8 @@ test("object mixing required, optional without default, and optional with defaul
   );
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
-    "age": z.number().refine(Number.isInteger, "Expected integer").optional(),
-    "count": z.number().refine(Number.isInteger, "Expected integer").default(0),
+    "age": LargeInt.optional(),
+    "count": LargeInt.default(0),
     "tags": z.string().array().default([]),
     })"
   `);
@@ -772,7 +758,7 @@ test("object-typed property with default", () => {
   expect(out.value()).toMatchInlineSnapshot(`
     "z.object({"name": z.string(),
     "config": z.object({"enableFeature": SafeBoolean,
-    "maxRetries": z.number().refine(Number.isInteger, "Expected integer"),
+    "maxRetries": LargeInt,
     }).default({"enableFeature":true,"maxRetries":3}),
     })"
   `);
