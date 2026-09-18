@@ -30,6 +30,9 @@ on:
         description: 'PR number to publish a canary for'
         required: true
 
+permissions:
+  contents: read
+
 # A newer run cancels an older one in the same group — including one paused
 # waiting for release-environment approval (tested; the docs don't say). So a
 # stale unapproved release can't be approved once a newer merge lands, and the

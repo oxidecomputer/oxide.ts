@@ -4,6 +4,10 @@
 
 name: license-check
 on: pull_request
+
+permissions:
+  contents: read
+
 jobs:
   license:
     runs-on: ubuntu-latest

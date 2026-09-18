@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write # to push generated API updates
+
 concurrency:
   group: api-spec-${{ github.ref }}
   cancel-in-progress: true
