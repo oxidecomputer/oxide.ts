@@ -63,9 +63,8 @@ function encodeQueryParam(key: string, value: unknown) {
 export async function handleResponse<Data>(
   response: Response,
   // Converts `date-time` fields to `Date` in place. The generated client passes
-  // the parser for the endpoint's success type; defaults to a no-op so this
-  // file stays testable without generating anything.
-  parseResponse: (data: unknown) => unknown = (data) => data,
+  // the parser for the endpoint's success type.
+  parseResponse?: (data: unknown) => unknown,
 ): Promise<ApiResult<Data>> {
   const respText = await response.text();
 
@@ -97,7 +96,7 @@ export async function handleResponse<Data>(
   return {
     type: "success",
     response,
-    data: parseResponse(respJson) as Data,
+    data: (parseResponse ? parseResponse(respJson) : respJson) as Data,
   };
 }
 
