@@ -19,7 +19,9 @@
 const D = (v: any) => {
   if (typeof v !== "string") return v;
   const d = new Date(v);
-  return isNaN(d.getTime()) ? v : d;
+  if (isNaN(d.getTime()))
+    throw new Error(`Expected a valid date string, instead received "${v}"`);
+  return d;
 };
 
 const A = (v: any, f: (x: any) => any) => (Array.isArray(v) ? v.map(f) : v);

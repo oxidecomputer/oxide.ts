@@ -114,11 +114,6 @@ test("generated date parsers convert dates in place", async () => {
     timestamps: [date, date],
   });
 
-  // unparseable strings are left alone, absent fields are not added
-  expect(parser("Instance")({ timeCreated: "nope" })).toEqual({
-    timeCreated: "nope",
-  });
-
   // array success wrapper maps the element parser over the array
   expect(parser("ScimClientBearerToken[]")([{ timeCreated: iso }])).toEqual([
     { timeCreated: date },

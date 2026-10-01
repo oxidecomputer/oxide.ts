@@ -115,6 +115,71 @@ test("builds parsers for object, results page, and array success types", async (
   ]);
 });
 
+test("parses arrays of date-time strings", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Points: {
+          type: "object",
+          properties: { timestamps: { type: "array", items: dateTime } },
+        },
+      },
+      { "/points": { get: get("points_view", ref("Points")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Points");
+  expect(parser({ timestamps: [iso, iso] })).toEqual({
+    timestamps: [date, date],
+  });
+});
+
+test("unparseable date-time values get rejected", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Thing: {
+          type: "object",
+          properties: { time_created: dateTime },
+        },
+      },
+      { "/thing": { get: get("thing_view", ref("Thing")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Thing");
+  expect(() =>
+    parser({ timeCreated: "not a date" })
+  ).toThrowErrorMatchingInlineSnapshot(
+    `[Error: Expected a valid date string, instead received "not a date"]`
+  );
+});
+
+// This should never be reached, but if it is, it's a problem in the codegen,
+// and at client time the right thing to do is simply leave the value alone.
+test("non-string values expected to be datetimes are ignored", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Thing: {
+          type: "object",
+          properties: { actuallyANumber: dateTime },
+        },
+      },
+      { "/thing": { get: get("thing_view", ref("Thing")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Thing");
+  const parsed = parser({ actuallyANumber: 4 }) as {
+    actuallyANumber: Date;
+  };
+  expect(parsed.actuallyANumber).toEqual(4);
+  // null and absent fields are also left alone
+  expect(parser({ actuallyANumber: null })).toEqual({ actuallyANumber: null });
+  expect(parser({})).toEqual({});
+});
+
 test("deduplicates schemas with the same date shape", () => {
   const dateParsers = buildDateParsers(
     spec({

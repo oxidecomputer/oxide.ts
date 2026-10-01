@@ -69,12 +69,26 @@ export async function handleResponse<Data>(
   const respText = await response.text();
 
   // catch JSON parse or processing errors
-  let respJson;
   try {
     // don't bother trying to parse empty responses like 204s
     // TODO: is empty object what we want here?
-    respJson =
+    const respJson =
       respText.length > 0 ? processResponseBody(JSON.parse(respText)) : {};
+
+    if (!response.ok) {
+      return {
+        type: "error",
+        response,
+        data: respJson as ErrorBody,
+      };
+    }
+
+    // don't validate respJson, just assume it matches the type
+    return {
+      type: "success",
+      response,
+      data: (parseResponse ? parseResponse(respJson) : respJson) as Data,
+    };
   } catch (e) {
     return {
       type: "client_error",
@@ -83,21 +97,6 @@ export async function handleResponse<Data>(
       text: respText,
     };
   }
-
-  if (!response.ok) {
-    return {
-      type: "error",
-      response,
-      data: respJson as ErrorBody,
-    };
-  }
-
-  // don't validate respJson, just assume it matches the type
-  return {
-    type: "success",
-    response,
-    data: (parseResponse ? parseResponse(respJson) : respJson) as Data,
-  };
 }
 
 // has to be any. the particular query params types don't like unknown
