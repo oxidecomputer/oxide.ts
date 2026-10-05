@@ -271,6 +271,19 @@ export const AggregateBgpMessageHistory = z.preprocess(processResponseBody,z.obj
 }))
 
 /**
+* An alert.
+* 
+* Alerts provide notifications about events that occurred in the system at a point in time. See the guide-level documentation on alerts for details.
+ */
+export const Alert = z.preprocess(processResponseBody,z.object({"class": z.string(),
+"id": z.uuid(),
+"payload": z.record(z.string(), z.unknown()),
+"timeCreated": z.coerce.date(),
+"timeModified": z.coerce.date(),
+"version": z.int().min(0).max(4294967295),
+}))
+
+/**
 * An alert class.
  */
 export const AlertClass = z.preprocess(processResponseBody,z.object({"description": z.string(),
@@ -395,6 +408,13 @@ export const AlertReceiver = z.preprocess(processResponseBody,z.object({"descrip
 * A single page of results
  */
 export const AlertReceiverResultsPage = z.preprocess(processResponseBody,z.object({"items": AlertReceiver.array(),
+"nextPage": z.string().nullable().optional(),
+}))
+
+/**
+* A single page of results
+ */
+export const AlertResultsPage = z.preprocess(processResponseBody,z.object({"items": Alert.array(),
 "nextPage": z.string().nullable().optional(),
 }))
 
@@ -713,7 +733,8 @@ export const RouterPeerType = z.preprocess(processResponseBody,z.union([
 z.object({"routerLifetime": RouterLifetimeConfig,
 "type": z.enum(["unnumbered"]),
 }),
-z.object({"ip": z.union([z.ipv4(), z.ipv6()]),
+z.object({"srcAddr": z.union([z.ipv4(), z.ipv6()]).nullable().default(null),
+"targetAddr": z.union([z.ipv4(), z.ipv6()]),
 "type": z.enum(["numbered"]),
 }),
 ])
@@ -2956,9 +2977,47 @@ export const Project = z.preprocess(processResponseBody,z.object({"description":
 }))
 
 /**
+* Default resources to create in the default subnet
+* 
+* Including this object in the request creates the default subnet. A subnet has no default resources yet, so the object is always empty.
+ */
+export const SubnetCreateDefaults = z.preprocess(processResponseBody,z.record(z.string(),z.unknown()))
+
+/**
+* Default resources to create in a VPC
+* 
+* Each field corresponds to one resource. Set a field to an object to create that resource. Omit it or pass `null` to skip it.
+* 
+* This does not affect the system router, default firewall rules, or default internet gateway, which are always created and do not block deletion of the VPC.
+ */
+export const VpcCreateDefaults = z.preprocess(processResponseBody,z.object({"subnet": SubnetCreateDefaults.nullable().optional(),
+}))
+
+/**
+* Default resources to create in a VPC
+ */
+export const VpcCreateDefaultsSelection = z.preprocess(processResponseBody,z.union([
+z.object({"type": z.enum(["all"]),
+}),
+z.object({"defaults": VpcCreateDefaults,
+"type": z.enum(["explicit"]),
+}),
+])
+)
+
+/**
+* Default resources to create in a project
+* 
+* Each field corresponds to one resource. Set a field to an object to create that resource. Omit it or pass `null` to skip it.
+ */
+export const ProjectCreateDefaults = z.preprocess(processResponseBody,z.object({"vpc": VpcCreateDefaultsSelection.nullable().optional(),
+}))
+
+/**
 * Create-time parameters for a `Project`
  */
-export const ProjectCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
+export const ProjectCreate = z.preprocess(processResponseBody,z.object({"defaults": ProjectCreateDefaults.nullable().optional(),
+"description": z.string(),
 "name": Name,
 }))
 
@@ -3248,7 +3307,6 @@ export const SiloQuotasCreate = z.preprocess(processResponseBody,z.object({"cpus
  */
 export const SiloCreate = z.preprocess(processResponseBody,z.object({"adminGroupName": z.string().nullable().optional(),
 "description": z.string(),
-"discoverable": SafeBoolean,
 "identityMode": SiloIdentityMode,
 "mappedFleetRoles": z.record(z.string(),FleetRole.array().refine(...uniqueItems)),
 "name": Name,
@@ -3403,6 +3461,7 @@ export const Sled = z.preprocess(processResponseBody,z.object({"baseboard": Base
 "id": z.uuid(),
 "policy": SledPolicy,
 "rackId": z.uuid(),
+"slot": z.int().min(0).max(65535).nullable().optional(),
 "state": SledState,
 "timeCreated": z.coerce.date(),
 "timeModified": z.coerce.date(),
@@ -4066,7 +4125,8 @@ export const Vpc = z.preprocess(processResponseBody,z.object({"description": z.s
 /**
 * Create-time parameters for a `Vpc`
  */
-export const VpcCreate = z.preprocess(processResponseBody,z.object({"description": z.string(),
+export const VpcCreate = z.preprocess(processResponseBody,z.object({"defaults": VpcCreateDefaults.nullable().optional(),
+"description": z.string(),
 "dnsName": Name,
 "ipv6Prefix": Ipv6Net.nullable().optional(),
 "name": Name,
@@ -4419,89 +4479,6 @@ export const ProbeDeleteParams = z.preprocess(processResponseBody, z.object({
   }),
 }))
 
-export const SupportBundleListParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  }),
-  query: z.object({
-  limit: z.int().min(1).max(4294967295).nullable().optional(),
-  pageToken: z.string().nullable().optional(),
-  sortBy: TimeAndIdSortMode.optional(),
-  }),
-}))
-
-export const SupportBundleCreateParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleViewParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleUpdateParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleDeleteParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleDownloadParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleHeadParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleDownloadFileParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  file: z.string(),
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleHeadFileParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  file: z.string(),
-  }),
-  query: z.object({
-  }),
-}))
-
-export const SupportBundleIndexParams = z.preprocess(processResponseBody, z.object({
-  path: z.object({
-  bundleId: z.uuid(),
-  }),
-  query: z.object({
-  }),
-}))
-
 export const LoginSamlParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   providerName: Name,
@@ -4670,6 +4647,27 @@ export const AlertReceiverSubscriptionRemoveParams = z.preprocess(processRespons
   path: z.object({
   receiver: NameOrId,
   subscription: AlertSubscription,
+  }),
+  query: z.object({
+  }),
+}))
+
+export const AlertListParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  alertClass: AlertSubscription.optional(),
+  endTime: z.coerce.date().nullable().optional(),
+  limit: z.int().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: TimeAndIdSortMode.optional(),
+  startTime: z.coerce.date().nullable().optional(),
+  }),
+}))
+
+export const AlertViewParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  alertId: z.uuid(),
   }),
   query: z.object({
   }),
@@ -6729,6 +6727,89 @@ export const SystemSubnetPoolSiloUnlinkParams = z.preprocess(processResponseBody
 export const SystemSubnetPoolUtilizationViewParams = z.preprocess(processResponseBody, z.object({
   path: z.object({
   pool: NameOrId,
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleListParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  limit: z.int().min(1).max(4294967295).nullable().optional(),
+  pageToken: z.string().nullable().optional(),
+  sortBy: TimeAndIdSortMode.optional(),
+  }),
+}))
+
+export const SupportBundleCreateParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleViewParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleUpdateParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleDeleteParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleDownloadParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleHeadParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleDownloadFileParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
+  file: z.string(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleHeadFileParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
+  file: z.string(),
+  }),
+  query: z.object({
+  }),
+}))
+
+export const SupportBundleIndexParams = z.preprocess(processResponseBody, z.object({
+  path: z.object({
+  bundleId: z.uuid(),
   }),
   query: z.object({
   }),
