@@ -52,26 +52,6 @@ export interface MSWHandlers {
   probeView: (params: { path: Api.ProbeViewPathParams, query: Api.ProbeViewQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ProbeInfo>>,
 /** `DELETE /experimental/v1/probes/:probe` */
   probeDelete: (params: { path: Api.ProbeDeletePathParams, query: Api.ProbeDeleteQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
-/** `GET /experimental/v1/system/support-bundles` */
-  supportBundleList: (params: {  query: Api.SupportBundleListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfoResultsPage>>,
-/** `POST /experimental/v1/system/support-bundles` */
-  supportBundleCreate: (params: {   body: Json<Api.SupportBundleCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfo>>,
-/** `GET /experimental/v1/system/support-bundles/:bundleId` */
-  supportBundleView: (params: { path: Api.SupportBundleViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfo>>,
-/** `PUT /experimental/v1/system/support-bundles/:bundleId` */
-  supportBundleUpdate: (params: { path: Api.SupportBundleUpdatePathParams,  body: Json<Api.SupportBundleUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfo>>,
-/** `DELETE /experimental/v1/system/support-bundles/:bundleId` */
-  supportBundleDelete: (params: { path: Api.SupportBundleDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
-/** `GET /experimental/v1/system/support-bundles/:bundleId/download` */
-  supportBundleDownload: (params: { path: Api.SupportBundleDownloadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
-/** `HEAD /experimental/v1/system/support-bundles/:bundleId/download` */
-  supportBundleHead: (params: { path: Api.SupportBundleHeadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
-/** `GET /experimental/v1/system/support-bundles/:bundleId/download/:file` */
-  supportBundleDownloadFile: (params: { path: Api.SupportBundleDownloadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
-/** `HEAD /experimental/v1/system/support-bundles/:bundleId/download/:file` */
-  supportBundleHeadFile: (params: { path: Api.SupportBundleHeadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
-/** `GET /experimental/v1/system/support-bundles/:bundleId/index` */
-  supportBundleIndex: (params: { path: Api.SupportBundleIndexPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `POST /login/:siloName/saml/:providerName` */
   loginSaml: (params: { path: Api.LoginSamlPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/affinity-groups` */
@@ -108,6 +88,10 @@ export interface MSWHandlers {
   alertReceiverSubscriptionAdd: (params: { path: Api.AlertReceiverSubscriptionAddPathParams,  body: Json<Api.AlertSubscriptionCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.AlertSubscriptionCreated>>,
 /** `DELETE /v1/alert-receivers/:receiver/subscriptions/:subscription` */
   alertReceiverSubscriptionRemove: (params: { path: Api.AlertReceiverSubscriptionRemovePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/alerts` */
+  alertList: (params: {  query: Api.AlertListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.AlertResultsPage>>,
+/** `GET /v1/alerts/:alertId` */
+  alertView: (params: { path: Api.AlertViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.Alert>>,
 /** `POST /v1/alerts/:alertId/resend` */
   alertDeliveryResend: (params: { path: Api.AlertDeliveryResendPathParams, query: Api.AlertDeliveryResendQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.AlertDeliveryId>>,
 /** `GET /v1/anti-affinity-groups` */
@@ -562,6 +546,26 @@ export interface MSWHandlers {
   systemSubnetPoolSiloUnlink: (params: { path: Api.SystemSubnetPoolSiloUnlinkPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/subnet-pools/:pool/utilization` */
   systemSubnetPoolUtilizationView: (params: { path: Api.SystemSubnetPoolUtilizationViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SubnetPoolUtilization>>,
+/** `GET /v1/system/support-bundles` */
+  supportBundleList: (params: {  query: Api.SupportBundleListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfoResultsPage>>,
+/** `POST /v1/system/support-bundles` */
+  supportBundleCreate: (params: {   body: Json<Api.SupportBundleCreate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfo>>,
+/** `GET /v1/system/support-bundles/:bundleId` */
+  supportBundleView: (params: { path: Api.SupportBundleViewPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfo>>,
+/** `PUT /v1/system/support-bundles/:bundleId` */
+  supportBundleUpdate: (params: { path: Api.SupportBundleUpdatePathParams,  body: Json<Api.SupportBundleUpdate>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SupportBundleInfo>>,
+/** `DELETE /v1/system/support-bundles/:bundleId` */
+  supportBundleDelete: (params: { path: Api.SupportBundleDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/system/support-bundles/:bundleId/download` */
+  supportBundleDownload: (params: { path: Api.SupportBundleDownloadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `HEAD /v1/system/support-bundles/:bundleId/download` */
+  supportBundleHead: (params: { path: Api.SupportBundleHeadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/system/support-bundles/:bundleId/download/:file` */
+  supportBundleDownloadFile: (params: { path: Api.SupportBundleDownloadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `HEAD /v1/system/support-bundles/:bundleId/download/:file` */
+  supportBundleHeadFile: (params: { path: Api.SupportBundleHeadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+/** `GET /v1/system/support-bundles/:bundleId/index` */
+  supportBundleIndex: (params: { path: Api.SupportBundleIndexPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `POST /v1/system/timeseries/query` */
   systemTimeseriesQuery: (params: {   body: Json<Api.TimeseriesQuery>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.OxqlQueryResult>>,
 /** `GET /v1/system/timeseries/schemas` */
@@ -775,16 +779,6 @@ http.get('/experimental/v1/probes', handler(handlers['probeList'], schema.ProbeL
 http.post('/experimental/v1/probes', handler(handlers['probeCreate'], schema.ProbeCreateParams, schema.ProbeCreate)),
 http.get('/experimental/v1/probes/:probe', handler(handlers['probeView'], schema.ProbeViewParams, null)),
 http.delete('/experimental/v1/probes/:probe', handler(handlers['probeDelete'], schema.ProbeDeleteParams, null)),
-http.get('/experimental/v1/system/support-bundles', handler(handlers['supportBundleList'], schema.SupportBundleListParams, null)),
-http.post('/experimental/v1/system/support-bundles', handler(handlers['supportBundleCreate'], null, schema.SupportBundleCreate)),
-http.get('/experimental/v1/system/support-bundles/:bundleId', handler(handlers['supportBundleView'], schema.SupportBundleViewParams, null)),
-http.put('/experimental/v1/system/support-bundles/:bundleId', handler(handlers['supportBundleUpdate'], schema.SupportBundleUpdateParams, schema.SupportBundleUpdate)),
-http.delete('/experimental/v1/system/support-bundles/:bundleId', handler(handlers['supportBundleDelete'], schema.SupportBundleDeleteParams, null)),
-http.get('/experimental/v1/system/support-bundles/:bundleId/download', handler(handlers['supportBundleDownload'], schema.SupportBundleDownloadParams, null)),
-http.head('/experimental/v1/system/support-bundles/:bundleId/download', handler(handlers['supportBundleHead'], schema.SupportBundleHeadParams, null)),
-http.get('/experimental/v1/system/support-bundles/:bundleId/download/:file', handler(handlers['supportBundleDownloadFile'], schema.SupportBundleDownloadFileParams, null)),
-http.head('/experimental/v1/system/support-bundles/:bundleId/download/:file', handler(handlers['supportBundleHeadFile'], schema.SupportBundleHeadFileParams, null)),
-http.get('/experimental/v1/system/support-bundles/:bundleId/index', handler(handlers['supportBundleIndex'], schema.SupportBundleIndexParams, null)),
 http.post('/login/:siloName/saml/:providerName', handler(handlers['loginSaml'], schema.LoginSamlParams, null)),
 http.get('/v1/affinity-groups', handler(handlers['affinityGroupList'], schema.AffinityGroupListParams, null)),
 http.post('/v1/affinity-groups', handler(handlers['affinityGroupCreate'], schema.AffinityGroupCreateParams, schema.AffinityGroupCreate)),
@@ -803,6 +797,8 @@ http.get('/v1/alert-receivers/:receiver/deliveries', handler(handlers['alertDeli
 http.post('/v1/alert-receivers/:receiver/probe', handler(handlers['alertReceiverProbe'], schema.AlertReceiverProbeParams, null)),
 http.post('/v1/alert-receivers/:receiver/subscriptions', handler(handlers['alertReceiverSubscriptionAdd'], schema.AlertReceiverSubscriptionAddParams, schema.AlertSubscriptionCreate)),
 http.delete('/v1/alert-receivers/:receiver/subscriptions/:subscription', handler(handlers['alertReceiverSubscriptionRemove'], schema.AlertReceiverSubscriptionRemoveParams, null)),
+http.get('/v1/alerts', handler(handlers['alertList'], schema.AlertListParams, null)),
+http.get('/v1/alerts/:alertId', handler(handlers['alertView'], schema.AlertViewParams, null)),
 http.post('/v1/alerts/:alertId/resend', handler(handlers['alertDeliveryResend'], schema.AlertDeliveryResendParams, null)),
 http.get('/v1/anti-affinity-groups', handler(handlers['antiAffinityGroupList'], schema.AntiAffinityGroupListParams, null)),
 http.post('/v1/anti-affinity-groups', handler(handlers['antiAffinityGroupCreate'], schema.AntiAffinityGroupCreateParams, schema.AntiAffinityGroupCreate)),
@@ -1030,6 +1026,16 @@ http.post('/v1/system/subnet-pools/:pool/silos', handler(handlers['systemSubnetP
 http.put('/v1/system/subnet-pools/:pool/silos/:silo', handler(handlers['systemSubnetPoolSiloUpdate'], schema.SystemSubnetPoolSiloUpdateParams, schema.SubnetPoolSiloUpdate)),
 http.delete('/v1/system/subnet-pools/:pool/silos/:silo', handler(handlers['systemSubnetPoolSiloUnlink'], schema.SystemSubnetPoolSiloUnlinkParams, null)),
 http.get('/v1/system/subnet-pools/:pool/utilization', handler(handlers['systemSubnetPoolUtilizationView'], schema.SystemSubnetPoolUtilizationViewParams, null)),
+http.get('/v1/system/support-bundles', handler(handlers['supportBundleList'], schema.SupportBundleListParams, null)),
+http.post('/v1/system/support-bundles', handler(handlers['supportBundleCreate'], null, schema.SupportBundleCreate)),
+http.get('/v1/system/support-bundles/:bundleId', handler(handlers['supportBundleView'], schema.SupportBundleViewParams, null)),
+http.put('/v1/system/support-bundles/:bundleId', handler(handlers['supportBundleUpdate'], schema.SupportBundleUpdateParams, schema.SupportBundleUpdate)),
+http.delete('/v1/system/support-bundles/:bundleId', handler(handlers['supportBundleDelete'], schema.SupportBundleDeleteParams, null)),
+http.get('/v1/system/support-bundles/:bundleId/download', handler(handlers['supportBundleDownload'], schema.SupportBundleDownloadParams, null)),
+http.head('/v1/system/support-bundles/:bundleId/download', handler(handlers['supportBundleHead'], schema.SupportBundleHeadParams, null)),
+http.get('/v1/system/support-bundles/:bundleId/download/:file', handler(handlers['supportBundleDownloadFile'], schema.SupportBundleDownloadFileParams, null)),
+http.head('/v1/system/support-bundles/:bundleId/download/:file', handler(handlers['supportBundleHeadFile'], schema.SupportBundleHeadFileParams, null)),
+http.get('/v1/system/support-bundles/:bundleId/index', handler(handlers['supportBundleIndex'], schema.SupportBundleIndexParams, null)),
 http.post('/v1/system/timeseries/query', handler(handlers['systemTimeseriesQuery'], null, schema.TimeseriesQuery)),
 http.get('/v1/system/timeseries/schemas', handler(handlers['systemTimeseriesSchemaList'], schema.SystemTimeseriesSchemaListParams, null)),
 http.put('/v1/system/update/recovery-finish', handler(handlers['systemUpdateRecoveryFinish'], null, schema.SetTargetReleaseParams)),

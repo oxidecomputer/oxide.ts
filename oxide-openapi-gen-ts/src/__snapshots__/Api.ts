@@ -225,12 +225,10 @@ export type FailureDomain =
  */
 export type AffinityPolicy =
 (
-/** If the affinity request cannot be satisfied, allow it anyway.
-
-This enables a "best-effort" attempt to satisfy the affinity policy. */
+/** Best-effort: instances can start even when the group's constraints cannot be satisfied. */
 | "allow"
 
-/** If the affinity request cannot be satisfied, fail explicitly. */
+/** When the group's constraints cannot be satisfied, an instance start request will fail and the instance will remain stopped. Starting the instance may succeed later if conditions change, e.g., other instances stop. */
 | "fail"
 
 );
@@ -366,6 +364,34 @@ export type AggregateBgpMessageHistory =
 {
 /** BGP history organized by switch. */
 "switchHistories": (SwitchBgpHistory)[],};
+
+/**
+* An alert.
+* 
+* Alerts provide notifications about events that occurred in the system at a point in time. See the guide-level documentation on alerts for details.
+ */
+export type Alert =
+{
+/** The alert's class.
+
+See the guide-level documentation on alerts for details on alert classes. */
+"class": string,
+/** Unique, immutable, system-controlled identifier for each resource */
+"id": string,
+/** The alert's data payload.
+
+The schema for this object depends on the alert class and version. */
+"payload": Record<string, unknown>,
+/** Timestamp when this resource was created */
+"timeCreated": Date,
+/** Timestamp when this resource was last modified */
+"timeModified": Date,
+/** The schema version of this alert's data payload.
+
+Alert schemas are versioned on a per-alert-class basis. The schema version for a particular alert class does not correspond to an Oxide API version. Clients should expect to encounter earlier schema versions when retrieving alerts recorded by an earlier version of the system software.
+
+See the guide-level documentation on alerts for details. */
+"version": number,};
 
 /**
 * An alert class.
@@ -574,6 +600,16 @@ export type AlertReceiverResultsPage =
 {
 /** list of items on this page of results */
 "items": (AlertReceiver)[],
+/** token used to fetch the next page of results (if any) */
+"nextPage"?: string | null,};
+
+/**
+* A single page of results
+ */
+export type AlertResultsPage =
+{
+/** list of items on this page of results */
+"items": (Alert)[],
 /** token used to fetch the next page of results (if any) */
 "nextPage"?: string | null,};
 
@@ -1005,8 +1041,10 @@ export type RouterPeerType =
 "routerLifetime": RouterLifetimeConfig,"type": "unnumbered"
 ,}
 | {
-/** IP address for numbered BGP peers. */
-"ip": string,"type": "numbered"
+/** Optional local IP address to bind when establishing outbound TCP connections to this peer. If `None`, the OS selects the source address. */
+"srcAddr"?: string | null,
+/** Target IP address for numbered BGP peers. */
+"targetAddr": string,"type": "numbered"
 ,}
 );
 
@@ -2898,7 +2936,7 @@ Disk attachments of type "create" will be created, while those of type "attach" 
 
 The order of this list does not guarantee a boot order for the instance. Use the boot_disk attribute to specify a boot disk. When boot_disk is specified it will count against the disk attachment limit. */
 "disks"?: (InstanceDiskAttachment)[],
-/** Enable jumbo frames (8500 byte MTU) on the instance's primary OPTE interface. Requires the fleet-wide jumbo-frames opt-in to be enabled by an operator; otherwise this field must be `false`. Changes only take effect on the next instance restart. */
+/** Enable jumbo frames (8500 byte MTU) on the instance's primary network interface. Requires the fleet-wide jumbo-frames opt-in to be enabled by an operator; otherwise this field must be `false`. Changes only take effect on the next instance restart. */
 "enableJumboFrames"?: boolean,
 /** The external IP addresses provided to this instance.
 
@@ -4020,10 +4058,61 @@ export type Project =
 "timeModified": Date,};
 
 /**
+* Default resources to create in the default subnet
+* 
+* Including this object in the request creates the default subnet. A subnet has no default resources yet, so the object is always empty.
+ */
+export type SubnetCreateDefaults =
+Record<string,unknown>;
+
+/**
+* Default resources to create in a VPC
+* 
+* Each field corresponds to one resource. Set a field to an object to create that resource. Omit it or pass `null` to skip it.
+* 
+* This does not affect the system router, default firewall rules, or default internet gateway, which are always created and do not block deletion of the VPC.
+ */
+export type VpcCreateDefaults =
+{
+/** Create the default subnet. Pass `{}` to create it and omit this field (or pass `null`) to skip it. */
+"subnet"?: SubnetCreateDefaults | null,};
+
+/**
+* Default resources to create in a VPC
+ */
+export type VpcCreateDefaultsSelection =
+(
+/** Create all default resources */
+| {"type": "all"
+,}
+/** Create only the default resources listed in `defaults`. Pass `{}` as `defaults` to skip them all. */
+| {"defaults": VpcCreateDefaults,"type": "explicit"
+,}
+);
+
+/**
+* Default resources to create in a project
+* 
+* Each field corresponds to one resource. Set a field to an object to create that resource. Omit it or pass `null` to skip it.
+ */
+export type ProjectCreateDefaults =
+{
+/** Create the default VPC. Omit this field or pass `null` to skip it.
+
+When present, the value also determines which of the VPC's own defaults to create: `{"type": "all"}` creates all of them, and `{"type": "explicit", "defaults": {...}}` creates only those specified. */
+"vpc"?: VpcCreateDefaultsSelection | null,};
+
+/**
 * Create-time parameters for a `Project`
  */
 export type ProjectCreate =
-{"description": string,"name": Name,};
+{
+/** Default resources to create in the project
+
+Omit this field or pass `null` to create all defaults: currently, a default VPC with its own defaults. Pass an object to specify which resources to create. `{}` creates none.
+
+For example, to create the default VPC but not its default subnet, pass `{"vpc": {"type": "explicit", "defaults": {}}}`. */
+"defaults"?: ProjectCreateDefaults | null,"description": string,"name": Name,};
 
 /**
 * A single page of results
@@ -4372,7 +4461,7 @@ export type Silo =
 "adminGroupName"?: string | null,
 /** Human-readable free-form text about a resource */
 "description": string,
-/** A silo where discoverable is false can be retrieved only by its id - it will not be part of the "list all silos" output. */
+/** A non-discoverable silo can only be retrieved by ID - it will not be part of the "list all silos" output. */
 "discoverable": boolean,
 /** Unique, immutable, system-controlled identifier for each resource */
 "id": string,
@@ -4425,7 +4514,7 @@ export type SiloCreate =
 /** If set, this group will be created during Silo creation and granted the "Silo Admin" role. Identity providers can assert that users belong to this group and those users can log in and further initialize the Silo.
 
 Note that if configuring a SAML based identity provider, group_attribute_name must be set for users to be considered part of a group. See `SamlIdentityProviderCreate` for more information. */
-"adminGroupName"?: string | null,"description": string,"discoverable": boolean,"identityMode": SiloIdentityMode,
+"adminGroupName"?: string | null,"description": string,"identityMode": SiloIdentityMode,
 /** Mapping of which Fleet roles are conferred by each Silo role
 
 The default is that no Fleet roles are conferred by any Silo roles unless there's a corresponding entry in this map. */
@@ -4664,6 +4753,8 @@ export type Sled =
 "policy": SledPolicy,
 /** The rack to which this Sled is currently attached */
 "rackId": string,
+/** The physical slot in the rack where this sled was last observed to be located, or null if its location is not known at this time. */
+"slot"?: number | null,
 /** The current state of the sled. */
 "state": SledState,
 /** Timestamp when this resource was created */
@@ -5282,7 +5373,7 @@ export type SwitchResultsPage =
  */
 export type SystemNetworkingSettings =
 {
-/** When true, end users may opt in to jumbo frames (8500 byte MTU) on the primary interface of an instance. When false, instance-level opt-in is ignored and OPTE ports are created with the default MTU. */
+/** When true, end users may opt in to jumbo frames (8500 byte MTU) on the primary interface of an instance. When false, instance-level opt-in is ignored and the primary interface uses the default MTU. */
 "externalJumboFramesOptInEnabled": boolean,};
 
 /**
@@ -5620,10 +5711,16 @@ export type Vpc =
 * Create-time parameters for a `Vpc`
  */
 export type VpcCreate =
-{"description": string,"dnsName": Name,
+{
+/** Default resources to create in the VPC
+
+Omit this field  or pass `null`  to create all defaults: currently, the default subnet. Pass an object to specify which resources to create. `{}` creates none.
+
+This does not affect the system router, default firewall rules, or default internet gateway, which are always created and do not block deletion of the VPC. */
+"defaults"?: VpcCreateDefaults | null,"description": string,"dnsName": Name,
 /** The IPv6 prefix for this VPC
 
-All IPv6 subnets created from this VPC must be taken from this range, which should be a Unique Local Address in the range `fd00::/48`. The default VPC Subnet will have the first `/64` range from this prefix. */
+All IPv6 subnets created from this VPC must be taken from this range, which should be a Unique Local Address in the range `fd00::/48`. The default subnet, if requested, will take the first `/64` range from this prefix. */
 "ipv6Prefix"?: Ipv6Net | null,"name": Name,};
 
 export type VpcFirewallIcmpFilter =
@@ -6056,46 +6153,6 @@ export interface ProbeDeleteQueryParams {
   project: NameOrId,
 }
 
-export interface SupportBundleListQueryParams {
-  limit?: number | null,
-  pageToken?: string | null,
-  sortBy?: TimeAndIdSortMode,
-}
-
-export interface SupportBundleViewPathParams {
-  bundleId: string,
-}
-
-export interface SupportBundleUpdatePathParams {
-  bundleId: string,
-}
-
-export interface SupportBundleDeletePathParams {
-  bundleId: string,
-}
-
-export interface SupportBundleDownloadPathParams {
-  bundleId: string,
-}
-
-export interface SupportBundleHeadPathParams {
-  bundleId: string,
-}
-
-export interface SupportBundleDownloadFilePathParams {
-  bundleId: string,
-  file: string,
-}
-
-export interface SupportBundleHeadFilePathParams {
-  bundleId: string,
-  file: string,
-}
-
-export interface SupportBundleIndexPathParams {
-  bundleId: string,
-}
-
 export interface LoginSamlPathParams {
   providerName: Name,
   siloName: Name,
@@ -6222,6 +6279,19 @@ export interface AlertReceiverSubscriptionAddPathParams {
 export interface AlertReceiverSubscriptionRemovePathParams {
   receiver: NameOrId,
   subscription: AlertSubscription,
+}
+
+export interface AlertListQueryParams {
+  alertClass?: AlertSubscription,
+  endTime?: Date | null,
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: TimeAndIdSortMode,
+  startTime?: Date | null,
+}
+
+export interface AlertViewPathParams {
+  alertId: string,
 }
 
 export interface AlertDeliveryResendPathParams {
@@ -7525,6 +7595,46 @@ export interface SystemSubnetPoolUtilizationViewPathParams {
   pool: NameOrId,
 }
 
+export interface SupportBundleListQueryParams {
+  limit?: number | null,
+  pageToken?: string | null,
+  sortBy?: TimeAndIdSortMode,
+}
+
+export interface SupportBundleViewPathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleUpdatePathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleDeletePathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleDownloadPathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleHeadPathParams {
+  bundleId: string,
+}
+
+export interface SupportBundleDownloadFilePathParams {
+  bundleId: string,
+  file: string,
+}
+
+export interface SupportBundleHeadFilePathParams {
+  bundleId: string,
+  file: string,
+}
+
+export interface SupportBundleIndexPathParams {
+  bundleId: string,
+}
+
 export interface SystemTimeseriesSchemaListQueryParams {
   limit?: number | null,
   pageToken?: string | null,
@@ -7849,7 +7959,7 @@ export interface ApiConfig {
        * Pulled from info.version in the OpenAPI schema. Sent in the
        * `api-version` header on all requests.
        */
-      apiVersion = "2026073100.0.0";
+      apiVersion = "2026091500.0.0";
 
       constructor({ host = "", baseParams = {}, token }: ApiConfig = {}) {
         this.host = host;
@@ -7974,140 +8084,6 @@ params: FetchParams = {}) => {
            path: `/experimental/v1/probes/${path.probe}`,
            method: "DELETE",
   query,
-  ...params,
-         })
-      },
-/**
-* List all support bundles
- */
-supportBundleList: ({ 
-query = {}, }: {query?: SupportBundleListQueryParams,
-},
-params: FetchParams = {}) => {
-         return this.request<SupportBundleInfoResultsPage>({
-           path: `/experimental/v1/system/support-bundles`,
-           method: "GET",
-  query,
-  ...params,
-         })
-      },
-/**
-* Create support bundle
- */
-supportBundleCreate: ({ 
-body, }: {body: SupportBundleCreate,
-},
-params: FetchParams = {}) => {
-         return this.request<SupportBundleInfo>({
-           path: `/experimental/v1/system/support-bundles`,
-           method: "POST",
-  body,
-  ...params,
-         })
-      },
-/**
-* View support bundle
- */
-supportBundleView: ({ 
-path, }: {path: SupportBundleViewPathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<SupportBundleInfo>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
-           method: "GET",
-  ...params,
-         })
-      },
-/**
-* Update support bundle
- */
-supportBundleUpdate: ({ 
-path, body, }: {path: SupportBundleUpdatePathParams,
-body: SupportBundleUpdate,
-},
-params: FetchParams = {}) => {
-         return this.request<SupportBundleInfo>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
-           method: "PUT",
-  body,
-  ...params,
-         })
-      },
-/**
-* Delete support bundle
- */
-supportBundleDelete: ({ 
-path, }: {path: SupportBundleDeletePathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}`,
-           method: "DELETE",
-  ...params,
-         })
-      },
-/**
-* Download support bundle contents
- */
-supportBundleDownload: ({ 
-path, }: {path: SupportBundleDownloadPathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download`,
-           method: "GET",
-  ...params,
-         })
-      },
-/**
-* Download support bundle metadata
- */
-supportBundleHead: ({ 
-path, }: {path: SupportBundleHeadPathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download`,
-           method: "HEAD",
-  ...params,
-         })
-      },
-/**
-* Download file from support bundle
- */
-supportBundleDownloadFile: ({ 
-path, }: {path: SupportBundleDownloadFilePathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
-           method: "GET",
-  ...params,
-         })
-      },
-/**
-* Download metadata of file in support bundle
- */
-supportBundleHeadFile: ({ 
-path, }: {path: SupportBundleHeadFilePathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
-           method: "HEAD",
-  ...params,
-         })
-      },
-/**
-* Download support bundle index
- */
-supportBundleIndex: ({ 
-path, }: {path: SupportBundleIndexPathParams,
-},
-params: FetchParams = {}) => {
-         return this.request<void>({
-           path: `/experimental/v1/system/support-bundles/${path.bundleId}/index`,
-           method: "GET",
   ...params,
          })
       },
@@ -8370,6 +8346,33 @@ params: FetchParams = {}) => {
          return this.request<void>({
            path: `/v1/alert-receivers/${path.receiver}/subscriptions/${path.subscription}`,
            method: "DELETE",
+  ...params,
+         })
+      },
+/**
+* List alerts
+ */
+alertList: ({ 
+query = {}, }: {query?: AlertListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<AlertResultsPage>({
+           path: `/v1/alerts`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Fetch alert
+ */
+alertView: ({ 
+path, }: {path: AlertViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<Alert>({
+           path: `/v1/alerts/${path.alertId}`,
+           method: "GET",
   ...params,
          })
       },
@@ -11625,6 +11628,140 @@ params: FetchParams = {}) => {
          })
       },
 /**
+* List all support bundles
+ */
+supportBundleList: ({ 
+query = {}, }: {query?: SupportBundleListQueryParams,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfoResultsPage>({
+           path: `/v1/system/support-bundles`,
+           method: "GET",
+  query,
+  ...params,
+         })
+      },
+/**
+* Create support bundle
+ */
+supportBundleCreate: ({ 
+body, }: {body: SupportBundleCreate,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfo>({
+           path: `/v1/system/support-bundles`,
+           method: "POST",
+  body,
+  ...params,
+         })
+      },
+/**
+* View support bundle
+ */
+supportBundleView: ({ 
+path, }: {path: SupportBundleViewPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfo>({
+           path: `/v1/system/support-bundles/${path.bundleId}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Update support bundle
+ */
+supportBundleUpdate: ({ 
+path, body, }: {path: SupportBundleUpdatePathParams,
+body: SupportBundleUpdate,
+},
+params: FetchParams = {}) => {
+         return this.request<SupportBundleInfo>({
+           path: `/v1/system/support-bundles/${path.bundleId}`,
+           method: "PUT",
+  body,
+  ...params,
+         })
+      },
+/**
+* Delete support bundle
+ */
+supportBundleDelete: ({ 
+path, }: {path: SupportBundleDeletePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/support-bundles/${path.bundleId}`,
+           method: "DELETE",
+  ...params,
+         })
+      },
+/**
+* Download support bundle contents
+ */
+supportBundleDownload: ({ 
+path, }: {path: SupportBundleDownloadPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/support-bundles/${path.bundleId}/download`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Download support bundle metadata
+ */
+supportBundleHead: ({ 
+path, }: {path: SupportBundleHeadPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/support-bundles/${path.bundleId}/download`,
+           method: "HEAD",
+  ...params,
+         })
+      },
+/**
+* Download file from support bundle
+ */
+supportBundleDownloadFile: ({ 
+path, }: {path: SupportBundleDownloadFilePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
+* Download metadata of file in support bundle
+ */
+supportBundleHeadFile: ({ 
+path, }: {path: SupportBundleHeadFilePathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/support-bundles/${path.bundleId}/download/${path.file}`,
+           method: "HEAD",
+  ...params,
+         })
+      },
+/**
+* Download support bundle index
+ */
+supportBundleIndex: ({ 
+path, }: {path: SupportBundleIndexPathParams,
+},
+params: FetchParams = {}) => {
+         return this.request<void>({
+           path: `/v1/system/support-bundles/${path.bundleId}/index`,
+           method: "GET",
+  ...params,
+         })
+      },
+/**
 * Run timeseries query
  */
 systemTimeseriesQuery: ({ 
@@ -11784,7 +11921,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* List built-in (system) users in silo
+* List users in silo
  */
 siloUserList: ({ 
 query = {}, }: {query?: SiloUserListQueryParams,
@@ -11798,7 +11935,7 @@ params: FetchParams = {}) => {
          })
       },
 /**
-* Fetch built-in (system) user
+* Fetch user in silo
  */
 siloUserView: ({ 
 path, query, }: {path: SiloUserViewPathParams,
