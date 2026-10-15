@@ -1,4 +1,4 @@
-/**
+/*d
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at https://mozilla.org/MPL/2.0/.
@@ -38,6 +38,20 @@ const dateTime: OpenAPIV3.SchemaObject = {
   type: "string",
   format: "date-time",
 };
+
+const object = (
+  properties: Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>
+): OpenAPIV3.SchemaObject => ({
+  type: "object",
+  properties,
+});
+
+const array = (
+  items: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): OpenAPIV3.ArraySchemaObject => ({
+  type: "array",
+  items,
+});
 
 const okResponse = (
   schema: OpenAPIV3.ReferenceObject | OpenAPIV3.ArraySchemaObject
@@ -83,25 +97,19 @@ test("builds parsers for object, results page, and array success types", async (
   const dateParsers = buildDateParsers(
     spec(
       {
-        Thing: {
-          type: "object",
-          properties: {
-            id: { type: "string" },
-            time_created: dateTime,
-          },
-        },
-        ThingResultsPage: {
-          type: "object",
-          properties: {
-            items: { type: "array", items: ref("Thing") },
-            next_page: { type: "string", nullable: true },
-          },
-        },
+        Thing: object({
+          id: { type: "string" },
+          time_created: dateTime,
+        }),
+        ThingResultsPage: object({
+          items: array(ref("Thing")),
+          next_page: { type: "string", nullable: true },
+        }),
       },
       {
         "/things": { get: get("thing_list", ref("ThingResultsPage")) },
         "/things/all": {
-          get: get("thing_list_all", { type: "array", items: ref("Thing") }),
+          get: get("thing_list_all", array(ref("Thing"))),
         },
       }
     )
@@ -124,10 +132,9 @@ test("parses arrays of date-time strings", async () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        Points: {
-          type: "object",
-          properties: { timestamps: { type: "array", items: dateTime } },
-        },
+        Points: object({
+          timestamps: array(dateTime),
+        }),
       },
       { "/points": { get: get("points_view", ref("Points")) } }
     )
@@ -143,10 +150,7 @@ test("unparseable date-time values get rejected", async () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        Thing: {
-          type: "object",
-          properties: { time_created: dateTime },
-        },
+        Thing: object({ time_created: dateTime }),
       },
       { "/thing": { get: get("thing_view", ref("Thing")) } }
     )
@@ -166,10 +170,7 @@ test("non-string values expected to be datetimes are ignored", async () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        Thing: {
-          type: "object",
-          properties: { actuallyANumber: dateTime },
-        },
+        Thing: object({ actuallyANumber: dateTime }),
       },
       { "/thing": { get: get("thing_view", ref("Thing")) } }
     )
@@ -189,20 +190,14 @@ test("deduplicates schemas with the same date shape", () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        AddressLot: {
-          type: "object",
-          properties: {
-            time_created: dateTime,
-            time_modified: dateTime,
-          },
-        },
-        Project: {
-          type: "object",
-          properties: {
-            time_created: dateTime,
-            time_modified: dateTime,
-          },
-        },
+        AddressLot: object({
+          time_created: dateTime,
+          time_modified: dateTime,
+        }),
+        Project: object({
+          time_created: dateTime,
+          time_modified: dateTime,
+        }),
       },
       {
         "/lots": { get: get("lot_view", ref("AddressLot")) },
@@ -224,14 +219,13 @@ test("skips date-bearing schemas that never appear in a response", () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        TimeFilter: {
-          type: "object",
-          properties: { start_time: dateTime, end_time: dateTime },
-        },
-        Thing: {
-          type: "object",
-          properties: { time_created: dateTime },
-        },
+        TimeFilter: object({
+          start_time: dateTime,
+          end_time: dateTime,
+        }),
+        Thing: object({
+          time_created: dateTime,
+        }),
       },
       {
         "/things": {
@@ -259,22 +253,16 @@ test("handles the Nexus-style oneOf shape where only one variant has dates", asy
       {
         ExternalIp: {
           oneOf: [
-            {
-              type: "object",
-              properties: {
-                kind: { type: "string", enum: ["snat"] },
-                ip: { type: "string" },
-              },
-            },
-            {
-              type: "object",
-              properties: {
-                kind: { type: "string", enum: ["floating"] },
-                ip: { type: "string" },
-                time_created: dateTime,
-                time_modified: dateTime,
-              },
-            },
+            object({
+              kind: { type: "string", enum: ["snat"] },
+              ip: { type: "string" },
+            }),
+            object({
+              kind: { type: "string", enum: ["floating"] },
+              ip: { type: "string" },
+              time_created: dateTime,
+              time_modified: dateTime,
+            }),
           ],
         },
       },
@@ -304,18 +292,18 @@ test("merges union variants whose date fields differ only by schema name", async
   const dateParsers = buildDateParsers(
     spec(
       {
-        Cumulativeint64: {
-          type: "object",
-          properties: { start_time: dateTime, value: { type: "integer" } },
-        },
-        Cumulativedouble: {
-          type: "object",
-          properties: { start_time: dateTime, value: { type: "number" } },
-        },
+        Cumulativeint64: object({
+          start_time: dateTime,
+          value: { type: "integer" },
+        }),
+        Cumulativedouble: object({
+          start_time: dateTime,
+          value: { type: "number" },
+        }),
         Datum: {
           oneOf: [
-            { type: "object", properties: { datum: ref("Cumulativeint64") } },
-            { type: "object", properties: { datum: ref("Cumulativedouble") } },
+            object({ datum: ref("Cumulativeint64") }),
+            object({ datum: ref("Cumulativedouble") }),
           ],
         },
       },
@@ -338,11 +326,8 @@ test("rejects union variants that disagree on a date field's shape", () => {
         {
           Mixed: {
             oneOf: [
-              { type: "object", properties: { when: dateTime } },
-              {
-                type: "object",
-                properties: { when: { type: "array", items: dateTime } },
-              },
+              object({ when: dateTime }),
+              object({ when: array(dateTime) }),
             ],
           },
         },
@@ -363,8 +348,8 @@ test("merges distinct date fields from different union variants", async () => {
       {
         U: {
           oneOf: [
-            { type: "object", properties: { time_created: dateTime } },
-            { type: "object", properties: { time_modified: dateTime } },
+            object({ time_created: dateTime }),
+            object({ time_modified: dateTime }),
           ],
         },
       },
@@ -386,14 +371,8 @@ test("parses mutually recursive date-bearing schemas", async () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        A: {
-          type: "object",
-          properties: { b: ref("B"), time_created: dateTime },
-        },
-        B: {
-          type: "object",
-          properties: { a: ref("A"), time_modified: dateTime },
-        },
+        A: object({ b: ref("B"), time_created: dateTime }),
+        B: object({ a: ref("A"), time_modified: dateTime }),
       },
       { "/a": { get: get("a_view", ref("A")) } }
     )
@@ -424,10 +403,7 @@ test("parses a self-referential schema", async () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        A: {
-          type: "object",
-          properties: { a: ref("A"), time_created: dateTime },
-        },
+        A: object({ a: ref("A"), time_created: dateTime }),
       },
       { "/a": { get: get("a_view", ref("A")) } }
     )
@@ -448,8 +424,8 @@ test("parses a self-referential schema", async () => {
 test("tolerates a reference cycle that carries no dates", () => {
   const dateParsers = buildDateParsers(
     spec({
-      A: { type: "object", properties: { b: ref("B") } },
-      B: { type: "object", properties: { a: ref("A") } },
+      A: object({ b: ref("B") }),
+      B: object({ a: ref("A") }),
     })
   );
 
@@ -464,12 +440,9 @@ test("parses a schema that points into a date-free cycle", async () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        A: {
-          type: "object",
-          properties: { time_created: dateTime, b: ref("B") },
-        },
-        B: { type: "object", properties: { c: ref("C") } },
-        C: { type: "object", properties: { b: ref("B") } },
+        A: object({ time_created: dateTime, b: ref("B") }),
+        B: object({ c: ref("C") }),
+        C: object({ b: ref("B") }),
       },
       { "/a": { get: get("a_view", ref("A")) } }
     )
@@ -487,9 +460,9 @@ test("parses a cycle whose dates sit outside the cycle", async () => {
   const dateParsers = buildDateParsers(
     spec(
       {
-        B: { type: "object", properties: { c: ref("C") } },
-        C: { type: "object", properties: { b: ref("B"), d: ref("D") } },
-        D: { type: "object", properties: { time_created: dateTime } },
+        B: object({ c: ref("C") }),
+        C: object({ b: ref("B"), d: ref("D") }),
+        D: object({ time_created: dateTime }),
       },
       { "/b": { get: get("b_view", ref("B")) } }
     )
@@ -505,6 +478,126 @@ test("parses a cycle whose dates sit outside the cycle", async () => {
   });
 });
 
+test("parses an object nested in an object", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Outer: object({
+          inner: object({ time_created: dateTime, id: { type: "string" } }),
+        }),
+      },
+      { "/outer": { get: get("outer_view", ref("Outer")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Outer");
+  expect(parser({ inner: { timeCreated: iso, id: "x" } })).toEqual({
+    inner: { timeCreated: date, id: "x" },
+  });
+  expect(parser({ inner: null })).toEqual({ inner: null });
+  expect(parser({ inner: {} })).toEqual({ inner: {} });
+  expect(parser({})).toEqual({});
+});
+
+test("parses a multi-member oneOf in an object", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        A: object({ time_created: dateTime }),
+        B: object({ time_modified: dateTime }),
+        Outer: object({ inner: { oneOf: [ref("A"), ref("B")] } }),
+      },
+      { "/outer": { get: get("outer_view", ref("Outer")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Outer");
+  expect(parser({ inner: { timeCreated: iso } })).toEqual({
+    inner: { timeCreated: date },
+  });
+  expect(parser({ inner: { timeModified: iso } })).toEqual({
+    inner: { timeModified: date },
+  });
+  expect(parser({ inner: null })).toEqual({ inner: null });
+});
+
+test("parses arrays of objects", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Outer: object({
+          events: array(object({ time: dateTime })),
+        }),
+      },
+      { "/outer": { get: get("outer_view", ref("Outer")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Outer");
+  expect(parser({ events: [{ time: iso }, { time: null }, {}, null] })).toEqual(
+    {
+      events: [{ time: date }, { time: null }, {}, null],
+    }
+  );
+});
+
+test("parses arrays of arrays (of date-time strings)", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Outer: object({
+          grid: array(array(dateTime)),
+        }),
+      },
+      { "/outer": { get: get("outer_view", ref("Outer")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Outer");
+  expect(parser({ grid: [[iso], [], [iso, iso]] })).toEqual({
+    grid: [[date], [], [date, date]],
+  });
+});
+
+test("parses top-level arrays of objects", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Events: array(object({ time: dateTime })),
+      },
+      { "/events": { get: get("events_view", ref("Events")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Events");
+  expect(parser([{ time: iso }, {}])).toEqual([{ time: date }, {}]);
+});
+
+test("parses objects/arrays in a $ref cycle", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Tree: object({
+          meta: object({ time_created: dateTime, parent: ref("Tree") }),
+          children: array(object({ child: ref("Tree") })),
+        }),
+      },
+      { "/items": { get: get("tree_view", ref("Tree")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Tree");
+  expect(
+    parser({
+      meta: { timeCreated: iso, parent: { meta: { timeCreated: iso } } },
+      children: [{ child: { meta: { timeCreated: iso }, children: [] } }],
+    })
+  ).toEqual({
+    meta: { timeCreated: date, parent: { meta: { timeCreated: date } } },
+    children: [{ child: { meta: { timeCreated: date }, children: [] } }],
+  });
+});
+
 // The one shape that stays fatal: merging a oneOf/allOf means flattening its
 // members' fields into a single set (the generated parsers are type-blind, so
 // there's no way to dispatch per variant), and members that $ref back into a
@@ -515,16 +608,10 @@ test("rejects a union whose flattening cycles", () => {
       spec(
         {
           U: {
-            oneOf: [
-              ref("W"),
-              { type: "object", properties: { time_created: dateTime } },
-            ],
+            oneOf: [ref("W"), object({ time_created: dateTime })],
           },
           W: {
-            oneOf: [
-              ref("U"),
-              { type: "object", properties: { time_modified: dateTime } },
-            ],
+            oneOf: [ref("U"), object({ time_modified: dateTime })],
           },
         },
         { "/u": { get: get("u_view", ref("U")) } }
@@ -542,15 +629,12 @@ test("rejects a union whose flattening cycles", () => {
 test("getSchemasNeedingParser picks all response-reachable date-bearing schemas", () => {
   const s = spec(
     {
-      Root: {
-        type: "object",
-        properties: { w: ref("Wrapper"), name: { type: "string" } },
-      },
-      Wrapper: { type: "object", properties: { d: ref("Dated") } },
-      Dated: { type: "object", properties: { time_created: dateTime } },
-      Plain: { type: "object", properties: { name: { type: "string" } } },
+      Root: object({ w: ref("Wrapper"), name: { type: "string" } }),
+      Wrapper: object({ d: ref("Dated") }),
+      Dated: object({ time_created: dateTime }),
+      Plain: object({ name: { type: "string" } }),
       // we do _not_ care to generate a parser for queries!
-      QueryFilter: { type: "object", properties: { start_time: dateTime } },
+      QueryFilter: object({ start_time: dateTime }),
     },
     {
       "/roots": {
@@ -560,7 +644,7 @@ test("getSchemasNeedingParser picks all response-reachable date-bearing schemas"
             { name: "filter", in: "query", schema: ref("QueryFilter") },
           ],
           responses: {
-            "200": okResponse({ type: "array", items: ref("Root") }),
+            "200": okResponse(array(ref("Root"))),
           },
         },
       },

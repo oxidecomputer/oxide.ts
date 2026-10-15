@@ -424,14 +424,25 @@ export function buildDateParsers(spec: OpenAPIV3.Document): DateParsers {
     return fn;
   };
 
-  /** Name of the function applied to each element of an array. */
+  /** Register a body, deduping. Returns the assigned function name. */
+  const register = (body: string): string => {
+    const existing = nameForBody.get(body);
+    if (existing) return existing;
+    const name = `n${counter++}`;
+    nameForBody.set(body, name);
+    fns.push({ name, body });
+    return name;
+  };
+
+  /** Name of the function applied to an array element or object field. If that
+   * element/field's value is itself an array/object, it has no explicit name,
+   * so we just register it to get one. */
   const elemFn = (node: DateNode): string =>
     match(node)
       .with({ t: "date" }, () => "D")
       .with({ t: "ref" }, ({ name }) => fnFor(name))
-      .otherwise(() => {
-        throw new Error(`Unsupported array element shape '${node.t}'`);
-      });
+      .with({ t: "array" }, { t: "fields" }, () => register(bodyFor(node)))
+      .exhaustive();
 
   /** Source of the function that parses a value with the given node shape. */
   const bodyFor = (node: DateNode): string =>
@@ -442,19 +453,19 @@ export function buildDateParsers(spec: OpenAPIV3.Document): DateParsers {
         throw new Error("ref nodes alias, no body");
       })
       .with({ t: "fields" }, ({ fields }) => {
-        const lines = fields.map(([field, child]) => {
+        const lines = fields.map(([field, value]) => {
           const lhs = `o[${JSON.stringify(field)}]`;
-          if (child.t === "date")
-            return `  if (${lhs} != null) ${lhs} = D(${lhs});`;
-          if (child.t === "array")
-            return `  if (${lhs} != null) ${lhs} = A(${lhs}, ${elemFn(
-              child.elem
-            )});`;
-          if (child.t === "ref")
-            return `  if (${lhs} != null) ${lhs} = ${fnFor(
-              child.name
-            )}(${lhs});`;
-          throw new Error(`Unsupported nested object field shape '${child.t}'`);
+          const transformation = match(value)
+            .with({ t: "date" }, () => `D(${lhs})`)
+            .with({ t: "array" }, ({ elem }) => `A(${lhs}, ${elemFn(elem)})`)
+            .with(
+              { t: "ref" },
+              { t: "fields" },
+              () => `${elemFn(value)}(${lhs})`
+            )
+            .exhaustive();
+
+          return `  if (${lhs} != null) ${lhs} = ${transformation};`;
         });
 
         return `(o: any) => {\n  if (!o) return o;\n${lines.join(
@@ -462,16 +473,6 @@ export function buildDateParsers(spec: OpenAPIV3.Document): DateParsers {
         )}\n  return o;\n}`;
       })
       .exhaustive();
-
-  /** Register a body, deduping. Returns the assigned function name. */
-  const register = (body: string): string => {
-    const existing = nameForBody.get(body);
-    if (existing) return existing;
-    const name = `n${counter++}`;
-    nameForBody.set(body, name);
-    fns.push({ name, body });
-    return name;
-  };
 
   for (const scc of sccs) {
     const cyclic = scc.length > 1 || scanOf(scc[0]).refs.includes(scc[0]);
