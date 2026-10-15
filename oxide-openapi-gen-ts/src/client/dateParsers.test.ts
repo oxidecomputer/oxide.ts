@@ -755,7 +755,7 @@ test("rejects union variants with a plain string where another has a date", () =
       },
     })
   ).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Union member has a non-date string where another member has a date-time, at 'value']`
+    `[Error: Union member could hold a non-date string where another member has a date-time, at 'value']`
   );
 
   // via a $ref member, against an enum
@@ -783,7 +783,7 @@ test("rejects union variants with a plain string where another has a date", () =
         ],
       },
     })
-  ).toThrowError(/non-date string .* at 'inner.at'/);
+  ).toThrowError(/non-date string .* at 'inner'/);
 
   // array elements
   expect(

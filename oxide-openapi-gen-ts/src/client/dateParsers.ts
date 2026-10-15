@@ -99,8 +99,8 @@ type SchemaReducers<R> = {
   object: (fields: [name: string, sub: R][]) => R;
   record: (value: R) => R;
   single: (member: R) => R;
-  /** A multi-member oneOf/allOf. */
-  union: (members: R[]) => R;
+  /** A multi-member oneOf/allOf, with the members' schemas. */
+  union: (members: R[], raw: RefOrSchema[]) => R;
 };
 
 /**
@@ -122,7 +122,7 @@ const foldSchema = <R>(alg: SchemaReducers<R>) => {
       )
       .with({ type: "record" }, ({ values }) => alg.record(go(values)))
       .with({ type: "single" }, ({ item }) => alg.single(go(item)))
-      .with({ type: "union" }, ({ items }) => alg.union(items.map(go)))
+      .with({ type: "union" }, ({ items }) => alg.union(items.map(go), items))
       .exhaustive();
   return go;
 };
@@ -286,11 +286,79 @@ const makeNodeForName = (
       )
       .exhaustive();
 
+  /** Follow $refs and single-member wrappers to the underlying schema. */
+  const resolve = (
+    schema: RefOrSchema | undefined
+  ): OpenAPIV3.SchemaObject | undefined => {
+    // bounded, so a pure alias cycle resolves to "unknown"
+    for (let i = 0; schema && i < 32; i++) {
+      const single = "$ref" in schema ? null : schema.oneOf ?? schema.allOf;
+      if ("$ref" in schema) schema = schemas[refToSchemaName(schema.$ref)];
+      else if (single?.length === 1) schema = single[0];
+      else return schema;
+    }
+    return undefined;
+  };
+
+  /**
+   * Where the merged parser for `node` could run D over a non-date string in
+   * a value of `schema` (one that carries no dates), as a path; null if
+   * nowhere. Errs toward a clash: past a $ref or into a record it doesn't
+   * look, and any object or array there counts.
+   */
+  const clash = (
+    node: DateNode,
+    schema: RefOrSchema | undefined,
+    path: string
+  ): string | null => {
+    const r = resolve(schema);
+    if (!r) return path;
+    for (const alt of r.oneOf ?? r.allOf ?? []) {
+      const at = clash(node, alt, path);
+      if (at !== null) return at;
+    }
+    return (
+      match(node)
+        .with({ t: "date" }, () =>
+          r.type === "string" && r.format !== "date-time" ? path : null
+        )
+        .with({ t: "array" }, ({ elem }) =>
+          r.type === "array" ? clash(elem, r.items, `${path}[]`) : null
+        )
+        .with({ t: "fields" }, ({ fields }) => {
+          // a fields parser only touches the keys it names
+          if (r.type !== "object") return null;
+          if (!r.properties) return path;
+          for (const [name, sub] of Object.entries(r.properties)) {
+            const child = fields.find(([f]) => f === snakeToCamel(name))?.[1];
+            const at = child && clash(child, sub, `${path}.${name}`);
+            if (at) return at;
+          }
+          return null;
+        })
+        // not chased: any value its parser would touch counts
+        .with({ t: "record" }, () => (r.type === "object" ? path : null))
+        .with({ t: "ref" }, ({ name }) => {
+          const target = resolve(schemas[name]);
+          if (target?.type === "string")
+            return r.type === "string" ? path : null;
+          if (target?.type === "array") return r.type === "array" ? path : null;
+          return r.type === "object" ? path : null;
+        })
+        .exhaustive()
+    );
+  };
+
   /**
    * Merge the date fields of a union's members by field name. A field name
-   * shared by two variants has to have the same shape in both.
+   * shared by two variants has to have the same shape in both, and a member
+   * whose field carries no dates mustn't be able to hold a plain string where
+   * another member's field is a date.
    */
-  const mergeFields = (members: (DateNode | null)[]): DateNode | null => {
+  const mergeFields = (
+    members: (DateNode | null)[],
+    raw: RefOrSchema[]
+  ): DateNode | null => {
     const merged = new Map<string, DateNode>();
     members
       .filter((m) => m !== null)
@@ -307,6 +375,23 @@ const makeNodeForName = (
           );
         }
       });
+    // Members whose field has dates were compared above; only fields without
+    // dates (whole members filtered out as null, or one field of a member that
+    // has dates elsewhere) remain.
+    const check = (member: RefOrSchema): void => {
+      const r = resolve(member);
+      (r?.oneOf ?? r?.allOf)?.forEach(check);
+      for (const [name, sub] of Object.entries(r?.properties ?? {})) {
+        const node = merged.get(snakeToCamel(name));
+        const at = node && computeNode(sub) === null && clash(node, sub, name);
+        if (at) {
+          throw new Error(
+            `Union member could hold a non-date string where another member has a date-time, at '${at}'`
+          );
+        }
+      }
+    };
+    raw.forEach(check);
     return merged.size ? { t: "fields", fields: [...merged] } : null;
   };
 
