@@ -21,6 +21,7 @@ type DateNode =
   | { t: "date" } // an ISO string that should become a Date
   | { t: "array"; elem: DateNode } // an array of the same
   | { t: "ref"; name: string } // via a $ref to another schema
+  | { t: "record"; value: DateNode } // every value of a map (additionalProperties)
   | { t: "fields"; fields: [field: string, node: DateNode][] }; // on some object/union
 
 /**
@@ -53,6 +54,7 @@ type SchemaKind =
   | { type: "date-time" }
   | { type: "array"; items: RefOrSchema }
   | { type: "object"; properties: Record<string, RefOrSchema> }
+  | { type: "record"; values: RefOrSchema }
   /** A single-member oneOf/allOf is just that member (dropshot wraps a $ref
    * this way to attach a description). */
   | { type: "single"; item: RefOrSchema }
@@ -68,6 +70,12 @@ const schemaKind = (schema: Schema | undefined): SchemaKind => {
     return { type: "date-time" };
   } else if (schema.type === "array") {
     return { type: "array", items: schema.items };
+  } else if (
+    schema.type === "object" &&
+    Object.keys(schema.properties ?? {}).length === 0 &&
+    typeof schema.additionalProperties === "object"
+  ) {
+    return { type: "record", values: schema.additionalProperties };
   } else if (schema.type === "object" && schema.properties) {
     return { type: "object", properties: schema.properties };
   } else if (schema.oneOf?.length === 1) {
@@ -89,6 +97,7 @@ type SchemaReducers<R> = {
   date: () => R;
   array: (elem: R) => R;
   object: (fields: [name: string, sub: R][]) => R;
+  record: (value: R) => R;
   single: (member: R) => R;
   /** A multi-member oneOf/allOf. */
   union: (members: R[]) => R;
@@ -111,6 +120,7 @@ const foldSchema = <R>(alg: SchemaReducers<R>) => {
           Object.entries(properties).map(([name, sub]) => [name, go(sub)])
         )
       )
+      .with({ type: "record" }, ({ values }) => alg.record(go(values)))
       .with({ type: "single" }, ({ item }) => alg.single(go(item)))
       .with({ type: "union" }, ({ items }) => alg.union(items.map(go)))
       .exhaustive();
@@ -128,6 +138,7 @@ const scanSchema = foldSchema<Scan>({
   date: () => ({ date: true, refs: [] }),
   array: (elem) => elem,
   object: (fields) => mergeScans(fields.map(([, sub]) => sub)),
+  record: (value) => value,
   single: (member) => member,
   union: (members) => mergeScans(members),
 });
@@ -260,6 +271,7 @@ const makeNodeForName = (
     match(node)
       .with({ t: "date" }, () => "date")
       .with({ t: "array" }, ({ elem }) => `array(${dateNodeDebug(elem)})`)
+      .with({ t: "record" }, ({ value }) => `record(${dateNodeDebug(value)})`)
       .with({ t: "ref" }, ({ name }) => {
         const target = nodeForName(name);
         return target ? dateNodeDebug(target) : "null";
@@ -315,6 +327,7 @@ const makeNodeForName = (
       }
       return dated.length ? { t: "fields", fields: dated } : null;
     },
+    record: (value) => (value ? { t: "record", value } : null),
     single: (member) => member,
     union: mergeFields,
   });
@@ -441,7 +454,9 @@ export function buildDateParsers(spec: OpenAPIV3.Document): DateParsers {
     match(node)
       .with({ t: "date" }, () => "D")
       .with({ t: "ref" }, ({ name }) => fnFor(name))
-      .with({ t: "array" }, { t: "fields" }, () => register(bodyFor(node)))
+      .with({ t: "array" }, { t: "fields" }, { t: "record" }, () =>
+        register(bodyFor(node))
+      )
       .exhaustive();
 
   /** Source of the function that parses a value with the given node shape. */
@@ -449,19 +464,24 @@ export function buildDateParsers(spec: OpenAPIV3.Document): DateParsers {
     match(node)
       .with({ t: "date" }, () => "(o: any) => D(o)")
       .with({ t: "array" }, ({ elem }) => `(o: any) => A(o, ${elemFn(elem)})`)
+      .with(
+        { t: "record" },
+        ({ value }) => `(o: any) => R(o, ${elemFn(value)})`
+      )
       .with({ t: "ref" }, () => {
         throw new Error("ref nodes alias, no body");
       })
       .with({ t: "fields" }, ({ fields }) => {
-        const lines = fields.map(([field, value]) => {
+        const lines = fields.map(([field, childNode]) => {
           const lhs = `o[${JSON.stringify(field)}]`;
-          const transformation = match(value)
+          const transformation = match(childNode)
             .with({ t: "date" }, () => `D(${lhs})`)
             .with({ t: "array" }, ({ elem }) => `A(${lhs}, ${elemFn(elem)})`)
+            .with({ t: "record" }, ({ value }) => `R(${lhs}, ${elemFn(value)})`)
             .with(
               { t: "ref" },
               { t: "fields" },
-              () => `${elemFn(value)}(${lhs})`
+              () => `${elemFn(childNode)}(${lhs})`
             )
             .exhaustive();
 
@@ -562,14 +582,21 @@ export function buildDateParsers(spec: OpenAPIV3.Document): DateParsers {
  * shape share one function. \`Api.ts\` passes the right one as \`parseResponse\`.
  */
 
+const R = (v: any, f: (x: any) => any) => {
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    for (const k of Object.keys(v)) v[k] = f(v[k]);
+  }
+  return v;
+};
+
+const A = (v: any, f: (x: any) => any) => (Array.isArray(v) ? v.map(f) : v);
+
 const D = (v: any) => {
   if (typeof v !== "string") return v;
   const d = new Date(v);
   if (isNaN(d.getTime())) throw new Error(\`Expected a valid date string, instead received "\${v}"\`);
   return d;
 };
-
-const A = (v: any, f: (x: any) => any) => (Array.isArray(v) ? v.map(f) : v);
 
 ${decls.join("\n\n")}
 `;

@@ -8,14 +8,21 @@
  * shape share one function. `Api.ts` passes the right one as `parseResponse`.
  */
 
+const R = (v: any, f: (x: any) => any) => {
+  if (v && typeof v === "object" && !Array.isArray(v)) {
+    for (const k of Object.keys(v)) v[k] = f(v[k]);
+  }
+  return v;
+};
+
+const A = (v: any, f: (x: any) => any) => (Array.isArray(v) ? v.map(f) : v);
+
 const D = (v: any) => {
   if (typeof v !== "string") return v;
   const d = new Date(v);
   if (isNaN(d.getTime())) throw new Error(`Expected a valid date string, instead received "${v}"`);
   return d;
 };
-
-const A = (v: any, f: (x: any) => any) => (Array.isArray(v) ? v.map(f) : v);
 
 export const n0 = (o: any) => {
   if (!o) return o;

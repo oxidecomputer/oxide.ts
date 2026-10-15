@@ -46,6 +46,15 @@ const object = (
   properties,
 });
 
+// See {@link schemaToTypes}; objects with no given properties are interpreted
+// as a `Record<string, V>` where `V` is the additionalProperties type.
+const record = (
+  additionalProperties: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
+): OpenAPIV3.SchemaObject => ({
+  type: "object",
+  additionalProperties,
+});
+
 const array = (
   items: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject
 ): OpenAPIV3.ArraySchemaObject => ({
@@ -656,4 +665,71 @@ test("getSchemasNeedingParser picks all response-reachable date-bearing schemas"
   expect(getSchemasNeedingParser(s, schemaNames, scanOf)).toEqual(
     new Set(["Root", "Wrapper", "Dated"])
   );
+});
+
+test("parses date strings of record schemas", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Stamps: record(dateTime),
+        Thing: object({ time_created: dateTime }),
+        Holder: object({
+          name: { type: "string" },
+          things: record(ref("Thing")),
+        }),
+      },
+      {
+        "/stamps": { get: get("stamps_view", ref("Stamps")) },
+        "/holders": {
+          get: get("holder_list", array(ref("Holder"))),
+        },
+      }
+    )
+  );
+
+  const stampsParser = await parserFor(dateParsers, "Stamps");
+  expect(stampsParser({ a: iso, someKey: iso })).toEqual({
+    a: date,
+    someKey: date,
+  });
+
+  const holdersParser = await parserFor(dateParsers, "Holder[]");
+  expect(
+    holdersParser([
+      {
+        name: "h",
+        things: { x: { timeCreated: iso }, y: { timeCreated: iso } },
+      },
+      { name: "empty", things: {} },
+    ])
+  ).toEqual([
+    {
+      name: "h",
+      things: { x: { timeCreated: date }, y: { timeCreated: date } },
+    },
+    { name: "empty", things: {} },
+  ]);
+});
+
+test("merges union variants that share a record field", async () => {
+  const stamps: OpenAPIV3.SchemaObject = record(dateTime);
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        U: {
+          oneOf: [
+            object({ kind: { type: "string", enum: ["a"] }, stamps }),
+            object({ kind: { type: "string", enum: ["b"] }, stamps }),
+          ],
+        },
+      },
+      { "/u": { get: get("u_view", ref("U")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "U");
+  expect(parser({ kind: "b", stamps: { x: iso } })).toEqual({
+    kind: "b",
+    stamps: { x: date },
+  });
 });
