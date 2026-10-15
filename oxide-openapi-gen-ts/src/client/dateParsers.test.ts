@@ -733,3 +733,98 @@ test("merges union variants that share a record field", async () => {
     stamps: { x: date },
   });
 });
+
+test("rejects union variants with a plain string where another has a date", () => {
+  const build = (schemas: OpenAPIV3.ComponentsObject["schemas"]) => () =>
+    buildDateParsers(spec(schemas, { "/u": { get: get("u_view", ref("U")) } }));
+
+  // directly
+  expect(
+    build({
+      U: {
+        oneOf: [
+          object({
+            kind: { type: "string", enum: ["a"] },
+            value: { type: "string" },
+          }),
+          object({
+            kind: { type: "string", enum: ["b"] },
+            value: dateTime,
+          }),
+        ],
+      },
+    })
+  ).toThrowErrorMatchingInlineSnapshot(
+    `[Error: Union member has a non-date string where another member has a date-time, at 'value']`
+  );
+
+  // via a $ref member, against an enum
+  expect(
+    build({
+      Stamped: object({ value: dateTime }),
+      U: {
+        oneOf: [
+          ref("Stamped"),
+          object({ value: { type: "string", enum: ["x", "y"] } }),
+        ],
+      },
+    })
+  ).toThrowError(/non-date string .* at 'value'/);
+
+  // nested: both variants point at objects that disagree on a subfield
+  expect(
+    build({
+      Inner1: object({ at: dateTime }),
+      Inner2: object({ at: { type: "string" } }),
+      U: {
+        oneOf: [
+          object({ inner: ref("Inner1") }),
+          object({ inner: ref("Inner2") }),
+        ],
+      },
+    })
+  ).toThrowError(/non-date string .* at 'inner.at'/);
+
+  // array elements
+  expect(
+    build({
+      U: {
+        oneOf: [
+          object({ at: array(dateTime) }),
+          object({ at: array({ type: "string" }) }),
+        ],
+      },
+    })
+  ).toThrowError(/non-date string .* at 'at\[\]'/);
+});
+
+// This one has an easy concrete example: an oximeter Datum type's datum field
+// could be a boolean, an integer, or a $ref to a schema with a date-time on it
+// (like Cumulativeint64). We need to support that case without allowing a type
+// that's string in one case and date-time string in another.
+test("allows union variants with a scalar where another has a date-bearing object", async () => {
+  const dateParsers = buildDateParsers(
+    spec(
+      {
+        Cumulative: object({
+          start_time: dateTime,
+          value: { type: "integer" },
+        }),
+        Datum: {
+          oneOf: [
+            object({ datum: { type: "string" } }),
+            object({ datum: { type: "number" } }),
+            object({ datum: ref("Cumulative") }),
+          ],
+        },
+      },
+      { "/datum": { get: get("datum_view", ref("Datum")) } }
+    )
+  );
+
+  const parser = await parserFor(dateParsers, "Datum");
+  expect(parser({ datum: "hello" })).toEqual({ datum: "hello" });
+  expect(parser({ datum: { startTime: iso, value: 1 } })).toEqual({
+    datum: { startTime: date, value: 1 },
+  });
+});
