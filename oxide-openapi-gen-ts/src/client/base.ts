@@ -13,6 +13,12 @@ import { refToSchemaName, type Schema } from "../schema/base";
 import { OpenAPIV3 as O } from "openapi-types";
 const HttpMethods = O.HttpMethods;
 
+/** Names of the component schemas referenced anywhere inside `value`. */
+export const schemaRefs = (value: unknown): string[] =>
+  JSON.stringify(value)
+    .match(/#\/components\/schemas\/[a-zA-Z0-9.\-_]+/g)
+    ?.map(refToSchemaName) ?? [];
+
 /**
  * Extract dependency edges from the OpenAPI schema definitions.
  * Maps each schema name to the list of schema names it references.
@@ -21,11 +27,9 @@ export const getSchemaEdges = (
   spec: OpenAPIV3.Document,
 ): Map<string, string[]> =>
   new Map(
-    Object.keys(spec.components?.schemas ?? {}).map((name) => [
+    Object.entries(spec.components?.schemas ?? {}).map(([name, schema]) => [
       name,
-      JSON.stringify(spec.components!.schemas![name])
-        .match(/#\/components\/schemas\/[a-zA-Z0-9.\-_]+/g)
-        ?.map((s) => s.replace("#/components/schemas/", "")) ?? [],
+      schemaRefs(schema),
     ]),
   );
 

@@ -6,7 +6,11 @@
  * Copyright Oxide Computer Company
  */
 
-import { handleResponse, mergeParams } from "./http-client";
+import {
+  handleResponse as handleResponseWith,
+  mergeParams,
+} from "./http-client";
+import { makeProcessResponseBody } from "./util";
 import { describe, expect, it } from "vitest";
 
 const headers = { "Content-Type": "application/json" };
@@ -16,6 +20,10 @@ const json = (body: any, status = 200) =>
   new Response(JSON.stringify(body), { status, headers });
 
 describe("handleResponse", () => {
+  const processBody = makeProcessResponseBody(new Set(["time_created"]));
+  const handleResponse = (response: Response) =>
+    handleResponseWith(response, processBody);
+
   it("handles success", async () => {
     const { response, ...rest } = await handleResponse(json({ abc: 123 }));
     expect(rest).toMatchObject({
@@ -62,7 +70,7 @@ describe("handleResponse", () => {
     expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
-  it("leaves unparseable dates alone", async () => {
+  it("leaves strings that don't look like dates alone", async () => {
     const resp = json({ time_created: "abc" });
     const { response, ...rest } = await handleResponse(resp);
     expect(rest).toMatchObject({
@@ -72,6 +80,19 @@ describe("handleResponse", () => {
       },
     });
     expect(response.headers.get("Content-Type")).toBe("application/json");
+  });
+
+  it("rejects the response when a date key holds an invalid instant", async () => {
+    const body = { time_created: "2023-13-45T99:99:99Z" };
+    const { response, ...rest } = await handleResponse(json(body));
+    expect(rest).toMatchObject({
+      type: "client_error",
+      error: expect.objectContaining({
+        message: 'Invalid date-time for "time_created": "2023-13-45T99:99:99Z"',
+      }),
+      text: JSON.stringify(body),
+    });
+    expect(response.status).toEqual(200);
   });
 });
 

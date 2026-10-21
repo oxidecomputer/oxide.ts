@@ -7,6 +7,7 @@
  */
 
 import type { OpenAPIV3 } from "openapi-types";
+import { mapObj } from "./client/static/util";
 
 const snakeTo = (fn: (w: string, i: number) => string) => (s: string) =>
   s.split("_").map(fn).join("");
@@ -49,6 +50,21 @@ export const topologicalSort = (edges: Map<string, string[]>) => {
   }
 
   return result;
+};
+
+/** Every vertex reachable from `start` (inclusive) by following `edges`. */
+export const reachableFrom = (
+  edges: Map<string, string[]>,
+  start: Iterable<string>,
+): Set<string> => {
+  const seen = new Set<string>();
+  const queue = [...start];
+  for (let v = queue.shift(); v !== undefined; v = queue.shift()) {
+    if (seen.has(v)) continue;
+    seen.add(v);
+    queue.push(...(edges.get(v) ?? []));
+  }
+  return seen;
 };
 
 /**
@@ -116,38 +132,5 @@ export const findCyclicSchemas = (
 
 export const extractDoc = (schema: OpenAPIV3.SchemaObject): string =>
   [schema.title, schema.description].filter((n) => n).join("\n\n");
-
-const isObjectOrArray = (o: unknown) =>
-  typeof o === "object" &&
-  !(o instanceof Date) &&
-  !(o instanceof RegExp) &&
-  !(o instanceof Error) &&
-  o !== null;
-
-/**
- * Recursively map (k, v) pairs using Object.entries
- *
- * Note that value transform function takes both k and v so we can use the key
- * to decide whether to transform the value.
- *
- * @param kf maps key to key
- * @param vf maps key + value to value
- */
-const mapObj =
-  (
-    kf: (k: string) => string,
-    vf: (k: string | undefined, v: unknown) => unknown = (_, v) => v,
-  ) =>
-  (o: unknown): unknown => {
-    if (!isObjectOrArray(o)) return o;
-
-    if (Array.isArray(o)) return o.map(mapObj(kf, vf));
-
-    const newObj: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(o as Record<string, unknown>)) {
-      newObj[kf(k)] = isObjectOrArray(v) ? mapObj(kf, vf)(v) : vf(k, v);
-    }
-    return newObj;
-  };
 
 export const camelify = mapObj(snakeToCamel);

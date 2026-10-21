@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-import { camelToSnake, processResponseBody, isNotNull } from "./util";
+import { camelToSnake, isNotNull } from "./util";
 
 /** Success responses from the API */
 export type ApiSuccess<Data> = {
@@ -60,8 +60,15 @@ function encodeQueryParam(key: string, value: unknown) {
   )}`;
 }
 
+/**
+ * Read the response body as JSON and pass it through `processBody` (in the
+ * generated client, camel-casing keys and parsing dates). Error bodies are
+ * processed the same way. Required so a caller cannot skip date parsing by
+ * accident.
+ */
 export async function handleResponse<Data>(
   response: Response,
+  processBody: (o: unknown) => unknown,
 ): Promise<ApiResult<Data>> {
   const respText = await response.text();
 
@@ -70,8 +77,7 @@ export async function handleResponse<Data>(
   try {
     // don't bother trying to parse empty responses like 204s
     // TODO: is empty object what we want here?
-    respJson =
-      respText.length > 0 ? processResponseBody(JSON.parse(respText)) : {};
+    respJson = respText.length > 0 ? processBody(JSON.parse(respText)) : {};
   } catch (e) {
     return {
       type: "client_error",

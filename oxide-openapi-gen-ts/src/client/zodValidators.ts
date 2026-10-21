@@ -42,7 +42,10 @@ export async function generateZodValidators(
   w(`/* eslint-disable */
 
   import { z, ZodType } from 'zod/v4';
-  import { processResponseBody, uniqueItems } from './util';
+  import { makeProcessResponseBody, uniqueItems } from './util';
+  import { dateKeys } from './Api';
+
+  const processResponseBody = makeProcessResponseBody(dateKeys);
 
   /**
    * Zod only supports string enums at the moment. A previous issue was opened

@@ -15,9 +15,40 @@ import {
   mergeParams,
   toQueryString,
 } from "./http-client";
-import { snakeify } from "./util";
+import { makeProcessResponseBody, snakeify } from "./util";
 
 export type { ApiResult, ErrorBody, ErrorResult } from "./http-client";
+
+/**
+ * Snake-case property names whose values are `date-time` in the OpenAPI
+ * spec. Response bodies have these parsed into `Date`. A name that is also a
+ * plain string somewhere in a response is left out and typed `string` everywhere.
+ */
+export const dateKeys: ReadonlySet<string> = new Set([
+  "auto_restart_cooldown_expiration",
+  "created",
+  "first_seen",
+  "last_seen",
+  "start_time",
+  "start_times",
+  "time_aborted",
+  "time_committed",
+  "time_completed",
+  "time_created",
+  "time_expires",
+  "time_last_auto_restarted",
+  "time_last_step_planned",
+  "time_last_used",
+  "time_modified",
+  "time_requested",
+  "time_run_state_updated",
+  "time_sent",
+  "time_started",
+  "timestamp",
+  "timestamps",
+]);
+
+const processResponseBody = makeProcessResponseBody(dateKeys);
 
 /**
  * An IPv4 subnet
@@ -7817,7 +7848,7 @@ export class Api {
       ...mergeParams(this.baseParams, fetchParams),
       body: JSON.stringify(snakeify(body), dateReplacer),
     };
-    return handleResponse(await fetch(url, init));
+    return handleResponse(await fetch(url, init), processResponseBody);
   }
 
   methods = {

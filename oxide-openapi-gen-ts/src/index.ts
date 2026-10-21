@@ -56,6 +56,14 @@ new Command()
     `Comma-separated list of features (${ALL_FEATURES.join(", ")})`,
     parseFeatures,
   )
+  .option(
+    "--unsound-date-types",
+    "Generate even if a response value typed `string` could arrive as a " +
+      "`Date`. Response dates are parsed by property name, so generation " +
+      "fails if a response record with string values could carry a " +
+      "date-time property name as a key. This flag prints those records as " +
+      "a warning and accepts that risk.",
+  )
   .addHelpText(
     "after",
     "\n" +
@@ -67,6 +75,8 @@ new Command()
     // otherwise the object gets plopped confusingly into the help text
     // fire-and-forget: the process stays alive for the async work, and a
     // rejection surfaces as an unhandled rejection (non-zero exit)
-    void generate(specFile, destDir, opts.features ?? DEFAULT_FEATURES);
+    void generate(specFile, destDir, opts.features ?? DEFAULT_FEATURES, {
+      unsoundDateTypes: opts.unsoundDateTypes ?? false,
+    });
   })
   .parse();

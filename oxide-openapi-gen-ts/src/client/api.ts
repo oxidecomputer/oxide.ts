@@ -115,7 +115,29 @@ function genParamsInterface(
   io.w("}\n");
 }
 
-export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
+/**
+ * Emit the set of date keys the runtime parses into `Date`s, and the response
+ * processor built from it.
+ */
+function genDateKeys(dateKeys: readonly string[], { w }: IO) {
+  w(`/**
+ * Snake-case property names whose values are \`date-time\` in the OpenAPI
+ * spec. Response bodies have these parsed into \`Date\`. A name that is also a
+ * plain string somewhere in a response is left out and typed \`string\` everywhere.
+ */
+export const dateKeys: ReadonlySet<string> = new Set([`);
+  for (const key of dateKeys) w(`  ${JSON.stringify(key)},`);
+  w(`]);
+
+const processResponseBody = makeProcessResponseBody(dateKeys);
+`);
+}
+
+export async function generateApi(
+  spec: OpenAPIV3.Document,
+  destDir: string,
+  dateKeys: readonly string[],
+) {
   if (!spec.components) return;
 
   const outFile = path.resolve(destDir, "Api.ts");
@@ -127,10 +149,12 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
 
     import type { FetchParams, FullParams, ApiResult } from "./http-client";
     import { dateReplacer, handleResponse, mergeParams, toQueryString } from './http-client'
-    import { snakeify } from './util'
+    import { makeProcessResponseBody, snakeify } from './util'
 
     export type { ApiResult, ErrorBody, ErrorResult } from './http-client'
     `);
+
+  genDateKeys(dateKeys, io);
 
   const schemaNames = getSortedSchemas(spec);
   for (const schemaName of schemaNames) {
@@ -226,7 +250,7 @@ export async function generateApi(spec: OpenAPIV3.Document, destDir: string) {
           ...mergeParams(this.baseParams, fetchParams),
           body: JSON.stringify(snakeify(body), dateReplacer),
         };
-        return handleResponse(await fetch(url, init));
+        return handleResponse(await fetch(url, init), processResponseBody);
       }
        
       methods = {`);
