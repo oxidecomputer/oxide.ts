@@ -14,6 +14,9 @@
 
     type HandlerResult<T> = Json<T> | StrictResponse<Json<T>>;
     type StatusCode = number
+    // For endpoints whose response the spec does not describe (binary download,
+    // HEAD, redirect). The handler may need to set headers or a body.
+    type StatusOrResponse = StatusCode | Response
 
     // these are used for turning our nice JS-ified API types back into the original
     // API JSON types (snake cased and dates as strings) for use in our mock API
@@ -39,11 +42,11 @@
   
 export interface MSWHandlers {
 /** `POST /device/auth` */
-  deviceAuthRequest: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  deviceAuthRequest: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `POST /device/confirm` */
   deviceAuthConfirm: (params: {   body: Json<Api.DeviceAuthVerify>, req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `POST /device/token` */
-  deviceAccessToken: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  deviceAccessToken: (params: {    req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `GET /experimental/v1/probes` */
   probeList: (params: {  query: Api.ProbeListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.ProbeInfoResultsPage>>,
 /** `POST /experimental/v1/probes` */
@@ -53,7 +56,7 @@ export interface MSWHandlers {
 /** `DELETE /experimental/v1/probes/:probe` */
   probeDelete: (params: { path: Api.ProbeDeletePathParams, query: Api.ProbeDeleteQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `POST /login/:siloName/saml/:providerName` */
-  loginSaml: (params: { path: Api.LoginSamlPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  loginSaml: (params: { path: Api.LoginSamlPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `GET /v1/affinity-groups` */
   affinityGroupList: (params: {  query: Api.AffinityGroupListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.AffinityGroupResultsPage>>,
 /** `POST /v1/affinity-groups` */
@@ -223,7 +226,7 @@ export interface MSWHandlers {
 /** `GET /v1/instances/:instance/serial-console` */
   instanceSerialConsole: (params: { path: Api.InstanceSerialConsolePathParams, query: Api.InstanceSerialConsoleQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.InstanceSerialConsoleData>>,
 /** `GET /v1/instances/:instance/serial-console/stream` */
-  instanceSerialConsoleStream: (params: { path: Api.InstanceSerialConsoleStreamPathParams, query: Api.InstanceSerialConsoleStreamQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  instanceSerialConsoleStream: (params: { path: Api.InstanceSerialConsoleStreamPathParams, query: Api.InstanceSerialConsoleStreamQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `GET /v1/instances/:instance/ssh-public-keys` */
   instanceSshPublicKeyList: (params: { path: Api.InstanceSshPublicKeyListPathParams, query: Api.InstanceSshPublicKeyListQueryParams,  req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.SshKeyResultsPage>>,
 /** `POST /v1/instances/:instance/start` */
@@ -557,15 +560,15 @@ export interface MSWHandlers {
 /** `DELETE /v1/system/support-bundles/:bundleId` */
   supportBundleDelete: (params: { path: Api.SupportBundleDeletePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
 /** `GET /v1/system/support-bundles/:bundleId/download` */
-  supportBundleDownload: (params: { path: Api.SupportBundleDownloadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  supportBundleDownload: (params: { path: Api.SupportBundleDownloadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `HEAD /v1/system/support-bundles/:bundleId/download` */
-  supportBundleHead: (params: { path: Api.SupportBundleHeadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  supportBundleHead: (params: { path: Api.SupportBundleHeadPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `GET /v1/system/support-bundles/:bundleId/download/:file` */
-  supportBundleDownloadFile: (params: { path: Api.SupportBundleDownloadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  supportBundleDownloadFile: (params: { path: Api.SupportBundleDownloadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `HEAD /v1/system/support-bundles/:bundleId/download/:file` */
-  supportBundleHeadFile: (params: { path: Api.SupportBundleHeadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  supportBundleHeadFile: (params: { path: Api.SupportBundleHeadFilePathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `GET /v1/system/support-bundles/:bundleId/index` */
-  supportBundleIndex: (params: { path: Api.SupportBundleIndexPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusCode>,
+  supportBundleIndex: (params: { path: Api.SupportBundleIndexPathParams,   req: Request, cookies: Record<string, string> }) => Promisable<StatusOrResponse>,
 /** `POST /v1/system/timeseries/query` */
   systemTimeseriesQuery: (params: {   body: Json<Api.TimeseriesQuery>, req: Request, cookies: Record<string, string> }) => Promisable<HandlerResult<Api.OxqlQueryResult>>,
 /** `GET /v1/system/timeseries/schemas` */

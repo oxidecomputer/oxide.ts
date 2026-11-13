@@ -97,6 +97,11 @@ export interface Operation {
   queryParams: Param[];
   bodyType: string | null;
   successType: string | null;
+  /**
+   * The success response is a 204. When false and `successType` is null, the
+   * response is not described by the spec (binary download, HEAD, redirect).
+   */
+  isNoContent: boolean;
   doc: string | undefined;
   isWebSocket: boolean;
 }
@@ -153,6 +158,7 @@ export function getOperations(spec: OpenAPIV3.Document): Operation[] {
         queryParams,
         bodyType: contentRef(conf.requestBody),
         successType: contentRef(getSuccessResponse(conf.responses)),
+        isNoContent: "204" in conf.responses,
         doc: conf.summary || conf.description,
         isWebSocket: "x-dropshot-websocket" in conf,
       });

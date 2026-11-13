@@ -43,6 +43,9 @@ export async function generateMSWHandlers(
 
     type HandlerResult<T> = Json<T> | StrictResponse<Json<T>>;
     type StatusCode = number
+    // For endpoints whose response the spec does not describe (binary download,
+    // HEAD, redirect). The handler may need to set headers or a body.
+    type StatusOrResponse = StatusCode | Response
 
     // these are used for turning our nice JS-ified API types back into the original
     // API JSON types (snake cased and dates as strings) for use in our mock API
@@ -72,7 +75,15 @@ export async function generateMSWHandlers(
   w(`export interface MSWHandlers {`);
   for (const op of operations) {
     const opName = snakeToCamel(op.opId);
-    const { pathParams, queryParams, bodyType, successType, method, path } = op;
+    const {
+      pathParams,
+      queryParams,
+      bodyType,
+      successType,
+      isNoContent,
+      method,
+      path,
+    } = op;
 
     const body =
       bodyType && (method === "post" || method === "put")
@@ -88,7 +99,9 @@ export async function generateMSWHandlers(
 
     const resultType = successType
       ? `Promisable<HandlerResult<Api.${successType}>>`
-      : "Promisable<StatusCode>";
+      : isNoContent
+        ? "Promisable<StatusCode>"
+        : "Promisable<StatusOrResponse>";
 
     w(`/** \`${method.toUpperCase()} ${formatPath(path)}\` */`);
     w(`  ${opName}: (${params}) => ${resultType},`);
