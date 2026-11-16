@@ -14,8 +14,9 @@
 
     type HandlerResult<T> = Json<T> | StrictResponse<Json<T>>;
     type StatusCode = number
-    // For endpoints whose response the spec does not describe (binary download,
-    // HEAD, redirect). The handler may need to set headers or a body.
+    // For endpoints that respond with something other than JSON or a 204 (e.g.,
+    // binary download, HEAD, redirect). The handler can return a Response to
+    // set headers or a body.
     type StatusOrResponse = StatusCode | Response
 
     // these are used for turning our nice JS-ified API types back into the original
