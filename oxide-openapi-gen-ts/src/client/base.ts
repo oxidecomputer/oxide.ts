@@ -98,8 +98,9 @@ export interface Operation {
   bodyType: string | null;
   successType: string | null;
   /**
-   * The success response is a 204. When false and `successType` is null, the
-   * response is not described by the spec (binary download, HEAD, redirect).
+   * True when the success response is a 204. `successType` is null for a
+   * 204, and also for a success response without a JSON schema (e.g.,
+   * binary download, HEAD, redirect).
    */
   isNoContent: boolean;
   doc: string | undefined;
