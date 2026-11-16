@@ -97,16 +97,10 @@ export interface Operation {
   queryParams: Param[];
   bodyType: string | null;
   successType: string | null;
+  /** Key of the success response in the spec, e.g., "200", "204", "default" */
+  successCode: string;
   doc: string | undefined;
   isWebSocket: boolean;
-}
-
-function getSuccessResponse(
-  responses: OpenAPIV3.ResponsesObject,
-): OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject | undefined {
-  return (
-    responses["200"] ?? responses["201"] ?? responses["202"] ?? responses["204"]
-  );
 }
 
 function extractParams(params: OpenAPIV3.ParameterObject[] | undefined): {
@@ -145,6 +139,19 @@ export function getOperations(spec: OpenAPIV3.Document): Operation[] {
         conf.parameters as OpenAPIV3.ParameterObject[] | undefined,
       );
 
+      // Dropshot gives each operation one non-error response. "default" counts
+      // as one: Dropshot emits it alone for handlers that return a raw response
+      // (binary download, HEAD).
+      const [success, ...rest] = Object.entries(conf.responses).filter(
+        ([code]) => !/^[45]/.test(code),
+      );
+      if (!success || rest.length > 0) {
+        throw new Error(
+          `Expected one non-error response for ${conf.operationId}, got ${success ? rest.length + 1 : 0}`,
+        );
+      }
+      const [successCode, successResponse] = success;
+
       operations.push({
         opId: conf.operationId,
         method,
@@ -152,7 +159,8 @@ export function getOperations(spec: OpenAPIV3.Document): Operation[] {
         pathParams,
         queryParams,
         bodyType: contentRef(conf.requestBody),
-        successType: contentRef(getSuccessResponse(conf.responses)),
+        successType: contentRef(successResponse),
+        successCode,
         doc: conf.summary || conf.description,
         isWebSocket: "x-dropshot-websocket" in conf,
       });
