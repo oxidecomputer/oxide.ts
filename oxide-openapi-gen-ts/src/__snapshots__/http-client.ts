@@ -8,11 +8,25 @@
 
 import { camelToSnake, processResponseBody, isNotNull } from "./util";
 
+/**
+ * Recursively mark a type readonly. `Date` is left intact (it's a class, not a
+ * plain data object) and arrays become `ReadonlyArray`. Used to make API
+ * response bodies immutable without touching the request-body types, which
+ * share the same underlying schemas but may be mutated while being built.
+ */
+export type DeepReadonly<T> = T extends Date
+  ? T
+  : T extends (infer U)[]
+    ? ReadonlyArray<DeepReadonly<U>>
+    : T extends object
+      ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+      : T;
+
 /** Success responses from the API */
 export type ApiSuccess<Data> = {
   type: "success";
   response: Response;
-  data: Data;
+  data: DeepReadonly<Data>;
 };
 
 // HACK: this has to match what comes from the API in the `Error` schema. We put
@@ -29,15 +43,17 @@ export type ErrorResult =
   | {
       type: "error";
       response: Response;
-      data: ErrorBody;
+      data: DeepReadonly<ErrorBody>;
     }
   // JSON parsing or processing errors within the client. Includes raised Error
-  // and response body as a string for debugging.
+  // and response body as a string for debugging. `error`/`text` are client-side
+  // values (not an API payload), so there's nothing to deep-freeze — we just
+  // mark the bindings readonly for consistency with the other variants.
   | {
       type: "client_error";
       response: Response;
-      error: Error;
-      text: string;
+      readonly error: Error;
+      readonly text: string;
     };
 
 export type ApiResult<Data> = ApiSuccess<Data> | ErrorResult;
@@ -85,7 +101,7 @@ export async function handleResponse<Data>(
     return {
       type: "error",
       response,
-      data: respJson as ErrorBody,
+      data: respJson as DeepReadonly<ErrorBody>,
     };
   }
 
@@ -93,7 +109,7 @@ export async function handleResponse<Data>(
   return {
     type: "success",
     response,
-    data: respJson as Data,
+    data: respJson as DeepReadonly<Data>,
   };
 }
 
